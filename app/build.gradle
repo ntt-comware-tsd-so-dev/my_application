@@ -1,3 +1,5 @@
+import org.ajoberstar.gradle.git.tasks.*
+
 apply plugin: 'com.android.application'
 
 android {
@@ -22,4 +24,16 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.google.android.gms:play-services:6.5.87'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile project(":libs:Android_AylaLibrary")
+}
+
+
+task cloneGitRepo(type: GitClone) {
+    def destination = file("../libs/Android_AylaLibrary")
+    uri = "https://github.com/AylaNetworks/Android_AylaLibrary_Public.git"
+    destinationPath = destination
+    bare = false
+    enabled = !destination.exists() //to clone only once
 }
