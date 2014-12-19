@@ -29,11 +29,6 @@ import java.util.Set;
 public class SessionManager {
     /** Constants */
 
-    private final static String LOG_TAG = "SessionManager";
-
-    // Ayla library setting keys
-    private final static String AYLA_SETTING_CURRENT_USER = "currentUser";
-
     // Local preferences keys
     public final static String PREFS_PASSWORD = "password";
     public final static String PREFS_USERNAME = "username";
@@ -127,9 +122,11 @@ public class SessionManager {
     /** Initializes and starts a new session, stopping any existing sessions first. */
     public static boolean startSession(SessionParameters params) {
         Log.d(LOG_TAG, "Starting session with parameters:\n" + params);
-        stopSession();
 
-        return getInstance().start();
+        SessionManager sm = getInstance();
+        sm._sessionParameters = new SessionParameters(params);
+
+        return sm.start();
     }
 
     /** Closes network connections and logs out the user */
@@ -150,6 +147,15 @@ public class SessionManager {
     }
 
 
+/**************************************************************************************************/
+
+
+    /** Constants */
+    private final static String LOG_TAG = "SessionManager";
+
+    // Ayla library setting keys
+    private final static String AYLA_SETTING_CURRENT_USER = "currentUser";
+
     /** Private Members */
 
     /** The session manager singleton object */
@@ -168,8 +174,7 @@ public class SessionManager {
     private Set<SessionListener> _sessionListeners;
 
     /** Private constructor. Call startSession instead of creating a SessionManager directly. */
-    private SessionManager(SessionParameters params) {
-        _sessionParameters = new SessionParameters(params);
+    private SessionManager() {
         _sessionListeners = new HashSet<>();
     }
 
@@ -183,7 +188,10 @@ public class SessionManager {
         }
 
         // Initialize the Ayla library
-        AylaNetworks.init(_sessionParameters.context, _sessionParameters.deviceSsidRegex, _sessionParameters.appId);
+        AylaNetworks.init(_sessionParameters.context,
+                          _sessionParameters.deviceSsidRegex,
+                          _sessionParameters.appId);
+
         AylaSystemUtils.loggingLevel = _sessionParameters.loggingLevel;
         AylaSystemUtils.serviceType = _sessionParameters.serviceType;
 
@@ -210,8 +218,12 @@ public class SessionManager {
 
                 // Save the auth info for the user
                 _aylaUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
+                _aylaUser.email = _sessionParameters.username;
+                _aylaUser.password = _sessionParameters.password;
                 _aylaUser = AylaUser.setCurrent(_aylaUser);
                 String userJson = AylaSystemUtils.gson.toJson(_aylaUser, AylaUser.class);
+                AylaSystemUtils.saveSetting(AYLA_SETTING_CURRENT_USER, userJson);
+
                 _aylaUser.password = _sessionParameters.password;
                 AylaCache.clearAll();
                 SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
@@ -250,12 +262,15 @@ public class SessionManager {
         }
 
         // If cached credentials match, use the refresh token
-        if ( user != null && user.email.equals(_sessionParameters.username) && savedPassword.equals(_sessionParameters.password) ) {
+        if ( user != null && user.email != null && user.email.equals(_sessionParameters.username) &&
+             savedPassword.equals(_sessionParameters.password) ) {
             // We have a cached user and password that match. Try to refresh the access token.
             // the refresh token.
+            Log.d(LOG_TAG, "Refreshing access token");
             AylaUser.refreshAccessToken(loginHandler, user.getRefreshToken());
         } else {
             // Normal login
+            Log.d(LOG_TAG, "Normal login");
             AylaUser.login(loginHandler,
                     _sessionParameters.username,
                     _sessionParameters.password,
