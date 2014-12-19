@@ -1,1 +1,1 @@
-include ':libs:Android_AylaLibrary', ':app'
+include ':libraries:Android_AylaLibrary', ':app'
