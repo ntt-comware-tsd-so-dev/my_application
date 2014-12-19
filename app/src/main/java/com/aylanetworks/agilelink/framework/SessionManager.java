@@ -58,6 +58,13 @@ public class SessionManager {
         public Class<? extends AylaDevice> classForDeviceType(String deviceType);
     }
 
+    // Default implementation of the DeviceClassMap: All devices are AylaDevices.
+    public static class DefaultDeviceClassMap implements DeviceClassMap {
+        public Class<? extends AylaDevice> classForDeviceType(String deviceType) {
+            return AylaDevice.class;
+        }
+    }
+
     /** Inner Classes */
 
     /** Class used to provide session parameters. */
@@ -68,7 +75,7 @@ public class SessionManager {
         public String pushNotificationSenderId = "103052998040";
         public String appId = "aMCA-id";
         public String appSecret = "aMCA-9097620";
-        public DeviceClassMap deviceClassMap = null;
+        public DeviceClassMap deviceClassMap = new DefaultDeviceClassMap();
         public String username;
         public String password;
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
