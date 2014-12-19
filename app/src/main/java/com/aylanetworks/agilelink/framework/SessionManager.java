@@ -54,18 +54,11 @@ public class SessionManager {
     }
 
     /** Implementers should create the correct device type based on the provided AylaDevice. */
-    public interface DeviceCreator {
-        public AylaDevice createDevice(AylaDevice device);
+    public interface DeviceClassMap {
+        public Class<? extends AylaDevice> classForDeviceType(String deviceType);
     }
 
     /** Inner Classes */
-
-    /** Default device creator: Simply returns the AylaDevice passed in. */
-    public static final class DefaultDeviceCreator implements DeviceCreator {
-        public AylaDevice createDevice(AylaDevice device) {
-            return device;
-        }
-    }
 
     /** Class used to provide session parameters. */
     public static class SessionParameters {
@@ -75,14 +68,13 @@ public class SessionManager {
         public String pushNotificationSenderId = "103052998040";
         public String appId = "aMCA-id";
         public String appSecret = "aMCA-9097620";
-        public DeviceCreator deviceCreator = null;
+        public DeviceClassMap deviceClassMap = null;
         public String username;
         public String password;
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
 
         public SessionParameters(Context context) {
-            deviceCreator = new DefaultDeviceCreator();
             this.context = context;
         }
 
@@ -94,7 +86,7 @@ public class SessionManager {
             this.pushNotificationSenderId = other.pushNotificationSenderId;
             this.appId = other.appId;
             this.appSecret = other.appSecret;
-            this.deviceCreator = other.deviceCreator;
+            this.deviceClassMap = other.deviceClassMap;
             this.username = other.username;
             this.password = other.password;
             this.serviceType = other.serviceType;
@@ -110,7 +102,7 @@ public class SessionManager {
                     "  senderId: " + pushNotificationSenderId + "\n" +
                     "  appId: " + appId + "\n" +
                     "  appSecret: " + appSecret + "\n" +
-                    "  deviceCreator: " + deviceCreator + "\n" +
+                    "  deviceClassMap: " + deviceClassMap + "\n" +
                     "  username: " + username + "\n" +
                     "  password: " + password + "\n" +
                     "  serviceType: " + serviceType + "\n" +
@@ -141,6 +133,11 @@ public class SessionManager {
         return new SessionParameters(_globalSessionManager._sessionParameters);
     }
 
+    /** Returns the device manager, or null if not logged in yet */
+    public static DeviceManager deviceManager() {
+        return _globalSessionManager._deviceManager;
+    }
+
 
     /** Private Members */
 
@@ -152,6 +149,9 @@ public class SessionManager {
 
     /** The AylaUser object returned on successful login */
     private AylaUser _aylaUser;
+
+    /** The device manager object. Null until the user logs in. */
+    private DeviceManager _deviceManager;
 
     /** Our listeners */
     private Set<SessionListener> _sessionListeners;
@@ -203,6 +203,10 @@ public class SessionManager {
                 editor.putString(PREFS_PASSWORD, _sessionParameters.password);
                 editor.putString(PREFS_USERNAME, _sessionParameters.username);
                 editor.apply();
+
+                // Create the device manager
+                _deviceManager = new DeviceManager();
+                _deviceManager.refreshDeviceList();
 
                 notifyLoginSuccess();
             }
@@ -260,7 +264,7 @@ public class SessionManager {
         if ( _sessionParameters.appVersion == null ) {
             return false;
         }
-        if ( _sessionParameters.deviceCreator == null ) {
+        if ( _sessionParameters.deviceClassMap == null ) {
             return false;
         }
         if ( _sessionParameters.password == null ) {
