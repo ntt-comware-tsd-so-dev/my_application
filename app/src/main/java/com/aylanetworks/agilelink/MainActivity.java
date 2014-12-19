@@ -2,6 +2,11 @@ package com.aylanetworks.agilelink;
 
 import java.util.Locale;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -16,8 +21,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.agilelink.framework.SessionManager;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -41,7 +49,6 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -50,8 +57,56 @@ public class MainActivity extends ActionBarActivity {
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        // Bring up the login dialog
+        loginDialog().show();
     }
 
+    public AlertDialog loginDialog() {
+        final Context c = this;
+        LayoutInflater factory = LayoutInflater.from(c);
+        final View textEntryView = factory.inflate(R.layout.login, null);
+        final AlertDialog.Builder failAlert = new AlertDialog.Builder(c);
+        failAlert.setTitle(R.string.login_failed);
+        failAlert.setNegativeButton(R.string.ok, null);
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(c);
+        alert.setTitle("Login/ Register");
+        alert.setMessage("Please log in");
+        alert.setView(textEntryView);
+        final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
+        final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
+        String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
+
+        usernameInput.setText(savedUsername);
+        passwordInput.setText(savedPassword);
+
+        alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+                // Start the login session
+                SessionManager.SessionParameters params = new SessionManager.SessionParameters(c);
+                params.username = usernameInput.getText().toString();
+                params.password = passwordInput.getText().toString();
+                params.appId = "iNextTurnKitDev-id";
+                params.appSecret = "iNextTurnKitDev-6124332";
+                params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
+
+                // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
+                params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
+                SessionManager.startSession(params);
+            }
+        });
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+
+        return alert.create();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -101,16 +156,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
-                case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
-            }
-            return null;
+            return Integer.toString(position);
         }
     }
 
