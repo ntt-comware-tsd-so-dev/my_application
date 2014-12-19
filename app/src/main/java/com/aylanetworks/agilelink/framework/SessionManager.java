@@ -45,12 +45,19 @@ public class SessionManager {
         public void reachabilityChanged(int reachabilityState);
     }
 
+    public static SessionManager getInstance() {
+        if ( _globalSessionManager == null ) {
+            _globalSessionManager = new SessionManager();
+        }
+        return _globalSessionManager;
+    }
+
     public static void addSessionListener(SessionListener listener) {
-        _globalSessionManager._sessionListeners.add(listener);
+        getInstance()._sessionListeners.add(listener);
     }
 
     public static void removeSessionListener(SessionListener listener) {
-        _globalSessionManager._sessionListeners.remove(listener);
+        getInstance()._sessionListeners.remove(listener);
     }
 
     /** Implementers should create the correct device type based on the provided AylaDevice. */
@@ -120,29 +127,26 @@ public class SessionManager {
     /** Initializes and starts a new session, stopping any existing sessions first. */
     public static boolean startSession(SessionParameters params) {
         Log.d(LOG_TAG, "Starting session with parameters:\n" + params);
-        if ( _globalSessionManager != null ) {
-            stopSession();
-        }
+        stopSession();
 
-        _globalSessionManager = new SessionManager(params);
-        return _globalSessionManager.start();
+        return getInstance().start();
     }
 
     /** Closes network connections and logs out the user */
     public static boolean stopSession() {
-        _globalSessionManager = null;
+        getInstance().stop();
         return true;
     }
 
     /** Returns a copy of the current session parameters */
     public static SessionParameters sessionParameters() {
         // Return a copy. We don't want things changing underneath us.
-        return new SessionParameters(_globalSessionManager._sessionParameters);
+        return new SessionParameters(getInstance()._sessionParameters);
     }
 
     /** Returns the device manager, or null if not logged in yet */
     public static DeviceManager deviceManager() {
-        return _globalSessionManager._deviceManager;
+        return getInstance()._deviceManager;
     }
 
 
@@ -186,6 +190,11 @@ public class SessionManager {
         // Log in
         logIn();
 
+        return true;
+    }
+
+    private boolean stop() {
+        AylaCache.clearAll();
         return true;
     }
 
