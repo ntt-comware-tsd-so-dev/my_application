@@ -13,6 +13,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.device.ALDevice;
 import com.google.gson.JsonElement;
 
 import java.util.HashSet;
@@ -57,14 +58,14 @@ public class SessionManager {
     }
 
     /** Implementers should create the correct device type based on the provided AylaDevice. */
-    public interface DeviceClassMap {
-        public Class<? extends AylaDevice> classForDeviceType(JsonElement deviceElement);
+    public interface DeviceCreator {
+        public ALDevice deviceFromJsonElement(JsonElement deviceElement);
     }
 
     // Default implementation of the DeviceClassMap: All devices are AylaDevices.
-    public static class DefaultDeviceClassMap implements DeviceClassMap {
-        public Class<? extends AylaDevice> classForDeviceType(JsonElement deviceElement) {
-            return AylaDevice.class;
+    public static class DefaultDeviceCreator implements DeviceCreator {
+        public ALDevice deviceFromJsonElement(JsonElement deviceElement) {
+            return AylaSystemUtils.gson.fromJson(deviceElement, ALDevice.class);
         }
     }
 
@@ -78,7 +79,7 @@ public class SessionManager {
         public String pushNotificationSenderId = "103052998040";
         public String appId = "aMCA-id";
         public String appSecret = "aMCA-9097620";
-        public DeviceClassMap deviceClassMap = new DefaultDeviceClassMap();
+        public DeviceCreator _deviceCreator = new DefaultDeviceCreator();
         public String username;
         public String password;
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
@@ -96,7 +97,7 @@ public class SessionManager {
             this.pushNotificationSenderId = other.pushNotificationSenderId;
             this.appId = other.appId;
             this.appSecret = other.appSecret;
-            this.deviceClassMap = other.deviceClassMap;
+            this._deviceCreator = other._deviceCreator;
             this.username = other.username;
             this.password = other.password;
             this.serviceType = other.serviceType;
@@ -112,7 +113,7 @@ public class SessionManager {
                     "  senderId: " + pushNotificationSenderId + "\n" +
                     "  appId: " + appId + "\n" +
                     "  appSecret: " + appSecret + "\n" +
-                    "  deviceClassMap: " + deviceClassMap + "\n" +
+                    "  deviceClassMap: " + _deviceCreator + "\n" +
                     "  username: " + username + "\n" +
                     "  password: " + password + "\n" +
                     "  serviceType: " + serviceType + "\n" +
@@ -296,7 +297,7 @@ public class SessionManager {
         if ( _sessionParameters.appVersion == null ) {
             return false;
         }
-        if ( _sessionParameters.deviceClassMap == null ) {
+        if ( _sessionParameters._deviceCreator == null ) {
             return false;
         }
         if ( _sessionParameters.password == null ) {

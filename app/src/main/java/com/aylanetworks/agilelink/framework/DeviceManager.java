@@ -7,9 +7,9 @@ import android.util.Log;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.agilelink.device.ALDevice;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
@@ -143,8 +143,9 @@ public class DeviceManager {
                 for ( JsonElement element : array ) {
                     Log.d(LOG_TAG, "JSON element: " + element.toString());
                     // Get the correct class to create from the device class map.
-                    Class c = SessionManager.sessionParameters().deviceClassMap.classForDeviceType(element);
-                    _deviceList.add((AylaDevice)AylaSystemUtils.gson.fromJson(element, c));
+                    ALDevice device = SessionManager.sessionParameters()._deviceCreator.deviceFromJsonElement(element);
+                    Log.d(LOG_TAG, "Created device: " + device);
+                    _deviceList.add(device);
                 }
             }
         }

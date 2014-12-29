@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink.device;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,7 +11,7 @@ import com.google.gson.JsonObject;
 /**
  * Created by Brian King on 12/19/14.
  */
-public class ALDeviceClassMap implements SessionManager.DeviceClassMap {
+public class ALDeviceCreator implements SessionManager.DeviceCreator {
     public final static String PRODUCT_CLASS_GATEWAY = "zigbee";
     public final static String MODEL_SMART_PLUG = "Smart_Plug";
     public final static String MODEL_SMART_PLUG_2 = "4256050-ZHAC";
@@ -20,36 +21,36 @@ public class ALDeviceClassMap implements SessionManager.DeviceClassMap {
     public final static String MODEL_MOTION_SENSOR_2 = "Motion_Sens";
     public final static String MODEL_DOOR_SENSOR = "Door_Sensor";
 
-    public Class<? extends AylaDevice> classForDeviceType(JsonElement deviceJson) {
+    public ALDevice deviceFromJsonElement(JsonElement deviceJson) {
 
         JsonObject jsonObject = deviceJson.getAsJsonObject();
 
         // Check to see if this is a gateway device first
         String productClass = jsonObject.get("product_class").getAsString();
         if ( productClass.equals(PRODUCT_CLASS_GATEWAY) ) {
-            return Gateway.class;
+            return AylaSystemUtils.gson.fromJson(deviceJson, Gateway.class);
         }
 
         String deviceType = null;
 
         deviceType = jsonObject.get("model").getAsString();
+        Class cl = ALDevice.class;
 
         if ( deviceType.equals(MODEL_DOOR_SENSOR) )
-            return DoorSensor.class;
+            cl = DoorSensor.class;
         if ( deviceType.equals(MODEL_SMART_PLUG) )
-            return SmartPlug.class;
+            cl = SmartPlug.class;
         if ( deviceType.equals(MODEL_SMART_PLUG_2) )
-            return SmartPlug2.class;
+            cl = SmartPlug2.class;
         if ( deviceType.equals(MODEL_REMOTE_SWITCH) )
-            return RemoteSwitch.class;
+            cl = RemoteSwitch.class;
         if ( deviceType.equals(MODEL_SMART_BULB) )
-            return SmartBulb.class;
+            cl = SmartBulb.class;
         if ( deviceType.equals(MODEL_MOTION_SENSOR) )
-            return MotionSensor.class;
+            cl = MotionSensor.class;
         if ( deviceType.equals(MODEL_MOTION_SENSOR_2) )
-            return MotionSensor2.class;
+            cl = MotionSensor2.class;
 
-        Log.e("ALDeviceClassMap", "Unknown device type " + deviceType + ": Using AylaDevice as a fallback");
-        return AylaDevice.class;
+        return (ALDevice)AylaSystemUtils.gson.fromJson(deviceJson, cl);
     }
 }

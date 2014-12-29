@@ -1,31 +1,25 @@
 package com.aylanetworks.agilelink;
 
-import java.util.Locale;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.agilelink.device.ALDeviceClassMap;
+import com.aylanetworks.agilelink.device.ALDeviceCreator;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 public class MainActivity extends ActionBarActivity {
@@ -94,7 +88,7 @@ public class MainActivity extends ActionBarActivity {
                 params.appId = "iNextTurnKitDev-id";
                 params.appSecret = "iNextTurnKitDev-6124332";
                 params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
-                params.deviceClassMap = new ALDeviceClassMap();
+                params._deviceCreator = new ALDeviceCreator();
 
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
                 params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
