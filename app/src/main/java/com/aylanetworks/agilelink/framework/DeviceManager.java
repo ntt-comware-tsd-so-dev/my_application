@@ -5,6 +5,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.device.ALDevice.DeviceStatusListener;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.device.ALDevice;
 import com.google.gson.JsonArray;
@@ -21,14 +22,10 @@ import java.util.Set;
 /**
  * Created by Brian King on 12/19/14.
  */
-public class DeviceManager {
+public class DeviceManager implements DeviceStatusListener {
     /** Interfaces */
     interface DeviceListListener {
         void deviceListChanged();
-    }
-
-    interface DeviceStatusListener {
-        void deviceStatusChanged(AylaDevice device);
     }
 
     /** Public Methods */
@@ -139,6 +136,9 @@ public class DeviceManager {
         @Override
         public void run() {
             Log.d(LOG_TAG, "Device Status Timer");
+            for ( ALDevice device : _deviceList ) {
+                device.updateStatus(DeviceManager.this);
+            }
             _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
         }
     };
@@ -208,6 +208,12 @@ public class DeviceManager {
         return false;
     }
 
+    /** This is where we are notified when a device's status has been updated. */
+    @Override
+    public void statusUpdated(ALDevice device) {
+        Log.d(LOG_TAG, "Device status updated: " + device);
+    }
+
     // Notifications
     private void notifyDeviceListChanged() {
         Log.d(LOG_TAG, "Device list changed:\n" + _deviceList);
@@ -216,10 +222,10 @@ public class DeviceManager {
         }
     }
 
-    private void notifyDeviceStatusChanged(AylaDevice device) {
+    private void notifyDeviceStatusChanged(ALDevice device) {
         Log.d(LOG_TAG, "Device status changed: " + device);
         for (DeviceStatusListener listener : _deviceStatusListeners) {
-            listener.deviceStatusChanged(device);
+            listener.statusUpdated(device);
         }
     }
 }
