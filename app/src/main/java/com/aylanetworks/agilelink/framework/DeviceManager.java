@@ -145,11 +145,13 @@ public class DeviceManager {
 
     /** Private methods */
 
+    /** Handler called when the list of devices has been obtained from the server. */
     private final Handler _getDevicesHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 // Create our device array
+                Log.i(LOG_TAG, "Device JSON: " + msg.obj);
                 List<ALDevice> newDeviceList = new ArrayList<>();
                 JsonParser parser = new JsonParser();
                 JsonArray array = parser.parse((String)msg.obj).getAsJsonArray();
@@ -169,10 +171,12 @@ public class DeviceManager {
         }
     };
 
+    /** Fetches the list of devices from the server */
     private void fetchDeviceList() {
         AylaDevice.getDevices(_getDevicesHandler);
     }
 
+    /** Returns true if newDeviceList differs from our previous version (_deviceList) */
     private boolean deviceListChanged(List<ALDevice>newDeviceList) {
         if ( _deviceList == null && newDeviceList != null ) {
             return true;

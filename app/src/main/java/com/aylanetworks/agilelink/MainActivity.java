@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
@@ -89,6 +91,7 @@ public class MainActivity extends ActionBarActivity {
                 params.appSecret = "iNextTurnKitDev-6124332";
                 params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
                 params._deviceCreator = new ALDeviceCreator();
+                params.appVersion = getAppVersion();
 
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
                 params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
@@ -102,6 +105,18 @@ public class MainActivity extends ActionBarActivity {
         });
 
         return alert.create();
+    }
+
+    public String getAppVersion() {
+        PackageInfo info = null;
+        try {
+            info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return getString(R.string.unknown_app_version);
+        }
+
+        return info.versionName + "." + info.versionCode;
     }
 
     @Override

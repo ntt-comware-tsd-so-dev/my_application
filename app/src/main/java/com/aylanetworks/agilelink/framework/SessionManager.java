@@ -196,6 +196,11 @@ public class SessionManager {
 
         AylaSystemUtils.loggingLevel = _sessionParameters.loggingLevel;
         AylaSystemUtils.serviceType = _sessionParameters.serviceType;
+        if ( _sessionParameters.loggingLevel != AylaNetworks.AML_LOGGING_LEVEL_NONE ) {
+            AylaSystemUtils.loggingEnabled = AylaNetworks.YES;
+            AylaSystemUtils.loggingInit();
+            AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", LOG_TAG, "version", _sessionParameters.appVersion, "Session Start");
+        }
 
         // Log in
         logIn();
