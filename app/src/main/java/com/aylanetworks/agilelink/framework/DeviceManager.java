@@ -1,6 +1,16 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaSystemUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,7 +37,18 @@ public class DeviceManager {
     }
 
     public void refreshDeviceList() {
-
+        fetchDeviceList();
+    }
+    
+    public void startPolling() {
+        stopPolling();
+        _deviceListTimerHandler.postDelayed(_deviceListTimerRunnable, 0);
+        _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, 0);
+    }
+    
+    public void stopPolling() {
+        _deviceListTimerHandler.removeCallbacksAndMessages(_deviceListTimerRunnable);
+        _deviceStatusTimerHandler.removeCallbacksAndMessages(_deviceStatusTimerRunnable);
     }
 
     // Poll interval methods
@@ -73,9 +94,12 @@ public class DeviceManager {
         _deviceList = new ArrayList<>();
         _deviceListListeners = new HashSet<>();
         _deviceStatusListeners = new HashSet<>();
+
     }
 
     /** Private members */
+
+    private final static String LOG_TAG = "DeviceManager";
 
     private List<AylaDevice> _deviceList;
     private Set<DeviceListListener> _deviceListListeners;
@@ -84,8 +108,53 @@ public class DeviceManager {
     private int _deviceListPollInterval = 30000;
     private int _deviceStatusPollInterval = 5000;
 
+    // Timer handlers and runnables
+
+    private Handler _deviceListTimerHandler = new Handler();
+    private Handler _deviceStatusTimerHandler = new Handler();
+
+    private Runnable _deviceListTimerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(LOG_TAG, "deviceListTimerRunnable");
+            fetchDeviceList();
+            _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
+        }
+    };
+
+    private Runnable _deviceStatusTimerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(LOG_TAG, "deviceStatusTimerRunnable");
+            _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
+        }
+    };
+
     /** Private methods */
 
+    private final Handler _getDevicesHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                // Create our device array
+                _deviceList = new ArrayList<>();
+                JsonParser parser = new JsonParser();
+                JsonArray array = parser.parse((String)msg.obj).getAsJsonArray();
+                for ( JsonElement element : array ) {
+                    Log.d(LOG_TAG, "JSON element: " + element.toString());
+                    // Get the correct class to create from the device class map.
+                    Class c = SessionManager.sessionParameters().deviceClassMap.classForDeviceType(element);
+                    _deviceList.add((AylaDevice)AylaSystemUtils.gson.fromJson(element, c));
+                }
+            }
+        }
+    };
+
+    private void fetchDeviceList() {
+        AylaDevice.getDevices(_getDevicesHandler);
+    }
+
+    // Notifications
     private void notifyDeviceListChanged() {
         for ( DeviceListListener listener : _deviceListListeners ) {
             listener.deviceListChanged();

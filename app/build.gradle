@@ -39,7 +39,7 @@ dependencies {
 task updateGitRepo(dependsOn: 'cloneGitRepo') << {
     def grgit = Grgit.open("../libraries/Android_AylaLibrary")
     grgit.fetch()
-    grgit.checkout(branch: 'gradle-updates')
+    grgit.checkout(branch: 'master')
     grgit.pull()
     println("Ayla library updated")
 }

@@ -13,6 +13,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.google.gson.JsonElement;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -57,12 +58,12 @@ public class SessionManager {
 
     /** Implementers should create the correct device type based on the provided AylaDevice. */
     public interface DeviceClassMap {
-        public Class<? extends AylaDevice> classForDeviceType(String deviceType);
+        public Class<? extends AylaDevice> classForDeviceType(JsonElement deviceElement);
     }
 
     // Default implementation of the DeviceClassMap: All devices are AylaDevices.
     public static class DefaultDeviceClassMap implements DeviceClassMap {
-        public Class<? extends AylaDevice> classForDeviceType(String deviceType) {
+        public Class<? extends AylaDevice> classForDeviceType(JsonElement deviceElement) {
             return AylaDevice.class;
         }
     }
@@ -232,9 +233,9 @@ public class SessionManager {
                 editor.putString(PREFS_USERNAME, _sessionParameters.username);
                 editor.apply();
 
-                // Create the device manager
+                // Create the device manager and have it start polling the device list
                 _deviceManager = new DeviceManager();
-                _deviceManager.refreshDeviceList();
+                _deviceManager.startPolling();
 
                 notifyLoginSuccess();
             }

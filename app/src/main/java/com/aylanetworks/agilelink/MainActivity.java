@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.agilelink.device.ALDeviceClassMap;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 public class MainActivity extends ActionBarActivity {
@@ -93,6 +94,7 @@ public class MainActivity extends ActionBarActivity {
                 params.appId = "iNextTurnKitDev-id";
                 params.appSecret = "iNextTurnKitDev-6124332";
                 params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
+                params.deviceClassMap = new ALDeviceClassMap();
 
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
                 params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;

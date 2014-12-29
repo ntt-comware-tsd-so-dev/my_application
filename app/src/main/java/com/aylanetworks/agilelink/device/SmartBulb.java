@@ -1,9 +1,7 @@
 package com.aylanetworks.agilelink.device;
 
-import com.aylanetworks.aaml.AylaDevice;
-
 /**
  * Created by Brian King on 12/19/14.
  */
-public class SmartBulb extends AylaDevice {
+public class SmartBulb extends ALDevice {
 }
