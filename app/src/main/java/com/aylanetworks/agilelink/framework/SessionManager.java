@@ -182,7 +182,7 @@ public class SessionManager {
 
     /** Private Methods */
 
-    /** Logs in and fetches the initial list of devices */
+    /** Initializes the Ayla library, logs in and begins the session. */
     private boolean start() {
         // First check the session parameters
         if ( !checkParameters() ) {
@@ -194,13 +194,22 @@ public class SessionManager {
                           _sessionParameters.deviceSsidRegex,
                           _sessionParameters.appId);
 
+        // Set up library logging
         AylaSystemUtils.loggingLevel = _sessionParameters.loggingLevel;
         AylaSystemUtils.serviceType = _sessionParameters.serviceType;
         if ( _sessionParameters.loggingLevel != AylaNetworks.AML_LOGGING_LEVEL_NONE ) {
             AylaSystemUtils.loggingEnabled = AylaNetworks.YES;
             AylaSystemUtils.loggingInit();
-            AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", LOG_TAG, "version", _sessionParameters.appVersion, "Session Start");
+            AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", LOG_TAG, "version",
+                    _sessionParameters.appVersion, "Session Start");
         }
+
+        // Set up push notifications
+        PushNotification pushNotification = new PushNotification();
+        pushNotification.init(_sessionParameters.pushNotificationSenderId,
+                _sessionParameters.username,
+                _sessionParameters.appId);
+        Log.d(LOG_TAG, "Pushn notification registration ID: " + PushNotification.registrationId);
 
         // Log in
         logIn();
@@ -233,7 +242,8 @@ public class SessionManager {
 
                 _aylaUser.password = _sessionParameters.password;
                 AylaCache.clearAll();
-                SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
+                SharedPreferences settings =
+                        PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString(PREFS_PASSWORD, _sessionParameters.password);
                 editor.putString(PREFS_USERNAME, _sessionParameters.username);
@@ -260,7 +270,8 @@ public class SessionManager {
 
         // First attempt to update the access token using the refresh token
         String savedUser = AylaSystemUtils.loadSavedSetting(AYLA_SETTING_CURRENT_USER, "");
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
+        SharedPreferences settings =
+                PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
         String savedPassword = settings.getString(PREFS_PASSWORD, "");
 
         AylaUser user = null;
