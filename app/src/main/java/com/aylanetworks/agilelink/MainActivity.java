@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -45,6 +46,8 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final ActionBar actionBar = getActionBar();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -94,7 +97,7 @@ public class MainActivity extends ActionBarActivity {
                 params.appVersion = getAppVersion();
 
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
-                params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
+                params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_NONE;
                 SessionManager.startSession(params);
             }
         });
