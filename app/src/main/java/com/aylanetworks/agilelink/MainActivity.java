@@ -23,6 +23,7 @@ import android.widget.EditText;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.device.ALDeviceCreator;
+import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 public class MainActivity extends ActionBarActivity {
@@ -70,8 +71,8 @@ public class MainActivity extends ActionBarActivity {
         failAlert.setNegativeButton(R.string.ok, null);
 
         AlertDialog.Builder alert = new AlertDialog.Builder(c);
-        alert.setTitle("Login/ Register");
-        alert.setMessage("Please log in");
+        alert.setTitle(getString(R.string.login_register));
+        alert.setMessage(getString(R.string.please_log_in));
         alert.setView(textEntryView);
         final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
         final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
@@ -99,11 +100,6 @@ public class MainActivity extends ActionBarActivity {
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
                 params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_NONE;
                 SessionManager.startSession(params);
-            }
-        });
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                // Canceled.
             }
         });
 
@@ -137,7 +133,9 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            SessionManager.stopSession();
+            loginDialog().show();
             return true;
         }
 
@@ -159,6 +157,9 @@ public class MainActivity extends ActionBarActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
+            if ( position == 0 ) {
+                return AllDevicesFragment.newInstance(AllDevicesFragment.DISPLAY_MODE_ALL);
+            }
             return PlaceholderFragment.newInstance(position + 1);
         }
 
@@ -170,6 +171,9 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
+            if ( position == 0 ) {
+                return getString(R.string.all_devices);
+            }
             return Integer.toString(position);
         }
     }

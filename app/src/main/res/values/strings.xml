@@ -8,4 +8,11 @@
     <string name="login_failed">Login Failed</string>
     <string name="unknown_app_version">Unknown Version</string>
     <string name="ok">OK</string>
+    <string name="all_devices">All Devices</string>
+    <string name="log_out">Log Out</string>
+    <string name="login_register">Login / Register</string>
+    <string name="please_log_in">Please log in</string>
+    <string name="no_devices_found">No Devices Found</string>
+    <string name="open">OPEN</string>
+    <string name="closed">CLOSED</string>
 </resources>

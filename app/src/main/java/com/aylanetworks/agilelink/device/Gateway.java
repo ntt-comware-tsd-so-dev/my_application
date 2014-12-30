@@ -1,13 +1,13 @@
 package com.aylanetworks.agilelink.device;
 
-import com.aylanetworks.agilelink.framework.ALDevice;
+import com.aylanetworks.agilelink.framework.Device;
 
 import java.util.ArrayList;
 
 /**
  * Created by Brian King on 12/22/14.
  */
-public class Gateway extends ALDevice {
+public class Gateway extends Device {
     @Override
     protected ArrayList<String> getPropertyNames() {
         // Get the superclass' property names (probably none)

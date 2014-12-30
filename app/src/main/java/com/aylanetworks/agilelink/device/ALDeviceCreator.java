@@ -1,7 +1,7 @@
 package com.aylanetworks.agilelink.device;
 
 import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.agilelink.framework.ALDevice;
+import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,7 +19,7 @@ public class ALDeviceCreator implements SessionManager.DeviceCreator {
     public final static String MODEL_MOTION_SENSOR_2 = "Motion_Sens";
     public final static String MODEL_DOOR_SENSOR = "Door_Sensor";
 
-    public ALDevice deviceFromJsonElement(JsonElement deviceJson) {
+    public Device deviceFromJsonElement(JsonElement deviceJson) {
 
         JsonObject jsonObject = deviceJson.getAsJsonObject();
 
@@ -32,7 +32,7 @@ public class ALDeviceCreator implements SessionManager.DeviceCreator {
         String deviceType = null;
 
         deviceType = jsonObject.get("model").getAsString();
-        Class cl = ALDevice.class;
+        Class cl = Device.class;
 
         if ( deviceType.equals(MODEL_DOOR_SENSOR) )
             cl = DoorSensor.class;
@@ -49,6 +49,6 @@ public class ALDeviceCreator implements SessionManager.DeviceCreator {
         if ( deviceType.equals(MODEL_MOTION_SENSOR_2) )
             cl = MotionSensor2.class;
 
-        return (ALDevice)AylaSystemUtils.gson.fromJson(deviceJson, cl);
+        return (Device)AylaSystemUtils.gson.fromJson(deviceJson, cl);
     }
 }

@@ -5,7 +5,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.agilelink.framework.ALDevice.DeviceStatusListener;
+import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -23,13 +23,13 @@ import java.util.Set;
  */
 public class DeviceManager implements DeviceStatusListener {
     /** Interfaces */
-    interface DeviceListListener {
+    public interface DeviceListListener {
         void deviceListChanged();
     }
 
     /** Public Methods */
 
-    public List<ALDevice> deviceList() {
+    public List<Device> deviceList() {
         return _deviceList;
     }
 
@@ -37,7 +37,7 @@ public class DeviceManager implements DeviceStatusListener {
         fetchDeviceList();
     }
 
-    public void setComparator(Comparator<ALDevice> comparator) {
+    public void setComparator(Comparator<Device> comparator) {
         _deviceComparator = comparator;
         Collections.sort(_deviceList, _deviceComparator);
     }
@@ -51,6 +51,21 @@ public class DeviceManager implements DeviceStatusListener {
     public void stopPolling() {
         _deviceListTimerHandler.removeCallbacksAndMessages(_deviceListTimerRunnable);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(_deviceStatusTimerRunnable);
+    }
+
+    public void shutDown() {
+        Log.i(LOG_TAG, "Shut down");
+        // Clear out our list of devices, and then notify listeners that the list has changed.
+        // This should cause all listeners to clear any devices they may be displaying
+        _deviceList.clear();
+        notifyDeviceListChanged();
+
+        // Get rid of our listeners.
+        _deviceStatusListeners.clear();
+        _deviceListListeners.clear();
+
+        // Stop polling!
+        stopPolling();
     }
 
     // Poll interval methods
@@ -75,7 +90,12 @@ public class DeviceManager implements DeviceStatusListener {
     // Listener methods
 
     public void addDeviceListListener(DeviceListListener listener) {
+        boolean startTimer = (_deviceListListeners.size() == 0);
         _deviceListListeners.add(listener);
+        if ( startTimer ) {
+            _deviceListTimerHandler.removeCallbacksAndMessages(_deviceListTimerRunnable);
+            _deviceListTimerHandler.postDelayed(_deviceListTimerRunnable, _deviceStatusPollInterval);
+        }
     }
 
     public void removeDeviceListListener(DeviceListListener listener) {
@@ -83,7 +103,12 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     public void addDeviceStatusListener(DeviceStatusListener listener) {
+        boolean startTimer = (_deviceStatusListeners.size() == 0);
         _deviceStatusListeners.add(listener);
+        if ( startTimer ) {
+            _deviceStatusTimerHandler.removeCallbacksAndMessages(_deviceStatusTimerRunnable);
+            _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, _deviceStatusPollInterval);
+        }
     }
 
     public void removeDeviceStatusListener(DeviceStatusListener listener) {
@@ -102,7 +127,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     private final static String LOG_TAG = "DeviceManager";
 
-    private List<ALDevice> _deviceList;
+    private List<Device> _deviceList;
     private Set<DeviceListListener> _deviceListListeners;
     private Set<DeviceStatusListener> _deviceStatusListeners;
 
@@ -110,9 +135,9 @@ public class DeviceManager implements DeviceStatusListener {
     private int _deviceStatusPollInterval = 5000;
 
     // Default comparator uses the device's compareTo method. Can be updated with setComparator().
-    private Comparator<ALDevice> _deviceComparator = new Comparator<ALDevice>() {
+    private Comparator<Device> _deviceComparator = new Comparator<Device>() {
         @Override
-        public int compare(ALDevice lhs, ALDevice rhs) {
+        public int compare(Device lhs, Device rhs) {
             return lhs.compareTo(rhs);
         }
     };
@@ -127,7 +152,13 @@ public class DeviceManager implements DeviceStatusListener {
         public void run() {
             Log.d(LOG_TAG, "Device List Timer");
             fetchDeviceList();
-            _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
+
+            // Only continue polling if somebody is listening
+            if (_deviceListListeners.size() > 0) {
+                _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
+            } else {
+                Log.d(LOG_TAG, "Device List Timer: Nobody listening");
+            }
         }
     };
 
@@ -135,10 +166,17 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void run() {
             Log.d(LOG_TAG, "Device Status Timer");
-            for ( ALDevice device : _deviceList ) {
+            boolean changed = false;
+            for ( Device device : _deviceList ) {
                 device.updateStatus(DeviceManager.this);
             }
-            _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
+
+            // Only continue polling if somebody is listening
+            if ( _deviceStatusListeners.size() > 0 ) {
+                _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
+            } else {
+                Log.d(LOG_TAG, "Device Status Timer: Nobody listening");
+            }
         }
     };
 
@@ -151,13 +189,13 @@ public class DeviceManager implements DeviceStatusListener {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 // Create our device array
                 Log.i(LOG_TAG, "Device JSON: " + msg.obj);
-                List<ALDevice> newDeviceList = new ArrayList<>();
+                List<Device> newDeviceList = new ArrayList<>();
                 JsonParser parser = new JsonParser();
                 JsonArray array = parser.parse((String)msg.obj).getAsJsonArray();
                 for ( JsonElement element : array ) {
                     // Log.d(LOG_TAG, "JSON element: " + element.toString());
                     // Get the correct class to create from the device class map.
-                    ALDevice device = SessionManager.sessionParameters()._deviceCreator.deviceFromJsonElement(element);
+                    Device device = SessionManager.sessionParameters()._deviceCreator.deviceFromJsonElement(element);
                     // Log.d(LOG_TAG, "Created device: " + device);
                     newDeviceList.add(device);
                 }
@@ -176,7 +214,7 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /** Returns true if newDeviceList differs from our previous version (_deviceList) */
-    private boolean deviceListChanged(List<ALDevice>newDeviceList) {
+    private boolean deviceListChanged(List<Device>newDeviceList) {
         if ( _deviceList == null && newDeviceList != null ) {
             return true;
         }
@@ -198,8 +236,8 @@ public class DeviceManager implements DeviceStatusListener {
 
         // See if we're identical
         for ( int i = 0; i < _deviceList.size(); i++ ) {
-            ALDevice dev1 = _deviceList.get(i);
-            ALDevice dev2 = newDeviceList.get(i);
+            Device dev1 = _deviceList.get(i);
+            Device dev2 = newDeviceList.get(i);
             if ( dev1.compareTo(dev2) != 0 ) {
                 return true;
             }
@@ -209,8 +247,9 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** This is where we are notified when a device's status has been updated. */
     @Override
-    public void statusUpdated(ALDevice device) {
+    public void statusUpdated(Device device) {
         Log.d(LOG_TAG, "Device status updated: " + device);
+        notifyDeviceStatusChanged(device);
     }
 
     // Notifications
@@ -221,7 +260,7 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
-    private void notifyDeviceStatusChanged(ALDevice device) {
+    private void notifyDeviceStatusChanged(Device device) {
         Log.d(LOG_TAG, "Device status changed: " + device);
         for (DeviceStatusListener listener : _deviceStatusListeners) {
             listener.statusUpdated(device);

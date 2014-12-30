@@ -57,13 +57,13 @@ public class SessionManager {
 
     /** Implementers should create the correct device type based on the provided AylaDevice. */
     public interface DeviceCreator {
-        public ALDevice deviceFromJsonElement(JsonElement deviceElement);
+        public Device deviceFromJsonElement(JsonElement deviceElement);
     }
 
     // Default implementation of the DeviceClassMap: All devices are AylaDevices.
     public static class DefaultDeviceCreator implements DeviceCreator {
-        public ALDevice deviceFromJsonElement(JsonElement deviceElement) {
-            return AylaSystemUtils.gson.fromJson(deviceElement, ALDevice.class);
+        public Device deviceFromJsonElement(JsonElement deviceElement) {
+            return AylaSystemUtils.gson.fromJson(deviceElement, Device.class);
         }
     }
 
@@ -200,6 +200,8 @@ public class SessionManager {
             AylaSystemUtils.loggingInit();
             AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", LOG_TAG, "version",
                     _sessionParameters.appVersion, "Session Start");
+        } else {
+            AylaSystemUtils.loggingEnabled = AylaNetworks.NO;
         }
 
         // Set up push notifications
@@ -207,7 +209,7 @@ public class SessionManager {
         pushNotification.init(_sessionParameters.pushNotificationSenderId,
                 _sessionParameters.username,
                 _sessionParameters.appId);
-        Log.d(LOG_TAG, "Pushn notification registration ID: " + PushNotification.registrationId);
+        Log.d(LOG_TAG, "Push notification registration ID: " + PushNotification.registrationId);
 
         // Log in
         logIn();
@@ -216,7 +218,12 @@ public class SessionManager {
     }
 
     private boolean stop() {
+        if ( _deviceManager != null ) {
+            _deviceManager.shutDown();
+            _deviceManager = null;
+        }
         AylaCache.clearAll();
+
         return true;
     }
 
