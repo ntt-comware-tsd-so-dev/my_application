@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device;
+package com.aylanetworks.agilelink.framework;
 
 import android.os.Handler;
 import android.os.Message;
@@ -11,7 +11,6 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,16 +36,16 @@ public class ALDevice extends AylaDevice implements Comparable<ALDevice> {
         getProperties(new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                if (msg.what == AylaNetworks.AML_ERROR_OK) {
 
                     // Update our properties
-                    properties = AylaSystemUtils.gson.fromJson((String)msg.obj,
+                    properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
                             AylaProperty[].class);
                     Log.d(LOG_TAG, "Properties for " + productName + ":\n");
-                    for ( AylaProperty prop : properties ) {
+                    for (AylaProperty prop : properties) {
                         Log.d(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
                     }
-                    if ( listener != null ) {
+                    if (listener != null) {
                         listener.statusUpdated(ALDevice.this);
                     }
                 }

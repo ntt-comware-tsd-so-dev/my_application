@@ -1,6 +1,6 @@
 package com.aylanetworks.agilelink.device;
 
-import java.util.ArrayList;
+import com.aylanetworks.agilelink.framework.ALDevice;
 
 /**
  * Created by Brian King on 12/19/14.

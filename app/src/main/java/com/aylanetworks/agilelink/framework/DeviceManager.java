@@ -5,9 +5,8 @@ import android.os.Message;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.agilelink.device.ALDevice.DeviceStatusListener;
+import com.aylanetworks.agilelink.framework.ALDevice.DeviceStatusListener;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.agilelink.device.ALDevice;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;

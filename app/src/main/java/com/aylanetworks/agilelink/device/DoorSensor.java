@@ -1,5 +1,7 @@
 package com.aylanetworks.agilelink.device;
 
+import com.aylanetworks.agilelink.framework.ALDevice;
+
 import java.util.ArrayList;
 
 /**

@@ -8,12 +8,10 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaCache;
-import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.device.ALDevice;
 import com.google.gson.JsonElement;
 
 import java.util.HashSet;
