@@ -94,8 +94,11 @@ public class MainActivity extends ActionBarActivity {
                 params.appId = "iNextTurnKitDev-id";
                 params.appSecret = "iNextTurnKitDev-6124332";
                 params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
-                params._deviceCreator = new ALDeviceCreator();
+                params.deviceCreator = new ALDeviceCreator();
                 params.appVersion = getAppVersion();
+
+                // We want to enable LAN mode in this application
+                params.enableLANMode = true;
 
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
                 params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_NONE;

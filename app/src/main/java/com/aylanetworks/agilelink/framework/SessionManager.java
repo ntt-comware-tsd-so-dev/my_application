@@ -77,9 +77,10 @@ public class SessionManager {
         public String pushNotificationSenderId = "103052998040";
         public String appId = "aMCA-id";
         public String appSecret = "aMCA-9097620";
-        public DeviceCreator _deviceCreator = new DefaultDeviceCreator();
+        public DeviceCreator deviceCreator = new DefaultDeviceCreator();
         public String username;
         public String password;
+        public boolean enableLANMode = false;
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
 
@@ -95,11 +96,12 @@ public class SessionManager {
             this.pushNotificationSenderId = other.pushNotificationSenderId;
             this.appId = other.appId;
             this.appSecret = other.appSecret;
-            this._deviceCreator = other._deviceCreator;
+            this.deviceCreator = other.deviceCreator;
             this.username = other.username;
             this.password = other.password;
             this.serviceType = other.serviceType;
             this.loggingLevel = other.loggingLevel;
+            this.enableLANMode = other.enableLANMode;
         }
 
         @Override
@@ -111,11 +113,13 @@ public class SessionManager {
                     "  senderId: " + pushNotificationSenderId + "\n" +
                     "  appId: " + appId + "\n" +
                     "  appSecret: " + appSecret + "\n" +
-                    "  deviceClassMap: " + _deviceCreator + "\n" +
+                    "  deviceClassMap: " + deviceCreator + "\n" +
                     "  username: " + username + "\n" +
                     "  password: " + password + "\n" +
                     "  serviceType: " + serviceType + "\n" +
-                    "  loggingLevel: " + loggingLevel;
+                    "  loggingLevel: " + loggingLevel + "\n" +
+                    "  enableLANMode: " + enableLANMode +
+                    "\n";
         }
     }
 
@@ -318,7 +322,7 @@ public class SessionManager {
         if ( _sessionParameters.appVersion == null ) {
             return false;
         }
-        if ( _sessionParameters._deviceCreator == null ) {
+        if ( _sessionParameters.deviceCreator == null ) {
             return false;
         }
         if ( _sessionParameters.password == null ) {
