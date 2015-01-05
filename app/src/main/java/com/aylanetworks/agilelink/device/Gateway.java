@@ -26,4 +26,9 @@ public class Gateway extends Device {
 
         return propertyNames;
     }
+
+    @Override
+    public boolean isGateway() {
+        return true;
+    }
 }

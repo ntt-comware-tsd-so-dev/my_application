@@ -76,6 +76,10 @@ public class Device extends AylaDevice implements Comparable<Device> {
         return null;
     }
 
+    public boolean isGateway() {
+        return false;
+    }
+
     @Override
     public String toString() {
         return getModel();
