@@ -101,7 +101,7 @@ public class MainActivity extends ActionBarActivity {
                 params.enableLANMode = true;
 
                 // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
-                params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_NONE;
+                params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
                 SessionManager.startSession(params);
             }
         });
