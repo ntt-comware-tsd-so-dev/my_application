@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device;
+package com.aylanetworks.agilelink.framework;
 
 import android.util.Log;
 

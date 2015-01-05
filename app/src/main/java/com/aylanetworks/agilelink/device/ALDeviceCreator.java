@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.device;
 
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
