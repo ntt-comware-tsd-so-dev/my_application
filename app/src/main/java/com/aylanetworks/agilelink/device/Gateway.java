@@ -1,6 +1,12 @@
 package com.aylanetworks.agilelink.device;
 
+import android.util.Log;
+
+import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.SessionManager;
+import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 
@@ -8,6 +14,8 @@ import java.util.ArrayList;
  * Created by Brian King on 12/22/14.
  */
 public class Gateway extends Device {
+    private final String LOG_TAG = "Gateway";
+
     @Override
     protected ArrayList<String> getPropertyNames() {
         // Get the superclass' property names (probably none)
@@ -30,5 +38,9 @@ public class Gateway extends Device {
     @Override
     public boolean isGateway() {
         return true;
+    }
+
+    public void configureWithJsonElement(JsonElement json) {
+        Log.e(LOG_TAG, "Configure with: " + json.toString());
     }
 }

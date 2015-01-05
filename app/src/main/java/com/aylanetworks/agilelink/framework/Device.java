@@ -55,6 +55,11 @@ public class Device extends AylaDevice implements Comparable<Device> {
                     if (listener != null) {
                         listener.statusUpdated(Device.this);
                     }
+                } else {
+                    Log.e(LOG_TAG, "Failed to get properties for " + getProductName() + ": error " + msg.what);
+                    if ( listener != null ) {
+                        listener.statusUpdated(Device.this);
+                    }
                 }
             }
         }, getPropertyArguments);

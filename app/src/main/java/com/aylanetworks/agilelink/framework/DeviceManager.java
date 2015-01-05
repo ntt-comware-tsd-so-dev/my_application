@@ -47,8 +47,8 @@ public class DeviceManager implements DeviceStatusListener {
     
     public void startPolling() {
         stopPolling();
-        _deviceListTimerHandler.postDelayed(_deviceListTimerRunnable, 0);
-        _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, 0);
+        _deviceListTimerHandler.post(_deviceListTimerRunnable);
+        _deviceStatusTimerHandler.post(_deviceStatusTimerRunnable);
     }
     
     public void stopPolling() {
@@ -180,17 +180,30 @@ public class DeviceManager implements DeviceStatusListener {
             String names[] = notify.names;
             Log.d(LOG_TAG, "lanModeHandler: " + notifyResults);
 
-            if ( type.compareTo("session") == 0 && msg.arg1 > 399 ) {
-                // LAN mode could not be enabled
-                Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
-                _lanModeEnabled = false;
-                notifyLANModeChange();
-            } else {
-                if ( msg.arg1 >= 200 && msg.arg1 < 300 ) {
-                    _lanModeEnabled = true;
-                    Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
+            if ( type.compareTo("session") == 0  ) {
+                if (msg.arg1 > 399) {
+                    // LAN mode could not be enabled
+                    Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
+                    _lanModeEnabled = false;
                     notifyLANModeChange();
+                } else {
+                    if (msg.arg1 >= 200 && msg.arg1 < 300) {
+                        if ( !_lanModeEnabled ) {
+                            _lanModeEnabled = true;
+                            Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
+                            notifyLANModeChange();
+                        } else {
+                            Log.v(LOG_TAG, "Already in LAN mode");
+                        }
+                    } else {
+                        Log.e(LOG_TAG, "Unknown LAN mode \"session\" message: " + msg.what + " " + msg.obj);
+                    }
                 }
+            } else if ( type.compareTo("property") == 0 ) {
+                // Update the device statuses. Something has changed.
+                _deviceStatusTimerHandler.post(_deviceStatusTimerRunnable);
+            } else {
+                Log.e(LOG_TAG, "Unknown LAN mode message: " + msg.what + " " + msg.obj);
             }
         }
     };
@@ -232,7 +245,7 @@ public class DeviceManager implements DeviceStatusListener {
     private Runnable _deviceListTimerRunnable = new Runnable() {
         @Override
         public void run() {
-            Log.d(LOG_TAG, "Device List Timer");
+            Log.v(LOG_TAG, "Device List Timer");
 
             if ( _startingLANMode ) {
                 Log.i(LOG_TAG, "Not querying device list while entering LAN mode");
@@ -246,16 +259,17 @@ public class DeviceManager implements DeviceStatusListener {
                 _deviceListTimerHandler.removeCallbacksAndMessages(null);
                 _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
             } else {
-                Log.d(LOG_TAG, "Device List Timer: Nobody listening");
+                Log.d(LOG_TAG, "Device List Timer: Nobody listening or in LAN mode");
             }
         }
     };
 
+    private ArrayList<Device> _devicesToPoll;
+
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
-            Log.d(LOG_TAG, "Device Status Timer");
-            boolean changed = false;
+            Log.v(LOG_TAG, "Device Status Timer");
 
             // If we're in the process of entering LAN mode, don't query devices yet.
             if ( _startingLANMode ) {
@@ -263,19 +277,50 @@ public class DeviceManager implements DeviceStatusListener {
                 return;
             }
 
-            for ( Device device : _deviceList ) {
-                device.updateStatus(DeviceManager.this);
+            // Update each device via the service. We need to do this one device at a time; the
+            // library does not handle a series of requests all at once at this time.
+            if ( _devicesToPoll == null ) {
+                _devicesToPoll = new ArrayList<Device>(_deviceList);
+                updateNextDeviceStatus();
+            } else {
+                Log.d(LOG_TAG, "Already polling device status. Not doing it again so soon.");
+                Log.v(LOG_TAG, "Waiting for responses from:");
+                for ( Device d : _devicesToPoll ) {
+                    Log.v(LOG_TAG, d.getProductName());
+                }
+
+                // TODO: BSK: Should we really be trying again here?
+                Log.w(LOG_TAG, "Canceling pending list!");
+                _devicesToPoll = new ArrayList<Device>(_deviceList);
+                updateNextDeviceStatus();
             }
 
-            // Only continue polling if somebody is listening
-            if ( _deviceStatusListeners.size() > 0 ) {
+            // Only continue polling if we're not in LAN mode and somebody is listening
+            if ( !isLanModeEnabled() && _deviceStatusListeners.size() > 0 ) {
                 _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
                 _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
             } else {
-                Log.d(LOG_TAG, "Device Status Timer: Nobody listening");
+                Log.d(LOG_TAG, "Device Status Timer: Nobody listening or in LAN mode");
             }
         }
     };
+
+    private void updateNextDeviceStatus() {
+        Log.v(LOG_TAG, "updateNextDeviceStatus");
+        if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
+            // We're done.
+            _devicesToPoll = null;
+            Log.v(LOG_TAG, "No more devices to poll");
+            return;
+        }
+
+        Device d = _devicesToPoll.remove(0);
+        Log.v(LOG_TAG, "Updating status for " + d.productName);
+        if ( _devicesToPoll.size() == 0 ) {
+            _devicesToPoll = null;
+        }
+        d.updateStatus(this);
+    }
 
     /** Private methods */
 
@@ -285,7 +330,7 @@ public class DeviceManager implements DeviceStatusListener {
         public void handleMessage(Message msg) {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 // Create our device array
-                Log.i(LOG_TAG, "Device JSON: " + msg.obj);
+                Log.v(LOG_TAG, "Device list JSON: " + msg.obj);
                 List<Device> newDeviceList = new ArrayList<>();
                 JsonParser parser = new JsonParser();
                 JsonArray array = parser.parse((String)msg.obj).getAsJsonArray();
@@ -353,6 +398,9 @@ public class DeviceManager implements DeviceStatusListener {
     public void statusUpdated(Device device) {
         Log.d(LOG_TAG, "Device status updated: " + device);
         notifyDeviceStatusChanged(device);
+        if ( _devicesToPoll != null ) {
+            updateNextDeviceStatus();
+        }
     }
 
     // Notifications

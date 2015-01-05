@@ -187,6 +187,11 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void reachabilityChanged(int reachabilityState) {
+        Log.v(LOG_TAG, "Reachability changed: " + reachabilityState);
+    }
 
+    @Override
+    public void lanModeChanged(boolean lanModeEnabled) {
+        Log.v(LOG_TAG, "lanModeChanged: " + (lanModeEnabled ? "ENABLED" : "DISABLED"));
     }
 }

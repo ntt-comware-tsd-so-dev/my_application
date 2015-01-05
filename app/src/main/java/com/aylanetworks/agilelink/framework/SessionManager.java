@@ -38,6 +38,7 @@ public class SessionManager {
     public interface SessionListener {
         public void loginStateChanged(boolean loggedIn, AylaUser aylaUser);
         public void reachabilityChanged(int reachabilityState);
+        public void lanModeChanged(boolean lanModeEnabled);
     }
 
     public static SessionManager getInstance() {
@@ -113,7 +114,7 @@ public class SessionManager {
                     "  senderId: " + pushNotificationSenderId + "\n" +
                     "  appId: " + appId + "\n" +
                     "  appSecret: " + appSecret + "\n" +
-                    "  deviceClassMap: " + deviceCreator + "\n" +
+                    "  deviceCreator: " + deviceCreator + "\n" +
                     "  username: " + username + "\n" +
                     "  password: " + password + "\n" +
                     "  serviceType: " + serviceType + "\n" +

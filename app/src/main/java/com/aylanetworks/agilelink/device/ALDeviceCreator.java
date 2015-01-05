@@ -23,10 +23,13 @@ public class ALDeviceCreator implements SessionManager.DeviceCreator {
 
         JsonObject jsonObject = deviceJson.getAsJsonObject();
 
-        // Check to see if this is a gateway device first
+        // Check to see if this is a gateway device first. It needs additional
+        // initialization.
         String productClass = jsonObject.get("product_class").getAsString();
         if ( productClass.equals(PRODUCT_CLASS_GATEWAY) ) {
-            return AylaSystemUtils.gson.fromJson(deviceJson, Gateway.class);
+            Gateway gw = AylaSystemUtils.gson.fromJson(deviceJson, Gateway.class);
+            gw.configureWithJsonElement(deviceJson);
+            return gw;
         }
 
         String deviceType = null;
