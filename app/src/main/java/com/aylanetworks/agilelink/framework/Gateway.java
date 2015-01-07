@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink.framework;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceGateway;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -18,6 +19,10 @@ public class Gateway extends Device {
 
     public Gateway(AylaDevice aylaDevice) {
         super(aylaDevice);
+    }
+
+    public AylaDeviceGateway getGatewayDevice() {
+        return (AylaDeviceGateway)getDevice();
     }
 
     @Override

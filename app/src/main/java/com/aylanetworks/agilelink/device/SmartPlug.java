@@ -1,6 +1,12 @@
 package com.aylanetworks.agilelink.device;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.agilelink.AgileLinkApplication;
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
 import java.util.ArrayList;
@@ -9,8 +15,23 @@ import java.util.ArrayList;
  * Created by Brian King on 12/19/14.
  */
 public class SmartPlug extends Device {
+    private final static String LOG_TAG = "SmartPlug";
+    private final static String PROPERTY_SWITCH_ON = "1_in_0x0006_0x0000";
+    private final static int SWITCH_ON = 1;
+
     public SmartPlug(AylaDevice aylaDevice) {
         super(aylaDevice);
+    }
+
+    public boolean isOn() {
+        AylaProperty onProp = getProperty(PROPERTY_SWITCH_ON);
+        if ( onProp != null && onProp.value != null ) {
+            return (Integer.parseInt(onProp.value) == SWITCH_ON);
+        }
+        // Unknown
+        Log.i(LOG_TAG, "No property value for SWITCH_ON!");
+        return false;
+
     }
 
     @Override
@@ -19,11 +40,15 @@ public class SmartPlug extends Device {
         ArrayList<String> propertyNames = super.getPropertyNames();
 
         // Add our own
-        propertyNames.add("1_in_0x0001_0x0010");
-        propertyNames.add("1_in_0x0001_0x0021");
-        propertyNames.add("1_out_0x0006_0x0000");
-        propertyNames.add("1_profile_id");
+        propertyNames.add(PROPERTY_SWITCH_ON);
 
         return propertyNames;
+    }
+
+    @Override
+    public String toString() {
+        Context c = AgileLinkApplication.getAppContext();
+        String open = isOn() ? c.getString(R.string.on) : c.getString(R.string.off);
+        return super.toString() + " " + open;
     }
 }

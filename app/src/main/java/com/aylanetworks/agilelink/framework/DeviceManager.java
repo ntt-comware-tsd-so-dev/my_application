@@ -199,7 +199,7 @@ public class DeviceManager implements DeviceStatusListener {
                         Log.e(LOG_TAG, "Unknown LAN mode \"session\" message: " + msg.what + " " + msg.obj);
                     }
                 }
-            } else if ( type.compareTo("property") == 0 ) {
+            } else if ( type.compareTo("property") == 0 || type.compareTo("node") == 0 ) {
                 // Update the device statuses. Something has changed.
                 _deviceStatusTimerHandler.post(_deviceStatusTimerRunnable);
             } else {
@@ -226,7 +226,7 @@ public class DeviceManager implements DeviceStatusListener {
         _startingLANMode = true;
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
-        if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {
+        if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ) {
             // Enable LAN mode on the gateway, if present
             Device gateway = getGatewayDevice();
             if ( gateway != null ) {
@@ -234,6 +234,9 @@ public class DeviceManager implements DeviceStatusListener {
             } else {
                 Log.e(LOG_TAG, "Can't enable LAN mode without a gateway!");
             }
+        } else {
+            Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.lanModeState + " - not entering LAN mode");
+            _startingLANMode = false;
         }
     }
 

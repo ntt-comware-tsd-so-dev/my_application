@@ -15,4 +15,6 @@
     <string name="no_devices_found">No Devices Found</string>
     <string name="open">OPEN</string>
     <string name="closed">CLOSED</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
 </resources>

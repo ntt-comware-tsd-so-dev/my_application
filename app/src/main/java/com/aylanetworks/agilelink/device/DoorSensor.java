@@ -19,6 +19,7 @@ public class DoorSensor extends Device {
     private static String LOG_TAG = "DoorSensor";
 
     private static String PROPERTY_DOOR_OPEN = "1_out_0x0006_0x0000";
+    private static int DOOR_OPEN = 1;
 
     public DoorSensor(AylaDevice device) {
         super(device);
@@ -37,11 +38,11 @@ public class DoorSensor extends Device {
 
     public boolean isOpen() {
         AylaProperty openProp = getProperty(PROPERTY_DOOR_OPEN);
-        if ( openProp != null && openProp.datapoint != null ) {
-            return openProp.datapoint.nValue().intValue() == 0;
+        if ( openProp != null && openProp.value != null ) {
+            return (Integer.parseInt(openProp.value) == DOOR_OPEN);
         }
         // Unknown
-        Log.i(LOG_TAG, "No datapoint for door open!");
+        Log.i(LOG_TAG, "No open property value for door open!");
         return false;
     }
 
