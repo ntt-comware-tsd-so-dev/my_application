@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.agilelink.device.ALDeviceCreator;
+import com.aylanetworks.agilelink.device.DeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -94,7 +94,7 @@ public class MainActivity extends ActionBarActivity {
                 params.appId = "iNextTurnKitDev-id";
                 params.appSecret = "iNextTurnKitDev-6124332";
                 params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
-                params.deviceCreator = new ALDeviceCreator();
+                params.deviceCreator = new DeviceCreator();
                 params.appVersion = getAppVersion();
 
                 // We want to enable LAN mode in this application

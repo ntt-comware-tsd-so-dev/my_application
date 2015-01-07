@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 /**
  * Created by Brian King on 12/19/14.
  */
-public class ALDeviceCreator implements SessionManager.DeviceCreator {
+public class DeviceCreator implements SessionManager.DeviceCreator {
     private final static String LOG_TAG = "ALDeviceCreator";
 
     public final static String PRODUCT_CLASS_GATEWAY = "zigbee";
