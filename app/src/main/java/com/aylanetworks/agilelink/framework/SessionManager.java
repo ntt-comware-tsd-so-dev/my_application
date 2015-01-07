@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaCache;
+import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
@@ -58,13 +59,13 @@ public class SessionManager {
 
     /** Implementers should create the correct device type based on the provided AylaDevice. */
     public interface DeviceCreator {
-        public Device deviceFromJsonElement(JsonElement deviceElement);
+        public Device deviceForAylaDevice(AylaDevice aylaDevice);
     }
 
-    // Default implementation of the DeviceClassMap: All devices are AylaDevices.
+    // Default implementation of the DeviceClassMap: All devices are Device objects.
     public static class DefaultDeviceCreator implements DeviceCreator {
-        public Device deviceFromJsonElement(JsonElement deviceElement) {
-            return AylaSystemUtils.gson.fromJson(deviceElement, Device.class);
+        public Device deviceForAylaDevice(AylaDevice aylaDevice) {
+            return new Device(aylaDevice);
         }
     }
 

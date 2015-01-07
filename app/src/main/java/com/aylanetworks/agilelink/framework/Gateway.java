@@ -16,6 +16,10 @@ import java.util.ArrayList;
 public class Gateway extends Device {
     private final String LOG_TAG = "Gateway";
 
+    public Gateway(AylaDevice aylaDevice) {
+        super(aylaDevice);
+    }
+
     @Override
     protected ArrayList<String> getPropertyNames() {
         // Get the superclass' property names (probably none)

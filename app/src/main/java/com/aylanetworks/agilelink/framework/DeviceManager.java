@@ -230,7 +230,7 @@ public class DeviceManager implements DeviceStatusListener {
             // Enable LAN mode on the gateway, if present
             Device gateway = getGatewayDevice();
             if ( gateway != null ) {
-                gateway.lanModeEnable();
+                gateway.getDevice().lanModeEnable();
             } else {
                 Log.e(LOG_TAG, "Can't enable LAN mode without a gateway!");
             }
@@ -286,7 +286,7 @@ public class DeviceManager implements DeviceStatusListener {
                 Log.d(LOG_TAG, "Already polling device status. Not doing it again so soon.");
                 Log.v(LOG_TAG, "Waiting for responses from:");
                 for ( Device d : _devicesToPoll ) {
-                    Log.v(LOG_TAG, d.getProductName());
+                    Log.v(LOG_TAG, d.getDevice().getProductName());
                 }
 
                 // TODO: BSK: Should we really be trying again here?
@@ -315,7 +315,7 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         Device d = _devicesToPoll.remove(0);
-        Log.v(LOG_TAG, "Updating status for " + d.productName);
+        Log.v(LOG_TAG, "Updating status for " + d.getDevice().productName);
         if ( _devicesToPoll.size() == 0 ) {
             _devicesToPoll = null;
         }
@@ -331,15 +331,12 @@ public class DeviceManager implements DeviceStatusListener {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 // Create our device array
                 Log.v(LOG_TAG, "Device list JSON: " + msg.obj);
-                List<Device> newDeviceList = new ArrayList<>();
-                JsonParser parser = new JsonParser();
-                JsonArray array = parser.parse((String)msg.obj).getAsJsonArray();
+                List<Device> newDeviceList = new ArrayList<Device>();
+                AylaDevice[] devices = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice[].class);
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
-                for ( JsonElement element : array ) {
-                    // Log.d(LOG_TAG, "JSON element: " + element.toString());
-                    // Get the correct class to create from the device class map.
-                    Device device = params.deviceCreator.deviceFromJsonElement(element);
-                    // Log.d(LOG_TAG, "Created device: " + device);
+                for ( AylaDevice aylaDevice : devices ) {
+                    // Get the correct object from the device creator.
+                    Device device = params.deviceCreator.deviceForAylaDevice(aylaDevice);
                     newDeviceList.add(device);
                 }
 

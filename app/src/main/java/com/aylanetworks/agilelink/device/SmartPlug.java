@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.device;
 
+import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.agilelink.framework.Device;
 
 import java.util.ArrayList;
@@ -8,6 +9,10 @@ import java.util.ArrayList;
  * Created by Brian King on 12/19/14.
  */
 public class SmartPlug extends Device {
+    public SmartPlug(AylaDevice aylaDevice) {
+        super(aylaDevice);
+    }
+
     @Override
     protected ArrayList<String> getPropertyNames() {
         // Get the superclass' property names (probably none)

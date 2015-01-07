@@ -166,7 +166,7 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void statusUpdated(Device device) {
-        Log.i(LOG_TAG, "Device " + device.productName + " changed");
+        Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
         mListView.setAdapter(_adapter);
     }
 

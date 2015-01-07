@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink.device;
 import android.content.Context;
 import android.util.Log;
 
+import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.MainActivity;
@@ -18,6 +19,10 @@ public class DoorSensor extends Device {
     private static String LOG_TAG = "DoorSensor";
 
     private static String PROPERTY_DOOR_OPEN = "1_out_0x0006_0x0000";
+
+    public DoorSensor(AylaDevice device) {
+        super(device);
+    }
 
     @Override
     protected ArrayList<String> getPropertyNames() {

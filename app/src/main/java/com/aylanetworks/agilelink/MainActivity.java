@@ -87,7 +87,7 @@ public class MainActivity extends ActionBarActivity {
         alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                // Start the login session
+                // Set up our session parameters and start the session.
                 SessionManager.SessionParameters params = new SessionManager.SessionParameters(c);
                 params.username = usernameInput.getText().toString();
                 params.password = passwordInput.getText().toString();

@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Created by Brian King on 12/22/14.
  */
-public class Device extends AylaDevice implements Comparable<Device> {
+public class Device implements Comparable<Device> {
 
     public interface DeviceStatusListener {
         void statusUpdated(Device device);
@@ -32,31 +32,49 @@ public class Device extends AylaDevice implements Comparable<Device> {
     @Override
     public int compareTo(Device another) {
         // Base class just compares DSNs.
-        return this.dsn.compareTo(another.dsn);
+        return this.getDevice().dsn.compareTo(another.getDevice().dsn);
+    }
+
+    /** The AylaDevice object wrapped by this class */
+    private AylaDevice _device;
+
+    public AylaDevice getDevice() {
+        return _device;
+    }
+
+    /** Constructor using the AylaDevice parameter */
+    public Device(AylaDevice aylaDevice) {
+        _device = aylaDevice;
+    }
+
+    /** Private default constructor. */
+    private Device() {
+        // Private constructor. Do not use.
     }
 
     /** Gets the latest device status from the server and calls listener when done */
     public void updateStatus(final DeviceStatusListener listener) {
         final Map<String, String> getPropertyArguments = getPropertyArgumentMap();
-        getProperties(new Handler() {
+        getDevice().getProperties(new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                AylaDevice d = getDevice();
 
+                if (msg.what == AylaNetworks.AML_ERROR_OK) {
                     // Update our properties
-                    properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
+                    d.properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
                             AylaProperty[].class);
                     Log.v(LOG_TAG, "request: " + getPropertyArguments);
-                    Log.v(LOG_TAG, "Properties for " + productName + " [" + Device.this.getClass().getSimpleName() + "]");
+                    Log.v(LOG_TAG, "Properties for " + d.productName + " [" + Device.this.getClass().getSimpleName() + "]");
 
-                    for (AylaProperty prop : properties) {
+                    for (AylaProperty prop : d.properties) {
                         Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
                     }
                     if (listener != null) {
                         listener.statusUpdated(Device.this);
                     }
                 } else {
-                    Log.e(LOG_TAG, "Failed to get properties for " + getProductName() + ": error " + msg.what);
+                    Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
                     if ( listener != null ) {
                         listener.statusUpdated(Device.this);
                     }
@@ -71,6 +89,7 @@ public class Device extends AylaDevice implements Comparable<Device> {
      * @return AylaProperty of the given name, or null if not found
      */
     public AylaProperty getProperty(String propertyName) {
+        AylaProperty[] properties = getDevice().properties;
         if ( properties == null )
             return null;
 
@@ -87,7 +106,7 @@ public class Device extends AylaDevice implements Comparable<Device> {
 
     @Override
     public String toString() {
-        return getModel();
+        return getDevice().getModel();
     }
 
     /** Returns the arguments for the call to getProperties(). Derived classes should override this
