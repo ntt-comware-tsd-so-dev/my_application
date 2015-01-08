@@ -143,6 +143,9 @@ public class SessionManager {
 
     /** Returns a copy of the current session parameters */
     public static SessionParameters sessionParameters() {
+        if ( getInstance()._sessionParameters == null ) {
+            return null;
+        }
         // Return a copy. We don't want things changing underneath us.
         return new SessionParameters(getInstance()._sessionParameters);
     }

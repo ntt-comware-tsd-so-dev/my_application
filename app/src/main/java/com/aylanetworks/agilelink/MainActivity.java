@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.device.DeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -60,6 +61,34 @@ public class MainActivity extends ActionBarActivity {
 
         // Bring up the login dialog
         loginDialog().show();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if ( SessionManager.deviceManager() != null ) {
+            SessionManager.deviceManager().stopPolling();
+        }
+
+        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+        if ( params != null && params.enableLANMode ) {
+            AylaLanMode.pause(false);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+
+        if ( params != null &&  params.enableLANMode ) {
+            AylaLanMode.resume();
+        }
+
+        if ( SessionManager.deviceManager() != null ) {
+            SessionManager.deviceManager().startPolling();
+        }
     }
 
     public AlertDialog loginDialog() {

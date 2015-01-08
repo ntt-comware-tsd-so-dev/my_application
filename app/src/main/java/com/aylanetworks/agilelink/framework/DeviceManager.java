@@ -46,9 +46,10 @@ public class DeviceManager implements DeviceStatusListener {
     }
     
     public void startPolling() {
+        Log.v(LOG_TAG, "startPolling");
         stopPolling();
-        _deviceListTimerHandler.post(_deviceListTimerRunnable);
-        _deviceStatusTimerHandler.post(_deviceStatusTimerRunnable);
+        _deviceListTimerRunnable.run();
+        _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, _deviceStatusPollInterval);
     }
     
     public void stopPolling() {
