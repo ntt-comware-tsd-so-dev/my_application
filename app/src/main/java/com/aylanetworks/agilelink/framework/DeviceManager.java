@@ -6,13 +6,10 @@ import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaLanMode;
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,8 +29,26 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Public Methods */
 
+    /**
+     * Returns the list of all devices
+     * @return The list of all devices
+     */
     public List<Device> deviceList() {
         return _deviceList;
+    }
+
+    /**
+     * Returns the device with the given DSN, or null if not found
+     * @param dsn the DSN of the device to find
+     * @return The found device, or null if not found
+     */
+    public Device deviceByDSN(String dsn) {
+        for ( Device d : _deviceList ) {
+            if ( d.getDevice().dsn.compareTo(dsn) == 0 ) {
+                return d;
+            }
+        }
+        return null;
     }
 
     public void refreshDeviceList() {
@@ -72,10 +87,10 @@ public class DeviceManager implements DeviceStatusListener {
         stopPolling();
     }
 
-    public Device getGatewayDevice() {
+    public Gateway getGatewayDevice() {
         for ( Device gateway : _deviceList ) {
             if ( gateway.isGateway() ) {
-                return gateway;
+                return (Gateway)gateway;
             }
         }
         return null;
@@ -173,15 +188,16 @@ public class DeviceManager implements DeviceStatusListener {
 
             _startingLANMode = false;
 
-            String notifyResults = (String)msg.obj;
+            String notifyResults = (String) msg.obj;
             AylaNotify notify = AylaSystemUtils.gson.fromJson(notifyResults, AylaNotify.class);
 
             String type = notify.type;
             String dsn = notify.dsn;
             String names[] = notify.names;
-            Log.d(LOG_TAG, "lanModeHandler: " + notifyResults);
 
-            if ( type.compareTo("session") == 0  ) {
+            Log.d(LOG_TAG, "lanModeHandler: [" + type + "] " + notifyResults);
+
+            if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_SESSION) == 0) {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
                     Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
@@ -189,10 +205,16 @@ public class DeviceManager implements DeviceStatusListener {
                     notifyLANModeChange();
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
-                        if ( !_lanModeEnabled ) {
-                            _lanModeEnabled = true;
-                            Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
-                            notifyLANModeChange();
+                        if (!_lanModeEnabled) {
+                            // Get the gateway properties
+                            Gateway g = getGatewayDevice();
+                            if ( g != null ) {
+                                _lanModeEnabled = true;
+                                Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
+                                notifyLANModeChange();
+                            } else {
+                                Log.e(LOG_TAG, "Lan mode enabled, but we don't have a gateway?");
+                            }
                         } else {
                             Log.v(LOG_TAG, "Already in LAN mode");
                         }
@@ -200,11 +222,19 @@ public class DeviceManager implements DeviceStatusListener {
                         Log.e(LOG_TAG, "Unknown LAN mode \"session\" message: " + msg.what + " " + msg.obj);
                     }
                 }
-            } else if ( type.compareTo("property") == 0 || type.compareTo("node") == 0 ) {
-                // Update the device statuses. Something has changed.
-                _deviceStatusTimerHandler.post(_deviceStatusTimerRunnable);
-            } else {
-                Log.e(LOG_TAG, "Unknown LAN mode message: " + msg.what + " " + msg.obj);
+            } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
+                    type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
+                _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, 0);
+
+                // BSK: The commented-out code below doesn't work right.
+                /*
+                // Update the property given to us here.
+                Device device = deviceByDSN(dsn);
+                if ( device != null ) {
+                    Log.i(LOG_TAG, "LAN mode handler: Updating status for " + device);
+                    device.updateStatus(DeviceManager.this);
+                }
+                */
             }
         }
     };
@@ -227,10 +257,12 @@ public class DeviceManager implements DeviceStatusListener {
         _startingLANMode = true;
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
-        if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ) {
+        if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
+             AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {
             // Enable LAN mode on the gateway, if present
             Device gateway = getGatewayDevice();
             if ( gateway != null ) {
+                Log.i(LOG_TAG, "Entering LAN mode with gateway " + gateway);
                 gateway.getDevice().lanModeEnable();
             } else {
                 Log.e(LOG_TAG, "Can't enable LAN mode without a gateway!");
