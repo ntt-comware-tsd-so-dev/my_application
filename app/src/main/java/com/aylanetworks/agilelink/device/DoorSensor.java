@@ -47,9 +47,19 @@ public class DoorSensor extends Device {
     }
 
     @Override
+    public void updateStatus(DeviceStatusListener listener) {
+        super.updateStatus(listener);
+    }
+
+    @Override
     public String toString() {
+        AylaProperty openProp = getProperty(PROPERTY_DOOR_OPEN);
+        if ( openProp == null ) {
+            return super.toString() + " ???";
+        }
         Context c = AgileLinkApplication.getAppContext();
-        String open = isOpen() ? c.getString(R.string.open) : c.getString(R.string.closed);
+        String open = (Integer.parseInt(openProp.value) == DOOR_OPEN) ? c.getString(R.string.open) :
+                c.getString(R.string.closed);
         return super.toString() + " " + open;
     }
 }
