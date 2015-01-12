@@ -46,9 +46,13 @@ public class SmartPlug extends Device {
     }
 
     @Override
-    public String toString() {
+    public String getDeviceState() {
         Context c = AgileLinkApplication.getAppContext();
+        if ( getProperty(PROPERTY_SWITCH_ON) == null ) {
+            return c.getString(R.string.device_state_unknown);
+        }
+
         String on = isOn() ? c.getString(R.string.on) : c.getString(R.string.off);
-        return super.toString() + " " + on;
+        return on;
     }
 }

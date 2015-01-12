@@ -251,8 +251,23 @@ public class DeviceManager implements DeviceStatusListener {
         }
     };
 
+    private Handler _getNodesHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            Gateway gateway = getGatewayDevice();
+            Log.i(LOG_TAG, "getNodesHandler");
+            Log.i(LOG_TAG, "Entering LAN mode with gateway " + gateway);
+            gateway.getDevice().lanModeEnable();
+        }
+    };
+
     private void enterLANMode() {
         Log.d(LOG_TAG, "enterLANMode");
+
+        if ( _startingLANMode ) {
+            Log.i(LOG_TAG, "enterLANMode: Already entering...");
+            return;
+        }
 
         _startingLANMode = true;
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
@@ -260,10 +275,12 @@ public class DeviceManager implements DeviceStatusListener {
         if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
              AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {
             // Enable LAN mode on the gateway, if present
-            Device gateway = getGatewayDevice();
+            Gateway gateway = getGatewayDevice();
             if ( gateway != null ) {
-                Log.i(LOG_TAG, "Entering LAN mode with gateway " + gateway);
-                gateway.getDevice().lanModeEnable();
+                // Get the nodes from the gateway. This establishes the mapping between devices
+                // and nodes, required for LAN mode operation to work right.
+                Log.i(LOG_TAG, "Fetching nodes from gateway...");
+                gateway.getGatewayDevice().getNodes(_getNodesHandler, null);
             } else {
                 Log.e(LOG_TAG, "Can't enable LAN mode without a gateway!");
             }

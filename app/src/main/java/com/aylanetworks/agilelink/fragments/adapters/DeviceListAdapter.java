@@ -1,8 +1,13 @@
 package com.aylanetworks.agilelink.fragments.adapters;
 
 import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
 import java.util.List;
@@ -15,6 +20,13 @@ public class DeviceListAdapter extends ArrayAdapter<Device>{
     private Context _context;
 
     public DeviceListAdapter(Context context, List<Device> objects) {
-        super(context, android.R.layout.simple_list_item_1, android.R.id.text1, objects);
+        super(context, 0, objects);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        Device device = getItem(position);
+        convertView = device.getListItemView(getContext(), convertView, parent);
+        return convertView;
     }
 }

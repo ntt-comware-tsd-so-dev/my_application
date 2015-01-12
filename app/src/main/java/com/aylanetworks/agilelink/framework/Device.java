@@ -1,13 +1,19 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.agilelink.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,9 +110,44 @@ public class Device implements Comparable<Device> {
         return false;
     }
 
+    /** UI Methods */
+
+    /**
+     * Returns a view representing this device to be used in a ListView container
+     * @param c Context
+     * @param convertView Old view to reuse, if possible
+     * @param parent Parent for the returned view
+     * @return A view representing the device as shown in a ListView
+     */
+    public View getListItemView(Context c, View convertView, ViewGroup parent) {
+        // If we don't have a view to reuse, or if it's not of the type we expect, create a
+        // new one. Note that we don't have a particular view we require here, so no check is done
+        // for the appropriate class type.
+        if ( convertView == null ) {
+            convertView = LayoutInflater.from(c).inflate(R.layout.default_list_item, parent, false);
+        }
+
+        TextView deviceNameTextView = (TextView)convertView.findViewById(R.id.device_name);
+        TextView deviceStateTextView = (TextView)convertView.findViewById(R.id.device_state);
+
+        deviceNameTextView.setText(toString());
+        deviceStateTextView.setText(getDeviceState());
+
+        return convertView;
+    }
+
     @Override
     public String toString() {
         return getDevice().getModel();
+    }
+
+    /**
+     * Returns a string representing the state of the device (on, off, open, closed, etc.)
+     * The default implementation returns nothing.
+     * @return A string representing the state of the device
+     */
+    public String getDeviceState() {
+        return "";
     }
 
     /** Returns the arguments for the call to getProperties(). Derived classes should override this
