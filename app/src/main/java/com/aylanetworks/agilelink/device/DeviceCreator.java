@@ -18,11 +18,9 @@ public class DeviceCreator implements SessionManager.DeviceCreator {
 
     public final static String PRODUCT_CLASS_GATEWAY = "zigbee";
     public final static String MODEL_SMART_PLUG = "Smart_Plug";
-    public final static String MODEL_SMART_PLUG_2 = "4256050-ZHAC";
     public final static String MODEL_REMOTE_SWITCH = "Wireless_Switch";
     public final static String MODEL_SMART_BULB = "Smart_Bulb_Converter";
     public final static String MODEL_MOTION_SENSOR = "Motion_Sensor";
-    public final static String MODEL_MOTION_SENSOR_2 = "Motion_Sens";
     public final static String MODEL_DOOR_SENSOR = "Door_Sensor";
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
@@ -40,18 +38,14 @@ public class DeviceCreator implements SessionManager.DeviceCreator {
 
         if ( deviceType.equals(MODEL_DOOR_SENSOR) )
             device = new DoorSensor(aylaDevice);
-        if ( deviceType.equals(MODEL_SMART_PLUG) )
+        else if ( deviceType.equals(MODEL_SMART_PLUG) )
             device = new SmartPlug(aylaDevice);
-        if ( deviceType.equals(MODEL_SMART_PLUG_2) )
-            device = new SmartPlug2(aylaDevice);
-        if ( deviceType.equals(MODEL_REMOTE_SWITCH) )
+        else if ( deviceType.equals(MODEL_REMOTE_SWITCH) )
             device = new RemoteSwitch(aylaDevice);
-        if ( deviceType.equals(MODEL_SMART_BULB) )
+        else if ( deviceType.equals(MODEL_SMART_BULB) )
             device = new SmartBulb(aylaDevice);
-        if ( deviceType.equals(MODEL_MOTION_SENSOR) )
+        else if ( deviceType.equals(MODEL_MOTION_SENSOR) )
             device = new MotionSensor(aylaDevice);
-        if ( deviceType.equals(MODEL_MOTION_SENSOR_2) )
-            device = new MotionSensor2(aylaDevice);
 
         if ( device == null ) {
             Log.e(LOG_TAG, "Unknown device type: " + deviceType);
