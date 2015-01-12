@@ -15,6 +15,10 @@ import java.util.List;
 /**
  * Created by Brian King on 12/30/14.
  */
+
+/**
+ * Default list adapter for displaying devices. Used by the AllDevicesFragment.
+ */
 public class DeviceListAdapter extends ArrayAdapter<Device>{
     private final static String LOG_TAG = "DeviceListAdapter";
     private Context _context;

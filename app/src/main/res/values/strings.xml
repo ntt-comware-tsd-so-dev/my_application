@@ -18,4 +18,5 @@
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="device_state_unknown">UNKNOWN</string>
+    <string name="smart_plug">Smart Plug</string>
 </resources>
