@@ -2,29 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="horizontal"
               android:layout_width="match_parent"
+              android:background="@color/list_background"
               android:layout_height="wrap_content">
     <TextView
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="bold"
-        android:layout_gravity="center_vertical"
-        android:gravity="center_vertical"
-        android:id="@+id/device_name"
+        style="@style/DeviceListItemTextView"
         android:layout_width="0dp"
-        android:text="left"
         android:layout_weight="0.75"
-        android:layout_margin="10dp"
-        android:layout_height="wrap_content"/>
+        android:id="@+id/device_name"/>
 
     <TextView
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="italic"
-        android:layout_gravity="center_vertical"
-        android:gravity="center_vertical|right"
-        android:layout_margin="10dp"
-        android:id="@+id/device_state"
+        style="@style/DeviceListItemStatusTextView"
         android:layout_width="wrap_content"
-        android:text="right"
         android:layout_weight="0.25"
-        android:layout_height="wrap_content"/>
+        android:id="@+id/device_state" />
 
 </LinearLayout>

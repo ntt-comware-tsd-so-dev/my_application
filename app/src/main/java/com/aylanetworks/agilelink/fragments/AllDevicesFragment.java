@@ -92,7 +92,8 @@ public class AllDevicesFragment extends Fragment
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
 
-        // Set the adapter
+        // Set up the list view
+
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(_adapter);
 

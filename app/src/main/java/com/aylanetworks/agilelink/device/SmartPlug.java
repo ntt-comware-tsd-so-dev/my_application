@@ -71,6 +71,7 @@ public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeL
         }
 
         Switch s = (Switch)convertView.findViewById(R.id.toggle_switch);
+
         s.setOnCheckedChangeListener(null);
         s.setChecked(isOn());
         s.setOnCheckedChangeListener(this);
