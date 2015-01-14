@@ -55,6 +55,10 @@ public class DeviceManager implements DeviceStatusListener {
         fetchDeviceList();
     }
 
+    public void refreshDeviceStatus(Device device) {
+        device.updateStatus(this);
+    }
+
     public void setComparator(Comparator<Device> comparator) {
         _deviceComparator = comparator;
         Collections.sort(_deviceList, _deviceComparator);
