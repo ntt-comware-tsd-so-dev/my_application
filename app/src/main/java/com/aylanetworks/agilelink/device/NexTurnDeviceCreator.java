@@ -13,8 +13,8 @@ import com.google.gson.JsonObject;
 /**
  * Created by Brian King on 12/19/14.
  */
-public class DeviceCreator implements SessionManager.DeviceCreator {
-    private final static String LOG_TAG = "ALDeviceCreator";
+public class NexTurnDeviceCreator implements SessionManager.DeviceCreator {
+    private final static String LOG_TAG = "nexTurnDeviceCreator";
 
     public final static String PRODUCT_CLASS_GATEWAY = "zigbee";
     public final static String MODEL_SMART_PLUG = "Smart_Plug";

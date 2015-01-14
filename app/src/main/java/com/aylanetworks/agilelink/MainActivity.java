@@ -23,7 +23,8 @@ import android.widget.EditText;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.agilelink.device.DeviceCreator;
+import com.aylanetworks.agilelink.device.DevkitDeviceCreator;
+import com.aylanetworks.agilelink.device.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -106,6 +107,33 @@ public class MainActivity extends ActionBarActivity {
         final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
         final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
 
+        /**
+         * Parameters for nexTurn network
+         */
+        SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(c);
+        nexTurnParams.appId = "iNextTurnKitDev-id";
+        nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
+        nexTurnParams.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
+        nexTurnParams.deviceCreator = new NexTurnDeviceCreator();
+        nexTurnParams.appVersion = getAppVersion();
+        // We want to enable LAN mode in this application
+        nexTurnParams.enableLANMode = true;
+        // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
+        nexTurnParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+
+        /**
+         * Parameters for Ayla devkit
+         */
+        final SessionManager.SessionParameters devkitParams = new SessionManager.SessionParameters(c);
+        devkitParams.appId = "aMCA-id";
+        devkitParams.appSecret = "aMCA-9097620";
+        devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+        devkitParams.deviceCreator = new DevkitDeviceCreator();
+        devkitParams.appVersion = getAppVersion();
+        devkitParams.enableLANMode = false;
+        devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+
+
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
         String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
@@ -117,20 +145,16 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(DialogInterface dialog, int whichButton) {
 
                 // Set up our session parameters and start the session.
-                SessionManager.SessionParameters params = new SessionManager.SessionParameters(c);
+
+                // Use the Ayla devkit settings
+                SessionManager.SessionParameters params = devkitParams;
+
+                // Use the nexTurn settings
+                // SessionManager.SessionParameters params = nexTurnParams;
+
                 params.username = usernameInput.getText().toString();
                 params.password = passwordInput.getText().toString();
-                params.appId = "iNextTurnKitDev-id";
-                params.appSecret = "iNextTurnKitDev-6124332";
-                params.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
-                params.deviceCreator = new DeviceCreator();
-                params.appVersion = getAppVersion();
 
-                // We want to enable LAN mode in this application
-                params.enableLANMode = true;
-
-                // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
-                params.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
                 SessionManager.startSession(params);
             }
         });

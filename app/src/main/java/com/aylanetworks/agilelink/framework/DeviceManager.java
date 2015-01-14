@@ -390,7 +390,11 @@ public class DeviceManager implements DeviceStatusListener {
                 for ( AylaDevice aylaDevice : devices ) {
                     // Get the correct object from the device creator.
                     Device device = params.deviceCreator.deviceForAylaDevice(aylaDevice);
-                    newDeviceList.add(device);
+                    if ( device != null ) {
+                        newDeviceList.add(device);
+                    } else {
+                        Log.i(LOG_TAG, "No device created for " + aylaDevice.getProductName());
+                    }
                 }
 
                 if ( deviceListChanged(newDeviceList) ) {
