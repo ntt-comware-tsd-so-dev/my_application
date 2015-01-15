@@ -19,4 +19,6 @@
     <string name="off">OFF</string>
     <string name="device_state_unknown">UNKNOWN</string>
     <string name="smart_plug">Smart Plug</string>
+    <string name="notifications">Notifications</string>
+    <string name="schedule">Schedule</string>
 </resources>

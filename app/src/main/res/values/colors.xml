@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Application configuration colors -->
     <color name="app_background">#888888</color>
     <color name="app_foreground">#FFFFFF</color>
     <color name="app_highlight">#FFFF00</color>
     <color name="list_background">#55AAFF</color>
     <color name="list_foreground">#FFFFFF</color>
+    <color name="detail_background">#FFFFFF</color>
+    <color name="bar_background">#888888</color>
+
+    <!-- Standard colors -->
     <color name="blue">#0000FF</color>
     <color name="dark_blue">#000066</color>
     <color name="green">#00FF00</color>
