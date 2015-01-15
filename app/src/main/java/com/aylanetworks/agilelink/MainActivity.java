@@ -130,7 +130,7 @@ public class MainActivity extends ActionBarActivity {
         devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
         devkitParams.deviceCreator = new DevkitDeviceCreator();
         devkitParams.appVersion = getAppVersion();
-        devkitParams.enableLANMode = false;
+        devkitParams.enableLANMode = true;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
 

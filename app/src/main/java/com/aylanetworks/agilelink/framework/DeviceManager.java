@@ -217,7 +217,15 @@ public class DeviceManager implements DeviceStatusListener {
                                 Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
                                 notifyLANModeChange();
                             } else {
-                                Log.e(LOG_TAG, "Lan mode enabled, but we don't have a gateway?");
+                                // Enable LAN mode on all devices that support it
+                                for ( Device d : _deviceList ) {
+                                    AylaDevice aylaDevice = d.getDevice();
+                                    if ( aylaDevice.lanEnabled ) {
+                                        Log.i(LOG_TAG, "Enabling LAN mode on " + d);
+                                        aylaDevice.lanModeEnable();
+                                    }
+                                }
+                                Log.e(LOG_TAG, "Lan mode enabled (no gateway)");
                             }
                         } else {
                             Log.v(LOG_TAG, "Already in LAN mode");
@@ -286,7 +294,9 @@ public class DeviceManager implements DeviceStatusListener {
                 Log.i(LOG_TAG, "Fetching nodes from gateway...");
                 gateway.getGatewayDevice().getNodes(_getNodesHandler, null);
             } else {
-                Log.e(LOG_TAG, "Can't enable LAN mode without a gateway!");
+                Log.i(LOG_TAG, "LAN mode: No gateway found");
+                _startingLANMode = false;
+                _lanModeEnabled = true;
             }
         } else {
             Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.lanModeState + " - not entering LAN mode");
