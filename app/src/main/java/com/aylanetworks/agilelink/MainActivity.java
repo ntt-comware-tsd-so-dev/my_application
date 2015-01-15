@@ -23,8 +23,8 @@ import android.widget.EditText;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.agilelink.device.DevkitDeviceCreator;
-import com.aylanetworks.agilelink.device.NexTurnDeviceCreator;
+import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
+import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.framework.SessionManager;
 

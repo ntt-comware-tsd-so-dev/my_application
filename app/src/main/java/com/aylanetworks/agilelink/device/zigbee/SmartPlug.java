@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device;
+package com.aylanetworks.agilelink.device.zigbee;
 
 import android.content.Context;
 import android.os.Handler;

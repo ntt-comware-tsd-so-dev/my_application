@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device;
+package com.aylanetworks.agilelink.device.zigbee;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,7 +6,6 @@ import android.util.Log;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.AgileLinkApplication;
-import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 

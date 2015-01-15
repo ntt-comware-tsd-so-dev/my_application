@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device;
+package com.aylanetworks.agilelink.device.zigbee;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.agilelink.framework.Device;

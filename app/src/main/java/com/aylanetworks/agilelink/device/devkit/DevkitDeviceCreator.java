@@ -1,14 +1,8 @@
-package com.aylanetworks.agilelink.device;
-
-import android.util.Log;
+package com.aylanetworks.agilelink.device.devkit;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.SessionManager;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 /**
  * Created by Brian King on 12/19/14.

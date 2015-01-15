@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device;
+package com.aylanetworks.agilelink.device.devkit;
 
 import android.content.Context;
 import android.os.Handler;
