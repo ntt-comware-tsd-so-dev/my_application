@@ -7,6 +7,7 @@
     <TextView
         style="@style/DeviceListItemTextView"
         android:layout_width="0dp"
+        android:text="This is the device name"
         android:layout_weight="0.80"
         android:id="@+id/device_name"/>
 
@@ -21,8 +22,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_gravity="center_vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:id="@+id/blue_button"
-        android:background="@color/blue"
+        android:background="@color/blue_bulb_bg"
         android:src="@drawable/dpending"
         />
 
@@ -31,8 +34,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_gravity="center_vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:id="@+id/green_button"
-        android:background="@color/green"
+        android:background="@color/green_bulb_bg"
         android:src="@drawable/dpending"
         />
 </LinearLayout>

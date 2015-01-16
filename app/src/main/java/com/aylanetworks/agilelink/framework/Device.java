@@ -48,6 +48,11 @@ public class Device implements Comparable<Device> {
     /** The AylaDevice object wrapped by this class */
     private AylaDevice _device;
 
+    /**
+     * Returns the underlying AylaDevice object wrapped by this class.
+     *
+     * @return the AylaDevice object owned by this object
+     */
     public AylaDevice getDevice() {
         return _device;
     }
@@ -62,7 +67,14 @@ public class Device implements Comparable<Device> {
         // Private constructor. Do not use.
     }
 
-    /** Gets the latest device status from the server and calls listener when done */
+    /**
+     * Gets the latest device status from the server and calls listener when done.
+     * Derived classes can perform other operations to obtain information about the device state.
+     * This method is called whenever the DeviceManager's device status timer is hit, or if in
+     * LAN mode, whenever the LAN mode handler receives a message that device properties have changed.
+     *
+     * @param listener Listener to be notified when the status has been updated.
+     */
     public void updateStatus(final DeviceStatusListener listener) {
         final Map<String, String> getPropertyArguments = getPropertyArgumentMap();
         getDevice().getProperties(new Handler() {
@@ -140,17 +152,28 @@ public class Device implements Comparable<Device> {
         return convertView;
     }
 
+    /**
+     * Returns a Drawable representing the device (thumbnail image)
+     * @param c Context to access resources
+     * @return A Drawable object representing the device
+     */
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.generic_device);
     }
 
+    /**
+     * Returns a fragment used to display details about the device. This fragment is pushed onto
+     * the back stack when the user selects an item from the device list.
+     * @param c Context to access resources
+     * @return a fragment showing device details
+     */
     public Fragment getDetailsFragment(Context c) {
         return new DeviceDetailFragment();
     }
 
     @Override
     public String toString() {
-        return getDevice().getModel();
+        return getDevice().getProductName();
     }
 
     /**

@@ -150,17 +150,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         return c.getResources().getDrawable(R.drawable.evb);
     }
 
-    @Override
-    public String toString() {
-        AylaDevice d = getDevice();
-        if ( d != null && d.dsn != null ) {
-            return "Ayla DevKit " + getDevice().dsn;
-        } else {
-            return "Ayla DevKit";
-        }
-    }
-
-    @Override
+     @Override
     public void onClick(View v) {
         // The green or blue LED has been tapped.
         boolean isGreenButton = (v.getId() == R.id.green_button);

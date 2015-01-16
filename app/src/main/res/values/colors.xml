@@ -4,10 +4,14 @@
     <color name="app_background">#888888</color>
     <color name="app_foreground">#FFFFFF</color>
     <color name="app_highlight">#FFFF00</color>
-    <color name="list_background">#55AAFF</color>
-    <color name="list_foreground">#FFFFFF</color>
+    <color name="list_background">#FFFFFF</color>
+    <color name="list_foreground">#000000</color>
     <color name="detail_background">#FFFFFF</color>
     <color name="bar_background">#888888</color>
+
+    <!-- Device-specific colors -->
+    <color name="blue_bulb_bg">#88000088</color>
+    <color name="green_bulb_bg">#88008800</color>
 
     <!-- Standard colors -->
     <color name="blue">#0000FF</color>
