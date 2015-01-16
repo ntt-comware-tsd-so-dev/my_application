@@ -68,7 +68,7 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void onBackPressed() {
-        if ( SessionManager.isLoggedIn() ) {
+        if ( getSupportFragmentManager().getBackStackEntryCount() == 0 && SessionManager.isLoggedIn() ) {
             SessionManager.stopSession();
             loginDialog().show();
         } else {
