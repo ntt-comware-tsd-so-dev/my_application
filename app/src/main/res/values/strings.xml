@@ -21,4 +21,5 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="device_properties">Device Properties</string>
 </resources>

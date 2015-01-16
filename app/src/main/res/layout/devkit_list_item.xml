@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="horizontal"
+              android:descendantFocusability="blocksDescendants"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-    <Switch
+    <TextView
         style="@style/DeviceListItemTextView"
         android:layout_width="0dp"
         android:layout_weight="0.80"
         android:id="@+id/device_name"/>
 
-    <Button
-        android:layout_width="30dp"
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/blue_button_state_image"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        android:layout_height="30dp"
         android:layout_gravity="center_vertical"
         android:id="@+id/blue_button"
         android:background="@color/blue"
+        android:src="@drawable/dpending"
         />
 
-    <Button
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_gravity="center_vertical"
         android:id="@+id/green_button"
         android:background="@color/green"
+        android:src="@drawable/dpending"
         />
 </LinearLayout>

@@ -4,21 +4,47 @@
               android:background="@color/detail_background"
               android:layout_height="fill_parent">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:id="@+id/top_layout_container"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/device_image"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_margin="10dp"
+            android:textStyle="bold"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Testing 123"
+            android:id="@+id/device_name" />
+    </LinearLayout>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_margin="10dp"
         android:textStyle="bold"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:gravity="center"
-        android:id="@+id/device_name" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/device_properties"
+        android:id="@+id/device_properties"
+        android:layout_below="@id/top_layout_container"
+        android:gravity="left" />
+
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_below="@id/device_name"
+        android:layout_below="@id/device_properties"
         android:id="@+id/listView"/>
 
     <!-- Layout for the button row at the bottom -->

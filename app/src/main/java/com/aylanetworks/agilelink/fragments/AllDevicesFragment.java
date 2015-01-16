@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,7 +49,7 @@ public class AllDevicesFragment extends Fragment
     /**
      * The fragment's ListView/GridView.
      */
-    private AbsListView mListView;
+    private AbsListView _listView;
 
     /**
      * The Adapter which will be used to populate the ListView/GridView with
@@ -94,11 +95,11 @@ public class AllDevicesFragment extends Fragment
 
         // Set up the list view
 
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        mListView.setAdapter(_adapter);
+        _listView = (AbsListView) view.findViewById(android.R.id.list);
+        _listView.setAdapter(_adapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+        _listView.setOnItemClickListener(this);
         
         setEmptyText(getString(R.string.no_devices_found));
 
@@ -143,6 +144,14 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Device d = (Device)_listView.getItemAtPosition(position);
+        if ( d != null ) {
+            DeviceDetailFragment frag = DeviceDetailFragment.newInstance(d);
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                                   R.anim.abc_fade_in, R.anim.abc_fade_out);
+            ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        }
     }
 
     /**
@@ -151,7 +160,7 @@ public class AllDevicesFragment extends Fragment
      * to supply the text it should use.
      */
     public void setEmptyText(CharSequence emptyText) {
-        View emptyView = mListView.getEmptyView();
+        View emptyView = _listView.getEmptyView();
 
         if (emptyView instanceof TextView) {
             ((TextView) emptyView).setText(emptyText);
@@ -162,13 +171,13 @@ public class AllDevicesFragment extends Fragment
     public void deviceListChanged() {
         Log.i(LOG_TAG, "Device list changed");
         _adapter = new DeviceListAdapter(getActivity(), SessionManager.deviceManager().deviceList());
-        mListView.setAdapter(_adapter);
+        _listView.setAdapter(_adapter);
     }
 
     @Override
     public void statusUpdated(Device device) {
         Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
-        mListView.setAdapter(_adapter);
+        _listView.setAdapter(_adapter);
     }
 
     @Override

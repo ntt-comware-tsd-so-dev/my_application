@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.devkit;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -8,7 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
@@ -119,33 +123,31 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         }
 
         convertView.setBackgroundColor(c.getResources().getColor(R.color.list_background));
-        Switch s = (Switch)convertView.findViewById(R.id.device_name);
-        Button greenButton = (Button)convertView.findViewById(R.id.green_button);
-        Button blueButton = (Button)convertView.findViewById(R.id.blue_button);
+
+        TextView deviceNameTextView = (TextView)convertView.findViewById(R.id.device_name);
+        ImageButton greenButton = (ImageButton)convertView.findViewById(R.id.green_button);
+        ImageButton blueButton = (ImageButton)convertView.findViewById(R.id.blue_button);
+        ImageView buttonStateImageView = (ImageView)convertView.findViewById(R.id.blue_button_state_image);
 
         greenButton.setOnClickListener(this);
         blueButton.setOnClickListener(this);
 
-        if ( isGreenLEDOn() ) {
-            greenButton.setBackgroundColor(c.getResources().getColor(R.color.green));
-        } else {
-            greenButton.setBackgroundColor(c.getResources().getColor(R.color.dark_green));
-        }
+        greenButton.setImageDrawable(c.getResources().getDrawable((isGreenLEDOn() ?
+                R.drawable.dup : R.drawable.ddown)));
+        blueButton.setImageDrawable(c.getResources().getDrawable((isBlueLEDOn() ?
+                R.drawable.dup : R.drawable.ddown)));
 
-        if ( isBlueLEDOn() ) {
-            blueButton.setBackgroundColor(c.getResources().getColor(R.color.blue));
-        } else {
-            blueButton.setBackgroundColor(c.getResources().getColor(R.color.dark_blue));
-        }
+        buttonStateImageView.setImageDrawable(c.getResources().getDrawable((isBlueButtonPressed() ?
+                R.drawable.downblue : R.drawable.buttonup)));
 
-        s.setEnabled(false);    // This is read-only!
-
-        s.setChecked(isBlueButtonPressed());
-
-        s.setText(toString());
-
+        deviceNameTextView.setText(toString());
 
         return convertView;
+    }
+
+    @Override
+    public Drawable getDeviceDrawable(Context c) {
+        return c.getResources().getDrawable(R.drawable.evb);
     }
 
     @Override

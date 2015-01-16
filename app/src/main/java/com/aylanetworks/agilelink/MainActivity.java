@@ -60,8 +60,20 @@ public class MainActivity extends ActionBarActivity {
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        // Bring up the login dialog
-        loginDialog().show();
+        // Bring up the login dialog if we're not already logged in
+        if ( !SessionManager.isLoggedIn() ) {
+            loginDialog().show();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if ( SessionManager.isLoggedIn() ) {
+            SessionManager.stopSession();
+            loginDialog().show();
+        } else {
+            super.onBackPressed();
+         }
     }
 
     @Override
@@ -91,6 +103,8 @@ public class MainActivity extends ActionBarActivity {
             SessionManager.deviceManager().startPolling();
         }
     }
+
+    private AlertDialog _loginDialog;
 
     public AlertDialog loginDialog() {
         final Context c = this;
@@ -130,7 +144,7 @@ public class MainActivity extends ActionBarActivity {
         devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
         devkitParams.deviceCreator = new DevkitDeviceCreator();
         devkitParams.appVersion = getAppVersion();
-        devkitParams.enableLANMode = true;
+        devkitParams.enableLANMode = false;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
 
@@ -156,10 +170,21 @@ public class MainActivity extends ActionBarActivity {
                 params.password = passwordInput.getText().toString();
 
                 SessionManager.startSession(params);
+                _loginDialog = null;
             }
         });
 
-        return alert.create();
+        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                // Finish the activity. This will get called if the back button is pressed
+                // while the dialog is active.
+                finish();
+            }
+        });
+
+        _loginDialog = alert.create();
+        return _loginDialog;
     }
 
     public String getAppVersion() {

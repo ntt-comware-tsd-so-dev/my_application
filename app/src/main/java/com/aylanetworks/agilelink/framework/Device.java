@@ -1,12 +1,15 @@
 package com.aylanetworks.agilelink.framework;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDevice;
@@ -14,6 +17,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,6 +138,14 @@ public class Device implements Comparable<Device> {
         deviceStateTextView.setText(getDeviceState());
 
         return convertView;
+    }
+
+    public Drawable getDeviceDrawable(Context c) {
+        return c.getResources().getDrawable(R.drawable.generic_device);
+    }
+
+    public Fragment getDetailsFragment(Context c) {
+        return new DeviceDetailFragment();
     }
 
     @Override

@@ -125,6 +125,14 @@ public class SessionManager {
         }
     }
 
+    /**
+     * Returns true if the user is logged in, or false otherwise.
+     * @return true if the user is logged in
+     */
+    public static boolean isLoggedIn() {
+        return (deviceManager() != null);
+    }
+
     /** Initializes and starts a new session, stopping any existing sessions first. */
     public static boolean startSession(SessionParameters params) {
         Log.d(LOG_TAG, "Starting session with parameters:\n" + params);
