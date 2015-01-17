@@ -151,15 +151,19 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     }
 
      @Override
-    public void onClick(View v) {
-        // The green or blue LED has been tapped.
-        boolean isGreenButton = (v.getId() == R.id.green_button);
+     public void onClick(View v) {
+         // The green or blue LED has been tapped.
+         boolean isGreenButton = (v.getId() == R.id.green_button);
 
-        Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
-        if ( isGreenButton ) {
-            setGreenLED(!isGreenLEDOn());
-        } else {
-            setBlueLED(!isBlueLEDOn());
-        }
-    }
+         Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
+         if ( isGreenButton ) {
+             setGreenLED(!isGreenLEDOn());
+         } else {
+             setBlueLED(!isBlueLEDOn());
+         }
+
+         // Update the image view to show the transient state
+         ImageButton button = (ImageButton)v;
+         button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
+     }
 }
