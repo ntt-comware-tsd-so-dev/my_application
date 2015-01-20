@@ -22,4 +22,10 @@
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
     <string name="device_properties">Device Properties</string>
+    <string name="up"><u>Sign Up</u></string>
+    <string name="forgot">Forgot Password</string>
+    <string name="signIn">Sign In</string>
+    <string name="emailAddress">Email Address</string>
+    <string name="passwordHint">Password</string>
+    <string name="signingIn">Signing in...</string>
 </resources>

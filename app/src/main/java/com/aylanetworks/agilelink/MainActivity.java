@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.aylanetworks.aaml.AylaLanMode;
@@ -115,15 +116,14 @@ public class MainActivity extends ActionBarActivity {
         failAlert.setNegativeButton(R.string.ok, null);
 
         AlertDialog.Builder alert = new AlertDialog.Builder(c);
-        alert.setTitle(getString(R.string.login_register));
-        alert.setMessage(getString(R.string.please_log_in));
         alert.setView(textEntryView);
         final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
         final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
+        final Button signInButton = (Button) textEntryView.findViewById(R.id.buttonSignIn);
 
-        /**
-         * Parameters for nexTurn network
-         */
+                /**
+                 * Parameters for nexTurn network
+                 */
         SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(c);
         nexTurnParams.appId = "iNextTurnKitDev-id";
         nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
@@ -155,8 +155,8 @@ public class MainActivity extends ActionBarActivity {
         usernameInput.setText(savedUsername);
         passwordInput.setText(savedPassword);
 
-        alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
+        signInButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
 
                 // Set up our session parameters and start the session.
 
@@ -170,6 +170,7 @@ public class MainActivity extends ActionBarActivity {
                 params.password = passwordInput.getText().toString();
 
                 SessionManager.startSession(params);
+                _loginDialog.dismiss();
                 _loginDialog = null;
             }
         });
