@@ -28,4 +28,13 @@
     <string name="emailAddress">Email Address</string>
     <string name="passwordHint">Password</string>
     <string name="signingIn">Signing in...</string>
+    <string name="signingUp">Signing up...</string>
+    <string name="confirmPassword">confirm password</string>
+    <string name="lastName">last name</string>
+    <string name="country">country</string>
+    <string name="firstName">first name</string>
+    <string name="phoneNumber">phone number</string>
+    <string name="evbNumber">EVB number</string>
+    <string name="zip">zip</string>
+    <string name="signUp">Sign up</string>
 </resources>

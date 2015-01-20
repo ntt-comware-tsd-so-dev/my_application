@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,16 +22,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
+import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 public class MainActivity extends ActionBarActivity {
 
+    private static final String LOG_TAG = "Main Activity";
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -120,10 +124,12 @@ public class MainActivity extends ActionBarActivity {
         final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
         final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
         final Button signInButton = (Button) textEntryView.findViewById(R.id.buttonSignIn);
+        final TextView signUpTextView = (TextView)textEntryView.findViewById(R.id.signUpTextView);
 
-                /**
-                 * Parameters for nexTurn network
-                 */
+
+        /**
+         * Parameters for nexTurn network
+         */
         SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(c);
         nexTurnParams.appId = "iNextTurnKitDev-id";
         nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
@@ -155,6 +161,7 @@ public class MainActivity extends ActionBarActivity {
         usernameInput.setText(savedUsername);
         passwordInput.setText(savedPassword);
 
+        // Set up the handler for login click
         signInButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -181,6 +188,14 @@ public class MainActivity extends ActionBarActivity {
                 // Finish the activity. This will get called if the back button is pressed
                 // while the dialog is active.
                 finish();
+            }
+        });
+
+        // Set the handler for a click on "Sign Up"
+        signUpTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchSignUpDialog();
             }
         });
 
@@ -222,6 +237,15 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Launches the sign-up dialog
+     */
+    private void launchSignUpDialog() {
+        Log.i(LOG_TAG, "Sign up");
+        SignUpDialog d = new SignUpDialog(this);
+        d.show();
     }
 
 

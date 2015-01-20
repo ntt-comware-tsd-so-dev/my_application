@@ -28,4 +28,9 @@
         <item name="android:layout_width">wrap_content</item>
     </style>
 
+    <!-- Style for a full-height dialog -->
+    <style name="FullHeightDialog" parent="android:style/Theme.Dialog">
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
 </resources>

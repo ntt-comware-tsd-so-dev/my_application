@@ -1,0 +1,200 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/ScrollView01"
+            android:layout_width="match_parent"
+            android:fillViewport="true"
+            android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/b"
+        android:orientation="vertical"
+        android:scrollbarStyle="insideOverlay"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:id="@+id/signInRelativeLayout"
+        android:scrollbars="vertical" >
+
+        <TextView
+            android:id="@+id/tvSigningUp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:visibility="invisible"
+            android:text="@string/signingUp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <ProgressBar
+            android:id="@+id/pbProgressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"/>
+
+        <EditText
+            android:id="@+id/etConfirmPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/etPassword"
+            android:layout_below="@+id/etPassword"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/confirmPassword"
+            android:textStyle="italic" />
+
+        <EditText
+            android:id="@+id/etLastName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/etFirstName"
+            android:layout_below="@+id/etFirstName"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/lastName"
+            android:textStyle="italic"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/etCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/etLastName"
+            android:layout_below="@+id/etLastName"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/country"
+            android:textStyle="italic"
+            android:inputType="textPostalAddress" />
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/etEmail"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/passwordHint"
+            android:textStyle="italic"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/etFirstName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/etConfirmPassword"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/firstName"
+            android:textStyle="italic"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/etPhoneNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/etConfirmPassword"
+            android:layout_below="@+id/etZipCode"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/phoneNumber"
+            android:textStyle="italic"
+            android:inputType="phone" />
+
+        <EditText
+            android:id="@+id/etEvbNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/etZipCode"
+            android:layout_below="@+id/etPhoneNumber"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:hint="@string/evbNumber"
+            android:textStyle="italic"
+            android:inputType="text" />
+
+        <ImageView
+            android:id="@+id/imageViewConnected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="17dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/logo" />
+
+        <EditText
+            android:id="@+id/etZipCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/etCountry"
+            android:layout_below="@+id/etCountry"
+            android:ems="10"
+            android:hint="@string/zip"
+            android:inputType="number"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:textStyle="italic" />
+
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imageViewConnected"
+            android:layout_marginTop="17dp"
+            android:ems="10"
+            android:hint="@string/emailAddress"
+            android:inputType="textEmailAddress"
+            android:textStyle="italic"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true">
+
+            <requestFocus />
+        </EditText>
+
+        <Button
+            android:id="@+id/btnSignUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/etEvbNumber"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/btngreen"
+            android:textColor="@android:color/white"
+            android:text="@string/signUp" />
+
+    </RelativeLayout>
+</ScrollView>
