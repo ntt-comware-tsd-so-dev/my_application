@@ -48,7 +48,8 @@
             android:layout_alignParentRight="true"
             android:ems="10"
             android:hint="@string/confirmPassword"
-            android:textStyle="italic" />
+            android:textStyle="italic"
+            android:inputType="textPassword"/>
 
         <EditText
             android:id="@+id/etLastName"
@@ -63,7 +64,7 @@
             android:ems="10"
             android:hint="@string/lastName"
             android:textStyle="italic"
-            android:inputType="textPersonName" />
+            android:inputType="textCapWords|textPersonName" />
 
         <EditText
             android:id="@+id/etCountry"
@@ -78,7 +79,7 @@
             android:ems="10"
             android:hint="@string/country"
             android:textStyle="italic"
-            android:inputType="textPostalAddress" />
+            android:inputType="textCapWords|textPostalAddress" />
 
         <EditText
             android:id="@+id/etPassword"
@@ -106,7 +107,7 @@
             android:ems="10"
             android:hint="@string/firstName"
             android:textStyle="italic"
-            android:inputType="textPersonName" />
+            android:inputType="textCapWords|textPersonName" />
 
         <EditText
             android:id="@+id/etPhoneNumber"

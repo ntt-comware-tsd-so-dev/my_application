@@ -37,4 +37,30 @@
     <string name="evbNumber">EVB number</string>
     <string name="zip">zip</string>
     <string name="signUp">Sign up</string>
+    <string name="password_required">A password is required</string>
+    <string name="password_no_match">The password you entered does not match the confirmed password entry</string>
+    <string name="registraion_email_subject">Ayla Sign-up Confirmation</string>
+    <string name="registration_email_body_html"><![CDATA[
+        <tr><td style="color: #153643; font-family: Arial, sans-serif; font-size: 24px;">
+        <h2>Hello [[user_name]]!</h2>
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+        <b>[[property_name]]</b> is now <b>[[property_value]]</b> on your device <b>[[device_product_name]]</b>
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+        [[user_message]]
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+        <a href="http://www.aylanetworks.com/">Ayla Networks</a>
+        </td>
+        </tr>
+     ]]></string>
+    <string name="sign_up_success">Sign up successful</string>
+    <string name="sign_up_error">There was an error during sign-up</string>
 </resources>

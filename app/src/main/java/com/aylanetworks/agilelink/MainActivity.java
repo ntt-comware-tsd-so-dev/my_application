@@ -23,16 +23,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener {
 
     private static final String LOG_TAG = "Main Activity";
     /**
@@ -64,6 +66,63 @@ public class MainActivity extends ActionBarActivity {
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        // Set up the session manager
+
+        /**
+         * Parameters for nexTurn network
+         */
+        SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(this);
+        nexTurnParams.appId = "iNextTurnKitDev-id";
+        nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
+        nexTurnParams.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
+        nexTurnParams.deviceCreator = new NexTurnDeviceCreator();
+        nexTurnParams.appVersion = getAppVersion();
+        // We want to enable LAN mode in this application
+        nexTurnParams.enableLANMode = true;
+        // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
+        nexTurnParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+
+        // Set the SessionManager's registration fields to our own values
+        nexTurnParams.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
+
+        // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
+        // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
+        nexTurnParams.registrationEmailTemplateId = "ayla_confirmation_template_01";
+
+        if ( nexTurnParams.registrationEmailTemplateId == null ) {
+            nexTurnParams.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
+        } else {
+            nexTurnParams.registrationEmailBodyHTML = null;
+        }
+
+        /**
+          * Parameters for Ayla devkit
+          */
+        final SessionManager.SessionParameters devkitParams = new SessionManager.SessionParameters(this);
+        devkitParams.appId = "aMCA-id";
+        devkitParams.appSecret = "aMCA-9097620";
+        devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+        devkitParams.deviceCreator = new DevkitDeviceCreator();
+        devkitParams.appVersion = getAppVersion();
+        devkitParams.enableLANMode = false;
+        devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+
+        // SessionManager.setParameters(nexTurnParams);
+        SessionManager.setParameters(devkitParams);
+
+        // Set the SessionManager's registration fields to our own values
+        devkitParams.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
+
+        // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
+        // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
+        devkitParams.registrationEmailTemplateId = "ayla_confirmation_template_01";
+
+        if ( devkitParams.registrationEmailTemplateId == null ) {
+            devkitParams.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
+        } else {
+            devkitParams.registrationEmailBodyHTML = null;
+        }
 
         // Bring up the login dialog if we're not already logged in
         if ( !SessionManager.isLoggedIn() ) {
@@ -127,32 +186,6 @@ public class MainActivity extends ActionBarActivity {
         final TextView signUpTextView = (TextView)textEntryView.findViewById(R.id.signUpTextView);
 
 
-        /**
-         * Parameters for nexTurn network
-         */
-        SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(c);
-        nexTurnParams.appId = "iNextTurnKitDev-id";
-        nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
-        nexTurnParams.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
-        nexTurnParams.deviceCreator = new NexTurnDeviceCreator();
-        nexTurnParams.appVersion = getAppVersion();
-        // We want to enable LAN mode in this application
-        nexTurnParams.enableLANMode = true;
-        // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
-        nexTurnParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
-
-        /**
-         * Parameters for Ayla devkit
-         */
-        final SessionManager.SessionParameters devkitParams = new SessionManager.SessionParameters(c);
-        devkitParams.appId = "aMCA-id";
-        devkitParams.appSecret = "aMCA-9097620";
-        devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
-        devkitParams.deviceCreator = new DevkitDeviceCreator();
-        devkitParams.appVersion = getAppVersion();
-        devkitParams.enableLANMode = false;
-        devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
-
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
@@ -167,16 +200,13 @@ public class MainActivity extends ActionBarActivity {
 
                 // Set up our session parameters and start the session.
 
-                // Use the Ayla devkit settings
-                SessionManager.SessionParameters params = devkitParams;
-
                 // Use the nexTurn settings
                 // SessionManager.SessionParameters params = nexTurnParams;
 
-                params.username = usernameInput.getText().toString();
-                params.password = passwordInput.getText().toString();
+                String username = usernameInput.getText().toString();
+                String password = passwordInput.getText().toString();
 
-                SessionManager.startSession(params);
+                SessionManager.startSession(username, password);
                 _loginDialog.dismiss();
                 _loginDialog = null;
             }
@@ -244,10 +274,27 @@ public class MainActivity extends ActionBarActivity {
      */
     private void launchSignUpDialog() {
         Log.i(LOG_TAG, "Sign up");
-        SignUpDialog d = new SignUpDialog(this);
+        SignUpDialog d = new SignUpDialog(this, this);
         d.show();
     }
 
+    @Override
+    public void signUpSucceeded(AylaUser newUser) {
+        Toast.makeText(this, R.string.sign_up_success, Toast.LENGTH_LONG).show();
+
+        // Update the username / password fields in our sign-in dialog and sign in the user
+        if ( _loginDialog != null ) {
+            EditText username = (EditText)_loginDialog.findViewById(R.id.userNameEditText);
+            EditText password = (EditText)_loginDialog.findViewById(R.id.passwordEditText);
+            username.setText(newUser.email);
+            password.setText(newUser.password);
+
+            // Click the sign-in button
+            Button b = (Button)_loginDialog.findViewById(R.id.buttonSignIn);
+            b.callOnClick();
+            _loginDialog = null;
+        }
+    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

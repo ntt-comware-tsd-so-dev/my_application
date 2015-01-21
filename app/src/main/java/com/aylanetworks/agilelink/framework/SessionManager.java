@@ -15,7 +15,9 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.google.gson.JsonElement;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,6 +36,7 @@ public class SessionManager {
     public final static String PREFS_PASSWORD = "password";
     public final static String PREFS_USERNAME = "username";
 
+
     /** Interfaces */
 
     public interface SessionListener {
@@ -42,11 +45,37 @@ public class SessionManager {
         public void lanModeChanged(boolean lanModeEnabled);
     }
 
+    public static void setParameters(SessionParameters parameters) {
+        getInstance()._sessionParameters = new SessionParameters(parameters);
+    }
+
     public static SessionManager getInstance() {
         if ( _globalSessionManager == null ) {
             _globalSessionManager = new SessionManager();
         }
         return _globalSessionManager;
+    }
+
+    public static void registerNewUser(final AylaUser user, final Handler resultHandler) {
+        Map<String, String> callParams = new HashMap<String, String>();
+        callParams.put("email", user.email);
+        callParams.put("password", user.password);
+        callParams.put("firstname", user.firstname);
+        callParams.put("lastname", user.lastname);
+        callParams.put("country", user.country);
+        callParams.put("zip", user.zip);
+        callParams.put("phone", user.phone);
+        callParams.put("aylaDevKitNum", user.aylaDevKitNum);
+
+        SessionParameters params = getInstance()._sessionParameters;
+        callParams.put(AylaNetworks.AML_EMAIL_TEMPLATE_ID, params.registrationEmailTemplateId);
+        callParams.put(AylaNetworks.AML_EMAIL_SUBJECT, params.registrationEmailSubject);
+        callParams.put(AylaNetworks.AML_EMAIL_BODY_HTML, params.registrationEmailBodyHTML);
+
+        // We're not usually initialized at this point
+        AylaNetworks.init(params.context, params.deviceSsidRegex, params.appId);
+
+        AylaUser.signUp(resultHandler, callParams, params.appId, params.appSecret);
     }
 
     public static void addSessionListener(SessionListener listener) {
@@ -86,6 +115,11 @@ public class SessionManager {
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
 
+        // Strings for new user registration. Can be modified by the application if desired.
+        public String registrationEmailTemplateId = "ayla_confirmation_template_01";
+        public String registrationEmailSubject = "Ayla Sign-up Confirmation";
+        public String registrationEmailBodyHTML = null;
+
         public SessionParameters(Context context) {
             this.context = context;
         }
@@ -104,6 +138,9 @@ public class SessionManager {
             this.serviceType = other.serviceType;
             this.loggingLevel = other.loggingLevel;
             this.enableLANMode = other.enableLANMode;
+            this.registrationEmailSubject = other.registrationEmailSubject;
+            this.registrationEmailTemplateId = other.registrationEmailTemplateId;
+            this.registrationEmailBodyHTML = other.registrationEmailBodyHTML;
         }
 
         @Override
@@ -121,6 +158,9 @@ public class SessionManager {
                     "  serviceType: " + serviceType + "\n" +
                     "  loggingLevel: " + loggingLevel + "\n" +
                     "  enableLANMode: " + enableLANMode +
+                    "  registrationEmailTemplateId: " + registrationEmailTemplateId + "\n" +
+                    "  registrationEmailSubject: " + registrationEmailSubject + "\n" +
+                    "  registrationEmailBodyHTML: " + registrationEmailBodyHTML + "\n" +
                     "\n";
         }
     }
@@ -134,11 +174,18 @@ public class SessionManager {
     }
 
     /** Initializes and starts a new session, stopping any existing sessions first. */
-    public static boolean startSession(SessionParameters params) {
-        Log.d(LOG_TAG, "Starting session with parameters:\n" + params);
+    public static boolean startSession(String username, String password) {
+        if ( getInstance()._sessionParameters == null ) {
+            Log.e(LOG_TAG, "Can't start a session before the session parameters are set.");
+            return false;
+        }
+
+        Log.d(LOG_TAG, "Starting session with parameters:\n" + getInstance()._sessionParameters);
 
         SessionManager sm = getInstance();
-        sm._sessionParameters = new SessionParameters(params);
+
+        sm._sessionParameters.username = username;
+        sm._sessionParameters.password = password;
 
         return sm.start();
     }
