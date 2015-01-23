@@ -3,6 +3,8 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -10,10 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
@@ -26,7 +31,7 @@ import java.util.List;
 /**
  * Created by Brian King on 1/15/15.
  */
-public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener {
+public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener {
     public final static String LOG_TAG = "DeviceDetailFragment";
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
@@ -66,6 +71,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _titleView = (TextView)view.findViewById(R.id.device_name);
         _imageView = (ImageView)view.findViewById(R.id.device_image);
 
+        Button button = (Button)view.findViewById(R.id.unregister_device);
+        button.setOnClickListener(this);
         updateUI();
 
         return view;
@@ -111,6 +118,34 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void statusUpdated(Device device) {
         if ( device.equals(_device) ) {
             updateUI();
+        }
+    }
+
+    // Handler for device unregister call
+    private Handler _unregisterDeviceHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                Log.i(LOG_TAG, "Device unregistered: " + _device);
+
+                Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
+
+                // Pop ourselves off of the back stack and force a refresh of the device list
+                getFragmentManager().popBackStack();
+                SessionManager.deviceManager().refreshDeviceList();
+            } else {
+                Log.e(LOG_TAG, "Unregister device failed for " + _device + ": " + msg.obj);
+                Toast.makeText(getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+
+    @Override
+    public void onClick(View v) {
+        if ( v.getId() == R.id.unregister_device ) {
+            // Unregister Device clicked
+            Log.i(LOG_TAG, "Unregister Device: " + _device);
+            _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
         }
     }
 

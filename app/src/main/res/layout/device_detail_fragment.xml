@@ -45,7 +45,18 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_below="@id/device_properties"
+        android:layout_above="@+id/unregister_device"
         android:id="@+id/listView"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:background="@color/destructive_bg"
+        android:textColor="@color/destructive_fg"
+        android:text="@string/unregister_device"
+        android:layout_above="@+id/bottom_button_row"
+        android:id="@+id/unregister_device"/>
 
     <!-- Layout for the button row at the bottom -->
 
@@ -55,7 +66,8 @@
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         android:layout_height="wrap_content"
-        android:baselineAligned="false">
+        android:baselineAligned="false"
+        android:id="@+id/bottom_button_row">
 
         <LinearLayout
             android:layout_width="0dp"

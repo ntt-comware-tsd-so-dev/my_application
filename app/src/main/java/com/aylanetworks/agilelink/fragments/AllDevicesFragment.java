@@ -6,6 +6,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -72,9 +75,32 @@ public class AllDevicesFragment extends Fragment
     public AllDevicesFragment() {
     }
 
+    private void addDevice() {
+        Log.i(LOG_TAG, "Add Device called");
+
+        // Bring up the Add Device UI
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.add(Menu.NONE, R.string.add_device_menu, Menu.NONE, R.string.add_device_menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if ( item.getItemId() == R.string.add_device_menu ) {
+            addDevice();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         if (getArguments() != null) {
             _displayMode = getArguments().getInt(ARG_DISPLAY_MODE);

@@ -63,4 +63,8 @@
      ]]></string>
     <string name="sign_up_success">Sign up successful</string>
     <string name="sign_up_error">There was an error during sign-up</string>
+    <string name="add_device_menu">Add Device</string>
+    <string name="unregister_device">Unregister Device</string>
+    <string name="unregister_failed">Unregister of device failed</string>
+    <string name="unregister_success">The device has been unregistered</string>
 </resources>

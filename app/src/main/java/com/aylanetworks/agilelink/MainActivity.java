@@ -108,9 +108,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         devkitParams.enableLANMode = false;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
-        // SessionManager.setParameters(nexTurnParams);
-        SessionManager.setParameters(devkitParams);
-
         // Set the SessionManager's registration fields to our own values
         devkitParams.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
 
@@ -123,6 +120,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         } else {
             devkitParams.registrationEmailBodyHTML = null;
         }
+
+        SessionManager.setParameters(nexTurnParams);
+        // SessionManager.setParameters(devkitParams);
 
         // Bring up the login dialog if we're not already logged in
         if ( !SessionManager.isLoggedIn() ) {
