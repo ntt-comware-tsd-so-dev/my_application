@@ -67,4 +67,28 @@
     <string name="unregister_device">Unregister Device</string>
     <string name="unregister_failed">Unregister of device failed</string>
     <string name="unregister_success">The device has been unregistered</string>
+
+    <string name="register">Register</string>
+    <string name="registration_same_lan_instructions">Please make sure that the orange LED on the device is on.
+        \n\nAlso make sure your device and phone use the same wireless connection to connect to the Internet.</string>
+
+   <string name="registration_button_push_instructions">Please make sure that the orange LED on the device is on.
+        \n\nThen push the registration button on your device, and tap the REGISTER button below within 2 minutes.</string>
+
+   <string name="registration_display_instructions">Please make sure that the orange LED on the device is on.</string>
+
+    <!-- Array of product types -->
+    <string-array name="product_types">
+        <item>EVB Demo Kit</item>
+        <item>Smart Plug</item>
+        <item>Others</item>
+    </string-array>
+
+    <!-- Array of registration types -->
+    <string-array name="registration_types">
+        <item>Same-LAN</item>
+        <item>Button-Push</item>
+        <item>Display</item>
+    </string-array>
+
 </resources>

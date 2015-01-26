@@ -78,7 +78,11 @@ public class AllDevicesFragment extends Fragment
         Log.i(LOG_TAG, "Add Device called");
 
         // Bring up the Add Device UI
-
+        AddDeviceFragment frag = AddDeviceFragment.newInstance();
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                R.anim.abc_fade_in, R.anim.abc_fade_out);
+        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
     }
 
     @Override
