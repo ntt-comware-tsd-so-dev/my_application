@@ -65,7 +65,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.device_detail_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_device_detail, container, false);
 
         _listView = (ListView)view.findViewById(R.id.listView);
         _titleView = (TextView)view.findViewById(R.id.device_name);
