@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
@@ -38,7 +39,7 @@ public class AllDevicesFragment extends Fragment
         implements Device.DeviceStatusListener,
         DeviceManager.DeviceListListener, SessionManager.SessionListener, View.OnClickListener {
 
-    private final static String LOG_TAG="AllDevicesFragment";
+    private final static String LOG_TAG = "AllDevicesFragment";
 
     public final static int DISPLAY_MODE_ALL = 0;
     public final static int DISPLAY_MODE_FAVORITES = 1;
@@ -88,7 +89,7 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if ( item.getItemId() == R.string.add_device_menu ) {
+        if (item.getItemId() == R.string.add_device_menu) {
             addDevice();
         }
 
@@ -106,7 +107,7 @@ public class AllDevicesFragment extends Fragment
 
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
-        if ( dm != null ) {
+        if (dm != null) {
             _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
         }
     }
@@ -124,6 +125,9 @@ public class AllDevicesFragment extends Fragment
         _layoutManager = new LinearLayoutManager(getActivity());
         _recyclerView.setLayoutManager(_layoutManager);
 
+        ImageButton b = (ImageButton) view.findViewById(R.id.add_button);
+        b.setOnClickListener(this);
+
         return view;
     }
 
@@ -134,7 +138,7 @@ public class AllDevicesFragment extends Fragment
         SessionManager.addSessionListener(this);
 
         DeviceManager deviceManager = SessionManager.deviceManager();
-        if ( deviceManager != null ) {
+        if (deviceManager != null) {
             SessionManager.deviceManager().addDeviceListListener(this);
             SessionManager.deviceManager().addDeviceStatusListener(this);
         }
@@ -147,7 +151,7 @@ public class AllDevicesFragment extends Fragment
         SessionManager.removeSessionListener(this);
 
         DeviceManager deviceManager = SessionManager.deviceManager();
-        if ( deviceManager != null ) {
+        if (deviceManager != null) {
             SessionManager.deviceManager().removeDeviceListListener(this);
             SessionManager.deviceManager().removeDeviceStatusListener(this);
         }
@@ -193,13 +197,18 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void onClick(View v) {
-        Device d = (Device)v.getTag();
-        if ( d != null ) {
-            DeviceDetailFragment frag = DeviceDetailFragment.newInstance(d);
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
-            ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                    R.anim.abc_fade_in, R.anim.abc_fade_out);
-            ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        if (v.getId() == R.id.add_button) {
+            addDevice();
+        } else {
+            // This is a click from an item in the list.
+            Device d = (Device) v.getTag();
+            if (d != null) {
+                DeviceDetailFragment frag = DeviceDetailFragment.newInstance(d);
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                        R.anim.abc_fade_in, R.anim.abc_fade_out);
+                ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+            }
         }
     }
 }
