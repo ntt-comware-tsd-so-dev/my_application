@@ -162,7 +162,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         public View getView(int position, View convertView, ViewGroup parent) {
             AylaProperty prop = getItem(position);
             if ( convertView == null ) {
-                convertView = LayoutInflater.from(_context).inflate(R.layout.default_list_item, parent, false);
+                convertView = LayoutInflater.from(_context).inflate(R.layout.cardview_generic_device, parent, false);
             }
 
             TextView propName = (TextView)convertView.findViewById(R.id.device_name);

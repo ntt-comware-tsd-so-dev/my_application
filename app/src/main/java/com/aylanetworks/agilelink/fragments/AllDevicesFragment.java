@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,8 +35,8 @@ import com.aylanetworks.agilelink.framework.SessionManager;
  * <p/>
  */
 public class AllDevicesFragment extends Fragment
-        implements AbsListView.OnItemClickListener, Device.DeviceStatusListener,
-        DeviceManager.DeviceListListener, SessionManager.SessionListener {
+        implements Device.DeviceStatusListener,
+        DeviceManager.DeviceListListener, SessionManager.SessionListener, View.OnClickListener {
 
     private final static String LOG_TAG="AllDevicesFragment";
 
@@ -50,15 +52,11 @@ public class AllDevicesFragment extends Fragment
     private int _displayMode = DISPLAY_MODE_ALL;
 
     /**
-     * The fragment's ListView/GridView.
+     * The fragment's recycler view and helpers
      */
-    private AbsListView _listView;
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-    private ListAdapter _adapter;
+    private RecyclerView _recyclerView;
+    private RecyclerView.LayoutManager _layoutManager;
+    private RecyclerView.Adapter _adapter;
 
     public static AllDevicesFragment newInstance(int displayMode) {
         AllDevicesFragment fragment = new AllDevicesFragment();
@@ -109,8 +107,7 @@ public class AllDevicesFragment extends Fragment
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
         if ( dm != null ) {
-            _adapter = new ArrayAdapter<Device>(getActivity(),
-                    android.R.layout.simple_list_item_1, android.R.id.text1, dm.deviceList());
+            _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
         }
     }
 
@@ -121,13 +118,11 @@ public class AllDevicesFragment extends Fragment
 
         // Set up the list view
 
-        _listView = (AbsListView) view.findViewById(android.R.id.list);
-        _listView.setAdapter(_adapter);
+        _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+        _recyclerView.setHasFixedSize(true);
 
-        // Set OnItemClickListener so we can be notified on item clicks
-        _listView.setOnItemClickListener(this);
-        
-        setEmptyText(getString(R.string.no_devices_found));
+        _layoutManager = new LinearLayoutManager(getActivity());
+        _recyclerView.setLayoutManager(_layoutManager);
 
         return view;
     }
@@ -143,15 +138,6 @@ public class AllDevicesFragment extends Fragment
             SessionManager.deviceManager().addDeviceListListener(this);
             SessionManager.deviceManager().addDeviceStatusListener(this);
         }
-
-        /*
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-        */
     }
 
     @Override
@@ -167,43 +153,17 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Device d = (Device)_listView.getItemAtPosition(position);
-        if ( d != null ) {
-            DeviceDetailFragment frag = DeviceDetailFragment.newInstance(d);
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
-            ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                                   R.anim.abc_fade_in, R.anim.abc_fade_out);
-            ft.add(android.R.id.content, frag).addToBackStack(null).commit();
-        }
-    }
-
-    /**
-     * The default content for this Fragment has a TextView that is shown when
-     * the list is empty. If you would like to change the text, call this method
-     * to supply the text it should use.
-     */
-    public void setEmptyText(CharSequence emptyText) {
-        View emptyView = _listView.getEmptyView();
-
-        if (emptyView instanceof TextView) {
-            ((TextView) emptyView).setText(emptyText);
-        }
-    }
-
     @Override
     public void deviceListChanged() {
         Log.i(LOG_TAG, "Device list changed");
-        _adapter = new DeviceListAdapter(getActivity(), SessionManager.deviceManager().deviceList());
-        _listView.setAdapter(_adapter);
+        _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
+        _recyclerView.setAdapter(_adapter);
     }
 
     @Override
     public void statusUpdated(Device device) {
         Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
-        _listView.setAdapter(_adapter);
+        _recyclerView.setAdapter(_adapter);
     }
 
     @Override
@@ -229,5 +189,17 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void lanModeChanged(boolean lanModeEnabled) {
         Log.v(LOG_TAG, "lanModeChanged: " + (lanModeEnabled ? "ENABLED" : "DISABLED"));
+    }
+
+    @Override
+    public void onClick(View v) {
+        Device d = (Device)v.getTag();
+        if ( d != null ) {
+            DeviceDetailFragment frag = DeviceDetailFragment.newInstance(d);
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                    R.anim.abc_fade_in, R.anim.abc_fade_out);
+            ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        }
     }
 }

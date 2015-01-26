@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ViewGroup;
 
 import com.aylanetworks.aaml.AylaCache;
 import com.aylanetworks.aaml.AylaDevice;
@@ -86,18 +88,6 @@ public class SessionManager {
         getInstance()._sessionListeners.remove(listener);
     }
 
-    /** Implementers should create the correct device type based on the provided AylaDevice. */
-    public interface DeviceCreator {
-        public Device deviceForAylaDevice(AylaDevice aylaDevice);
-    }
-
-    // Default implementation of the DeviceClassMap: All devices are Device objects.
-    public static class DefaultDeviceCreator implements DeviceCreator {
-        public Device deviceForAylaDevice(AylaDevice aylaDevice) {
-            return new Device(aylaDevice);
-        }
-    }
-
     /** Inner Classes */
 
     /** Class used to provide session parameters. */
@@ -108,7 +98,7 @@ public class SessionManager {
         public String pushNotificationSenderId = "103052998040";
         public String appId = "aMCA-id";
         public String appSecret = "aMCA-9097620";
-        public DeviceCreator deviceCreator = new DefaultDeviceCreator();
+        public DeviceCreator deviceCreator = new DeviceCreator();
         public String username;
         public String password;
         public boolean enableLANMode = false;

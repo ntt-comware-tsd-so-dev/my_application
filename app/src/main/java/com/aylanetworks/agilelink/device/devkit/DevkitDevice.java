@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,7 +40,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     public boolean isBlueButtonPressed() {
         AylaProperty prop = getProperty(PROPERTY_BLUE_BUTTON);
-        if ( prop != null && prop.value != null && Integer.parseInt(prop.value) != 0 ) {
+        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
             return true;
         }
         return false;
@@ -58,7 +59,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     public void setGreenLED(boolean on) {
         AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
-        if ( greenLED == null ) {
+        if (greenLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
             return;
         }
@@ -74,7 +75,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     public void setBlueLED(boolean on) {
         AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
-        if ( blueLED == null ) {
+        if (blueLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
             return;
         }
@@ -90,7 +91,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     public boolean isGreenLEDOn() {
         AylaProperty prop = getProperty(PROPERTY_GREEN_LED);
-        if ( prop != null && prop.value != null && Integer.parseInt(prop.value) != 0 ) {
+        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
             return true;
         }
         return false;
@@ -98,7 +99,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     public boolean isBlueLEDOn() {
         AylaProperty prop = getProperty(PROPERTY_BLUE_LED);
-        if ( prop != null && prop.value != null && Integer.parseInt(prop.value) != 0 ) {
+        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
             return true;
         }
         return false;
@@ -116,54 +117,54 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         return propertyNames;
     }
 
-    @Override
-    public View getListItemView(Context c, View convertView, ViewGroup parent) {
-        if ( convertView == null || convertView.findViewById(R.id.blue_button) == null ) {
-            convertView = LayoutInflater.from(c).inflate(R.layout.devkit_list_item, parent, false);
-        }
-
-        convertView.setBackgroundColor(c.getResources().getColor(R.color.list_background));
-
-        TextView deviceNameTextView = (TextView)convertView.findViewById(R.id.device_name);
-        ImageButton greenButton = (ImageButton)convertView.findViewById(R.id.green_button);
-        ImageButton blueButton = (ImageButton)convertView.findViewById(R.id.blue_button);
-        ImageView buttonStateImageView = (ImageView)convertView.findViewById(R.id.blue_button_state_image);
-
-        greenButton.setOnClickListener(this);
-        blueButton.setOnClickListener(this);
-
-        greenButton.setImageDrawable(c.getResources().getDrawable((isGreenLEDOn() ?
-                R.drawable.dup : R.drawable.ddown)));
-        blueButton.setImageDrawable(c.getResources().getDrawable((isBlueLEDOn() ?
-                R.drawable.dup : R.drawable.ddown)));
-
-        buttonStateImageView.setImageDrawable(c.getResources().getDrawable((isBlueButtonPressed() ?
-                R.drawable.downblue : R.drawable.buttonup)));
-
-        deviceNameTextView.setText(toString());
-
-        return convertView;
-    }
 
     @Override
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.evb);
     }
 
-     @Override
-     public void onClick(View v) {
-         // The green or blue LED has been tapped.
-         boolean isGreenButton = (v.getId() == R.id.green_button);
+    @Override
+    public void onClick(View v) {
+        // The green or blue LED has been tapped.
+        boolean isGreenButton = (v.getId() == R.id.green_button);
 
-         Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
-         if ( isGreenButton ) {
-             setGreenLED(!isGreenLEDOn());
-         } else {
-             setBlueLED(!isBlueLEDOn());
-         }
+        Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
+        if (isGreenButton) {
+            setGreenLED(!isGreenLEDOn());
+        } else {
+            setBlueLED(!isBlueLEDOn());
+        }
 
-         // Update the image view to show the transient state
-         ImageButton button = (ImageButton)v;
-         button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
-     }
+        // Update the image view to show the transient state
+        ImageButton button = (ImageButton) v;
+        button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
+    }
+
+    public static final int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
+
+    @Override
+    public int getItemViewType() {
+        return ITEM_VIEW_TYPE_DEVKIT_DEVICE;
+    }
+
+    @Override
+    public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        // Device name
+        DevkitDeviceViewHolder h = (DevkitDeviceViewHolder)holder;
+        h._deviceNameTextView.setText(getDevice().getProductName());
+
+        // Blue button state
+        int imageId = isBlueButtonPressed() ? R.drawable.buttondown : R.drawable.buttonup;
+        h._buttonStateImageView.setImageDrawable(h._buttonStateImageView.getContext().getResources().getDrawable(imageId));
+
+        // Green LED state + button
+        int bulbId = isGreenLEDOn() ? R.drawable.dup : R.drawable.ddown;
+        h._greenButton.setImageDrawable(h._greenButton.getContext().getResources().getDrawable(bulbId));
+        h._greenButton.setOnClickListener(this);
+
+        // Blue LED state + button
+        bulbId = isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown;
+        h._blueButton.setImageDrawable(h._blueButton.getContext().getResources().getDrawable(bulbId));
+        h._blueButton.setOnClickListener(this);
+    }
 }

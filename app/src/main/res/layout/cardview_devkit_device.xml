@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    android:id="@+id/card_view_devkit"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="5dp"
+    card_view:cardCornerRadius="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:descendantFocusability="blocksDescendants"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/device_name"
+            style="@style/DeviceListItemTextView"
+            android:layout_width="0dp"
+            android:layout_weight="0.80"
+            android:text="This is the device name"/>
+
+        <ImageView
+            android:id="@+id/blue_button_state_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"/>
+
+        <ImageButton
+            android:id="@+id/blue_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:background="@color/blue_bulb_bg"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:src="@drawable/dpending"
+            />
+
+        <ImageButton
+            android:id="@+id/green_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:background="@color/green_bulb_bg"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:src="@drawable/dpending"
+            />
+    </LinearLayout>
+
+</android.support.v7.widget.CardView>

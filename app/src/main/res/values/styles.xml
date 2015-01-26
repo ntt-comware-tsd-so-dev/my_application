@@ -11,10 +11,7 @@
     </style>
 
     <!-- Style for text views in list items that show the device name -->
-    <style name="DeviceListItemTextView" parent="@android:style/TextAppearance.Large">
-        <item name="android:textColor">@color/list_foreground</item>
-        <item name="android:background">@color/list_background</item>
-        <item name="android:textStyle">bold</item>
+    <style name="DeviceListItemTextView" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_height">wrap_content</item>
@@ -23,8 +20,6 @@
 
     <!-- Style for the device status, shown to the right of list view items -->
     <style name="DeviceListItemStatusTextView" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textColor">@color/list_foreground</item>
-        <item name="android:background">@color/list_background</item>
         <item name="android:textStyle">italic</item>
         <item name="android:gravity">center_vertical|right</item>
         <item name="android:layout_gravity">center_vertical</item>

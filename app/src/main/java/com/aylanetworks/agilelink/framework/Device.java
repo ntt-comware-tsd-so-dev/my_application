@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -128,28 +129,24 @@ public class Device implements Comparable<Device> {
 
     /** UI Methods */
 
+    public static final int ITEM_VIEW_TYPE_GENERIC_DEVICE = 1;
+    public int getItemViewType() {
+        return ITEM_VIEW_TYPE_GENERIC_DEVICE;
+    }
+
     /**
-     * Returns a view representing this device to be used in a ListView container
-     * @param c Context
-     * @param convertView Old view to reuse, if possible
-     * @param parent Parent for the returned view
-     * @return A view representing the device as shown in a ListView
+     * Updates the views in the ViewHolder with information from the Device object.
+     *
+     * Derived classes should override this method to set up a ViewHolder for display in
+     * RecyclerViews.
+     *
+     * @param holder The view holder for this object
      */
-    public View getListItemView(Context c, View convertView, ViewGroup parent) {
-        // If we don't have a view to reuse, or if it's not of the type we expect, create a
-        // new one. Note that we don't have a particular view we require here, so no check is done
-        // for the appropriate class type.
-        if ( convertView == null ) {
-            convertView = LayoutInflater.from(c).inflate(R.layout.default_list_item, parent, false);
-        }
-
-        TextView deviceNameTextView = (TextView)convertView.findViewById(R.id.device_name);
-        TextView deviceStateTextView = (TextView)convertView.findViewById(R.id.device_state);
-
-        deviceNameTextView.setText(toString());
-        deviceStateTextView.setText(getDeviceState());
-
-        return convertView;
+    public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        GenericDeviceViewHolder h = (GenericDeviceViewHolder)holder;
+        h._deviceNameTextView.setText(getDevice().getProductName());
+        h._deviceStatusTextView.setText(getDeviceState());
+        h._currentDevice = this;
     }
 
     /**

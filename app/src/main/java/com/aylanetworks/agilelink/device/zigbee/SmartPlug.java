@@ -64,21 +64,22 @@ public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeL
         return on;
     }
 
-    @Override
-    public View getListItemView(Context c, View convertView, ViewGroup parent) {
-        if ( convertView == null || convertView.findViewById(R.id.toggle_switch) == null ) {
-            convertView = LayoutInflater.from(c).inflate(R.layout.on_off_list_item, parent, false);
-        }
+//    @Override
+//    public View getListItemView(Context c, View convertView, ViewGroup parent) {
+//        if ( convertView == null || convertView.findViewById(R.id.toggle_switch) == null ) {
+//            convertView = LayoutInflater.from(c).inflate(R.layout.on_off_list_item, parent, false);
+//        }
+//
+//        Switch s = (Switch)convertView.findViewById(R.id.toggle_switch);
+//
+//        s.setOnCheckedChangeListener(null);
+//        s.setChecked(isOn());
+//        s.setOnCheckedChangeListener(this);
+//        s.setText(R.string.smart_plug);
+//
+//        return convertView;
+//    }
 
-        Switch s = (Switch)convertView.findViewById(R.id.toggle_switch);
-
-        s.setOnCheckedChangeListener(null);
-        s.setChecked(isOn());
-        s.setOnCheckedChangeListener(this);
-        s.setText(R.string.smart_plug);
-
-        return convertView;
-    }
 
     private Handler _createDatapointHandler = new Handler() {
         @Override

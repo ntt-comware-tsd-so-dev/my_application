@@ -105,6 +105,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
         devkitParams.deviceCreator = new DevkitDeviceCreator();
         devkitParams.appVersion = getAppVersion();
+
+        // TODO: Find out why LAN mode is not working with the EVB
         devkitParams.enableLANMode = false;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
@@ -121,8 +123,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             devkitParams.registrationEmailBodyHTML = null;
         }
 
-        SessionManager.setParameters(nexTurnParams);
-        // SessionManager.setParameters(devkitParams);
+        // SessionManager.setParameters(nexTurnParams);
+        SessionManager.setParameters(devkitParams);
 
         // Bring up the login dialog if we're not already logged in
         if ( !SessionManager.isLoggedIn() ) {
