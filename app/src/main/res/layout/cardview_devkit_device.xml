@@ -25,31 +25,66 @@
             android:id="@+id/blue_button_state_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:elevation="2dp"
             android:layout_gravity="center_vertical"/>
 
-        <ImageButton
-            android:id="@+id/blue_button"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_margin="5dp"
-            android:background="@color/blue_bulb_bg"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:src="@drawable/dpending"
-            />
+            android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/green_button"
+            <ImageButton
+                android:id="@+id/blue_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:background="@android:color/transparent"
+                android:layout_marginRight="5dp"
+                android:elevation="2dp"
+                android:layout_marginTop="5dp"
+                android:src="@drawable/dpending"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:layout_gravity="bottom"
+                android:layout_marginRight="5dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="5dp"
+                android:background="@color/blue_bulb_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_margin="5dp"
-            android:background="@color/green_bulb_bg"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:src="@drawable/dpending"
-            />
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/green_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:background="@android:color/transparent"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="5dp"
+                android:elevation="2dp"
+                android:src="@drawable/dpending"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:layout_gravity="bottom"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
+                android:elevation="2dp"
+                android:background="@color/green_bulb_bg"/>
+        </LinearLayout>
+
     </LinearLayout>
 
 </android.support.v7.widget.CardView>

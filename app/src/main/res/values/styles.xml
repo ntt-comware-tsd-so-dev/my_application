@@ -13,6 +13,7 @@
     <!-- Style for text views in list items that show the device name -->
     <style name="DeviceListItemTextView" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">10dp</item>
