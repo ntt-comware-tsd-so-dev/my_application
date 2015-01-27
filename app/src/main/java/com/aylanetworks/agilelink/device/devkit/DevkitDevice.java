@@ -38,6 +38,11 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         super(device);
     }
 
+    @Override
+    public String deviceTypeName() {
+        return "Ayla EVB";
+    }
+
     public boolean isBlueButtonPressed() {
         AylaProperty prop = getProperty(PROPERTY_BLUE_BUTTON);
         if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {

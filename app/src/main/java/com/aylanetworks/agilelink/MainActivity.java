@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -52,8 +53,35 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
      */
     ViewPager mViewPager;
 
+    private static MainActivity _theInstance;
+    public static MainActivity getInstance() {
+        return _theInstance;
+    }
+
+    ProgressDialog _progressDialog;
+    public void showWaitDialog(String title, String message) {
+        if ( _progressDialog != null ) {
+            dismissWaitDialog();
+        }
+
+        if ( title == null ) {
+            title = getResources().getString(R.string.please_wait);
+        }
+
+        _progressDialog = ProgressDialog.show(this, title, message, true);
+    }
+
+    public void dismissWaitDialog() {
+        if ( _progressDialog != null ) {
+            _progressDialog.dismiss();
+            _progressDialog = null;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        _theInstance = this;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -107,7 +135,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         devkitParams.appVersion = getAppVersion();
 
         // TODO: Find out why LAN mode is not working with the EVB
-        devkitParams.enableLANMode = false;
+        devkitParams.enableLANMode = true;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
         // Set the SessionManager's registration fields to our own values
@@ -123,8 +151,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             devkitParams.registrationEmailBodyHTML = null;
         }
 
-        // SessionManager.setParameters(nexTurnParams);
-        SessionManager.setParameters(devkitParams);
+        SessionManager.setParameters(nexTurnParams);
+        // SessionManager.setParameters(devkitParams);
 
         // Bring up the login dialog if we're not already logged in
         if ( !SessionManager.isLoggedIn() ) {

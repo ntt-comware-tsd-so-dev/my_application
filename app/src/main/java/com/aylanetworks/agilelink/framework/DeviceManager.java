@@ -56,7 +56,12 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     public void refreshDeviceStatus(Device device) {
-        device.updateStatus(this);
+        if ( device == null ) {
+            // Refresh all devices
+            _deviceStatusTimerRunnable.run();
+        } else {
+            device.updateStatus(this);
+        }
     }
 
     public void setComparator(Comparator<Device> comparator) {

@@ -12,6 +12,7 @@ import android.widget.Switch;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.R;
@@ -31,6 +32,16 @@ public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeL
         super(aylaDevice);
     }
 
+    @Override
+    public String deviceTypeName() {
+        return "Smart Plug";
+    }
+
+    @Override
+    public String registrationType() {
+        return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
+    }
+
     public boolean isOn() {
         AylaProperty onProp = getProperty(PROPERTY_SWITCH_ON);
         if ( onProp != null && onProp.value != null ) {
@@ -39,7 +50,6 @@ public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeL
         // Unknown
         Log.i(LOG_TAG, "No property value for SWITCH_ON!");
         return false;
-
     }
 
     @Override

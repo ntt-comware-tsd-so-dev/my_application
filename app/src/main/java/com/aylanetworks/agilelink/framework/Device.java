@@ -174,6 +174,25 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Returns a string indicating the device type. This string is used when referring to the actual
+     * type of the device, such as "Door Sensor" or "Ayla EVB". It should not change based on any
+     * characteristics of the specific device, such as device name or state.
+     * @return The name of the type of the device
+     */
+    public String deviceTypeName() {
+        return "Unknown";
+    }
+
+    /**
+     * Returns the registration type used to register this type of device. Derived classes should
+     * override this method to return the appropriate registration type for the device.
+     * @return The registration type used to register this device
+     */
+    public String registrationType() {
+        return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
+    }
+
+    /**
      * Returns a string representing the state of the device (on, off, open, closed, etc.)
      * The default implementation returns nothing.
      * @return A string representing the state of the device

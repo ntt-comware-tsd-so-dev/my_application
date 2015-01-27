@@ -1,7 +1,10 @@
 package com.aylanetworks.agilelink.fragments;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -73,6 +76,13 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         Button button = (Button)view.findViewById(R.id.unregister_device);
         button.setOnClickListener(this);
+
+        button = (Button)view.findViewById(R.id.notifications_button);
+        button.setOnClickListener(this);
+
+        button = (Button)view.findViewById(R.id.schedule_button);
+        button.setOnClickListener(this);
+
         updateUI();
 
         return view;
@@ -140,17 +150,55 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         }
     };
 
+    private void unregisterDevice() {
+        // Unregister Device clicked
+        // Confirm first!
+        Resources res = getActivity().getResources();
+        new AlertDialog.Builder(getActivity())
+                .setTitle(res.getString(R.string.unregister_confirm_title))
+                .setMessage(res.getString(R.string.unregister_confirm_body))
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(LOG_TAG, "Unregister Device: " + _device);
+                        _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(R.drawable.ic_launcher)
+                .show();
+    }
+
+    private void notificationsClicked() {
+        Toast.makeText(getActivity(), "Notifications: Coming soon!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void scheduleClicked() {
+        Toast.makeText(getActivity(), "Schedule: Coming soon!", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onClick(View v) {
-        if ( v.getId() == R.id.unregister_device ) {
-            // Unregister Device clicked
-            Log.i(LOG_TAG, "Unregister Device: " + _device);
-            _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
-        }
+        switch ( v.getId() ) {
+            case R.id.unregister_device:
+                unregisterDevice();
+                break;
+
+            case R.id.notifications_button:
+                notificationsClicked();
+                break;
+
+            case R.id.schedule_button:
+                scheduleClicked();
+                break;
+
+            default:
+                Log.e(LOG_TAG, "Unknown button click: " + v);
+         }
     }
 
     public class PropertyListAdapter extends ArrayAdapter<AylaProperty> {
-        private final static String LOG_TAG = "DeviceListAdapter";
+        private final static String LOG_TAG = "PropertyListAdapter";
         private Context _context;
 
         public PropertyListAdapter(Context context, List<AylaProperty> objects) {

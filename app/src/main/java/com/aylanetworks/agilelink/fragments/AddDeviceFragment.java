@@ -1,6 +1,8 @@
 package com.aylanetworks.agilelink.fragments;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -16,8 +18,21 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
+import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
+import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.SessionManager;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Brian King on 1/21/15.
@@ -39,6 +54,7 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
     }
 
     private TextView _descriptionTextView;
+    private List<Device> _deviceList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -50,14 +66,11 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
 
         // Populate the spinners for product type & registration type
         Spinner s = (Spinner)view.findViewById(R.id.spinner_product_type);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(), R.array.product_types, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        s.setSelection(PRODUCT_TYPE_EVB);
         s.setOnItemSelectedListener(this);
-        s.setAdapter(adapter);
+        s.setAdapter(createProductTypeAdapter());
 
         s = (Spinner)view.findViewById(R.id.spinner_registration_type);
-        adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         s.setSelection(REG_TYPE_SAME_LAN);
         s.setOnItemSelectedListener(this);
@@ -68,6 +81,31 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         b.setOnClickListener(this);
 
         return view;
+    }
+
+    ArrayAdapter<Device> createProductTypeAdapter() {
+        List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
+        ArrayList<Device> deviceList = new ArrayList<>();
+        for ( Class<? extends Device> c : deviceClasses ) {
+            try {
+                AylaDevice fakeDevice = new AylaDevice();
+                Device d = c.getDeclaredConstructor(AylaDevice.class).newInstance(fakeDevice);
+                deviceList.add(d);
+            } catch (java.lang.InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+
+        ArrayAdapter<Device> adapter = new DeviceTypeAdapter(getActivity(),
+                deviceList.toArray(new Device[deviceList.size()]));
+
+        return adapter;
     }
 
     @Override
@@ -114,14 +152,50 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         Log.i(LOG_TAG, "Selected " + position);
     }
 
+    private String getSelectedRegistrationType() {
+        Spinner regTypeSpinner = (Spinner)getView().findViewById(R.id.spinner_registration_type);
+        switch ( regTypeSpinner.getSelectedItemPosition() ) {
+            case REG_TYPE_SAME_LAN:
+                return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
+            case REG_TYPE_BUTTON_PUSH:
+                return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
+            case REG_TYPE_DISPLAY:
+                return AylaNetworks.AML_REGISTRATION_TYPE_DISPLAY;
+        }
+        return null;
+    }
+
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         Log.i(LOG_TAG, "Nothing Selected");
     }
 
+    private Handler _registerHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.i(LOG_TAG, "Register handler called: " + msg);
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( msg.arg1 >= 200 && msg.arg1 < 300 ) {
+                // Success!
+                Toast.makeText(getActivity(), R.string.registration_success, Toast.LENGTH_LONG).show();
+                getActivity().getSupportFragmentManager().popBackStack();
+                SessionManager.deviceManager().refreshDeviceList();
+                SessionManager.deviceManager().refreshDeviceStatus(null);
+            } else {
+                // Something went wrong
+                Toast.makeText(getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+
     @Override
     public void onClick(View v) {
         // Register button clicked
         Log.i(LOG_TAG, "Register clicked");
+
+        MainActivity.getInstance().showWaitDialog(null, null);
+        AylaDevice newDevice = new AylaDevice();
+        newDevice.registrationType = getSelectedRegistrationType();
+        newDevice.registerNewDevice(_registerHandler);
     }
 }

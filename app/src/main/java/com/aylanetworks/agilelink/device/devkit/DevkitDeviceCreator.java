@@ -13,6 +13,9 @@ import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Brian King on 12/19/14.
  */
@@ -45,5 +48,13 @@ public class DevkitDeviceCreator extends DeviceCreator {
         }
 
         return super.viewHolderForViewType(parent, viewType);
+    }
+
+    public List<Class<? extends Device>> getSupportedDeviceClasses() {
+        List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
+
+        classList.add(DevkitDevice.class);
+
+        return classList;
     }
 }

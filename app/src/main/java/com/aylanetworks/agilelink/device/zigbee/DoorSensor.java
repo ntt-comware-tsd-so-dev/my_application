@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.R;
@@ -22,6 +23,16 @@ public class DoorSensor extends Device {
 
     public DoorSensor(AylaDevice device) {
         super(device);
+    }
+
+    @Override
+    public String deviceTypeName() {
+        return "Door Sensor";
+    }
+
+    @Override
+    public String registrationType() {
+        return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
     }
 
     @Override
@@ -61,6 +72,5 @@ public class DoorSensor extends Device {
          String open = (Integer.parseInt(openProp.value) == DOOR_OPEN) ? c.getString(R.string.open) :
                  c.getString(R.string.closed);
          return open;
-
      }
 }

@@ -3,10 +3,14 @@ package com.aylanetworks.agilelink.device.zigbee;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.device.devkit.DevkitDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.SessionManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Brian King on 12/19/14.
@@ -51,5 +55,18 @@ public class NexTurnDeviceCreator extends DeviceCreator {
         }
 
         return device;
+    }
+
+    @Override
+    public List<Class<? extends Device>> getSupportedDeviceClasses() {
+        List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
+
+        classList.add(DoorSensor.class);
+        classList.add(SmartPlug.class);
+        classList.add(SmartBulb.class);
+        classList.add(RemoteSwitch.class);
+        classList.add(MotionSensor.class);
+
+        return classList;
     }
 }
