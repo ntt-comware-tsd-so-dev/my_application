@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -115,20 +116,25 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
             // type when this is selected.
             Spinner regTypeSpinner = (Spinner)getView().findViewById(R.id.spinner_registration_type);
 
-            switch ( position ) {
-                case PRODUCT_TYPE_EVB:
-                    regTypeSpinner.setSelection(REG_TYPE_SAME_LAN);
-                    break;
+            Device d = (Device)parent.getAdapter().getItem(position);
 
-                case PRODUCT_TYPE_SMART_PLUG:
-                    regTypeSpinner.setSelection(REG_TYPE_BUTTON_PUSH);
+            // Find the index of the preferred registration type of the selected device
+            Adapter adapter = regTypeSpinner.getAdapter();
+            int i;
+            for ( i = 0; i < adapter.getCount(); i++ ) {
+                String type = (String)adapter.getItem(i);
+                if ( type.equals(d.registrationType()) )
                     break;
-
-                case PRODUCT_TYPE_OTHER:
-                default:
-                        // Do nothing
-                        ;
             }
+
+            // Set the appropriate registration type
+            if ( i < (adapter.getCount())) {
+                regTypeSpinner.setSelection(i, true);
+            } else {
+                Log.e(LOG_TAG, "Unknown registration type: " + d.registrationType());
+                regTypeSpinner.setSelection(REG_TYPE_SAME_LAN, true);
+            }
+
         } else if ( parent.getId() == R.id.spinner_registration_type ) {
             // Update the display text
             int textId;

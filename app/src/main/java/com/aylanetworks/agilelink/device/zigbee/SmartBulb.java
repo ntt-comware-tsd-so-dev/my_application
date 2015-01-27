@@ -1,7 +1,11 @@
 package com.aylanetworks.agilelink.device.zigbee;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
 /**
@@ -22,4 +26,8 @@ public class SmartBulb extends Device {
         return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
     }
 
+    @Override
+    public Drawable getDeviceDrawable(Context c) {
+        return c.getResources().getDrawable(R.drawable.smart_bulb);
+    }
 }

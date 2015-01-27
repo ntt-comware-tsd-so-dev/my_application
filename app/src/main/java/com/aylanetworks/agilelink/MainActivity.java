@@ -151,8 +151,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             devkitParams.registrationEmailBodyHTML = null;
         }
 
-        SessionManager.setParameters(nexTurnParams);
-        // SessionManager.setParameters(devkitParams);
+        // SessionManager.setParameters(nexTurnParams);
+        SessionManager.setParameters(devkitParams);
 
         // Bring up the login dialog if we're not already logged in
         if ( !SessionManager.isLoggedIn() ) {

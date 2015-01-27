@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.zigbee;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -35,6 +36,11 @@ public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeL
     @Override
     public String deviceTypeName() {
         return "Smart Plug";
+    }
+
+    @Override
+    public Drawable getDeviceDrawable(Context c) {
+        return c.getResources().getDrawable(R.drawable.smart_plug);
     }
 
     @Override

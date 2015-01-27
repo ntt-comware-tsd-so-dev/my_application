@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.zigbee;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
@@ -28,6 +29,11 @@ public class DoorSensor extends Device {
     @Override
     public String deviceTypeName() {
         return "Door Sensor";
+    }
+
+    @Override
+    public Drawable getDeviceDrawable(Context c) {
+        return c.getResources().getDrawable(R.drawable.door_sensor);
     }
 
     @Override
