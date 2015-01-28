@@ -7,16 +7,10 @@
 
     <TextView
         android:id="@+id/textView"
+        style="@style/PageHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/light_green_700"
-        android:gravity="center"
-        android:padding="5dp"
-        android:paddingTop="20dp"
-        android:text="Device Registration"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@android:color/white"/>
+        android:text="@string/device_registration"/>
 
     <!-- Spacer view -->
     <View

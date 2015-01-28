@@ -32,6 +32,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
+import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -54,17 +55,19 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     ViewPager mViewPager;
 
     private static MainActivity _theInstance;
+
     public static MainActivity getInstance() {
         return _theInstance;
     }
 
     ProgressDialog _progressDialog;
+
     public void showWaitDialog(String title, String message) {
-        if ( _progressDialog != null ) {
+        if (_progressDialog != null) {
             dismissWaitDialog();
         }
 
-        if ( title == null ) {
+        if (title == null) {
             title = getResources().getString(R.string.please_wait);
         }
 
@@ -72,7 +75,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     public void dismissWaitDialog() {
-        if ( _progressDialog != null ) {
+        if (_progressDialog != null) {
             _progressDialog.dismiss();
             _progressDialog = null;
         }
@@ -103,7 +106,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(this);
         nexTurnParams.appId = "iNextTurnKitDev-id";
         nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
-        nexTurnParams.serviceType =  AylaNetworks.AML_DEVELOPMENT_SERVICE;
+        nexTurnParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
         nexTurnParams.deviceCreator = new NexTurnDeviceCreator();
         nexTurnParams.appVersion = getAppVersion();
         // We want to enable LAN mode in this application
@@ -118,15 +121,15 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
         nexTurnParams.registrationEmailTemplateId = "ayla_confirmation_template_01";
 
-        if ( nexTurnParams.registrationEmailTemplateId == null ) {
+        if (nexTurnParams.registrationEmailTemplateId == null) {
             nexTurnParams.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
         } else {
             nexTurnParams.registrationEmailBodyHTML = null;
         }
 
         /**
-          * Parameters for Ayla devkit
-          */
+         * Parameters for Ayla devkit
+         */
         final SessionManager.SessionParameters devkitParams = new SessionManager.SessionParameters(this);
         devkitParams.appId = "aMCA-id";
         devkitParams.appSecret = "aMCA-9097620";
@@ -145,7 +148,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
         devkitParams.registrationEmailTemplateId = "ayla_confirmation_template_01";
 
-        if ( devkitParams.registrationEmailTemplateId == null ) {
+        if (devkitParams.registrationEmailTemplateId == null) {
             devkitParams.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
         } else {
             devkitParams.registrationEmailBodyHTML = null;
@@ -155,31 +158,31 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         SessionManager.setParameters(devkitParams);
 
         // Bring up the login dialog if we're not already logged in
-        if ( !SessionManager.isLoggedIn() ) {
+        if (!SessionManager.isLoggedIn()) {
             loginDialog().show();
         }
     }
 
     @Override
     public void onBackPressed() {
-        if ( getSupportFragmentManager().getBackStackEntryCount() == 0 && SessionManager.isLoggedIn() ) {
+        if (getSupportFragmentManager().getBackStackEntryCount() == 0 && SessionManager.isLoggedIn()) {
             SessionManager.stopSession();
             loginDialog().show();
         } else {
             super.onBackPressed();
-         }
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        if ( SessionManager.deviceManager() != null ) {
+        if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
         }
 
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
-        if ( params != null && params.enableLANMode ) {
+        if (params != null && params.enableLANMode) {
             AylaLanMode.pause(false);
         }
     }
@@ -189,11 +192,11 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         super.onResume();
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
 
-        if ( params != null &&  params.enableLANMode ) {
+        if (params != null && params.enableLANMode) {
             AylaLanMode.resume();
         }
 
-        if ( SessionManager.deviceManager() != null ) {
+        if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().startPolling();
         }
     }
@@ -213,8 +216,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
         final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
         final Button signInButton = (Button) textEntryView.findViewById(R.id.buttonSignIn);
-        final TextView signUpTextView = (TextView)textEntryView.findViewById(R.id.signUpTextView);
-
+        final TextView signUpTextView = (TextView) textEntryView.findViewById(R.id.signUpTextView);
 
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -313,14 +315,14 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         Toast.makeText(this, R.string.sign_up_success, Toast.LENGTH_LONG).show();
 
         // Update the username / password fields in our sign-in dialog and sign in the user
-        if ( _loginDialog != null ) {
-            EditText username = (EditText)_loginDialog.findViewById(R.id.userNameEditText);
-            EditText password = (EditText)_loginDialog.findViewById(R.id.passwordEditText);
+        if (_loginDialog != null) {
+            EditText username = (EditText) _loginDialog.findViewById(R.id.userNameEditText);
+            EditText password = (EditText) _loginDialog.findViewById(R.id.passwordEditText);
             username.setText(newUser.email);
             password.setText(newUser.password);
 
             // Click the sign-in button
-            Button b = (Button)_loginDialog.findViewById(R.id.buttonSignIn);
+            Button b = (Button) _loginDialog.findViewById(R.id.buttonSignIn);
             b.callOnClick();
             _loginDialog = null;
         }
@@ -339,59 +341,34 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            if ( position == 0 ) {
-                return AllDevicesFragment.newInstance(AllDevicesFragment.DISPLAY_MODE_ALL);
+            switch (position) {
+                case 0:
+                    return AllDevicesFragment.newInstance(AllDevicesFragment.DISPLAY_MODE_ALL);
+
+                case 1:
+                    return SettingsFragment.newInstance();
+
+                default:
+                    return null;
             }
-            return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override
         public int getCount() {
-            // Show 1 page (for now).
-            return 1;
+            // Show 2 pages (for now).
+            return 2;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if ( position == 0 ) {
-                return getString(R.string.all_devices);
+            switch (position) {
+                case 0:
+                    return getString(R.string.all_devices);
+                case 1:
+                    return getString(R.string.settings);
+                default:
+                    return null;
             }
-            return Integer.toString(position);
         }
     }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-    }
-
 }

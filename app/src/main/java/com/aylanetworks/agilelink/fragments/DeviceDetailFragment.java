@@ -63,7 +63,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             String dsn = getArguments().getString(ARG_DEVICE_DSN);
             _device = SessionManager.deviceManager().deviceByDSN(dsn);
         }
-
      }
 
     @Override

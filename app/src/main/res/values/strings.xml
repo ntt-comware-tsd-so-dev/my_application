@@ -81,12 +81,22 @@
     <string name="registration_failure">Could not register the device. Make sure the device is ready for registration.</string>
     <string name="unregister_confirm_title">Unregister Device</string>
     <string name="unregister_confirm_body">Are you sure you want to remove this device from your account?</string>
+    <string name="settings">Settings</string>
+    <string name="device_registration">Device Registration</string>
 
-     <!-- Array of registration types -->
+    <!-- Array of registration types -->
     <string-array name="registration_types">
         <item>Same-LAN</item>
         <item>Button-Push</item>
         <item>Display</item>
+    </string-array>
+
+    <!-- Settings menu items -->
+    <string-array name="settings_items">
+        <item>Registration</item>
+        <item>WiFi Setup</item>
+        <item>Profile</item>
+        <item>Email logs to Ayla</item>
     </string-array>
 
 </resources>

@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
@@ -61,6 +62,15 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_device, container, false);
 
+        // Set up an onTouchListener to our root view so touches are not passed through to
+        // fragments below us in the navigation stack
+        view.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
+        
         // Get our description text view
         _descriptionTextView = (TextView)view.findViewById(R.id.registration_description);
         _descriptionTextView.setText(getActivity().getResources().getString(R.string.registration_same_lan_instructions));
