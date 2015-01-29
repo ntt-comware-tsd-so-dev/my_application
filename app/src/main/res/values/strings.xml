@@ -83,6 +83,27 @@
     <string name="unregister_confirm_body">Are you sure you want to remove this device from your account?</string>
     <string name="settings">Settings</string>
     <string name="device_registration">Device Registration</string>
+    <string name="wifi_setup">WiFi Setup</string>
+    <string name="scan">Scan for Devices</string>
+    <string name="scanning_for_devices_title">Scanning</string>
+    <string name="scanning_for_devices_message">Scanning for available access points...</string>
+    <string name="error_wifi_not_enabled">WiFi must be enabled to set up a new device</string>
+    <string name="wifi_initial_text">Tap SCAN FOR DEVICES to start</string>
+    <string name="connecting_to_device_title">Connecting</string>
+    <string name="connecting_to_device_body">Establishing connection to the device. Please wait...</string>
+    <string name="scanning_for_aps_title">Scanning for WiFi networks</string>
+    <string name="scanning_for_aps_body">Scanning for available WiFi Access Points. Please wait...</string>
+    <string name="wifi_connect_failed">Could not connect to the device at this time. Please reset the device and try again.</string>
+    <string name="choose_ap">WiFi Access Points</string>
+    <string name="choose_ap_body">Select the WiFi network the new device should connect to</string>
+    <string name="enter_wifi_password">Please select the WiFi access point you wish your device to connect to and enter the WiFI password, if necessary.</string>
+    <string name="connect">Connect</string>
+    <string name="wifi_password">WiFi Network Password</string>
+    <string name="connect_device">Connect Device</string>
+    <string name="connect_to_service_success">Service connection successful</string>
+    <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
+    <string name="connecting_to_network_title">Connecting</string>
+    <string name="connecting_to_network_body">Connecting to the WiFi network. Please wait...</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">

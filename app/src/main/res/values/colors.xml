@@ -286,6 +286,10 @@
     <color name="list_background">#FFFFFF</color>
     <color name="list_foreground">#000000</color>
 
+    <!-- Colors for selected list items -->
+    <color name="list_bg_selected">@color/light_green_400</color>
+    <color name="list_bg_normal">@android:color/white</color>
+
     <!-- Colors for detail views -->
     <color name="detail_background">#FFFFFF</color>
     <color name="bar_background">#888888</color>
