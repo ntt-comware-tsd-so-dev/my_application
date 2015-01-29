@@ -43,9 +43,17 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         return view;
     }
 
-    void handleRegistration() {
+    private void handleRegistration() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                R.anim.abc_fade_in, R.anim.abc_fade_out);
+        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+    }
+
+    private void handleWiFiSetup() {
+        WiFiSetupFragment frag = WiFiSetupFragment.newInstance();
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
                 R.anim.abc_fade_in, R.anim.abc_fade_out);
@@ -61,6 +69,9 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
                 break;
 
             case INDEX_WIFI_SETUP:
+                handleWiFiSetup();
+                break;
+
             case INDEX_PROFILE:
             case INDEX_EMAIL_LOGS:
             default:

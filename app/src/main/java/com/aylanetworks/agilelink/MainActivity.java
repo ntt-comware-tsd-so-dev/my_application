@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -33,10 +34,11 @@ import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
+import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener {
+public class MainActivity extends FragmentActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener {
 
     private static final String LOG_TAG = "Main Activity";
     /**
@@ -159,15 +161,29 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         // Bring up the login dialog if we're not already logged in
         if (!SessionManager.isLoggedIn()) {
-            loginDialog().show();
+            showLoginDialog();
         }
+    }
+
+    private void showLoginDialog() {
+        _loginDialog = new SignInDialog();
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
+        String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
+
+        Bundle args = new Bundle();
+        args.putString(SignInDialog.ARG_USERNAME, savedUsername);
+        args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
+        _loginDialog.setArguments(args);
+        _loginDialog.show(getSupportFragmentManager(), "signin");
     }
 
     @Override
     public void onBackPressed() {
         if (getSupportFragmentManager().getBackStackEntryCount() == 0 && SessionManager.isLoggedIn()) {
             SessionManager.stopSession();
-            loginDialog().show();
+            showLoginDialog();
         } else {
             super.onBackPressed();
         }
@@ -201,69 +217,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
     }
 
-    private AlertDialog _loginDialog;
-
-    public AlertDialog loginDialog() {
-        final Context c = this;
-        LayoutInflater factory = LayoutInflater.from(c);
-        final View textEntryView = factory.inflate(R.layout.login, null);
-        final AlertDialog.Builder failAlert = new AlertDialog.Builder(c);
-        failAlert.setTitle(R.string.login_failed);
-        failAlert.setNegativeButton(R.string.ok, null);
-
-        AlertDialog.Builder alert = new AlertDialog.Builder(c);
-        alert.setView(textEntryView);
-        final EditText usernameInput = (EditText) textEntryView.findViewById(R.id.userNameEditText);
-        final EditText passwordInput = (EditText) textEntryView.findViewById(R.id.passwordEditText);
-        final Button signInButton = (Button) textEntryView.findViewById(R.id.buttonSignIn);
-        final TextView signUpTextView = (TextView) textEntryView.findViewById(R.id.signUpTextView);
-
-
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
-        String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
-
-        usernameInput.setText(savedUsername);
-        passwordInput.setText(savedPassword);
-
-        // Set up the handler for login click
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-                // Set up our session parameters and start the session.
-
-                // Use the nexTurn settings
-                // SessionManager.SessionParameters params = nexTurnParams;
-
-                String username = usernameInput.getText().toString();
-                String password = passwordInput.getText().toString();
-
-                SessionManager.startSession(username, password);
-                _loginDialog.dismiss();
-                _loginDialog = null;
-            }
-        });
-
-        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                // Finish the activity. This will get called if the back button is pressed
-                // while the dialog is active.
-                finish();
-            }
-        });
-
-        // Set the handler for a click on "Sign Up"
-        signUpTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchSignUpDialog();
-            }
-        });
-
-        _loginDialog = alert.create();
-        return _loginDialog;
-    }
+    private SignInDialog _loginDialog;
 
     public String getAppVersion() {
         PackageInfo info = null;
@@ -294,7 +248,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
             SessionManager.stopSession();
-            loginDialog().show();
+            showLoginDialog();
             return true;
         }
 
@@ -316,16 +270,36 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         // Update the username / password fields in our sign-in dialog and sign in the user
         if (_loginDialog != null) {
-            EditText username = (EditText) _loginDialog.findViewById(R.id.userNameEditText);
-            EditText password = (EditText) _loginDialog.findViewById(R.id.passwordEditText);
+            EditText username = (EditText) _loginDialog.getView().findViewById(R.id.userNameEditText);
+            EditText password = (EditText) _loginDialog.getView().findViewById(R.id.passwordEditText);
             username.setText(newUser.email);
             password.setText(newUser.password);
 
             // Click the sign-in button
-            Button b = (Button) _loginDialog.findViewById(R.id.buttonSignIn);
+            Button b = (Button) _loginDialog.getView().findViewById(R.id.buttonSignIn);
             b.callOnClick();
             _loginDialog = null;
         }
+    }
+
+    //
+    // SignInDialogListener methods
+    //
+    @Override
+    public void signIn(String username, String password) {
+        SessionManager.startSession(username, password);
+        _loginDialog.dismiss();
+        _loginDialog = null;
+   }
+
+    @Override
+    public void signInOAuth(String type) {
+
+    }
+
+    @Override
+    public void signUp() {
+        launchSignUpDialog();
     }
 
     /**

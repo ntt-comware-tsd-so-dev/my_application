@@ -76,6 +76,42 @@
         android:textColor="@android:color/white"
         android:text="@string/signIn" />
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="64dp"
+        android:layout_below="@id/buttonSignIn"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        >
+
+        <ImageButton
+            android:id="@+id/google_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:adjustViewBounds="true"
+            android:cropToPadding="false"
+            android:scaleType="fitXY"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            android:src="@drawable/google_icon"
+            />
+
+        <ImageButton
+            android:id="@+id/facebook_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:adjustViewBounds="true"
+            android:cropToPadding="false"
+            android:scaleType="fitXY"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            android:src="@drawable/facebook_icon"
+            />
+
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/imageViewConnected"
         android:layout_width="wrap_content"
@@ -97,7 +133,7 @@
         android:inputType="textVisiblePassword" />
 
     <TextView
-        android:id="@+id/textViewBB"
+        android:id="@+id/forgot_password"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/signUpTextView"

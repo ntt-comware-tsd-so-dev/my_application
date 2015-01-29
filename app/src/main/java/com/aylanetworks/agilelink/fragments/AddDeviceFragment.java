@@ -70,7 +70,7 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
                 return true;
             }
         });
-        
+
         // Get our description text view
         _descriptionTextView = (TextView)view.findViewById(R.id.registration_description);
         _descriptionTextView.setText(getActivity().getResources().getString(R.string.registration_same_lan_instructions));
