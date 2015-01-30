@@ -38,7 +38,7 @@ import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-public class MainActivity extends FragmentActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener {
+public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener {
 
     private static final String LOG_TAG = "Main Activity";
     /**
