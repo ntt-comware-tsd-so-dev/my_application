@@ -308,4 +308,5 @@
     <color name="green">#00FF00</color>
     <color name="dark_green">#006600</color>
     <color name="cyan">#00FFFF</color>
+    <color name="link">#00688B</color>
 </resources>

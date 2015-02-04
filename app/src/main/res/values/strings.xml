@@ -104,6 +104,13 @@
     <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
     <string name="connecting_to_network_title">Connecting</string>
     <string name="connecting_to_network_body">Connecting to the WiFi network. Please wait...</string>
+    <string name="error_signing_in">An unknown error occurred while signing in</string>
+    <string name="authenticating_with" formatted="false">Signing in with %s</string>
+    <string name="facebook">Facebook</string>
+    <string name="google">Google</string>
+    <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
+    <string name="invalid_email_password">Invalid email or password</string>
+    <string name="unknown_error">An unknown error occurred</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">

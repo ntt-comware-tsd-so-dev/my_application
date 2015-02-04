@@ -1,160 +1,197 @@
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/funbg"
-    android:isScrollContainer="false"
-    android:orientation="vertical"
-    android:scrollbarStyle="insideOverlay"
-    android:scrollbars="vertical" >
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:visibility="gone"
-        android:layout_centerVertical="true" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/funbg"
+        android:isScrollContainer="false"
+        android:orientation="vertical"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="vertical">
 
-    <TextView
-        android:id="@+id/textViewBL"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:visibility="invisible"
-        android:text="@string/signingIn"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <EditText
-        android:id="@+id/passwordEditText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/userNameEditText"
-        android:layout_centerHorizontal="true"
-        android:ems="10"
-        android:fitsSystemWindows="true"
-        android:hint="@string/passwordHint"
-        android:inputType="textPassword"
-        android:textStyle="italic" />
-
-    <EditText
-        android:id="@+id/userNameEditText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/spacer"
-        android:ems="10"
-        android:hint="@string/emailAddress"
-        android:inputType="textEmailAddress"
-        android:textStyle="italic" >
-
-        <requestFocus />
-    </EditText>
-
-    <TextView
-        android:id="@+id/spacer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/imageViewConnected"
-        android:layout_centerHorizontal="true"
-        android:text=""
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:visibility="invisible" />
-
-    <Button
-        android:id="@+id/buttonSignIn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/userNameEditText"
-        android:layout_alignRight="@+id/userNameEditText"
-        android:layout_below="@+id/passwordEditText"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/btngreen"
-        android:textColor="@android:color/white"
-        android:text="@string/signIn" />
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="64dp"
-        android:layout_below="@id/buttonSignIn"
-        android:layout_marginTop="24dp"
-        android:gravity="center"
-        >
-
-        <ImageButton
-            android:id="@+id/google_login"
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="20dp"
-            android:adjustViewBounds="true"
-            android:cropToPadding="false"
-            android:scaleType="fitXY"
-            android:layout_gravity="center"
-            android:background="@android:color/transparent"
-            android:src="@drawable/google_icon"
-            />
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:visibility="gone"/>
 
-        <ImageButton
-            android:id="@+id/facebook_login"
+        <TextView
+            android:id="@+id/textViewBL"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:adjustViewBounds="true"
-            android:cropToPadding="false"
-            android:scaleType="fitXY"
-            android:layout_gravity="center"
-            android:background="@android:color/transparent"
-            android:src="@drawable/facebook_icon"
-            />
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="@string/signingIn"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:visibility="invisible"/>
 
-    </LinearLayout>
+        <EditText
+            android:id="@+id/passwordEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/userNameEditText"
+            android:layout_centerHorizontal="true"
+            android:ems="10"
+            android:fitsSystemWindows="true"
+            android:hint="@string/passwordHint"
+            android:inputType="textPassword"
+            android:textStyle="italic"/>
 
-    <ImageView
-        android:id="@+id/imageViewConnected"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="66dp"
-        android:contentDescription="@string/app_name"
-        android:src="@drawable/logo" />
+        <EditText
+            android:id="@+id/userNameEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/spacer"
+            android:layout_centerHorizontal="true"
+            android:ems="10"
+            android:hint="@string/emailAddress"
+            android:inputType="textEmailAddress"
+            android:textStyle="italic">
 
-    <EditText
-        android:id="@+id/stagingPhrase"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:ems="10"
-        android:gravity="bottom|right"
-        android:inputType="textVisiblePassword" />
+            <requestFocus/>
+        </EditText>
 
-    <TextView
-        android:id="@+id/forgot_password"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/signUpTextView"
-        android:layout_marginLeft="110dp"
-        android:layout_marginRight="30dp"
-        android:layout_alignParentRight="true"
-        android:layout_above="@id/stagingPhrase"
-        android:text="@string/forgot"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="#00688B" />
+        <TextView
+            android:id="@+id/spacer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imageViewConnected"
+            android:layout_centerHorizontal="true"
+            android:text=""
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:visibility="invisible"/>
 
-    <TextView
-        android:id="@+id/signUpTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/stagingPhrase"
-        android:layout_toLeftOf="@+id/stagingPhrase"
-        android:layout_marginRight="10dp"
-        android:text="@string/up"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="#00688B" />
+        <Button
+            android:id="@+id/buttonSignIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/passwordEditText"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="60dp"
+            android:layout_marginRight="60dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/btngreen"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="@string/signIn"
+            android:textSize="18dp"
+            android:textColor="@android:color/white"/>
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            android:layout_below="@id/buttonSignIn"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            >
 
+            <ImageButton
+                android:id="@+id/google_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginRight="20dp"
+                android:adjustViewBounds="true"
+                android:background="@android:color/transparent"
+                android:cropToPadding="false"
+                android:scaleType="fitXY"
+                android:src="@drawable/google_icon"
+                />
+
+            <ImageButton
+                android:id="@+id/facebook_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginLeft="20dp"
+                android:adjustViewBounds="true"
+                android:background="@android:color/transparent"
+                android:cropToPadding="false"
+                android:scaleType="fitXY"
+                android:src="@drawable/facebook_icon"
+                />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageViewConnected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="66dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/logo"/>
+
+        <EditText
+            android:id="@+id/stagingPhrase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:ems="10"
+            android:gravity="bottom|right"
+            android:inputType="textVisiblePassword"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/stagingPhrase"
+            android:layout_marginBottom="20dp"
+            >
+
+            <TextView
+                android:id="@+id/signUpTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:text="@string/up"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/link"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/forgot_password"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="40dp"
+                android:text="@string/forgot"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/link"/>
+
+        </LinearLayout>
+
+        <WebView
+            android:id="@+id/webview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/loading_textview"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/authenticating_with"
+            android:textColor="@color/grey_black_1000"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

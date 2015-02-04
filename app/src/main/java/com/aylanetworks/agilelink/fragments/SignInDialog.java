@@ -3,17 +3,26 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaReachability;
+import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.SessionManager;
 
 /**
  * Created by Brian King on 1/30/15.
@@ -24,9 +33,11 @@ public class SignInDialog extends DialogFragment {
     public static final String OAUTH_GOOGLE = "google_provider";
     public static final String OAUTH_FACEBOOK = "facebook_provider";
 
+    private static final String LOG_TAG="SignInDialog";
+
     public interface SignInDialogListener {
         void signIn(String username, String password);
-        void signInOAuth(String type);
+        void signInOAuth(Message msg);
         void signUp();
     }
 
@@ -36,10 +47,24 @@ public class SignInDialog extends DialogFragment {
     private ImageButton _googleLoginButton;
     private ImageButton _facebookLoginButton;
     private TextView _signUpTextView;
+    private WebView _webView;
     private SignInDialogListener _listener;
+    private TextView _loadingTextView;
 
     public SignInDialog() {
-        // Empty constructor required
+        AylaReachability.determineReachability(true);
+        AylaUser aylaUser = new AylaUser();
+        AylaUser.setCurrent(aylaUser);
+
+        aylaUser.setauthHeaderValue("none");
+        aylaUser.setExpiresIn(0);
+        aylaUser.setRefreshToken("");
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
     }
 
     @Override
@@ -51,6 +76,8 @@ public class SignInDialog extends DialogFragment {
         _facebookLoginButton = (ImageButton)view.findViewById(R.id.facebook_login);
         _googleLoginButton = (ImageButton)view.findViewById(R.id.google_login);
         _signUpTextView = (TextView)view.findViewById(R.id.signUpTextView);
+        _webView = (WebView)view.findViewById(R.id.webview);
+        _loadingTextView = (TextView)view.findViewById(R.id.loading_textview);
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,14 +89,14 @@ public class SignInDialog extends DialogFragment {
         _facebookLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                _listener.signInOAuth(OAUTH_FACEBOOK);
+                oAuthSignIn(OAUTH_FACEBOOK);
             }
         });
 
         _googleLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                _listener.signInOAuth(OAUTH_GOOGLE);
+                oAuthSignIn(OAUTH_GOOGLE);
             }
         });
 
@@ -89,6 +116,27 @@ public class SignInDialog extends DialogFragment {
         return view;
     }
 
+    private void oAuthSignIn(String service) {
+        _webView.setVisibility(View.VISIBLE);
+
+        // TODO: BSK: Find out how to get rid of this view if the login page is loaded
+        // For now, we just won't show it. Lame...
+        _loadingTextView.setVisibility(View.VISIBLE);
+        String serviceName = (service.equals(OAUTH_FACEBOOK)) ? getString(R.string.facebook) :
+                getString(R.string.google);
+
+        _loadingTextView.setText(String.format(getString(R.string.authenticating_with), serviceName));
+
+        // Clear out any previous contents of the webview
+        _webView.loadUrl("about:blank");
+        _webView.bringToFront();
+
+        _loginButton.setVisibility(View.INVISIBLE);
+        AylaSystemUtils.serviceReachableTimeout = AylaNetworks.AML_SERVICE_REACHABLE_TIMEOUT;
+        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+        AylaUser.loginThroughOAuth(_oauthHandler, service, _webView, params.appId, params.appSecret);
+    }
+
     @Override
     public void onCancel(DialogInterface dialog) {
         super.onCancel(dialog);
@@ -100,4 +148,18 @@ public class SignInDialog extends DialogFragment {
         super.onAttach(activity);
         _listener = (SignInDialogListener)activity;
     }
+
+    private Handler _oauthHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "OAUTH response: " + msg);
+            _webView.setVisibility(View.GONE);
+            _loadingTextView.setVisibility(View.GONE);
+            _loginButton.setVisibility(View.VISIBLE);
+
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                _listener.signInOAuth(msg);
+            }
+        }
+    };
 }
