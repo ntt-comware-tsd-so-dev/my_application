@@ -68,7 +68,7 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
         final EditText phone = (EditText)findViewById(R.id.etPhoneNumber);
         final EditText evb = (EditText)findViewById(R.id.etEvbNumber);
 
-        ProgressBar progress = (ProgressBar)findViewById(R.id.pbProgressBar);
+        final ProgressBar progress = (ProgressBar)findViewById(R.id.pbProgressBar);
 
         // Validate
          Resources res = getContext().getResources();
@@ -98,6 +98,7 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
         SessionManager.registerNewUser(user, new Handler() {
             @Override
             public void handleMessage(Message msg) {
+                progress.setVisibility(View.GONE);
                 if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                     AylaUser newUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
                     if ( _signUpListener != null ) {

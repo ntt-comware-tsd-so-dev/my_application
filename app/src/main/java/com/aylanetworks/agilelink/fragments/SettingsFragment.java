@@ -60,6 +60,11 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         ft.add(android.R.id.content, frag).addToBackStack(null).commit();
     }
 
+    private void updateProfile() {
+        EditProfileDialog d = new EditProfileDialog(getActivity());
+        d.show();
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(LOG_TAG, "onItemClick: " + position);
@@ -73,6 +78,9 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
                 break;
 
             case INDEX_PROFILE:
+                updateProfile();
+                break;
+
             case INDEX_EMAIL_LOGS:
             default:
                 Toast.makeText(getActivity(), "Coming soon!", Toast.LENGTH_SHORT).show();

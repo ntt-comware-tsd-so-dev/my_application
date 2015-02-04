@@ -111,6 +111,13 @@
     <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
     <string name="invalid_email_password">Invalid email or password</string>
     <string name="unknown_error">An unknown error occurred</string>
+    <string name="update_profile">Update Profile</string>
+    <string name="fetching_user_info_title">Getting Profile</string>
+    <string name="fetching_user_info_body">Updating current profile information. Please wait...</string>
+    <string name="error_changing_profile">An error occurred while trying to update your profile. Please try again later.</string>
+    <string name="updating_profile_title">Updating Profile</string>
+    <string name="updating_profile_body">Updating your profile. Please wait...</string>
+    <string name="profile_updated">Your profile has been successfully updated.</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">
@@ -123,7 +130,7 @@
     <string-array name="settings_items">
         <item>Registration</item>
         <item>WiFi Setup</item>
-        <item>Profile</item>
+        <item>Edit Profile</item>
         <item>Email logs to Ayla</item>
     </string-array>
 

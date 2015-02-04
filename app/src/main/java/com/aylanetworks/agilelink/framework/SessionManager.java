@@ -305,6 +305,10 @@ public class SessionManager {
                 String userJson = AylaSystemUtils.gson.toJson(_aylaUser, AylaUser.class);
                 AylaSystemUtils.saveSetting(AYLA_SETTING_CURRENT_USER, userJson);
 
+                // Store the access / refresh token in our session parameters
+                _sessionParameters.refreshToken = _aylaUser.getRefreshToken();
+                _sessionParameters.accessToken = _aylaUser.getAccessToken();
+
                 _aylaUser.password = _sessionParameters.password;
                 AylaCache.clearAll();
                 SharedPreferences settings =
