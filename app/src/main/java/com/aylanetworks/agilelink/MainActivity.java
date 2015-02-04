@@ -8,8 +8,10 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebViewFragment;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -29,6 +32,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
@@ -37,6 +41,7 @@ import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.google.gson.annotations.Expose;
 
 public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener {
 
@@ -86,6 +91,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         _theInstance = this;
+        AylaNetworks.appContext = this;
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -208,7 +214,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         super.onResume();
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
 
-        if (params != null && params.enableLANMode) {
+        if (_loginDialog == null && params != null && params.enableLANMode) {
             AylaLanMode.resume();
         }
 
@@ -292,9 +298,37 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         _loginDialog = null;
    }
 
-    @Override
-    public void signInOAuth(String type) {
+    private class ErrorMessage {
+        @Expose
+        String error;
+    }
 
+    @Override
+    public void signInOAuth(Message msg) {
+        if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            // Make sure we have an auth token. Sometimes we get back "OK" but there is
+            // really an error message.
+            AylaUser user = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
+            if ( user == null || user.getAccessToken() == null || user.getRefreshToken() == null ) {
+                ErrorMessage errorMessage = AylaSystemUtils.gson.fromJson((String)msg.obj, ErrorMessage.class);
+                if ( errorMessage != null ) {
+                    Toast.makeText(this, errorMessage.error, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, getString(R.string.error_signing_in), Toast.LENGTH_LONG).show();
+                }
+                Log.e(LOG_TAG, "OAuth: No access token returned! Message: " + msg);
+            } else {
+                _loginDialog.dismiss();
+                _loginDialog = null;
+                SessionManager.startOAuthSession(msg);
+            }
+        } else {
+            if ( msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE ) {
+                Toast.makeText(this, getString(R.string.error_no_connectivity), Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, getString(R.string.unknown_error), Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override

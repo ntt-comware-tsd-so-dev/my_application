@@ -5,17 +5,13 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.ViewGroup;
 
 import com.aylanetworks.aaml.AylaCache;
-import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.google.gson.JsonElement;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,6 +45,11 @@ public class SessionManager {
 
     public static void setParameters(SessionParameters parameters) {
         getInstance()._sessionParameters = new SessionParameters(parameters);
+        // Initialize the Ayla library
+        AylaNetworks.init(getInstance()._sessionParameters.context,
+                getInstance()._sessionParameters.deviceSsidRegex,
+                getInstance()._sessionParameters.appId);
+
     }
 
     public static SessionManager getInstance() {
@@ -101,6 +102,8 @@ public class SessionManager {
         public DeviceCreator deviceCreator = new DeviceCreator();
         public String username;
         public String password;
+        public String accessToken;
+        public String refreshToken;
         public boolean enableLANMode = false;
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
@@ -125,6 +128,8 @@ public class SessionManager {
             this.deviceCreator = other.deviceCreator;
             this.username = other.username;
             this.password = other.password;
+            this.accessToken = other.accessToken;
+            this.refreshToken = other.refreshToken;
             this.serviceType = other.serviceType;
             this.loggingLevel = other.loggingLevel;
             this.enableLANMode = other.enableLANMode;
@@ -145,6 +150,8 @@ public class SessionManager {
                     "  deviceCreator: " + deviceCreator + "\n" +
                     "  username: " + username + "\n" +
                     "  password: " + password + "\n" +
+                    "  accessToken: " + accessToken + "\n" +
+                    "  refreshToken: " + refreshToken + "\n" +
                     "  serviceType: " + serviceType + "\n" +
                     "  loggingLevel: " + loggingLevel + "\n" +
                     "  enableLANMode: " + enableLANMode +
@@ -178,6 +185,10 @@ public class SessionManager {
         sm._sessionParameters.password = password;
 
         return sm.start();
+    }
+
+    public static void startOAuthSession(Message oAuthResponseMessage) {
+        getInstance()._loginHandler.handleMessage(oAuthResponseMessage);
     }
 
     /** Closes network connections and logs out the user */
@@ -241,11 +252,6 @@ public class SessionManager {
             return false;
         }
 
-        // Initialize the Ayla library
-        AylaNetworks.init(_sessionParameters.context,
-                          _sessionParameters.deviceSsidRegex,
-                          _sessionParameters.appId);
-
         // Set up library logging
         AylaSystemUtils.loggingLevel = _sessionParameters.loggingLevel;
         AylaSystemUtils.serviceType = _sessionParameters.serviceType;
@@ -282,7 +288,7 @@ public class SessionManager {
     }
 
     /** Handle the result of the login request */
-    private final Handler loginHandler = new Handler() {
+    private final Handler _loginHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Login Handler");
@@ -344,11 +350,11 @@ public class SessionManager {
             // We have a cached user and password that match. Try to refresh the access token.
             // the refresh token.
             Log.d(LOG_TAG, "Refreshing access token");
-            AylaUser.refreshAccessToken(loginHandler, user.getRefreshToken());
+            AylaUser.refreshAccessToken(_loginHandler, user.getRefreshToken());
         } else {
             // Normal login
             Log.d(LOG_TAG, "Normal login");
-            AylaUser.login(loginHandler,
+            AylaUser.login(_loginHandler,
                     _sessionParameters.username,
                     _sessionParameters.password,
                     _sessionParameters.appId,
@@ -375,10 +381,10 @@ public class SessionManager {
         if ( _sessionParameters.deviceCreator == null ) {
             return false;
         }
-        if ( _sessionParameters.password == null ) {
+        if ( _sessionParameters.password == null && _sessionParameters.refreshToken == null ) {
             return false;
         }
-        if ( _sessionParameters.username == null ) {
+        if ( _sessionParameters.username == null && _sessionParameters.refreshToken == null ) {
             return false;
         }
 
