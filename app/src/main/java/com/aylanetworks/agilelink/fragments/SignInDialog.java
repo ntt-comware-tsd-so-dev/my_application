@@ -49,7 +49,6 @@ public class SignInDialog extends DialogFragment {
     private TextView _signUpTextView;
     private WebView _webView;
     private SignInDialogListener _listener;
-    private TextView _loadingTextView;
 
     public SignInDialog() {
         AylaReachability.determineReachability(true);
@@ -77,7 +76,6 @@ public class SignInDialog extends DialogFragment {
         _googleLoginButton = (ImageButton)view.findViewById(R.id.google_login);
         _signUpTextView = (TextView)view.findViewById(R.id.signUpTextView);
         _webView = (WebView)view.findViewById(R.id.webview);
-        _loadingTextView = (TextView)view.findViewById(R.id.loading_textview);
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,13 +117,8 @@ public class SignInDialog extends DialogFragment {
     private void oAuthSignIn(String service) {
         _webView.setVisibility(View.VISIBLE);
 
-        // TODO: BSK: Find out how to get rid of this view if the login page is loaded
-        // For now, we just won't show it. Lame...
-        _loadingTextView.setVisibility(View.VISIBLE);
         String serviceName = (service.equals(OAUTH_FACEBOOK)) ? getString(R.string.facebook) :
                 getString(R.string.google);
-
-        _loadingTextView.setText(String.format(getString(R.string.authenticating_with), serviceName));
 
         // Clear out any previous contents of the webview
         String webViewEmptyHTML = getActivity().getResources().getString(R.string.oauth_empty_html);
@@ -157,7 +150,6 @@ public class SignInDialog extends DialogFragment {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "OAUTH response: " + msg);
             _webView.setVisibility(View.GONE);
-            _loadingTextView.setVisibility(View.GONE);
             _loginButton.setVisibility(View.VISIBLE);
 
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {

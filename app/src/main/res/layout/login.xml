@@ -182,16 +182,6 @@
             android:layout_centerInParent="true"
             android:visibility="gone"/>
 
-        <TextView
-            android:id="@+id/loading_textview"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="@string/authenticating_with"
-            android:textColor="@color/grey_black_1000"
-            android:visibility="gone"/>
-
     </RelativeLayout>
 
 </LinearLayout>
