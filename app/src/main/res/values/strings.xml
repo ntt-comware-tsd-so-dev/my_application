@@ -118,6 +118,8 @@
     <string name="updating_profile_title">Updating Profile</string>
     <string name="updating_profile_body">Updating your profile. Please wait...</string>
     <string name="profile_updated">Your profile has been successfully updated.</string>
+    <string name="oauth_empty_html"><![CDATA[<font color="#005500"><H3><i>Authenticating with [[PROVIDER]]...</i></H3></font>
+    ]]> </string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">

@@ -128,7 +128,9 @@ public class SignInDialog extends DialogFragment {
         _loadingTextView.setText(String.format(getString(R.string.authenticating_with), serviceName));
 
         // Clear out any previous contents of the webview
-        _webView.loadUrl("about:blank");
+        String webViewEmptyHTML = getActivity().getResources().getString(R.string.oauth_empty_html);
+        webViewEmptyHTML = webViewEmptyHTML.replace("[[PROVIDER]]", serviceName);
+        _webView.loadDataWithBaseURL("", webViewEmptyHTML, "text/html", "UTF-8", "");
         _webView.bringToFront();
 
         _loginButton.setVisibility(View.INVISIBLE);
@@ -136,6 +138,7 @@ public class SignInDialog extends DialogFragment {
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
         AylaUser.loginThroughOAuth(_oauthHandler, service, _webView, params.appId, params.appSecret);
     }
+
 
     @Override
     public void onCancel(DialogInterface dialog) {
