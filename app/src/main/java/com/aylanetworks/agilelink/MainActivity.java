@@ -1,17 +1,12 @@
 package com.aylanetworks.agilelink;
 
 import android.app.ActionBar;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,22 +14,17 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.WebViewFragment;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.device.devkit.DevkitDeviceCreator;
+import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
@@ -142,7 +132,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         devkitParams.appId = "aMCA-id";
         devkitParams.appSecret = "aMCA-9097620";
         devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
-        devkitParams.deviceCreator = new DevkitDeviceCreator();
+        devkitParams.deviceCreator = new AgileLinkDeviceCreator();
         devkitParams.appVersion = getAppVersion();
 
         // TODO: Find out why LAN mode is not working with the EVB

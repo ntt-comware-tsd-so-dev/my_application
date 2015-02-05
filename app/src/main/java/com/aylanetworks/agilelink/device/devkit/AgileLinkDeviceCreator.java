@@ -1,7 +1,6 @@
 package com.aylanetworks.agilelink.device.devkit;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,6 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
-import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ import java.util.List;
  */
 
 
-public class DevkitDeviceCreator extends DeviceCreator {
+public class AgileLinkDeviceCreator extends DeviceCreator {
     private final static String LOG_TAG = "DevkitDeviceCreator";
 
     public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
@@ -38,7 +36,7 @@ public class DevkitDeviceCreator extends DeviceCreator {
         if ( aylaDevice.oemModel.equals("smartplug1") ||
              aylaDevice.oemModel.equals("EWPlug1")) {
             // Smart plug v1
-            return new SmartPlug(aylaDevice);
+            return new SwitchedDevice(aylaDevice);
         }
 
         //  We don't know what this is. Create a generic device.
@@ -69,7 +67,7 @@ public class DevkitDeviceCreator extends DeviceCreator {
         List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
 
         classList.add(DevkitDevice.class);
-        classList.add(SmartPlug.class);
+        classList.add(SwitchedDevice.class);
         return classList;
     }
 }

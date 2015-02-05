@@ -22,11 +22,11 @@ import java.util.ArrayList;
 /**
  * Created by Brian King on 2/4/15.
  */
-public class SmartPlug extends Device implements View.OnClickListener {
+public class SwitchedDevice extends Device implements View.OnClickListener {
     private final static String LOG_TAG = "SwitchedDevice";
     public final static String PROPERTY_OUTLET = "outlet1";
 
-    public SmartPlug(AylaDevice device) {
+    public SwitchedDevice(AylaDevice device) {
         super(device);
     }
 
@@ -76,7 +76,7 @@ public class SmartPlug extends Device implements View.OnClickListener {
 
     @Override
     public int getItemViewType() {
-        return DevkitDeviceCreator.ITEM_VIEW_TYPE_SMARTPLUG;
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SMARTPLUG;
     }
 
     @Override
@@ -98,7 +98,7 @@ public class SmartPlug extends Device implements View.OnClickListener {
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
 
             // Let the device manager know that we've updated ourselves.
-            SessionManager.deviceManager().refreshDeviceStatus(SmartPlug.this);
+            SessionManager.deviceManager().refreshDeviceStatus(SwitchedDevice.this);
         }
     };
 
