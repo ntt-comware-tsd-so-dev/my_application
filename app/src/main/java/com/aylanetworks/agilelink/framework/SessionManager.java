@@ -94,7 +94,7 @@ public class SessionManager {
     /** Class used to provide session parameters. */
     public static class SessionParameters {
         public Context context = null;
-        public String deviceSsidRegex = "^Ayla-[0-9A-Fa-f]{12}|^T-Stat-[0-9A-Fa-f]{12}";
+        public String deviceSsidRegex = "^Ayla-[0-9A-Fa-f]{12}|^T-Stat-[0-9A-Fa-f]{12}|^Plug-[0-9A-Fa-f]{12}";
         public String appVersion = "0.1";
         public String pushNotificationSenderId = "103052998040";
         public String appId = "aMCA-id";

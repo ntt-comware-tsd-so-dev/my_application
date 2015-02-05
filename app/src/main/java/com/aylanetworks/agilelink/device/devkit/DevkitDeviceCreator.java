@@ -26,6 +26,7 @@ public class DevkitDeviceCreator extends DeviceCreator {
 
     public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
+    public final static int ITEM_VIEW_TYPE_SMARTPLUG = 2;
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
@@ -34,8 +35,14 @@ public class DevkitDeviceCreator extends DeviceCreator {
             return new DevkitDevice(aylaDevice);
         }
 
-        //  We don't know what this is.
-        return null;
+        if ( aylaDevice.oemModel.equals("smartplug1") ||
+             aylaDevice.oemModel.equals("EWPlug1")) {
+            // Smart plug v1
+            return new SmartPlug(aylaDevice);
+        }
+
+        //  We don't know what this is. Create a generic device.
+        return new Device(aylaDevice);
     }
 
     @Override
@@ -45,6 +52,14 @@ public class DevkitDeviceCreator extends DeviceCreator {
              case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
                 v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_devkit_device, parent, false);
                 return new DevkitDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_SMARTPLUG:
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_switched_device, parent, false);
+                return new SwitchedDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_GENERIC_DEVICE:
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_generic_device, parent, false);
+                return new GenericDeviceViewHolder(v);
         }
 
         return super.viewHolderForViewType(parent, viewType);
@@ -54,7 +69,7 @@ public class DevkitDeviceCreator extends DeviceCreator {
         List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
 
         classList.add(DevkitDevice.class);
-
+        classList.add(SmartPlug.class);
         return classList;
     }
 }
