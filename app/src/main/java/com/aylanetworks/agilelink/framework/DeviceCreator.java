@@ -15,6 +15,7 @@ import java.util.List;
  * Created by Brian King on 1/23/15.
  */
 public class DeviceCreator {
+    public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
         return new Device(aylaDevice);

@@ -30,6 +30,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
+import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
@@ -461,6 +462,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     return AllDevicesFragment.newInstance(AllDevicesFragment.DISPLAY_MODE_ALL);
 
                 case 1:
+                    return DeviceGroupsFragment.newInstance();
+
+                case 2:
                     return SettingsFragment.newInstance();
 
                 default:
@@ -470,8 +474,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         @Override
         public int getCount() {
-            // Show 2 pages (for now).
-            return 2;
+            // Show 3 pages (for now).
+            return 3;
         }
 
         @Override
@@ -479,7 +483,11 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             switch (position) {
                 case 0:
                     return getString(R.string.all_devices);
+
                 case 1:
+                    return getString(R.string.groups);
+
+                case 2:
                     return getString(R.string.settings);
                 default:
                     return null;

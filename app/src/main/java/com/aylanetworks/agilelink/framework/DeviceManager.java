@@ -4,17 +4,23 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.aylanetworks.aaml.AylaDatum;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -29,12 +35,21 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Public Methods */
 
+    /** Constructor */
+    DeviceManager() {
+        _deviceList = new ArrayList<>();
+        _deviceListListeners = new HashSet<>();
+        _deviceStatusListeners = new HashSet<>();
+        _groupManager = new GroupManager();
+    }
+
+
     /**
      * Returns the list of all devices
      * @return The list of all devices
      */
     public List<Device> deviceList() {
-        return _deviceList;
+        return new ArrayList<>(_deviceList);
     }
 
     /**
@@ -51,10 +66,17 @@ public class DeviceManager implements DeviceStatusListener {
         return null;
     }
 
+    /**
+     * Refreshes the list of devices.
+     */
     public void refreshDeviceList() {
         fetchDeviceList();
     }
 
+    /**
+     * Refreshes the status of the supplied device
+     * @param device Device to refresh the status of
+     */
     public void refreshDeviceStatus(Device device) {
         if ( device == null ) {
             // Refresh all devices
@@ -68,19 +90,28 @@ public class DeviceManager implements DeviceStatusListener {
         _deviceComparator = comparator;
         Collections.sort(_deviceList, _deviceComparator);
     }
-    
+
+    /**
+     * Starts polling for device list and status changes
+     */
     public void startPolling() {
         Log.v(LOG_TAG, "startPolling");
         stopPolling();
         _deviceListTimerRunnable.run();
         _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, _deviceStatusPollInterval);
     }
-    
+
+    /**
+     * Stops polling for device list and status changes
+     */
     public void stopPolling() {
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
     }
 
+    /**
+     * Clears the list of devices and stops polling.
+     */
     public void shutDown() {
         Log.i(LOG_TAG, "Shut down");
         // Clear out our list of devices, and then notify listeners that the list has changed.
@@ -96,6 +127,10 @@ public class DeviceManager implements DeviceStatusListener {
         stopPolling();
     }
 
+    /**
+     * Returns the gateway device, or null if one is not found
+     * @return The gateway device, or null if one is not found
+     */
     public Gateway getGatewayDevice() {
         for ( Device gateway : _deviceList ) {
             if ( gateway.isGateway() ) {
@@ -155,15 +190,15 @@ public class DeviceManager implements DeviceStatusListener {
         _deviceStatusListeners.remove(listener);
     }
 
-    /** Constructor */
-
-    DeviceManager() {
-        _deviceList = new ArrayList<>();
-        _deviceListListeners = new HashSet<>();
-        _deviceStatusListeners = new HashSet<>();
+    // Groups
+    protected GroupManager _groupManager;
+    public GroupManager getGroupManager() {
+        return _groupManager;
     }
 
-    /** Private members */
+
+
+     /** Private members */
 
     private final static String LOG_TAG = "DeviceManager";
 
@@ -325,6 +360,7 @@ public class DeviceManager implements DeviceStatusListener {
             }
 
             fetchDeviceList();
+            getGroupManager().fetchDeviceGroups();
 
             // Only continue polling if somebody is listening
             if (_deviceListListeners.size() > 0) {

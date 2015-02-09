@@ -28,6 +28,8 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.util.List;
+
 /**
  * A fragment representing a list of Items.
  * <p/>
@@ -50,14 +52,14 @@ public class AllDevicesFragment extends Fragment
     /**
      * Mode we should display
      */
-    private int _displayMode = DISPLAY_MODE_ALL;
+    protected int _displayMode = DISPLAY_MODE_ALL;
 
     /**
      * The fragment's recycler view and helpers
      */
-    private RecyclerView _recyclerView;
-    private RecyclerView.LayoutManager _layoutManager;
-    private RecyclerView.Adapter _adapter;
+    protected RecyclerView _recyclerView;
+    protected RecyclerView.LayoutManager _layoutManager;
+    protected RecyclerView.Adapter _adapter;
 
     public static AllDevicesFragment newInstance(int displayMode) {
         AllDevicesFragment fragment = new AllDevicesFragment();
@@ -135,10 +137,7 @@ public class AllDevicesFragment extends Fragment
         return view;
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
+    protected void startListening() {
         SessionManager.addSessionListener(this);
 
         DeviceManager deviceManager = SessionManager.deviceManager();
@@ -148,10 +147,7 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
+    protected void stopListening() {
         SessionManager.removeSessionListener(this);
 
         DeviceManager deviceManager = SessionManager.deviceManager();
@@ -161,11 +157,47 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
+    protected void updateDeviceList() {
+        List<Device> deviceList = null;
+        if ( SessionManager.deviceManager() != null ) {
+            deviceList = SessionManager.deviceManager().deviceList();
+        }
+
+        if ( deviceList != null ) {
+            _adapter = new DeviceListAdapter(deviceList, this);
+            _recyclerView.setAdapter(_adapter);
+        }
+    }
+
+     @Override
+    public void onPause() {
+        super.onPause();
+        stopListening();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startListening();
+        deviceListChanged();
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        startListening();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        stopListening();
+    }
+
     @Override
     public void deviceListChanged() {
         Log.i(LOG_TAG, "Device list changed");
-        _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
-        _recyclerView.setAdapter(_adapter);
+        updateDeviceList();
     }
 
     @Override

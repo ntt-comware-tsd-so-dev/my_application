@@ -143,9 +143,8 @@ public class Device implements Comparable<Device> {
 
     /** UI Methods */
 
-    public static final int ITEM_VIEW_TYPE_GENERIC_DEVICE = 1;
     public int getItemViewType() {
-        return ITEM_VIEW_TYPE_GENERIC_DEVICE;
+        return DeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
     /**

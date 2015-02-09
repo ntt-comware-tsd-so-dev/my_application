@@ -22,7 +22,6 @@ import java.util.List;
 public class AgileLinkDeviceCreator extends DeviceCreator {
     private final static String LOG_TAG = "DevkitDeviceCreator";
 
-    public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SMARTPLUG = 2;
 

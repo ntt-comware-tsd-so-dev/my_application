@@ -128,6 +128,7 @@
     <string name="error_sign_up_title">Sign-up Error</string>
     <string name="network_not_reachable">Unable to connect to the network</string>
     <string name="wlan_signin">Successful WLAN sign-in</string>
+    <string name="groups">Groups</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">
