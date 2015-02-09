@@ -120,6 +120,12 @@
     <string name="profile_updated">Your profile has been successfully updated.</string>
     <string name="oauth_empty_html"><![CDATA[<font color="#005500"><H3><i>Authenticating with [[PROVIDER]]...</i></H3></font>
     ]]> </string>
+    <string name="error_open_uri">The URL could not be opened</string>
+    <string name="error_sign_out_first">Please sign out before confirming a new account</string>
+    <string name="welcome_new_account">Your account has been activated. Please log in.</string>
+    <string name="error_invalid_token">The token is invalid</string>
+    <string name="error_account_confirm_failed">Failed to confirm your new account.</string>
+    <string name="error_sign_up_title">Sign-up Error</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">

@@ -219,7 +219,7 @@ public class SessionManager {
     private final static String LOG_TAG = "SessionManager";
 
     // Ayla library setting keys
-    private final static String AYLA_SETTING_CURRENT_USER = "currentUser";
+    public final static String AYLA_SETTING_CURRENT_USER = "currentUser";
 
     /** Private Members */
 

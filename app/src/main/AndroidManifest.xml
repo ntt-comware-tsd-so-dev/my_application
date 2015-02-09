@@ -1,33 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.aylanetworks.agilelink" >
+<manifest
+    package="com.aylanetworks.agilelink"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
 
     <application
-        android:name="com.aylanetworks.agilelink.AgileLinkApplication"
+        android:name=".AgileLinkApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
 
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:launchMode="singleInstance">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
-        <service android:name="com.aylanetworks.aaml.AylaExecuteRequest" />
+        <activity
+            android:name=".AccountConfirmActivity"
+            android:label="AgileLink"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
+            <intent-filter android:label="AgileLink">
+                <action android:name="android.intent.action.VIEW"/>
 
-        <receiver android:name="com.aylanetworks.aaml.AylaConnectivyListener" >
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="aylacontrol"/>
+            </intent-filter>
+
+        </activity>
+
+
+        <service android:name="com.aylanetworks.aaml.AylaExecuteRequest"/>
+
+        <receiver android:name="com.aylanetworks.aaml.AylaConnectivyListener">
             <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
         </receiver>
 

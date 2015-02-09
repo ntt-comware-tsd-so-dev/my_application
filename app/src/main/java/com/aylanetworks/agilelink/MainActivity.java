@@ -1,10 +1,13 @@
 package com.aylanetworks.agilelink;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
@@ -32,6 +35,9 @@ import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.google.gson.annotations.Expose;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener {
 
@@ -202,6 +208,20 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Check to see if we're resuming due to the user tapping on the confirmation email link
+        Uri uri = AccountConfirmActivity.uri;
+        if ( uri == null ) {
+            uri = getIntent().getData();
+        }
+
+        if ( uri != null ) {
+            Log.i(LOG_TAG, "onResume: URI is " + uri);
+            handleOpenURI(uri);
+            // Clear out the URI
+            AccountConfirmActivity.uri = null;
+        }
+
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
 
         if (_loginDialog == null && params != null && params.enableLANMode) {
@@ -211,6 +231,101 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().startPolling();
         }
+    }
+
+    private static final String SIGNUP_TOKEN = "user_sign_up_token";
+    private static final String RESET_PASSWORD_TOKEN = "user_reset_password_token";
+
+    private void handleOpenURI(Uri uri) {
+        // sign-up confirmation:
+        // aylacontrol://user_sign_up_token?token=pdsWFmcU
+
+        // Reset password confirmation:
+        // aylacontrol://user_reset_password_token?token=3DrjCTqs
+
+        String path = uri.getLastPathSegment();
+        if ( path == null ) {
+            // Some URIs are formatted without a path after the host. Just use the hostname in
+            // this case.
+            path = uri.getHost();
+        }
+        String query = uri.getEncodedQuery();
+        String parts[] = null;
+        if (query != null) {
+            parts = query.split("=");
+        }
+
+        if (path.equals(SIGNUP_TOKEN)) {
+            if (parts == null || parts.length != 2 || !parts[0].equals("token")) {
+                // Unknown query string
+                Toast.makeText(this, R.string.error_open_uri, Toast.LENGTH_SHORT).show();
+            } else {
+                handleUserSignupToken(parts[1]);
+            }
+        } else if (path.equals(RESET_PASSWORD_TOKEN)) {
+            if (parts == null || parts.length != 2 || !parts[0].equals("token")) {
+                // Unknown query string
+                Toast.makeText(this, R.string.error_open_uri, Toast.LENGTH_SHORT).show();
+            } else {
+                handleUserResetPasswordToken(parts[1]);
+            }
+        } else {
+            Log.e(LOG_TAG, "Unknown URI: " + uri);
+        }
+    }
+
+    private Handler signUpConfirmationHandler = new Handler() {
+        public void handleMessage(android.os.Message msg) {
+            String jsonResults = (String) msg.obj;
+
+            // clear sign-up token
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                // save auth info of current user
+                AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
+                AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
+
+                String toastMessage = getString(R.string.welcome_new_account);
+                Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_LONG).show();
+
+                _loginDialog.setUsername(aylaUser.email);
+
+                // save existing user info
+                AylaSystemUtils.saveSetting("currentUser", jsonResults);	// Allow lib access for accessToken refresh
+            } else {
+                AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "userSignUpConfirmation", "Failed", "userSignUpConfirmation_handler");
+                int resID;
+                if (msg.arg1 == 422) {
+                    resID = R.string.error_invalid_token; // Invalid token
+                } else {
+                    resID = R.string.error_account_confirm_failed; // Unknown error occurred
+                }
+
+                AlertDialog.Builder ad = new AlertDialog.Builder(MainActivity.this);
+                ad.setTitle(R.string.error_sign_up_title);
+                ad.setMessage(resID);
+                ad.setPositiveButton(android.R.string.ok, null);
+                ad.show();
+            }
+        }
+    };
+
+    void handleUserSignupToken(String token) {
+        Log.d(LOG_TAG, "handleUserSignupToken: " + token);
+
+        if (AylaUser.user.getauthHeaderValue().contains("none")) {
+            // authenticate the token
+            Map<String, String> callParams = new HashMap<String, String>();
+            callParams.put("confirmation_token", token); // required
+            AylaUser.signUpConfirmation(signUpConfirmationHandler, callParams);
+        } else {
+            Toast.makeText(AylaNetworks.appContext, R.string.error_sign_out_first, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    void handleUserResetPasswordToken(String token) {
+        Log.i(LOG_TAG, "handleUserResetPasswordToken: " + token);
+        // TODO: Implement user reset password token handler
+        Toast.makeText(this, "Not yet implemented...", Toast.LENGTH_LONG).show();
     }
 
     private SignInDialog _loginDialog;
@@ -270,11 +385,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             EditText password = (EditText) _loginDialog.getView().findViewById(R.id.passwordEditText);
             username.setText(newUser.email);
             password.setText(newUser.password);
-
-            // Click the sign-in button
-            Button b = (Button) _loginDialog.getView().findViewById(R.id.buttonSignIn);
-            b.callOnClick();
-            _loginDialog = null;
         }
     }
 

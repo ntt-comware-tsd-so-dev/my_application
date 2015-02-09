@@ -114,6 +114,11 @@ public class SignInDialog extends DialogFragment {
         return view;
     }
 
+    public void setUsername(String username) {
+        _username.setText(username);
+        _password.setText("");
+    }
+
     private void oAuthSignIn(String service) {
         _webView.setVisibility(View.VISIBLE);
 
