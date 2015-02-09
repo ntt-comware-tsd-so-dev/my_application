@@ -6,12 +6,15 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaCache;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,26 +23,31 @@ import java.util.Set;
 
 /**
  * Created by Brian  King on 12/19/14.
- *
+ * <p/>
  * The SessionManager class is used to manage the login session with the Ayla service, as well as
  * polling the list of devices.
- *
  */
 
 
 public class SessionManager {
-    /** Constants */
+    /**
+     * Constants
+     */
 
     // Local preferences keys
     public final static String PREFS_PASSWORD = "password";
     public final static String PREFS_USERNAME = "username";
 
 
-    /** Interfaces */
+    /**
+     * Interfaces
+     */
 
     public interface SessionListener {
         public void loginStateChanged(boolean loggedIn, AylaUser aylaUser);
+
         public void reachabilityChanged(int reachabilityState);
+
         public void lanModeChanged(boolean lanModeEnabled);
     }
 
@@ -53,7 +61,7 @@ public class SessionManager {
     }
 
     public static SessionManager getInstance() {
-        if ( _globalSessionManager == null ) {
+        if (_globalSessionManager == null) {
             _globalSessionManager = new SessionManager();
         }
         return _globalSessionManager;
@@ -91,7 +99,9 @@ public class SessionManager {
 
     /** Inner Classes */
 
-    /** Class used to provide session parameters. */
+    /**
+     * Class used to provide session parameters.
+     */
     public static class SessionParameters {
         public Context context = null;
         public String deviceSsidRegex = "^Ayla-[0-9A-Fa-f]{12}|^T-Stat-[0-9A-Fa-f]{12}|^Plug-[0-9A-Fa-f]{12}";
@@ -117,7 +127,9 @@ public class SessionManager {
             this.context = context;
         }
 
-        /** Copy constructor */
+        /**
+         * Copy constructor
+         */
         public SessionParameters(SessionParameters other) {
             this.context = other.context;
             this.deviceSsidRegex = other.deviceSsidRegex;
@@ -164,15 +176,18 @@ public class SessionManager {
 
     /**
      * Returns true if the user is logged in, or false otherwise.
+     *
      * @return true if the user is logged in
      */
     public static boolean isLoggedIn() {
         return (deviceManager() != null);
     }
 
-    /** Initializes and starts a new session, stopping any existing sessions first. */
+    /**
+     * Initializes and starts a new session, stopping any existing sessions first.
+     */
     public static boolean startSession(String username, String password) {
-        if ( getInstance()._sessionParameters == null ) {
+        if (getInstance()._sessionParameters == null) {
             Log.e(LOG_TAG, "Can't start a session before the session parameters are set.");
             return false;
         }
@@ -191,22 +206,28 @@ public class SessionManager {
         getInstance()._loginHandler.handleMessage(oAuthResponseMessage);
     }
 
-    /** Closes network connections and logs out the user */
+    /**
+     * Closes network connections and logs out the user
+     */
     public static boolean stopSession() {
         getInstance().stop();
         return true;
     }
 
-    /** Returns a copy of the current session parameters */
+    /**
+     * Returns a copy of the current session parameters
+     */
     public static SessionParameters sessionParameters() {
-        if ( getInstance()._sessionParameters == null ) {
+        if (getInstance()._sessionParameters == null) {
             return null;
         }
         // Return a copy. We don't want things changing underneath us.
         return new SessionParameters(getInstance()._sessionParameters);
     }
 
-    /** Returns the device manager, or null if not logged in yet */
+    /**
+     * Returns the device manager, or null if not logged in yet
+     */
     public static DeviceManager deviceManager() {
         return getInstance()._deviceManager;
     }
@@ -215,7 +236,9 @@ public class SessionManager {
 /**************************************************************************************************/
 
 
-    /** Constants */
+    /**
+     * Constants
+     */
     private final static String LOG_TAG = "SessionManager";
 
     // Ayla library setting keys
@@ -223,39 +246,53 @@ public class SessionManager {
 
     /** Private Members */
 
-    /** The session manager singleton object */
+    /**
+     * The session manager singleton object
+     */
     private static SessionManager _globalSessionManager;
 
-    /** Session parameters used to configure the Session Manager */
+    /**
+     * Session parameters used to configure the Session Manager
+     */
     private SessionParameters _sessionParameters;
 
-    /** The AylaUser object returned on successful login */
+    /**
+     * The AylaUser object returned on successful login
+     */
     private AylaUser _aylaUser;
 
-    /** The device manager object. Null until the user logs in. */
+    /**
+     * The device manager object. Null until the user logs in.
+     */
     private DeviceManager _deviceManager;
 
-    /** Our listeners */
+    /**
+     * Our listeners
+     */
     private Set<SessionListener> _sessionListeners;
 
-    /** Private constructor. Call startSession instead of creating a SessionManager directly. */
+    /**
+     * Private constructor. Call startSession instead of creating a SessionManager directly.
+     */
     private SessionManager() {
         _sessionListeners = new HashSet<>();
     }
 
     /** Private Methods */
 
-    /** Initializes the Ayla library, logs in and begins the session. */
+    /**
+     * Initializes the Ayla library, logs in and begins the session.
+     */
     private boolean start() {
         // First check the session parameters
-        if ( !checkParameters() ) {
+        if (!checkParameters()) {
             return false;
         }
 
         // Set up library logging
         AylaSystemUtils.loggingLevel = _sessionParameters.loggingLevel;
         AylaSystemUtils.serviceType = _sessionParameters.serviceType;
-        if ( _sessionParameters.loggingLevel != AylaNetworks.AML_LOGGING_LEVEL_NONE ) {
+        if (_sessionParameters.loggingLevel != AylaNetworks.AML_LOGGING_LEVEL_NONE) {
             AylaSystemUtils.loggingEnabled = AylaNetworks.YES;
             AylaSystemUtils.loggingInit();
             AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", LOG_TAG, "version",
@@ -278,7 +315,7 @@ public class SessionManager {
     }
 
     private boolean stop() {
-        if ( _deviceManager != null ) {
+        if (_deviceManager != null) {
             _deviceManager.shutDown();
             _deviceManager = null;
         }
@@ -287,18 +324,20 @@ public class SessionManager {
         return true;
     }
 
-    /** Handle the result of the login request */
+    /**
+     * Handle the result of the login request
+     */
     private final Handler _loginHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Login Handler");
             Log.d(LOG_TAG, "Message: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 Log.d(LOG_TAG, "Login successful");
 
                 // Save the auth info for the user
-                _aylaUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
+                _aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
                 _aylaUser.email = _sessionParameters.username;
                 _aylaUser.password = _sessionParameters.password;
                 _aylaUser = AylaUser.setCurrent(_aylaUser);
@@ -330,80 +369,120 @@ public class SessionManager {
     private void logIn() {
         // Make sure the network is reachable
         AylaReachability.determineReachability(true);
-        if ( AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_UNREACHABLE ) {
-            // We can't go on
-            Log.d(LOG_TAG, "Network is not reachable. Not attempting login.");
-            notifyLoginFailed();
-            return;
-        }
 
-        // First attempt to update the access token using the refresh token
-        String savedUser = AylaSystemUtils.loadSavedSetting(AYLA_SETTING_CURRENT_USER, "");
+        // Get the saved user and password
+        AylaUser savedUser = null;
+        String savedUsername = null;
+        String savedUserJson = AylaSystemUtils.loadSavedSetting(AYLA_SETTING_CURRENT_USER, "");
+        if (savedUserJson.length() > 0) {
+            savedUser = AylaSystemUtils.gson.fromJson(savedUserJson, AylaUser.class);
+            savedUsername = savedUser.email;
+        }
         SharedPreferences settings =
                 PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
         String savedPassword = settings.getString(PREFS_PASSWORD, "");
 
-        AylaUser user = null;
-        if ( !savedUser.equals("") ) {
-            user = AylaSystemUtils.gson.fromJson(savedUser, AylaUser.class);
+        // Make sure the service is reachable, or LAN mode is available
+        int serviceReachability = AylaReachability.getConnectivity();
+        if (serviceReachability != AylaNetworks.AML_REACHABILITY_REACHABLE) {
+            if (_sessionParameters.enableLANMode) {
+                if (!_sessionParameters.username.equals(savedUsername) ||
+                        !_sessionParameters.password.equals(savedPassword)) {
+                    // Invalid username or password
+                    Toast.makeText(MainActivity.getInstance(), R.string.invalid_email_password, Toast.LENGTH_LONG).show();
+                    return;
+                }
+            } else {
+                // LAN mode not available and the network is not reachable
+                Toast.makeText(MainActivity.getInstance(), R.string.network_not_reachable, Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
-        // If cached credentials match, use the refresh token
-        if ( user != null && user.email != null && user.email.equals(_sessionParameters.username) &&
-             savedPassword.equals(_sessionParameters.password) ) {
-            // We have a cached user and password that match. Try to refresh the access token.
-            // the refresh token.
-            Log.d(LOG_TAG, "Refreshing access token");
-            AylaUser.refreshAccessToken(_loginHandler, user.getRefreshToken());
+        if (serviceReachability == AylaNetworks.AML_REACHABILITY_REACHABLE) {
+
+            // If cached credentials match, use the refresh token
+            if (savedUser != null && savedUser.email != null && savedUser.email.equals(_sessionParameters.username) &&
+                    savedPassword.equals(_sessionParameters.password)) {
+                // We have a cached user and password that match. Try to refresh the access token.
+                // First make sure it hasn't expired:
+                int secondsToExpiry = savedUser.accessTokenSecondsToExpiry();
+                if (secondsToExpiry < 21600) {    // Less than 6 hours
+                    // Normal login
+                    Log.d(LOG_TAG, "Normal login (access token expired)");
+                    AylaUser.login(_loginHandler,
+                            _sessionParameters.username,
+                            _sessionParameters.password,
+                            _sessionParameters.appId,
+                            _sessionParameters.appSecret);
+
+                } else {
+                    Log.d(LOG_TAG, "Refreshing access token");
+                    AylaUser.refreshAccessToken(_loginHandler, savedUser.getRefreshToken());
+                }
+            } else {
+                // Normal login
+                Log.d(LOG_TAG, "Normal login");
+                AylaUser.login(_loginHandler,
+                        _sessionParameters.username,
+                        _sessionParameters.password,
+                        _sessionParameters.appId,
+                        _sessionParameters.appSecret);
+            }
         } else {
-            // Normal login
-            Log.d(LOG_TAG, "Normal login");
-            AylaUser.login(_loginHandler,
-                    _sessionParameters.username,
-                    _sessionParameters.password,
-                    _sessionParameters.appId,
-                    _sessionParameters.appSecret);
+            // Service is not reachable. Do LAN login instead.
+            AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "amca.signin", "userLogin", "Successful", "userLogin_lanmode");
+            Toast.makeText(AylaNetworks.appContext, R.string.wlan_signin, Toast.LENGTH_LONG).show();
+            AylaSystemUtils.serviceReachableTimeout = -1;    // UX Optimization in LAN MODE: don't test service reachability
+
+            AylaUser aylaUser = new AylaUser();
+            aylaUser.setauthHeaderValue("none");
+            aylaUser.setExpiresIn(0);
+            aylaUser.setRefreshToken("");
+            AylaUser.setCurrent(aylaUser);
         }
     }
 
     private boolean checkParameters() {
-        if ( _sessionParameters.context == null ) {
+        if (_sessionParameters.context == null) {
             return false;
         }
-        if ( _sessionParameters.deviceSsidRegex == null ) {
+        if (_sessionParameters.deviceSsidRegex == null) {
             return false;
         }
-        if ( _sessionParameters.appId == null ) {
+        if (_sessionParameters.appId == null) {
             return false;
         }
-        if ( _sessionParameters.appSecret == null ) {
+        if (_sessionParameters.appSecret == null) {
             return false;
         }
-        if ( _sessionParameters.appVersion == null ) {
+        if (_sessionParameters.appVersion == null) {
             return false;
         }
-        if ( _sessionParameters.deviceCreator == null ) {
+        if (_sessionParameters.deviceCreator == null) {
             return false;
         }
-        if ( _sessionParameters.password == null && _sessionParameters.refreshToken == null ) {
+        if (_sessionParameters.password == null && _sessionParameters.refreshToken == null) {
             return false;
         }
-        if ( _sessionParameters.username == null && _sessionParameters.refreshToken == null ) {
+        if (_sessionParameters.username == null && _sessionParameters.refreshToken == null) {
             return false;
         }
 
         return true;
     }
 
-    /** Notifiers */
+    /**
+     * Notifiers
+     */
     private void notifyLoginSuccess() {
-        for ( SessionListener l : _sessionListeners ) {
+        for (SessionListener l : _sessionListeners) {
             l.loginStateChanged(true, _aylaUser);
         }
     }
 
     private void notifyLoginFailed() {
-        for ( SessionListener l : _sessionListeners ) {
+        for (SessionListener l : _sessionListeners) {
             l.loginStateChanged(false, null);
         }
     }
