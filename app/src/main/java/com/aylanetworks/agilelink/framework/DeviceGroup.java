@@ -4,12 +4,21 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.aylanetworks.aaml.AylaDatapoint;
+import com.aylanetworks.aaml.AylaDatum;
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +32,15 @@ public class DeviceGroup {
     private String _groupID;
     private Set<String> _deviceDSNs;
     private boolean _isDirty;
+    private boolean _datumExistsOnServer;
+
+    /**
+     * Listener interface to receive notifications that the group has been updated
+     */
+    public class DeviceGroupListener {
+        void groupUpdated(DeviceGroup group) {
+        }
+    }
 
     /**
      * Default constructor
@@ -32,16 +50,45 @@ public class DeviceGroup {
         _deviceDSNs = new HashSet<>();
     }
 
+    /**
+     * Constructor with group name and ID
+     *
+     * @param groupName Name of the group
+     * @param groupID   ID of the group, set to NULL to have one created for you.
+     */
     public DeviceGroup(String groupName, String groupID) {
         _deviceDSNs = new HashSet<>();
         _groupName = groupName;
-        _groupID = groupID;
+        if (groupID != null) {
+            _groupID = groupID;
+        } else {
+            _groupID = createGroupID();
+        }
     }
 
-    public class DeviceGroupListener {
-        void groupUpdated(DeviceGroup group){}
+    /**
+     * Returns the name of the group
+     *
+     * @return Name of the group
+     */
+    public String getGroupName() {
+        return _groupName;
     }
 
+    /**
+     * Returns the group ID
+     *
+     * @return the group ID
+     */
+    public String getGroupID() {
+        return _groupID;
+    }
+
+    /**
+     * Creates a unique group ID. This is used when creating new groups.
+     *
+     * @return the unique group ID
+     */
     public static String createGroupID() {
         SecureRandom r = new SecureRandom();
         String uniquePart = new BigInteger(64, r).toString(16);
@@ -58,39 +105,86 @@ public class DeviceGroup {
             @Override
             public void handleMessage(Message msg) {
                 Log.d(LOG_TAG, "fetchGroupMembers: " + msg);
+                if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                    _isDirty = false;
+                    _datumExistsOnServer = true;
 
-                // TODO: Process the results
-                if ( listener != null ) {
-                    listener.groupUpdated(DeviceGroup.this);
+                    AylaDatum datum = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatum.class);
+                    updateGroupListFromDatum(datum);
+                    if (listener != null) {
+                        listener.groupUpdated(DeviceGroup.this);
+                    }
+                } else {
+                    Log.e(LOG_TAG, "fetchGroupMembers failed: " + msg);
+                    _datumExistsOnServer = false;
                 }
             }
         }, _groupID);
     }
 
-    public void pushToServer(final DeviceGroupListener listener) {
+    /**
+     * Submits the group to the server. Call this after changes are made to the group.
+     */
+    public void pushToServer() {
+        // Create the AylaDatum object with our group's JSON
+        if ( _isDirty ) {
+            AylaDatum datum = new AylaDatum();
+            datum.key = getGroupID();
+            JSONArray dsnArray = new JSONArray(_deviceDSNs);
+            datum.value = dsnArray.toString();
 
+            if (_datumExistsOnServer) {
+                AylaUser.getCurrent().updateDatum(_updateDatumHandler, datum);
+            } else {
+                AylaUser.getCurrent().createDatum(_updateDatumHandler, datum);
+            }
+        } else {
+            Log.d(LOG_TAG, "Not pushing group " + getGroupName() + " to server, as we haven't changed");
+        }
     }
 
     /**
      * Adds a device to the group.
+     *
      * @param device The device to add to the group
      * @return true if the device was added to the group, or false if the device already existed in the group
      */
     public boolean addDevice(Device device) {
-        return _deviceDSNs.add(device.getDevice().dsn);
+        if (_deviceDSNs.add(device.getDevice().dsn)) {
+            _isDirty = true;
+            return true;
+        }
+        return false;
     }
 
     /**
      * Removes a device from the group
+     *
      * @param device The device to remove from the group
      * @return true if the device was removed, or false if the device did not exist in the group
      */
     public boolean removeDevice(Device device) {
-        return _deviceDSNs.remove(device.getDevice().dsn);
+        if (_deviceDSNs.remove(device.getDevice().dsn)) {
+            _isDirty = true;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Removes all devices from the group as well as the datum for this group.
+     */
+    public void removeAll() {
+        _deviceDSNs.clear();
+        AylaDatum datum = new AylaDatum();
+        datum.key = getGroupID();
+        AylaUser.getCurrent().deleteDatum(datum);
+        _isDirty = false;
     }
 
     /**
      * Checks to see if a device exists in the group
+     *
      * @param device Device to check
      * @return true if the device is in the group, or false if not
      */
@@ -101,13 +195,14 @@ public class DeviceGroup {
 
     /**
      * Returns a list of all devices in the group
+     *
      * @return The list of all devices in the group
      */
     public List<Device> getDevices() {
         List<Device> devices = new ArrayList<>();
-        for ( String dsn : _deviceDSNs ) {
+        for (String dsn : _deviceDSNs) {
             Device device = SessionManager.deviceManager().deviceByDSN(dsn);
-            if ( device == null ) {
+            if (device == null) {
                 Log.e(LOG_TAG, "No device with DSN " + dsn + " found, but it is in a group!");
                 continue;
             }
@@ -117,4 +212,37 @@ public class DeviceGroup {
 
         return devices;
     }
+
+    @Override
+    public String toString() {
+        return "Group " + getGroupName() + " with " + _deviceDSNs.size() + " devices";
+    }
+
+    //////////
+
+    private void updateGroupListFromDatum(AylaDatum datum) {
+        _deviceDSNs.clear();
+        try {
+            JSONArray array = new JSONArray(datum.value);
+            for (int i = 0; i < array.length(); i++) {
+                _deviceDSNs.add(array.get(i).toString());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            _deviceDSNs.clear();
+        }
+
+        Log.d(LOG_TAG, "JSON: " + datum.value + "\nDSNs: " + _deviceDSNs);
+    }
+
+    private Handler _updateDatumHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "updateDatumHandler: " + msg);
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            } else {
+                Log.e(LOG_TAG, "updateDatumHandler: Failed: " + msg);
+            }
+        }
+    };
 }

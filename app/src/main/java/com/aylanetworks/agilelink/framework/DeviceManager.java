@@ -40,9 +40,10 @@ public class DeviceManager implements DeviceStatusListener {
         _deviceList = new ArrayList<>();
         _deviceListListeners = new HashSet<>();
         _deviceStatusListeners = new HashSet<>();
-        _groupManager = new GroupManager();
-    }
 
+        _groupManager = new GroupManager();
+        _groupManager.fetchDeviceGroups();
+    }
 
     /**
      * Returns the list of all devices
@@ -195,8 +196,6 @@ public class DeviceManager implements DeviceStatusListener {
     public GroupManager getGroupManager() {
         return _groupManager;
     }
-
-
 
      /** Private members */
 
