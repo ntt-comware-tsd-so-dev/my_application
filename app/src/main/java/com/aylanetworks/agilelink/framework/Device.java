@@ -46,6 +46,20 @@ public class Device implements Comparable<Device> {
         return this.getDevice().dsn.compareTo(another.getDevice().dsn);
     }
 
+    /**
+     * Compares this device with another device, and returns true if the device has changed.
+     * This method is used to determine if devices have changed, and will notify listeners.
+     * The base class implementation returns true if the DSN or connection status has changed. Derived
+     * classes can override this method to check other properties or attributes to determine that
+     * something has changed.
+     *
+     * @param other Device to compare with
+     */
+    public boolean isDeviceChanged(Device other) {
+        return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
+               (!getDevice().dsn.equals(other.getDevice().dsn));
+    }
+
     /** The AylaDevice object wrapped by this class */
     private AylaDevice _device;
 

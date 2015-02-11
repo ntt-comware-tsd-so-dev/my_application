@@ -455,11 +455,11 @@ public class DeviceManager implements DeviceStatusListener {
         // Sort the new list of devices
         Collections.sort(newDeviceList, _deviceComparator);
 
-        // See if we're identical
+        // See if any of the devices have changed.
         for ( int i = 0; i < _deviceList.size(); i++ ) {
             Device dev1 = _deviceList.get(i);
             Device dev2 = newDeviceList.get(i);
-            if ( dev1.compareTo(dev2) != 0 ) {
+            if ( dev1.isDeviceChanged(dev2) ) {
                 return true;
             }
         }
