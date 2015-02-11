@@ -65,8 +65,8 @@ public class GroupManager {
         AylaUser.getCurrent().getDatumWithKey(_fetchGroupIndexHandler, getGroupIndexKey());
     }
 
-    public Set<DeviceGroup> getGroups() {
-        return new HashSet<>(_deviceGroups);
+    public List<DeviceGroup> getGroups() {
+        return new ArrayList<>(_deviceGroups);
     }
 
     public DeviceGroup createGroup(String groupName, List<Device>deviceList) {

@@ -9,6 +9,8 @@ import com.aylanetworks.aaml.AylaDatum;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,9 +19,12 @@ import org.json.JSONObject;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,6 +32,9 @@ import java.util.Set;
  */
 public class DeviceGroup {
     private final static String LOG_TAG = "DeviceGroup";
+
+    // Key for the device list in our datum JSON
+    private final static String DSN_ARRAY_KEY = "dsns";
 
     private String _groupName;
     private String _groupID;
@@ -127,11 +135,16 @@ public class DeviceGroup {
      */
     public void pushToServer() {
         // Create the AylaDatum object with our group's JSON
-        if ( _isDirty ) {
+        if (_isDirty) {
             AylaDatum datum = new AylaDatum();
             datum.key = getGroupID();
             JSONArray dsnArray = new JSONArray(_deviceDSNs);
-            datum.value = dsnArray.toString();
+
+            Map<String, String> datumMap = new HashMap<>();
+            datumMap.put(DSN_ARRAY_KEY, dsnArray.toString());
+            datum.value = new JSONObject(datumMap).toString();
+
+            Log.d(LOG_TAG, "pushToServer: " + datum.key + ":" + datum.value);
 
             if (_datumExistsOnServer) {
                 AylaUser.getCurrent().updateDatum(_updateDatumHandler, datum);
@@ -199,7 +212,7 @@ public class DeviceGroup {
      * @return The list of all devices in the group
      */
     public List<Device> getDevices() {
-        List<Device> devices = new ArrayList<>();
+        Set<Device> devices = new HashSet<>();
         for (String dsn : _deviceDSNs) {
             Device device = SessionManager.deviceManager().deviceByDSN(dsn);
             if (device == null) {
@@ -210,7 +223,36 @@ public class DeviceGroup {
             devices.add(device);
         }
 
-        return devices;
+        List<Device>deviceList = new ArrayList<>(devices);
+        Collections.sort(deviceList, SessionManager.deviceManager().getDeviceComparator());
+
+        return deviceList;
+    }
+
+    /**
+     * Sets the device list for this group, removing any other devices that may have been in this
+     * group previously.
+     * @param devices List of devices that are members of this group
+     */
+    public void setDevices(List<Device> devices) {
+        _deviceDSNs.clear();
+        for ( Device d : devices ) {
+            _deviceDSNs.add(d.getDevice().dsn);
+        }
+        _isDirty = true;
+    }
+
+    public static DeviceGroup allDevicesGroup() {
+        DeviceGroup allDevicesGroup = new DeviceGroup();
+        allDevicesGroup._groupName = MainActivity.getInstance().getResources().getString(R.string.all_devices);
+        allDevicesGroup._groupID = "ALL_DEVICES";
+        if ( SessionManager.deviceManager() != null ) {
+            for (Device d : SessionManager.deviceManager().deviceList()) {
+                allDevicesGroup.addDevice(d);
+            }
+        }
+
+        return allDevicesGroup;
     }
 
     @Override
@@ -223,7 +265,9 @@ public class DeviceGroup {
     private void updateGroupListFromDatum(AylaDatum datum) {
         _deviceDSNs.clear();
         try {
-            JSONArray array = new JSONArray(datum.value);
+            JSONObject map = new JSONObject(datum.value);
+            String deviceListJSON = (String) map.get(DSN_ARRAY_KEY);
+            JSONArray array = new JSONArray(deviceListJSON);
             for (int i = 0; i < array.length(); i++) {
                 _deviceDSNs.add(array.get(i).toString());
             }

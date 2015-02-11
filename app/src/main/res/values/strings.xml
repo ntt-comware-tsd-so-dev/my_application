@@ -129,6 +129,11 @@
     <string name="network_not_reachable">Unable to connect to the network</string>
     <string name="wlan_signin">Successful WLAN sign-in</string>
     <string name="groups">Groups</string>
+    <string name="add_device_or_group_title">Add Device or Group</string>
+    <string name="add_group_title">Add a Group or Room</string>
+    <string name="add_group_message">Input the name for your new group or room</string>
+    <string name="add_group">Add Group</string>
+    <string name="choose_group_devices">Select which devices you wish to have in this group</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">
@@ -143,6 +148,12 @@
         <item>WiFi Setup</item>
         <item>Edit Profile</item>
         <item>Email logs to Ayla</item>
+    </string-array>
+
+    <!-- Add device or group menu items -->
+    <string-array name="device_or_group_items">
+        <item>Add a device to this group</item>
+        <item>Create a new device group</item>
     </string-array>
 
 </resources>

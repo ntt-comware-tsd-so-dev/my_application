@@ -87,9 +87,13 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
-    public void setComparator(Comparator<Device> comparator) {
+    public void setDeviceComparator(Comparator<Device> comparator) {
         _deviceComparator = comparator;
         Collections.sort(_deviceList, _deviceComparator);
+    }
+
+    public Comparator<Device>getDeviceComparator() {
+        return _deviceComparator;
     }
 
     /**

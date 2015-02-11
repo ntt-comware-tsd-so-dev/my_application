@@ -5,10 +5,36 @@
              android:layout_height="match_parent"
              tools:context="com.aylanetworks.agilelink.fragments.AllDevicesFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Tab bar for the top for group view, not present in "all devices" view -->
+        <LinearLayout
+            android:id="@+id/button_tray"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/light_green_700"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:focusable="true">
+
+            <HorizontalScrollView
+                android:id="@+id/button_scroll_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+
+        </LinearLayout>
+
+        <!-- Main recycler view -->
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/add_button"
@@ -18,10 +44,10 @@
         android:layout_marginBottom="@dimen/add_button_margin"
         android:layout_marginEnd="@dimen/add_button_margin"
         android:layout_marginRight="@dimen/add_button_margin"
-        android:tint="@android:color/white"
         android:background="@drawable/oval"
         android:elevation="@dimen/elevation_low"
-        android:src="@android:drawable/ic_input_add"/>
+        android:src="@android:drawable/ic_input_add"
+        android:tint="@android:color/white"/>
 
     <TextView
         android:id="@android:id/empty"
