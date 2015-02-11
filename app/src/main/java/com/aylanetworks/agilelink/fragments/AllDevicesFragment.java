@@ -89,13 +89,13 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.add(Menu.NONE, R.string.add_device_menu, Menu.NONE, R.string.add_device_menu);
+        inflater.inflate(R.menu.menu_all_devices, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.string.add_device_menu) {
+        if (item.getItemId() == R.id.action_add_device) {
             addDevice();
         }
 

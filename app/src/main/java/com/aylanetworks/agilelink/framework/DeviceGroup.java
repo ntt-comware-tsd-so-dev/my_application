@@ -260,6 +260,20 @@ public class DeviceGroup {
         return "Group " + getGroupName() + " with " + _deviceDSNs.size() + " devices";
     }
 
+    @Override
+    public int hashCode() {
+        return getGroupID().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!o.getClass().isInstance(this)) {
+            return false;
+        }
+
+        return getGroupID().equals(((DeviceGroup)o).getGroupID());
+    }
+
     //////////
 
     private void updateGroupListFromDatum(AylaDatum datum) {

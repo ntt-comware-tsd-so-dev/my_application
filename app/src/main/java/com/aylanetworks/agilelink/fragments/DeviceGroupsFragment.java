@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,20 +16,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
+import android.widget.Toast;
 
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceGroup;
-import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.GroupManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Brian King on 2/5/15.
@@ -36,6 +36,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     private HorizontalScrollView _buttonScrollView;
     private DeviceGroup _selectedGroup;
+    private DeviceGroup _allDevicesGroup;
     private List<Device> _selectedGroupDeviceList;
 
     public static DeviceGroupsFragment newInstance() {
@@ -43,6 +44,16 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     public DeviceGroupsFragment() {
+    }
+
+    private boolean isAllDevicesSelected() {
+        return _selectedGroup == _allDevicesGroup;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -53,6 +64,49 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         _buttonScrollView = (HorizontalScrollView) root.findViewById(R.id.button_scroll_view);
         createGroupButtonHeader();
         return root;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_groups, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        // Hide some menu items if "all devices" is the selected group.
+        // We can't add devices or delete the group here.
+        boolean visible = !isAllDevicesSelected();
+        MenuItem item = menu.findItem(R.id.action_delete_group);
+        item.setVisible(visible);
+
+        item = menu.findItem(R.id.action_add_device);
+        item.setTitle(R.string.action_manage_devices_in_group);
+        item.setVisible(visible);
+
+        super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch ( item.getItemId() ) {
+            case R.id.action_add_group:
+                onAddGroup();
+                break;
+
+            case R.id.action_delete_group:
+                onDeleteGroup();
+                break;
+
+            case R.id.action_add_device:
+                onAddDeviceToGroup();
+                break;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+        return true;
     }
 
     protected void updateDeviceList() {
@@ -77,7 +131,8 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         }
 
         // Add the "All Devices" group
-        groups.add(0, DeviceGroup.allDevicesGroup());
+        _allDevicesGroup = DeviceGroup.allDevicesGroup();
+        groups.add(0, _allDevicesGroup);
 
         if (_selectedGroup == null) {
             _selectedGroup = groups.get(0);
@@ -119,7 +174,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                 }
             });
 
-            b.setSelected(group == _selectedGroup);
+            b.setSelected(group.equals(_selectedGroup));
             layout.addView(b);
         }
 
@@ -140,8 +195,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
             // Put up a menu to see if they want to add a device or a group.
             // If we're currently on the "All Devices" group, we can't add a device, so we won't
             // bother to ask.
-            String allDevicesGroupName = getResources().getString(R.string.all_devices);
-            if (_selectedGroup.getGroupName().equals(allDevicesGroupName)) {
+            if (isAllDevicesSelected()) {
                 onAddGroup();
             } else {
                 // Put up a context menu with the choice
@@ -221,14 +275,40 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                 .setPositiveButton(R.string.add_group, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // Add the group
-                        gm.createGroup(et.getText().toString(), null);
-                        gm.pushGroupList();
-                        deviceListChanged();
+                        // Make sure the group is not called "All Devices"
+                        String allDevicesName = getResources().getString(R.string.all_devices);
+                        if (et.getText().toString().equals(allDevicesName)) {
+                            Toast.makeText(getActivity(), R.string.invalid_group_name, Toast.LENGTH_LONG).show();
+                        } else {
+                            // Add the group
+                            gm.createGroup(et.getText().toString(), null);
+                            gm.pushGroupList();
+                            deviceListChanged();
+                        }
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
+    }
+
+    protected void onDeleteGroup() {
+        Log.d(LOG_TAG, "onDeleteGroup");
+        String msg = getResources().getString(R.string.confirm_delete_group_body, _selectedGroup.getGroupName());
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.confirm_delete_group)
+                .setMessage(msg)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        GroupManager gm = SessionManager.deviceManager().getGroupManager();
+                        gm.removeGroup(_selectedGroup);
+                        gm.pushGroupList();
+                        _selectedGroup = _allDevicesGroup;
+                        deviceListChanged();
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .create().show();
     }
 
     protected void onGroupSelected(DeviceGroup group) {

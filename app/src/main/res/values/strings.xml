@@ -23,7 +23,8 @@
     <string name="schedule">Schedule</string>
     <string name="device_properties">Device Properties</string>
     <string name="up"><u>Sign Up</u></string>
-    <string name="forgot">Forgot Password</string>
+    <string name="forgot"><u>Forgot Password</u></string>
+    <string name="resend_confirmation"><u>Re-send Email Confirmation</u></string>
     <string name="signIn">Sign In</string>
     <string name="emailAddress">Email Address</string>
     <string name="passwordHint">Password</string>
@@ -134,6 +135,14 @@
     <string name="add_group_message">Input the name for your new group or room</string>
     <string name="add_group">Add Group</string>
     <string name="choose_group_devices">Select which devices you wish to have in this group</string>
+    <string name="resend_confirmation_message">Please enter the email address associated with your account. If your account is valid, a new confirmation will be sent to you.</string>
+    <string name="send">Send</string>
+    <string name="email_confirmation_sent">A confirmation email was sent to your account. Please check your email and click on the link provided to authenticate your account.</string>
+    <string name="delete_group">Delete this group</string>
+    <string name="invalid_group_name">The group name you have chosen is reserved. Please choose another name for your group.</string>
+    <string name="confirm_delete_group_body" formatted="false">Do you wish to remove the group \"%s\"?</string>
+    <string name="confirm_delete_group">Delete Group?</string>
+    <string name="action_manage_devices_in_group">Manage devices in this group</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">
@@ -152,7 +161,7 @@
 
     <!-- Add device or group menu items -->
     <string-array name="device_or_group_items">
-        <item>Add a device to this group</item>
+        <item>Manage devices in this group</item>
         <item>Create a new device group</item>
     </string-array>
 
