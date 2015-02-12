@@ -190,7 +190,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
             // We always want to show the "All Devices" page first
             mViewPager.setCurrentItem(0);
-            
+
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
             String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
             String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
@@ -301,6 +301,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     // SessionListener methods
     @Override
     public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
+        dismissWaitDialog();
         Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
         if ( !loggedIn ) {
             mViewPager.setCurrentItem(0);
@@ -447,6 +448,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     //
     @Override
     public void signIn(String username, String password) {
+        showWaitDialog(R.string.signingIn, R.string.signingIn);
         SessionManager.startSession(username, password);
    }
 
