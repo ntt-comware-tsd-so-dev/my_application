@@ -22,6 +22,8 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by Brian King on 1/20/15.
  */
@@ -58,17 +60,17 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         // Get our views
-        final EditText password = (EditText)findViewById(R.id.etPassword);
-        final EditText confirm = (EditText)findViewById(R.id.etConfirmPassword);
-        final EditText email = (EditText)findViewById(R.id.etEmail);
-        final EditText firstName = (EditText)findViewById(R.id.etFirstName);
-        final EditText lastName = (EditText)findViewById(R.id.etLastName);
-        final EditText country = (EditText)findViewById(R.id.etCountry);
-        final EditText zip = (EditText)findViewById(R.id.etZipCode);
-        final EditText phone = (EditText)findViewById(R.id.etPhoneNumber);
-        final EditText evb = (EditText)findViewById(R.id.etEvbNumber);
+        EditText password = (EditText)findViewById(R.id.etPassword);
+        EditText confirm = (EditText)findViewById(R.id.etConfirmPassword);
+        EditText email = (EditText)findViewById(R.id.etEmail);
+        EditText firstName = (EditText)findViewById(R.id.etFirstName);
+        EditText lastName = (EditText)findViewById(R.id.etLastName);
+        EditText country = (EditText)findViewById(R.id.etCountry);
+        EditText zip = (EditText)findViewById(R.id.etZipCode);
+        EditText phone = (EditText)findViewById(R.id.etPhoneNumber);
+        EditText evb = (EditText)findViewById(R.id.etEvbNumber);
 
-        final ProgressBar progress = (ProgressBar)findViewById(R.id.pbProgressBar);
+        ProgressBar progress = (ProgressBar)findViewById(R.id.pbProgressBar);
 
         // Validate
          Resources res = getContext().getResources();
@@ -95,53 +97,72 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
 
         progress.setVisibility(View.VISIBLE);
 
-        SessionManager.registerNewUser(user, new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                progress.setVisibility(View.GONE);
-                if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                    AylaUser newUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
-                    if ( _signUpListener != null ) {
-                        _signUpListener.signUpSucceeded(newUser);
-                        dismiss();
+        SessionManager.registerNewUser(user, new RegisterNewUserHandler(this));
+    }
+
+    static class RegisterNewUserHandler extends Handler {
+        private WeakReference<SignUpDialog> _signUpDialog;
+        public RegisterNewUserHandler(SignUpDialog signUpDialog) {
+            _signUpDialog = new WeakReference<SignUpDialog>(signUpDialog);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            // Get our views
+            EditText password = (EditText)_signUpDialog.get().findViewById(R.id.etPassword);
+            EditText confirm = (EditText)_signUpDialog.get().findViewById(R.id.etConfirmPassword);
+            EditText email = (EditText)_signUpDialog.get().findViewById(R.id.etEmail);
+            EditText firstName = (EditText)_signUpDialog.get().findViewById(R.id.etFirstName);
+            EditText lastName = (EditText)_signUpDialog.get().findViewById(R.id.etLastName);
+            EditText country = (EditText)_signUpDialog.get().findViewById(R.id.etCountry);
+            EditText zip = (EditText)_signUpDialog.get().findViewById(R.id.etZipCode);
+            EditText phone = (EditText)_signUpDialog.get().findViewById(R.id.etPhoneNumber);
+            EditText evb = (EditText)_signUpDialog.get().findViewById(R.id.etEvbNumber);
+            ProgressBar progress = (ProgressBar)_signUpDialog.get().findViewById(R.id.pbProgressBar);
+
+            progress.setVisibility(View.GONE);
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                AylaUser newUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
+                if ( _signUpDialog.get()._signUpListener != null ) {
+                    _signUpDialog.get()._signUpListener.signUpSucceeded(newUser);
+                    _signUpDialog.get().dismiss();
+                }
+            } else {
+                if ( msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS ) {
+                    // Put a message together with more details
+                    AylaUser aylaUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
+                    String errMsg = null;
+
+                    if (aylaUser.email != null) {
+                        email.requestFocus();
+                        errMsg = email.getHint() + " " + aylaUser.email; // contains error message
+                    } else
+                    if (aylaUser.password != null) {
+                        password.requestFocus();
+                        errMsg = password.getHint() + " " + aylaUser.password;
+                    } else
+                    if (aylaUser.firstname != null) {
+                        firstName.requestFocus();
+                        errMsg = firstName.getHint() + " " + aylaUser.firstname; // contains error message
+                    } else
+                    if (aylaUser.lastname != null) {
+                        lastName.requestFocus();
+                        errMsg = lastName.getHint() + " " + aylaUser.lastname; // contains error message
+                    } else
+                    if (aylaUser.country != null) {
+                        country.requestFocus();
+                        errMsg = country.getHint() + " " + aylaUser.country; // contains error message
+                    }
+
+                    if (errMsg != null) {
+                        Toast.makeText(_signUpDialog.get().getContext(), errMsg, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    if ( msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS ) {
-                        // Put a message together with more details
-                        AylaUser aylaUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
-                        String errMsg = null;
-
-                        if (aylaUser.email != null) {
-                            email.requestFocus();
-                            errMsg = email.getHint() + " " + aylaUser.email; // contains error message
-                        } else
-                        if (aylaUser.password != null) {
-                            password.requestFocus();
-                            errMsg = password.getHint() + " " + aylaUser.password;
-                        } else
-                        if (aylaUser.firstname != null) {
-                            firstName.requestFocus();
-                            errMsg = firstName.getHint() + " " + aylaUser.firstname; // contains error message
-                        } else
-                        if (aylaUser.lastname != null) {
-                            lastName.requestFocus();
-                            errMsg = lastName.getHint() + " " + aylaUser.lastname; // contains error message
-                        } else
-                        if (aylaUser.country != null) {
-                            country.requestFocus();
-                            errMsg = country.getHint() + " " + aylaUser.country; // contains error message
-                        }
-
-                        if (errMsg != null) {
-                            Toast.makeText(getContext(), errMsg, Toast.LENGTH_LONG).show();
-                        }
-                    } else {
-                        String errMsg = getContext().getResources().getString(R.string.sign_up_error);
-                        errMsg = errMsg + ":\n" + msg.obj;
-                        Toast.makeText(getContext(), errMsg, Toast.LENGTH_LONG).show();
-                    }
+                    String errMsg = _signUpDialog.get().getContext().getResources().getString(R.string.sign_up_error);
+                    errMsg = errMsg + ":\n" + msg.obj;
+                    Toast.makeText(_signUpDialog.get().getContext(), errMsg, Toast.LENGTH_LONG).show();
                 }
             }
-        });
+        }
     }
 }

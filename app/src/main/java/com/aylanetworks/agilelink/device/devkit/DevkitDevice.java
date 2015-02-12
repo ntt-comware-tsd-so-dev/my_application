@@ -22,6 +22,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -51,16 +52,23 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         return false;
     }
 
-    private Handler _createDatapointHandler = new Handler() {
+    static class CreateDatapointHandler extends Handler {
+        private WeakReference<DevkitDevice> _devkitDevice;
+        public CreateDatapointHandler(DevkitDevice devkitDevice) {
+            _devkitDevice = new WeakReference<DevkitDevice>(devkitDevice);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
 
             // Let the device manager know that we've updated ourselves.
-            SessionManager.deviceManager().refreshDeviceStatus(DevkitDevice.this);
+            SessionManager.deviceManager().refreshDeviceStatus(_devkitDevice.get());
         }
-    };
+    }
+
+    private Handler _createDatapointHandler = new CreateDatapointHandler(this);
 
     public void setGreenLED(boolean on) {
         AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);

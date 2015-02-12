@@ -27,6 +27,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -131,23 +132,30 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     // Handler for device unregister call
-    private Handler _unregisterDeviceHandler = new Handler() {
+    static class UnregisterDeviceHandler extends Handler {
+        private WeakReference<DeviceDetailFragment> _deviceDetailFragment;
+        public UnregisterDeviceHandler(DeviceDetailFragment deviceDetailFragment) {
+            _deviceDetailFragment = new WeakReference<DeviceDetailFragment>(deviceDetailFragment);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                Log.i(LOG_TAG, "Device unregistered: " + _device);
+                Log.i(LOG_TAG, "Device unregistered: " + _deviceDetailFragment.get()._device);
 
-                Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
+                Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
 
                 // Pop ourselves off of the back stack and force a refresh of the device list
-                getFragmentManager().popBackStack();
+                _deviceDetailFragment.get().getFragmentManager().popBackStack();
                 SessionManager.deviceManager().refreshDeviceList();
             } else {
-                Log.e(LOG_TAG, "Unregister device failed for " + _device + ": " + msg.obj);
-                Toast.makeText(getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
+                Log.e(LOG_TAG, "Unregister device failed for " + _deviceDetailFragment.get()._device + ": " + msg.obj);
+                Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
             }
         }
-    };
+    }
+
+    private UnregisterDeviceHandler _unregisterDeviceHandler = new UnregisterDeviceHandler(this);
 
     private void unregisterDevice() {
         // Unregister Device clicked

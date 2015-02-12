@@ -19,6 +19,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -138,7 +139,12 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
         }
     }
 
-    private Handler _changePasswordHandler = new Handler() {
+    static class ChangePasswordHandler extends Handler {
+        private WeakReference<EditProfileDialog> _editProfileDialog;
+        public ChangePasswordHandler(EditProfileDialog editProfileDialog) {
+            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Change password handler: " + msg);
@@ -146,14 +152,14 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
 
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
-                params.password = _password.getText().toString();
+                params.password = _editProfileDialog.get()._password.getText().toString();
 
                 // Clear out the password edit fields so we don't try to set the password again
-                _password.setText("");
-                _confirmPassword.setText("");
+                _editProfileDialog.get()._password.setText("");
+                _editProfileDialog.get()._confirmPassword.setText("");
 
                 // Continue updating the rest of the information
-                onClick(getWindow().findViewById(R.id.btnSignUp));
+                _editProfileDialog.get().onClick(_editProfileDialog.get().getWindow().findViewById(R.id.btnSignUp));
             } else {
                 MainActivity.getInstance().dismissWaitDialog();
                 String errMsg = null;
@@ -163,8 +169,8 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
 
                     AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
                     if (aylaUser.password != null) {
-                        _password.requestFocus();
-                        errMsg = _password.getHint() + " " + aylaUser.password;
+                        _editProfileDialog.get()._password.requestFocus();
+                        errMsg = _editProfileDialog.get()._password.getHint() + " " + aylaUser.password;
                         Toast.makeText(MainActivity.getInstance(), errMsg, Toast.LENGTH_LONG).show();
                     }
                 } else {
@@ -172,9 +178,17 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                 }
             }
         }
-    };
+    }
 
-    private Handler _getInfoHandler = new Handler() {
+    private ChangePasswordHandler _changePasswordHandler = new ChangePasswordHandler(this);
+
+    static class GetInfoHandler extends Handler {
+        private WeakReference<EditProfileDialog> _editProfileDialog;
+
+        public GetInfoHandler(EditProfileDialog editProfileDialog) {
+            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "_getInfoHandler: " + msg);
@@ -184,12 +198,19 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                 AylaUser user = AylaSystemUtils.gson.fromJson(json, AylaUser.class);
                 Log.d(LOG_TAG, "User: " + user);
                 AylaUser.setCurrent(user);
-                updateFields();
+                _editProfileDialog.get().updateFields();
             }
         }
-    };
+    }
+    private GetInfoHandler _getInfoHandler = new GetInfoHandler(this);
 
-    private Handler _updateProfileHandler = new Handler() {
+    static class UpdateProfileHandler extends Handler {
+        private WeakReference<EditProfileDialog> _editProfileDialog;
+
+        public UpdateProfileHandler(EditProfileDialog editProfileDialog) {
+            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
@@ -198,7 +219,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
 
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
-                dismiss();
+                _editProfileDialog.get().dismiss();
             } else {
 
                 String errMsg = null;
@@ -208,20 +229,20 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                     // In the error case, the returned aylaUser will contain an error message in the field that had an error.
                     AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
                     if (aylaUser.firstname != null) {
-                        _firstName.requestFocus();
-                        errMsg = _firstName.getHint() + " " + aylaUser.firstname;
+                        _editProfileDialog.get()._firstName.requestFocus();
+                        errMsg = _editProfileDialog.get()._firstName.getHint() + " " + aylaUser.firstname;
                     } else if (aylaUser.lastname != null) {
-                        _lastName.requestFocus();
-                        errMsg = _lastName.getHint() + " " + aylaUser.lastname;
+                        _editProfileDialog.get()._lastName.requestFocus();
+                        errMsg = _editProfileDialog.get()._lastName.getHint() + " " + aylaUser.lastname;
                     } else if (aylaUser.phone != null) {
-                        _phoneNumber.requestFocus();
-                        errMsg = _phoneNumber.getHint() + " " + aylaUser.phone;
+                        _editProfileDialog.get()._phoneNumber.requestFocus();
+                        errMsg = _editProfileDialog.get()._phoneNumber.getHint() + " " + aylaUser.phone;
                     } else if (aylaUser.zip != null) {
-                        _zip.requestFocus();
-                        errMsg = _zip.getHint() + " " + aylaUser.zip;
+                        _editProfileDialog.get()._zip.requestFocus();
+                        errMsg = _editProfileDialog.get()._zip.getHint() + " " + aylaUser.zip;
                     } else if (aylaUser.country != null) {
-                        _country.requestFocus();
-                        errMsg = _country.getHint() + " " + aylaUser.country;
+                        _editProfileDialog.get()._country.requestFocus();
+                        errMsg = _editProfileDialog.get()._country.getHint() + " " + aylaUser.country;
                     }
 
                     if (errMsg != null) {
@@ -234,6 +255,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                 }
             }
         }
-    };
+    }
+    private UpdateProfileHandler _updateProfileHandler = new UpdateProfileHandler(this);
 }
 

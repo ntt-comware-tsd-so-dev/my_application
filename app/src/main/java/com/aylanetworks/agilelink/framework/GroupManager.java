@@ -12,6 +12,7 @@ import com.aylanetworks.aaml.AylaUser;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -166,27 +167,35 @@ public class GroupManager {
 
     protected Set<DeviceGroup> _deviceGroups;
 
-    protected Handler _fetchGroupIndexHandler = new Handler() {
+    static class FetchGroupIndexHandler extends Handler {
+        private WeakReference<GroupManager> _groupManager;
+
+        public FetchGroupIndexHandler(GroupManager groupManager) {
+            _groupManager = new WeakReference<GroupManager>(groupManager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "fetchGroupIndexHandler: " + msg);
 
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                _datumExistsOnServer = true;
+                _groupManager.get()._datumExistsOnServer = true;
                 String json = (String)msg.obj;
                 AylaDatum datum = AylaSystemUtils.gson.fromJson(json, AylaDatum.class);
                 json = datum.value;
 
-                _deviceGroups = deviceGroupSetFromJsonString(json);
-                notifyGroupListChanged();
+                _groupManager.get()._deviceGroups = _groupManager.get().deviceGroupSetFromJsonString(json);
+                _groupManager.get().notifyGroupListChanged();
              } else {
                 Log.e(LOG_TAG, "Failed to fetch group indexes: " + msg.obj);
                 if ( msg.arg1 == 404 ) {
-                    _datumExistsOnServer = false;
+                    _groupManager.get()._datumExistsOnServer = false;
                 }
             }
         }
-    };
+    }
+
+    protected FetchGroupIndexHandler _fetchGroupIndexHandler = new FetchGroupIndexHandler(this);
 
     protected void notifyGroupListChanged() {
         for ( GroupManagerListener l : _groupManagerListeners ) {
@@ -200,15 +209,22 @@ public class GroupManager {
         }
     }
 
-    private Handler _createGroupListHandler = new Handler() {
+    static class CreateGroupListHandler extends Handler {
+        private WeakReference<GroupManager> _groupManager;
+        public CreateGroupListHandler(GroupManager groupManager) {
+            _groupManager = new WeakReference<GroupManager>(groupManager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Create group list handler: " + msg);
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                _datumExistsOnServer = true;
+                _groupManager.get()._datumExistsOnServer = true;
             } else {
                 Log.e(LOG_TAG, "Create / update group list failed: " + msg);
             }
         }
-    };
+    }
+
+    private CreateGroupListHandler _createGroupListHandler = new CreateGroupListHandler(this);
 }

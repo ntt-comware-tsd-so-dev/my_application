@@ -20,6 +20,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,33 +92,43 @@ public class Device implements Comparable<Device> {
      * @param listener Listener to be notified when the status has been updated.
      */
     public void updateStatus(final DeviceStatusListener listener) {
-        final Map<String, String> getPropertyArguments = getPropertyArgumentMap();
-        getDevice().getProperties(new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                AylaDevice d = getDevice();
+        Map<String, String> getPropertyArguments = getPropertyArgumentMap();
+        getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
+    }
 
-                if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                    // Update our properties
-                    d.properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
-                            AylaProperty[].class);
-                    Log.v(LOG_TAG, "request: " + getPropertyArguments);
-                    Log.v(LOG_TAG, "Properties for " + d.productName + " [" + Device.this.getClass().getSimpleName() + "]");
+    static class GetPropertiesHandler extends Handler {
+        private WeakReference<Device> _device;
+        private DeviceStatusListener _listener;
+        public GetPropertiesHandler(Device device, DeviceStatusListener listener) {
+            _device = new WeakReference<Device>(device);
+            _listener = listener;
+        }
 
-                    for (AylaProperty prop : d.properties) {
-                        Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
-                    }
-                    if (listener != null) {
-                        listener.statusUpdated(Device.this);
-                    }
-                } else {
-                    Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
-                    if ( listener != null ) {
-                        listener.statusUpdated(Device.this);
-                    }
+        @Override
+        public void handleMessage(Message msg) {
+
+            AylaDevice d = _device.get().getDevice();
+
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                // Update our properties
+                d.properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
+                        AylaProperty[].class);
+                Log.v(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
+                Log.v(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
+
+                for (AylaProperty prop : d.properties) {
+                    Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
+                }
+                if (_listener != null) {
+                    _listener.statusUpdated(_device.get());
+                }
+            } else {
+                Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
+                if ( _listener != null ) {
+                    _listener.statusUpdated(_device.get());
                 }
             }
-        }, getPropertyArguments);
+        }
     }
 
     /**

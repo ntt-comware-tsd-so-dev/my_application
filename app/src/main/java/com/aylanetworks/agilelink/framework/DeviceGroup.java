@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -109,25 +110,35 @@ public class DeviceGroup {
      * Connects to the server to fetch the list of devices that are members of this group
      */
     public void fetchGroupMembers(final DeviceGroupListener listener) {
-        AylaUser.getCurrent().getDatumWithKey(new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                Log.d(LOG_TAG, "fetchGroupMembers: " + msg);
-                if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                    _isDirty = false;
-                    _datumExistsOnServer = true;
+        AylaUser.getCurrent().getDatumWithKey(new FetchGroupMembersHandler(this, listener), _groupID);
+    }
 
-                    AylaDatum datum = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatum.class);
-                    updateGroupListFromDatum(datum);
-                    if (listener != null) {
-                        listener.groupUpdated(DeviceGroup.this);
-                    }
-                } else {
-                    Log.e(LOG_TAG, "fetchGroupMembers failed: " + msg);
-                    _datumExistsOnServer = false;
+    static class FetchGroupMembersHandler extends Handler {
+        private WeakReference<DeviceGroup> _deviceGroup;
+        private DeviceGroupListener _listener;
+
+        public FetchGroupMembersHandler(DeviceGroup deviceGroup, DeviceGroupListener listener) {
+            _deviceGroup = new WeakReference<DeviceGroup>(deviceGroup);
+            _listener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "fetchGroupMembers: " + msg);
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                _deviceGroup.get()._isDirty = false;
+                _deviceGroup.get()._datumExistsOnServer = true;
+
+                AylaDatum datum = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatum.class);
+                _deviceGroup.get().updateGroupListFromDatum(datum);
+                if (_listener != null) {
+                    _listener.groupUpdated(_deviceGroup.get());
                 }
+            } else {
+                Log.e(LOG_TAG, "fetchGroupMembers failed: " + msg);
+                _deviceGroup.get()._datumExistsOnServer = false;
             }
-        }, _groupID);
+        }
     }
 
     /**
@@ -297,14 +308,23 @@ public class DeviceGroup {
         Log.d(LOG_TAG, "JSON: " + datum.value + "\nDSNs: " + _deviceDSNs);
     }
 
-    private Handler _updateDatumHandler = new Handler() {
+    private Handler _updateDatumHandler = new UpdateDatumHandler(this);
+
+    static class UpdateDatumHandler extends Handler {
+        private WeakReference<DeviceGroup> _deviceGroup;
+
+        public UpdateDatumHandler(DeviceGroup deviceGroup) {
+            _deviceGroup = new WeakReference<DeviceGroup>(deviceGroup);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "updateDatumHandler: " + msg);
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                Log.d(LOG_TAG, "Datum updated");
             } else {
                 Log.e(LOG_TAG, "updateDatumHandler: Failed: " + msg);
             }
         }
-    };
+    }
 }

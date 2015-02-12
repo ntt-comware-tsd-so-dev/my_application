@@ -16,6 +16,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -336,7 +337,12 @@ public class SessionManager {
     /**
      * Handle the result of the login request
      */
-    private final Handler _loginHandler = new Handler() {
+    static class LoginHandler extends Handler {
+        private WeakReference<SessionManager> _sessionManager;
+        public LoginHandler(SessionManager sessionManager) {
+            _sessionManager = new WeakReference<SessionManager>(sessionManager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Login Handler");
@@ -346,34 +352,36 @@ public class SessionManager {
                 Log.d(LOG_TAG, "Login successful");
 
                 // Save the auth info for the user
-                _aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
-                _aylaUser.email = _sessionParameters.username;
-                _aylaUser.password = _sessionParameters.password;
-                _aylaUser = AylaUser.setCurrent(_aylaUser);
-                String userJson = AylaSystemUtils.gson.toJson(_aylaUser, AylaUser.class);
+                _sessionManager.get()._aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
+                _sessionManager.get()._aylaUser.email = _sessionManager.get()._sessionParameters.username;
+                _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
+                _sessionManager.get()._aylaUser = AylaUser.setCurrent(_sessionManager.get()._aylaUser);
+                String userJson = AylaSystemUtils.gson.toJson(_sessionManager.get()._aylaUser, AylaUser.class);
                 AylaSystemUtils.saveSetting(AYLA_SETTING_CURRENT_USER, userJson);
 
                 // Store the access / refresh token in our session parameters
-                _sessionParameters.refreshToken = _aylaUser.getRefreshToken();
-                _sessionParameters.accessToken = _aylaUser.getAccessToken();
+                _sessionManager.get()._sessionParameters.refreshToken = _sessionManager.get()._aylaUser.getRefreshToken();
+                _sessionManager.get()._sessionParameters.accessToken = _sessionManager.get()._aylaUser.getAccessToken();
 
-                _aylaUser.password = _sessionParameters.password;
+                _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
                 AylaCache.clearAll();
                 SharedPreferences settings =
-                        PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
+                        PreferenceManager.getDefaultSharedPreferences(_sessionManager.get()._sessionParameters.context);
                 SharedPreferences.Editor editor = settings.edit();
-                editor.putString(PREFS_PASSWORD, _sessionParameters.password);
-                editor.putString(PREFS_USERNAME, _sessionParameters.username);
+                editor.putString(PREFS_PASSWORD, _sessionManager.get()._sessionParameters.password);
+                editor.putString(PREFS_USERNAME, _sessionManager.get()._sessionParameters.username);
                 editor.apply();
 
                 // Create the device manager and have it start polling the device list
-                _deviceManager = new DeviceManager();
-                _deviceManager.startPolling();
+                _sessionManager.get()._deviceManager = new DeviceManager();
+                _sessionManager.get()._deviceManager.startPolling();
 
-                notifyLoginSuccess();
+                _sessionManager.get().notifyLoginSuccess();
             }
         }
-    };
+    }
+
+    private LoginHandler _loginHandler = new LoginHandler(this);
 
     private void logIn() {
         // Make sure the network is reachable

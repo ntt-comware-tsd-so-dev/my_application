@@ -30,6 +30,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ScanResultsAdapter;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,29 +79,37 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
 
     private AylaHostScanResults _scanResults[];
 
-    private Handler _deviceScanHandler = new Handler() {
+    static class DeviceScanHandler extends Handler {
+        private WeakReference<WiFiSetupFragment> _wiFiSetupFragment;
+
+        public DeviceScanHandler(WiFiSetupFragment wiFiSetupFragment) {
+            _wiFiSetupFragment = new WeakReference<WiFiSetupFragment>(wiFiSetupFragment);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Got scan results: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
 
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                TextView tv = (TextView)_listView.getEmptyView();
+                TextView tv = (TextView)_wiFiSetupFragment.get()._listView.getEmptyView();
                 tv.setText(R.string.no_devices_found);
 
                 String json = (String)msg.obj;
-                _scanResults = AylaSystemUtils.gson.fromJson(json, AylaHostScanResults[].class);
-                ScanResultsAdapter adapter = new ScanResultsAdapter(getActivity(), _scanResults);
-                _listView.setAdapter(adapter);
+                _wiFiSetupFragment.get()._scanResults = AylaSystemUtils.gson.fromJson(json, AylaHostScanResults[].class);
+                ScanResultsAdapter adapter = new ScanResultsAdapter(_wiFiSetupFragment.get().getActivity(), _wiFiSetupFragment.get()._scanResults);
+                _wiFiSetupFragment.get()._listView.setAdapter(adapter);
             } else {
                 String errMsg = (String)msg.obj;
                 if ( errMsg == null || errMsg.contains("DISABLED") ) {
-                    errMsg = getString(R.string.error_wifi_not_enabled);
+                    errMsg = _wiFiSetupFragment.get().getString(R.string.error_wifi_not_enabled);
                 }
-                Toast.makeText(getActivity(), errMsg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(_wiFiSetupFragment.get().getActivity(), errMsg, Toast.LENGTH_SHORT).show();
             }
         }
-    };
+    }
+
+    private DeviceScanHandler _deviceScanHandler = new DeviceScanHandler(this);
 
     @Override
     public void onDestroy() {

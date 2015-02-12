@@ -17,6 +17,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -91,16 +92,23 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         h._switchButton.setOnClickListener(this);
     }
 
-    private Handler _createDatapointHandler = new Handler() {
+    static class CreateDatapointHandler extends Handler {
+        private WeakReference<SwitchedDevice> _switchedDevice;
+        public CreateDatapointHandler(SwitchedDevice switchedDevice) {
+            _switchedDevice = new WeakReference<SwitchedDevice>(switchedDevice);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
 
             // Let the device manager know that we've updated ourselves.
-            SessionManager.deviceManager().refreshDeviceStatus(SwitchedDevice.this);
+            SessionManager.deviceManager().refreshDeviceStatus(_switchedDevice.get());
         }
-    };
+    }
+
+    private CreateDatapointHandler _createDatapointHandler = new CreateDatapointHandler(this);
 
     @Override
     public void onClick(View v) {

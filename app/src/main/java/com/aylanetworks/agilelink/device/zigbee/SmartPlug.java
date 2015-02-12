@@ -19,6 +19,7 @@ import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -97,13 +98,19 @@ public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeL
 //    }
 
 
-    private Handler _createDatapointHandler = new Handler() {
+    static class CreateDatapointHandler extends Handler {
+        private WeakReference<SmartPlug> _smartPlug;
+        public CreateDatapointHandler(SmartPlug smartPlug) {
+            _smartPlug = new WeakReference<SmartPlug>(smartPlug);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "SmartPlug: createDatapointHandler called: " + msg);
         }
-    };
+    }
+    private CreateDatapointHandler _createDatapointHandler = new CreateDatapointHandler(this);
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

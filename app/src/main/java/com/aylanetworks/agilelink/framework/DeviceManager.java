@@ -16,6 +16,7 @@ import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -227,13 +228,21 @@ public class DeviceManager implements DeviceStatusListener {
         }
     };
 
+    private LanModeHandler _lanModeHandler = new LanModeHandler(this);
+
     // LAN mode handler
-    private Handler _lanModeHandler = new Handler() {
+    static class LanModeHandler extends Handler {
+        private WeakReference<DeviceManager> _deviceManager;
+
+        public LanModeHandler(DeviceManager deviceManager) {
+            _deviceManager = new WeakReference<DeviceManager>(deviceManager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
-            _startingLANMode = false;
+            _deviceManager.get()._startingLANMode = false;
 
             String notifyResults = (String) msg.obj;
             AylaNotify notify = AylaSystemUtils.gson.fromJson(notifyResults, AylaNotify.class);
@@ -248,20 +257,20 @@ public class DeviceManager implements DeviceStatusListener {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
                     Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
-                    _lanModeEnabled = false;
-                    notifyLANModeChange();
+                    _deviceManager.get()._lanModeEnabled = false;
+                    _deviceManager.get().notifyLANModeChange();
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
-                        if (!_lanModeEnabled) {
+                        if (!_deviceManager.get()._lanModeEnabled) {
                             // Get the gateway properties
-                            Gateway g = getGatewayDevice();
+                            Gateway g = _deviceManager.get().getGatewayDevice();
                             if ( g != null ) {
-                                _lanModeEnabled = true;
+                                _deviceManager.get()._lanModeEnabled = true;
                                 Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
-                                notifyLANModeChange();
+                                _deviceManager.get().notifyLANModeChange();
                             } else {
                                 // Enable LAN mode on all devices that support it
-                                for ( Device d : _deviceList ) {
+                                for ( Device d : _deviceManager.get()._deviceList ) {
                                     AylaDevice aylaDevice = d.getDevice();
                                     if ( aylaDevice.lanEnabled ) {
                                         Log.i(LOG_TAG, "Enabling LAN mode on " + d);
@@ -279,23 +288,19 @@ public class DeviceManager implements DeviceStatusListener {
                 }
             } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
                     type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
-                _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, 0);
-
-                // BSK: The commented-out code below doesn't work right.
-                /*
-                // Update the property given to us here.
-                Device device = deviceByDSN(dsn);
-                if ( device != null ) {
-                    Log.i(LOG_TAG, "LAN mode handler: Updating status for " + device);
-                    device.updateStatus(DeviceManager.this);
-                }
-                */
+                _deviceManager.get()._deviceStatusTimerHandler.postDelayed(_deviceManager.get()._deviceStatusTimerRunnable, 0);
             }
         }
-    };
+    }
 
     // Reachability handler
-    private Handler _reachabilityHandler = new Handler() {
+    static class ReachabilityHandler extends Handler {
+        private WeakReference<DeviceManager> _deviceManager;
+
+        public ReachabilityHandler(DeviceManager deviceManager) {
+            _deviceManager = new WeakReference<DeviceManager>(deviceManager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -304,17 +309,28 @@ public class DeviceManager implements DeviceStatusListener {
 
             Log.d(LOG_TAG, "Reachability handler: " + json);
         }
-    };
+    }
 
-    private Handler _getNodesHandler = new Handler() {
+
+    private ReachabilityHandler _reachabilityHandler = new ReachabilityHandler(this);
+
+    static class GetNodesHandler extends Handler {
+        private WeakReference<DeviceManager> _deviceManager;
+
+        public GetNodesHandler(DeviceManager deviceManager) {
+            _deviceManager = new WeakReference<DeviceManager>(deviceManager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            Gateway gateway = getGatewayDevice();
+            Gateway gateway = _deviceManager.get().getGatewayDevice();
             Log.i(LOG_TAG, "getNodesHandler");
             Log.i(LOG_TAG, "Entering LAN mode with gateway " + gateway);
             gateway.getDevice().lanModeEnable();
         }
-    };
+    }
+
+    private GetNodesHandler _getNodesHandler = new GetNodesHandler(this);
 
     private void enterLANMode() {
         Log.d(LOG_TAG, "enterLANMode");
@@ -435,8 +451,15 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Private methods */
 
+
     /** Handler called when the list of devices has been obtained from the server. */
-    private final Handler _getDevicesHandler = new Handler() {
+    static class GetDevicesHandler extends Handler {
+        private final WeakReference<DeviceManager> _deviceManager;
+
+        GetDevicesHandler(DeviceManager manager) {
+            _deviceManager = new WeakReference<DeviceManager>(manager);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
@@ -455,18 +478,20 @@ public class DeviceManager implements DeviceStatusListener {
                     }
                 }
 
-                if ( deviceListChanged(newDeviceList) ) {
-                    _deviceList = newDeviceList;
-                    notifyDeviceListChanged();
+                if ( _deviceManager.get().deviceListChanged(newDeviceList) ) {
+                    _deviceManager.get()._deviceList = newDeviceList;
+                    _deviceManager.get().notifyDeviceListChanged();
 
                     // Do we need to enter LAN mode?
-                    if ( params.enableLANMode && !DeviceManager.this.isLanModeEnabled() ) {
-                        enterLANMode();
+                    if ( params.enableLANMode && !_deviceManager.get().isLanModeEnabled() ) {
+                        _deviceManager.get().enterLANMode();
                     }
                 }
             }
         }
-    };
+    }
+
+    private GetDevicesHandler _getDevicesHandler = new GetDevicesHandler(this);
 
     /** Fetches the list of devices from the server */
     private void fetchDeviceList() {

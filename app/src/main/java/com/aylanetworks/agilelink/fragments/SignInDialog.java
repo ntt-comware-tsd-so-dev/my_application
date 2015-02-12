@@ -31,6 +31,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -281,16 +282,22 @@ public class SignInDialog extends DialogFragment {
         _listener = (SignInDialogListener)activity;
     }
 
-    private Handler _oauthHandler = new Handler() {
+    static class OauthHandler extends Handler {
+        private WeakReference<SignInDialog> _signInDialog;
+        public OauthHandler(SignInDialog signInDialog) {
+            _signInDialog = new WeakReference<SignInDialog>(signInDialog);
+        }
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "OAUTH response: " + msg);
-            _webView.setVisibility(View.GONE);
-            _loginButton.setVisibility(View.VISIBLE);
+            _signInDialog.get()._webView.setVisibility(View.GONE);
+            _signInDialog.get()._loginButton.setVisibility(View.VISIBLE);
 
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                _listener.signInOAuth(msg);
+                _signInDialog.get()._listener.signInOAuth(msg);
             }
         }
-    };
+    }
+
+    private OauthHandler _oauthHandler = new OauthHandler(this);
 }

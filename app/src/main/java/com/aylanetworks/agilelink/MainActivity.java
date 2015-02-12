@@ -290,7 +290,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
     }
 
-    private Handler signUpConfirmationHandler = new Handler() {
+    static class SignUpConfirmationHandler extends Handler {
+
         public void handleMessage(android.os.Message msg) {
             String jsonResults = (String) msg.obj;
 
@@ -300,10 +301,10 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
                 AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
 
-                String toastMessage = getString(R.string.welcome_new_account);
-                Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_LONG).show();
+                String toastMessage = MainActivity.getInstance().getString(R.string.welcome_new_account);
+                Toast.makeText(MainActivity.getInstance(), toastMessage, Toast.LENGTH_LONG).show();
 
-                _loginDialog.setUsername(aylaUser.email);
+                MainActivity.getInstance()._loginDialog.setUsername(aylaUser.email);
 
                 // save existing user info
                 AylaSystemUtils.saveSetting("currentUser", jsonResults);	// Allow lib access for accessToken refresh
@@ -316,14 +317,15 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     resID = R.string.error_account_confirm_failed; // Unknown error occurred
                 }
 
-                AlertDialog.Builder ad = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder ad = new AlertDialog.Builder(MainActivity.getInstance());
                 ad.setTitle(R.string.error_sign_up_title);
                 ad.setMessage(resID);
                 ad.setPositiveButton(android.R.string.ok, null);
                 ad.show();
             }
         }
-    };
+    }
+    private SignUpConfirmationHandler _signUpConfirmationHandler = new SignUpConfirmationHandler();
 
     void handleUserSignupToken(String token) {
         Log.d(LOG_TAG, "handleUserSignupToken: " + token);
@@ -332,7 +334,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             // authenticate the token
             Map<String, String> callParams = new HashMap<String, String>();
             callParams.put("confirmation_token", token); // required
-            AylaUser.signUpConfirmation(signUpConfirmationHandler, callParams);
+            AylaUser.signUpConfirmation(_signUpConfirmationHandler, callParams);
         } else {
             Toast.makeText(AylaNetworks.appContext, R.string.error_sign_out_first, Toast.LENGTH_SHORT).show();
         }

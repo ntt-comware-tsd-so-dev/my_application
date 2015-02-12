@@ -27,6 +27,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,32 +95,38 @@ public class ResetPasswordDialog extends DialogFragment {
         return view;
     }
 
-    private Handler _resetHandler = new Handler() {
+    static class ResetHandler extends Handler {
+        private WeakReference<ResetPasswordDialog> _resetPasswordDialog;
+        public ResetHandler(ResetPasswordDialog resetPasswordDialog) {
+            _resetPasswordDialog = new WeakReference<ResetPasswordDialog>(resetPasswordDialog);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                Toast.makeText(getActivity(), R.string.password_changed, Toast.LENGTH_LONG).show();
+                Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.password_changed, Toast.LENGTH_LONG).show();
             } else {
                 if ( msg.arg1 == 422 ) {
-                    Toast.makeText(getActivity(), R.string.error_invalid_token, Toast.LENGTH_LONG).show();
+                    Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.error_invalid_token, Toast.LENGTH_LONG).show();
                 } else {
                     String json = (String)msg.obj;
                     try {
                         JSONObject obj = new JSONObject(json);
                         String message = obj.getString("password");
                         if ( message != null ) {
-                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG);
-                            dismiss();
+                            Toast.makeText(_resetPasswordDialog.get().getActivity(), message, Toast.LENGTH_LONG);
+                            _resetPasswordDialog.get().dismiss();
                             return;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
-                    Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
                 }
             }
-            dismiss();
+            _resetPasswordDialog.get().dismiss();
         }
-    };
+    }
+    private ResetHandler _resetHandler = new ResetHandler(this);
 }

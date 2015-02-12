@@ -32,6 +32,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -186,23 +187,30 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         Log.i(LOG_TAG, "Nothing Selected");
     }
 
-    private Handler _registerHandler = new Handler() {
+    static class RegisterHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _addDeviceFragment;
+        public RegisterHandler(AddDeviceFragment addDeviceFragment) {
+            _addDeviceFragment = new WeakReference<AddDeviceFragment>(addDeviceFragment);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.i(LOG_TAG, "Register handler called: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
             if ( msg.arg1 >= 200 && msg.arg1 < 300 ) {
                 // Success!
-                Toast.makeText(getActivity(), R.string.registration_success, Toast.LENGTH_LONG).show();
-                getActivity().getSupportFragmentManager().popBackStack();
+                Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_success, Toast.LENGTH_LONG).show();
+                _addDeviceFragment.get().getActivity().getSupportFragmentManager().popBackStack();
                 SessionManager.deviceManager().refreshDeviceList();
                 SessionManager.deviceManager().refreshDeviceStatus(null);
             } else {
                 // Something went wrong
-                Toast.makeText(getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
+                Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
             }
         }
-    };
+    }
+
+    private RegisterHandler _registerHandler = new RegisterHandler(this);
 
     @Override
     public void onClick(View v) {
