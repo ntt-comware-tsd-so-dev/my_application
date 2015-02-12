@@ -342,6 +342,10 @@ public class SessionManager {
             _deviceManager.shutDown();
             _deviceManager = null;
         }
+        Map<String, String> params = new HashMap<>();
+        params.put("access_token", AylaUser.user.getauthHeaderValue());
+        AylaUser.logout(params).execute();
+        AylaUser.user.setAccessToken(null);
         AylaCache.clearAll();
         notifyLoginStateChanged(false, null);
         return true;
@@ -360,7 +364,7 @@ public class SessionManager {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Login Handler");
             Log.d(LOG_TAG, "Message: " + msg);
-
+            MainActivity.getInstance().dismissWaitDialog();
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 Log.d(LOG_TAG, "Login successful");
 
