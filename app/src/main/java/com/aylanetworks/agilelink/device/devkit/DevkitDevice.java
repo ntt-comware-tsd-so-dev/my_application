@@ -20,6 +20,7 @@ import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -54,6 +55,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     static class CreateDatapointHandler extends Handler {
         private WeakReference<DevkitDevice> _devkitDevice;
+
         public CreateDatapointHandler(DevkitDevice devkitDevice) {
             _devkitDevice = new WeakReference<DevkitDevice>(devkitDevice);
         }
@@ -70,8 +72,8 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     private Handler _createDatapointHandler = new CreateDatapointHandler(this);
 
-    public void setGreenLED(boolean on) {
-        AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
+    public void setGreenLED(final boolean on) {
+        final AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
         if (greenLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
             return;
@@ -79,24 +81,25 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
         AylaDatapoint dp = new AylaDatapoint();
         dp.nValue(on ? 1 : 0);
-        try {
-            greenLED.createDatapoint(_createDatapointHandler, dp);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        greenLED.createDatapoint(_createDatapointHandler, dp);
     }
 
-    public void setBlueLED(boolean on) {
-        AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
+    public void setBlueLED(final boolean on) {
+        final AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
         if (blueLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
             return;
         }
 
-        AylaDatapoint dp = new AylaDatapoint();
-        dp.nValue(on ? 1 : 0);
         try {
-            blueLED.createDatapoint(_createDatapointHandler, dp);
+            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(this) {
+                @Override
+                public void lanModeResult(boolean isInLANMode) {
+                    AylaDatapoint dp = new AylaDatapoint();
+                    dp.nValue(on ? 1 : 0);
+                    blueLED.createDatapoint(_createDatapointHandler, dp);
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,7 +166,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         // Device name
-        DevkitDeviceViewHolder h = (DevkitDeviceViewHolder)holder;
+        DevkitDeviceViewHolder h = (DevkitDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getDevice().getProductName());
 
         // Blue button state

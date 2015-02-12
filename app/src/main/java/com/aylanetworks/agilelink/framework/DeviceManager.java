@@ -34,6 +34,23 @@ public class DeviceManager implements DeviceStatusListener {
         void deviceListChanged();
     }
 
+    /**
+     * Listener class called when a device has entered or exited LAN mode
+     */
+    static public class LANModeListener {
+        private Device _device;
+        public LANModeListener(Device device) {
+            _device = device;
+        }
+        public Device getDevice() {
+            return _device;
+        }
+
+        public void lanModeResult(boolean isInLANMode){}
+    }
+
+    private List<LANModeListener> _lanModeListeners = new ArrayList<>();
+
     /** Public Methods */
 
     /** Constructor */
@@ -113,6 +130,17 @@ public class DeviceManager implements DeviceStatusListener {
     public void stopPolling() {
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
+    }
+
+    public void enterLANMode(LANModeListener listener) {
+        Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
+        if ( !_lanModeEnabled ) {
+            // We can't enter LAN mode for any devices.
+            listener.lanModeResult(false);
+        } else {
+            _lanModeListeners.add(listener);
+            listener.getDevice().getDevice().lanModeEnable();
+        }
     }
 
     /**
@@ -259,36 +287,43 @@ public class DeviceManager implements DeviceStatusListener {
                     Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
                     _deviceManager.get()._lanModeEnabled = false;
                     _deviceManager.get().notifyLANModeChange();
+
+                    // Notify our listeners, if any, and clear our list
+                    for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
+                        LANModeListener listener = iter.next();
+                        if ( listener.getDevice().getDevice().dsn.equals(dsn)) {
+                            listener.lanModeResult(false);
+                            iter.remove();
+                        }
+                    }
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
-                        if (!_deviceManager.get()._lanModeEnabled) {
-                            // Get the gateway properties
-                            Gateway g = _deviceManager.get().getGatewayDevice();
-                            if ( g != null ) {
-                                _deviceManager.get()._lanModeEnabled = true;
-                                Log.i(LOG_TAG, "LAN mode enabled: " + msg.obj);
-                                _deviceManager.get().notifyLANModeChange();
-                            } else {
-                                // Enable LAN mode on all devices that support it
-                                for ( Device d : _deviceManager.get()._deviceList ) {
-                                    AylaDevice aylaDevice = d.getDevice();
-                                    if ( aylaDevice.lanEnabled ) {
-                                        Log.i(LOG_TAG, "Enabling LAN mode on " + d);
-                                        aylaDevice.lanModeEnable();
-                                    }
+                        // LAN mode has been enabled on a device.
+                        Device device = _deviceManager.get().deviceByDSN(dsn);
+                        if ( device != null ) {
+                            // Notify listeners listening for this device
+                            for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
+                                LANModeListener listener = iter.next();
+                                if ( listener.getDevice().getDevice().dsn.equals(dsn)) {
+                                    // Notify the listener that LAN mode has been enabled
+                                    listener.lanModeResult(true);
+                                    iter.remove();
                                 }
-                                Log.e(LOG_TAG, "Lan mode enabled (no gateway)");
                             }
-                        } else {
-                            Log.v(LOG_TAG, "Already in LAN mode");
                         }
-                    } else {
-                        Log.e(LOG_TAG, "Unknown LAN mode \"session\" message: " + msg.what + " " + msg.obj);
                     }
                 }
             } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
                     type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
-                _deviceManager.get()._deviceStatusTimerHandler.postDelayed(_deviceManager.get()._deviceStatusTimerRunnable, 0);
+                // A device's property has changed. Fetch the properties now.
+                Device d = _deviceManager.get().deviceByDSN(dsn);
+                if ( d != null ) {
+                    d.updateStatus(_deviceManager.get());
+                } else {
+                    // We don't know what changed, so let's just get everything
+                    Log.e(LOG_TAG, "LAN mode handler: Couldn't find device with DSN: " + dsn);
+                    _deviceManager.get()._deviceStatusTimerHandler.postDelayed(_deviceManager.get()._deviceStatusTimerRunnable, 0);
+                }
             }
         }
     }
@@ -423,7 +458,7 @@ public class DeviceManager implements DeviceStatusListener {
             }
 
             // Only continue polling if we're not in LAN mode and somebody is listening
-            if ( !isLanModeEnabled() && _deviceStatusListeners.size() > 0 ) {
+            if ( _deviceStatusListeners.size() > 0 ) {
                 _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
                 _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
             } else {
