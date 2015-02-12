@@ -143,6 +143,16 @@
     <string name="confirm_delete_group_body" formatted="false">Do you wish to remove the group \"%s\"?</string>
     <string name="confirm_delete_group">Delete Group?</string>
     <string name="action_manage_devices_in_group">Manage devices in this group</string>
+    <string name="forgot_password_title">Reset Password</string>
+    <string name="forgot_password_message">Enter your email address associated with your Ayla account. You will be sent an email with a link to reset your password.</string>
+    <string name="password_reset_sent">An email has been sent with instructions to reset your password.</string>
+    <string name="error_password_reset_failed">Password reset failed</string>
+    <string name="enter_new_password">Enter your new password</string>
+    <string name="enter_new_password_body">Enter your new password in the fields below. Make sure to type the same password in both fields.</string>
+    <string name="set_password">Set Password</string>
+    <string name="password_changed">Your password has been successfully changed. Please log in using your new password.</string>
+    <string name="resetting_password_title">Resetting password...</string>
+    <string name="resetting_password_body">Resetting your password. Please wait...</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">

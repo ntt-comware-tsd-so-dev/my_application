@@ -217,7 +217,56 @@ public class SignInDialog extends DialogFragment {
     }
 
     private void onForgotPassword() {
+        final EditText emailEditText = new EditText(getActivity());
+        Dialog dlg = new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.forgot_password_title)
+                .setMessage(R.string.forgot_password_message)
+                .setView(emailEditText)
+                .setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
+                        Map<String, String> params = new HashMap<>();
+                        if (sessionParams.registrationEmailTemplateId == null) {
+                            params.put(AylaNetworks.AML_EMAIL_BODY_HTML, sessionParams.resetPasswordEmailBodyHTML);
+                        } else {
+                            params.put(AylaNetworks.AML_EMAIL_TEMPLATE_ID, sessionParams.resetPasswordEmailTemplateId);
+                        }
+                        params.put(AylaNetworks.AML_EMAIL_SUBJECT, sessionParams.resetPasswordEmailSubject);
+                        AylaUser.resetPassword(new Handler() {
+                            @Override
+                            public void handleMessage(Message msg) {
+                                Log.d(LOG_TAG, "Reset password result: " + msg);
 
+                                if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                                    Toast.makeText(getActivity(), R.string.password_reset_sent, Toast.LENGTH_LONG).show();
+                                } else {
+                                    // Get the error out of the message if we can
+                                    String json = (String) msg.obj;
+                                    String errorMessage = null;
+                                    try {
+                                        JSONObject result = new JSONObject(json);
+                                        String errorJSON = result.getString("errors");
+                                        JSONObject errors = new JSONObject(errorJSON);
+                                        errorMessage = errors.getString("email");
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    if (errorMessage == null) {
+                                        errorMessage = getResources().getString(R.string.error_password_reset_failed);
+                                    }
+
+                                    Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        }, emailEditText.getText().toString(), sessionParams.appId, sessionParams.appSecret, params);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        dlg.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dlg.show();
     }
 
     @Override

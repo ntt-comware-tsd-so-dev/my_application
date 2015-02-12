@@ -123,6 +123,12 @@ public class SessionManager {
         public String registrationEmailSubject = "Ayla Sign-up Confirmation";
         public String registrationEmailBodyHTML = null;
 
+        // Strings for password reset. Can be modified by the application if desired.
+        public String resetPasswordEmailSubject = "Ayla Reset Password Confirmation";
+        // TODO: BSK: Find the correct reset template
+        public String resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
+        public String resetPasswordEmailBodyHTML = null;
+
         public SessionParameters(Context context) {
             this.context = context;
         }
@@ -148,6 +154,9 @@ public class SessionManager {
             this.registrationEmailSubject = other.registrationEmailSubject;
             this.registrationEmailTemplateId = other.registrationEmailTemplateId;
             this.registrationEmailBodyHTML = other.registrationEmailBodyHTML;
+            this.resetPasswordEmailSubject = other.resetPasswordEmailSubject;
+            this.resetPasswordEmailBodyHTML = other.resetPasswordEmailBodyHTML;
+            this.resetPasswordEmailTemplateId = other.resetPasswordEmailTemplateId;
         }
 
         @Override

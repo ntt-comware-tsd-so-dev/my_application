@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
@@ -31,6 +32,7 @@ import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
+import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
@@ -76,6 +78,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
 
         _progressDialog = ProgressDialog.show(this, title, message, true);
+    }
+
+    public void showWaitDialog(int titleId, int messageId) {
+        String title = getResources().getString(titleId);
+        String message = getResources().getString(messageId);
+        showWaitDialog(title, message);
     }
 
     public void dismissWaitDialog() {
@@ -332,8 +340,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     void handleUserResetPasswordToken(String token) {
         Log.i(LOG_TAG, "handleUserResetPasswordToken: " + token);
-        // TODO: Implement user reset password token handler
-        Toast.makeText(this, "Not yet implemented...", Toast.LENGTH_LONG).show();
+        ResetPasswordDialog d = new ResetPasswordDialog();
+        d.setToken(token);
+        d.show(getSupportFragmentManager(), "reset_password");
     }
 
     private SignInDialog _loginDialog;

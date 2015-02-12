@@ -212,6 +212,10 @@ public class DeviceGroup {
      * @return The list of all devices in the group
      */
     public List<Device> getDevices() {
+        if ( SessionManager.deviceManager() == null ) {
+            return new ArrayList<>();
+        }
+
         Set<Device> devices = new HashSet<>();
         for (String dsn : _deviceDSNs) {
             Device device = SessionManager.deviceManager().deviceByDSN(dsn);
