@@ -13,6 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -66,7 +68,15 @@ public class GroupManager {
     }
 
     public List<DeviceGroup> getGroups() {
-        return new ArrayList<>(_deviceGroups);
+        List<DeviceGroup> groups = new ArrayList<>(_deviceGroups);
+        Collections.sort(groups, new Comparator<DeviceGroup>() {
+            @Override
+            public int compare(DeviceGroup lhs, DeviceGroup rhs) {
+                return lhs.getGroupName().compareToIgnoreCase(rhs.getGroupName());
+            }
+        });
+
+        return groups;
     }
 
     public DeviceGroup createGroup(String groupName, List<Device>deviceList) {

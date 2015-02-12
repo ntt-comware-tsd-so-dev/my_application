@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
@@ -130,12 +131,13 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
             groups = new ArrayList<>();
         }
 
+
         // Add the "All Devices" group
         _allDevicesGroup = DeviceGroup.allDevicesGroup();
         groups.add(0, _allDevicesGroup);
 
-        if (_selectedGroup == null) {
-            _selectedGroup = groups.get(0);
+        if (_selectedGroup == null || !groups.contains(_selectedGroup)) {
+            _selectedGroup = _allDevicesGroup;
         }
 
         // Make a linear layout to hold all of the buttons
@@ -268,7 +270,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         final EditText et = new EditText(getActivity());
         final GroupManager gm = SessionManager.deviceManager().getGroupManager();
 
-        new AlertDialog.Builder(getActivity())
+        AlertDialog dlg = new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.add_group_title)
                 .setMessage(R.string.add_group_message)
                 .setView(et)
@@ -288,7 +290,9 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
-                .show();
+                .create();
+        dlg.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dlg.show();
     }
 
     protected void onDeleteGroup() {
