@@ -83,6 +83,7 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
 
         if ( !password.getText().toString().equals(confirm.getText().toString()) ) {
             Toast.makeText(getContext(), R.string.password_no_match, Toast.LENGTH_SHORT).show();
+            return;
         }
 
         AylaUser user = new AylaUser();

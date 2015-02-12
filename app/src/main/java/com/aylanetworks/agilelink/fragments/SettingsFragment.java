@@ -1,6 +1,10 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -13,7 +17,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.SessionManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Brian King on 1/28/15.
@@ -26,7 +37,8 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     private final int INDEX_REGISTRATION = 0;
     private final int INDEX_WIFI_SETUP = 1;
     private final int INDEX_PROFILE = 2;
-    private final int INDEX_EMAIL_LOGS = 3;
+    private final int INDEX_DELETE_ACCOUNT = 3;
+    private final int INDEX_EMAIL_LOGS = 4;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
@@ -65,6 +77,61 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         d.show();
     }
 
+    private AlertDialog _confirmDeleteDialog;
+
+    private void deleteAccount() {
+        // First confirm
+        _confirmDeleteDialog = new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.confirm_delete_account_title)
+                .setMessage(R.string.confirm_delete_account_message)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Close the dialog
+                        if (SettingsFragment.this._confirmDeleteDialog != null) {
+                            SettingsFragment.this._confirmDeleteDialog.dismiss();
+                        }
+
+                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title,
+                                R.string.deleting_account_message);
+
+                        // Actually delete the account
+                        AylaUser.delete(new DeleteAccountHandler());
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    static class DeleteAccountHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Delete account result: " + msg);
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                // Log out and show a toast
+                SessionManager.clearSavedUser();
+                SessionManager.stopSession();
+                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+            } else {
+                // Look for an error message in the returned JSON
+                String errorMessage = null;
+                try {
+                    JSONObject results = new JSONObject((String)msg.obj);
+                    errorMessage = results.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if ( errorMessage != null ) {
+                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(LOG_TAG, "onItemClick: " + position);
@@ -79,6 +146,10 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
 
             case INDEX_PROFILE:
                 updateProfile();
+                break;
+
+            case INDEX_DELETE_ACCOUNT:
+                deleteAccount();
                 break;
 
             case INDEX_EMAIL_LOGS:

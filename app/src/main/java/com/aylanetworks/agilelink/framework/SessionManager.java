@@ -16,6 +16,9 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +62,17 @@ public class SessionManager {
                 getInstance()._sessionParameters.deviceSsidRegex,
                 getInstance()._sessionParameters.appId);
 
+    }
+
+    public static void clearSavedUser() {
+        SharedPreferences settings =
+                PreferenceManager.getDefaultSharedPreferences(getInstance()._sessionParameters.context);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(PREFS_PASSWORD, "");
+        editor.putString(PREFS_USERNAME, "");
+        editor.apply();
+        AylaSystemUtils.saveSetting(AYLA_SETTING_CURRENT_USER, "");
+        AylaUser.setCurrent(new AylaUser());
     }
 
     public static SessionManager getInstance() {
@@ -126,7 +140,6 @@ public class SessionManager {
 
         // Strings for password reset. Can be modified by the application if desired.
         public String resetPasswordEmailSubject = "Ayla Reset Password Confirmation";
-        // TODO: BSK: Find the correct reset template
         public String resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
         public String resetPasswordEmailBodyHTML = null;
 
@@ -330,7 +343,7 @@ public class SessionManager {
             _deviceManager = null;
         }
         AylaCache.clearAll();
-
+        notifyLoginStateChanged(false, null);
         return true;
     }
 
@@ -376,7 +389,23 @@ public class SessionManager {
                 _sessionManager.get()._deviceManager = new DeviceManager();
                 _sessionManager.get()._deviceManager.startPolling();
 
-                _sessionManager.get().notifyLoginSuccess();
+                AylaUser.setCurrent(_sessionManager.get()._aylaUser);
+                _sessionManager.get().notifyLoginStateChanged(true, _sessionManager.get()._aylaUser);
+            } else {
+                String json = (String)msg.obj;
+                String errorMessage = null;
+                try {
+                    JSONObject results = new JSONObject(json);
+                    errorMessage = results.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if ( errorMessage != null ) {
+                    Toast.makeText(_sessionManager.get()._sessionParameters.context, errorMessage, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(_sessionManager.get()._sessionParameters.context, R.string.unknown_error, Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
@@ -492,15 +521,9 @@ public class SessionManager {
     /**
      * Notifiers
      */
-    private void notifyLoginSuccess() {
+    private void notifyLoginStateChanged(boolean loggedIn, AylaUser aylaUser) {
         for (SessionListener l : _sessionListeners) {
-            l.loginStateChanged(true, _aylaUser);
-        }
-    }
-
-    private void notifyLoginFailed() {
-        for (SessionListener l : _sessionListeners) {
-            l.loginStateChanged(false, null);
+            l.loginStateChanged(loggedIn, aylaUser);
         }
     }
 }

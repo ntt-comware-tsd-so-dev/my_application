@@ -42,7 +42,7 @@ import com.google.gson.annotations.Expose;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener {
+public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener, SessionManager.SessionListener {
 
     private static final String LOG_TAG = "Main Activity";
     /**
@@ -176,6 +176,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         // SessionManager.setParameters(nexTurnParams);
         SessionManager.setParameters(devkitParams);
+        SessionManager.addSessionListener(this);
 
         // Bring up the login dialog if we're not already logged in
         if (!SessionManager.isLoggedIn()) {
@@ -184,17 +185,21 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     private void showLoginDialog() {
-        _loginDialog = new SignInDialog();
+        if ( _loginDialog == null ) {
+            _loginDialog = new SignInDialog();
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
-        String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+            String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
+            String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
-        Bundle args = new Bundle();
-        args.putString(SignInDialog.ARG_USERNAME, savedUsername);
-        args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
-        _loginDialog.setArguments(args);
-        _loginDialog.show(getSupportFragmentManager(), "signin");
+            Bundle args = new Bundle();
+            args.putString(SignInDialog.ARG_USERNAME, savedUsername);
+            args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
+            _loginDialog.setArguments(args);
+            _loginDialog.show(getSupportFragmentManager(), "signin");
+        } else {
+            Log.e(LOG_TAG, "Login dialog is already being shown!");
+        }
     }
 
     @Override
@@ -288,6 +293,33 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         } else {
             Log.e(LOG_TAG, "Unknown URI: " + uri);
         }
+    }
+
+    // SessionListener methods
+    @Override
+    public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
+        Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
+        if ( !loggedIn ) {
+            mViewPager.setCurrentItem(0);
+            if ( _loginDialog == null ) {
+                showLoginDialog();
+            }
+        } else {
+            if ( _loginDialog != null ) {
+                _loginDialog.dismiss();
+                _loginDialog = null;
+            }
+        }
+    }
+
+    @Override
+    public void reachabilityChanged(int reachabilityState) {
+
+    }
+
+    @Override
+    public void lanModeChanged(boolean lanModeEnabled) {
+
     }
 
     static class SignUpConfirmationHandler extends Handler {
@@ -413,8 +445,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     @Override
     public void signIn(String username, String password) {
         SessionManager.startSession(username, password);
-        _loginDialog.dismiss();
-        _loginDialog = null;
    }
 
     private class ErrorMessage {
