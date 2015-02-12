@@ -188,6 +188,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         if ( _loginDialog == null ) {
             _loginDialog = new SignInDialog();
 
+            // We always want to show the "All Devices" page first
+            mViewPager.setCurrentItem(0);
+            
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
             String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
             String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
