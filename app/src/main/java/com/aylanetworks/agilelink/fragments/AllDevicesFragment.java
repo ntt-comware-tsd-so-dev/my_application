@@ -21,6 +21,7 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
@@ -239,11 +240,20 @@ public class AllDevicesFragment extends Fragment
             // This is a click from an item in the list.
             Device d = (Device) v.getTag();
             if (d != null) {
-                DeviceDetailFragment frag = DeviceDetailFragment.newInstance(d);
-                FragmentTransaction ft = getFragmentManager().beginTransaction();
-                ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                        R.anim.abc_fade_in, R.anim.abc_fade_out);
-                ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+                // Put the device into LAN mode before pushing the detail fragment
+                MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
+                SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
+                    @Override
+                    public void lanModeResult(boolean isInLANMode) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        Log.d(LOG_TAG, "Pushing details page, lanModeResult for " + getDevice() + ": " + isInLANMode);
+                        DeviceDetailFragment frag = DeviceDetailFragment.newInstance(getDevice());
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                                R.anim.abc_fade_in, R.anim.abc_fade_out);
+                        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+                    }
+                });
             }
         }
     }

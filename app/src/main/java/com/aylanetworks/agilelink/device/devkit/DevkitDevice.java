@@ -75,6 +75,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
         if (greenLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
+            SessionManager.deviceManager().refreshDeviceStatus(this);
             return;
         }
 
@@ -87,6 +88,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
         if (blueLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
+            SessionManager.deviceManager().refreshDeviceStatus(this);
             return;
         }
 

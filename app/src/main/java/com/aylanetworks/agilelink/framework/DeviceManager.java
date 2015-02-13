@@ -9,6 +9,7 @@ import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
+import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
@@ -137,13 +138,29 @@ public class DeviceManager implements DeviceStatusListener {
 
     public void enterLANMode(LANModeListener listener) {
         Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
-        if ( !_lanModeEnabled ) {
+        if ( !SessionManager.sessionParameters().enableLANMode ) {
             // We can't enter LAN mode for any devices.
             listener.lanModeResult(false);
         } else {
+            _startingLANMode = true;
             _lanModeListeners.add(listener);
             listener.getDevice().getDevice().lanModeEnable();
         }
+    }
+
+    public void exitLANMode(LANModeListener listener) {
+        // BSK: There is no notification received for disabling LAN mode.
+        // The interface is kept consistent with enterLANMode(), but is strictly speaking not
+        // necessary, as there is nothing asynchronous that goes on here.
+        //
+        // Also it appears that lanModeDisable() doesn't currently do anything other than write
+        // the device's properties to the cache, so we won't call that here either, as it
+        // seems to screw up our property notifications, etc.
+
+        // _lanModeListeners.add(listener);
+        // listener.getDevice().getDevice().lanModeDisable();
+        _lanModeEnabledDevice = null;
+        listener.lanModeResult(false);
     }
 
     /**
@@ -195,10 +212,6 @@ public class DeviceManager implements DeviceStatusListener {
         _deviceStatusPollInterval = deviceStatusPollInterval;
     }
 
-    public boolean isLanModeEnabled() {
-        return _lanModeEnabled;
-    }
-
     // Listener methods
 
     public void addDeviceListListener(DeviceListListener listener) {
@@ -245,9 +258,6 @@ public class DeviceManager implements DeviceStatusListener {
     // Device queries should be disabled while this is true.
     private boolean _startingLANMode = false;
 
-    // This gets set to true once LAN mode has been enabled
-    private boolean _lanModeEnabled = false;
-
     private int _deviceListPollInterval = 30000;
     private int _deviceStatusPollInterval = 5000;
 
@@ -288,7 +298,6 @@ public class DeviceManager implements DeviceStatusListener {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
                     Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
-                    _deviceManager.get()._lanModeEnabled = false;
                     _deviceManager.get().notifyLANModeChange();
 
                     // Nobody is in LAN mode now.
@@ -327,6 +336,8 @@ public class DeviceManager implements DeviceStatusListener {
                 // A device's property has changed. Fetch the properties now.
                 Device d = _deviceManager.get().deviceByDSN(dsn);
                 if ( d != null ) {
+                    // Force a change on the property list for this device.
+                    d.getDevice().properties = new AylaProperty[0];
                     d.updateStatus(_deviceManager.get());
                 } else {
                     // We don't know what changed, so let's just get everything
@@ -379,12 +390,6 @@ public class DeviceManager implements DeviceStatusListener {
     private void enterLANMode() {
         Log.d(LOG_TAG, "enterLANMode");
 
-        if ( _startingLANMode ) {
-            Log.i(LOG_TAG, "enterLANMode: Already entering...");
-            return;
-        }
-
-        _startingLANMode = true;
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
         if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
@@ -399,7 +404,6 @@ public class DeviceManager implements DeviceStatusListener {
             } else {
                 Log.i(LOG_TAG, "LAN mode: No gateway found");
                 _startingLANMode = false;
-                _lanModeEnabled = true;
             }
         } else {
             Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.lanModeState + " - not entering LAN mode");
@@ -527,7 +531,7 @@ public class DeviceManager implements DeviceStatusListener {
                     _deviceManager.get().notifyDeviceListChanged();
 
                     // Do we need to enter LAN mode?
-                    if ( params.enableLANMode && !_deviceManager.get().isLanModeEnabled() ) {
+                    if ( params.enableLANMode ) {
                         _deviceManager.get().enterLANMode();
                     }
                 }

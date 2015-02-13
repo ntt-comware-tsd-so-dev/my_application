@@ -25,6 +25,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -65,6 +66,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             _device = SessionManager.deviceManager().deviceByDSN(dsn);
         }
      }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -120,7 +127,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onDetach() {
         super.onDetach();
-
         SessionManager.deviceManager().removeDeviceStatusListener(this);
     }
 

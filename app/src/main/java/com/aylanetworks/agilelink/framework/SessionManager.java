@@ -340,7 +340,6 @@ public class SessionManager {
     private boolean stop() {
         if (_deviceManager != null) {
             _deviceManager.shutDown();
-            _deviceManager = null;
         }
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
@@ -348,6 +347,7 @@ public class SessionManager {
         AylaUser.user.setAccessToken(null);
         AylaCache.clearAll();
         notifyLoginStateChanged(false, null);
+        _deviceManager = null;
         return true;
     }
 

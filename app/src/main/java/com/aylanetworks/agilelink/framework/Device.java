@@ -96,6 +96,36 @@ public class Device implements Comparable<Device> {
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
+    /**
+     * Called when the framework fetches properties from the service for this device. The method
+     * should return true if something has changed, or false if the properties are the same. This
+     * allows the framework to notify listeners only if the device's properties are different.
+     *
+     * The device's property array should also be replaced with newProperties, unless nothing has changed.
+     *
+     * @param newProperties An array of properties just fetched from the library
+     * @return true if the device has changed as a result of these new properites, or false if
+     * the device has not changed.
+     *
+     * Derived classes may override this method to customize which properties are evaluated to
+     * determine if a device change event should be sent.
+     */
+    public boolean setProperties(AylaProperty[] newProperties) {
+        boolean hasChanged = false;
+        for ( AylaProperty prop : newProperties ) {
+            AylaProperty myProperty = getProperty(prop.name());
+
+            if ( myProperty == null || (!myProperty.value.equals(prop.value)) ) {
+                hasChanged = true;
+                break;
+            }
+        }
+
+        // Keep the new list of properties
+        getDevice().properties = newProperties;
+        return hasChanged;
+    }
+
     static class GetPropertiesHandler extends Handler {
         private WeakReference<Device> _device;
         private DeviceStatusListener _listener;
@@ -111,22 +141,24 @@ public class Device implements Comparable<Device> {
 
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 // Update our properties
-                d.properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
+                AylaProperty[] properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
                         AylaProperty[].class);
+
                 Log.v(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
                 Log.v(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
 
-                for (AylaProperty prop : d.properties) {
+                for (AylaProperty prop : properties) {
                     Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
                 }
-                if (_listener != null) {
-                    _listener.statusUpdated(_device.get());
+
+                // Did something change?
+                if ( _device.get().setProperties(properties) ) {
+                    if (_listener != null) {
+                        _listener.statusUpdated(_device.get());
+                    }
                 }
             } else {
                 Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
-                if ( _listener != null ) {
-                    _listener.statusUpdated(_device.get());
-                }
             }
         }
     }
