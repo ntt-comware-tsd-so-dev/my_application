@@ -20,7 +20,6 @@ import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -72,8 +71,8 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     private Handler _createDatapointHandler = new CreateDatapointHandler(this);
 
-    public void setGreenLED(final boolean on) {
-        final AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
+    public void setGreenLED(boolean on) {
+        AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
         if (greenLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
             return;
@@ -84,25 +83,16 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         greenLED.createDatapoint(_createDatapointHandler, dp);
     }
 
-    public void setBlueLED(final boolean on) {
-        final AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
+    public void setBlueLED(boolean on) {
+        AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
         if (blueLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
             return;
         }
 
-        try {
-            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(this) {
-                @Override
-                public void lanModeResult(boolean isInLANMode) {
-                    AylaDatapoint dp = new AylaDatapoint();
-                    dp.nValue(on ? 1 : 0);
-                    blueLED.createDatapoint(_createDatapointHandler, dp);
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        AylaDatapoint dp = new AylaDatapoint();
+        dp.nValue(on ? 1 : 0);
+        blueLED.createDatapoint(_createDatapointHandler, dp);
     }
 
     public boolean isGreenLEDOn() {

@@ -15,7 +15,6 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -33,21 +32,15 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     }
 
     public void toggle() {
-        final AylaProperty prop = getProperty(PROPERTY_OUTLET);
+        AylaProperty prop = getProperty(PROPERTY_OUTLET);
         if ( prop == null ) {
             Log.e(LOG_TAG, "Could not find property " + PROPERTY_OUTLET);
             return;
         }
 
-        // Put the device into LAN mode before setting the datapoint
-        SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(this) {
-            @Override
-            public void lanModeResult(boolean isInLANMode) {
-                AylaDatapoint dp = new AylaDatapoint();
-                dp.nValue(Integer.parseInt(prop.value) == 0 ? 1 : 0);
-                prop.createDatapoint(_createDatapointHandler, dp);
-            }
-        });
+        AylaDatapoint dp = new AylaDatapoint();
+        dp.nValue(Integer.parseInt(prop.value) == 0 ? 1 : 0);
+        prop.createDatapoint(_createDatapointHandler, dp);
     }
 
     public boolean isOn() {
