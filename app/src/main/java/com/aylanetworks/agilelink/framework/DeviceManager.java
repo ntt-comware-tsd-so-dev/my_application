@@ -51,6 +51,9 @@ public class DeviceManager implements DeviceStatusListener {
 
     private List<LANModeListener> _lanModeListeners = new ArrayList<>();
 
+    /** The one and only device that is currently LAN-mode enabled. */
+    private Device _lanModeEnabledDevice;
+
     /** Public Methods */
 
     /** Constructor */
@@ -288,6 +291,9 @@ public class DeviceManager implements DeviceStatusListener {
                     _deviceManager.get()._lanModeEnabled = false;
                     _deviceManager.get().notifyLANModeChange();
 
+                    // Nobody is in LAN mode now.
+                    _deviceManager.get()._lanModeEnabledDevice = null;
+
                     // Notify our listeners, if any, and clear our list
                     for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                         LANModeListener listener = iter.next();
@@ -300,6 +306,7 @@ public class DeviceManager implements DeviceStatusListener {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
+                        _deviceManager.get()._lanModeEnabledDevice = device;
                         if ( device != null ) {
                             // Notify listeners listening for this device
                             for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
@@ -310,6 +317,8 @@ public class DeviceManager implements DeviceStatusListener {
                                     iter.remove();
                                 }
                             }
+                        } else {
+                            Log.e(LOG_TAG, "Unknown device [" + dsn + "] has entered LAN mode???");
                         }
                     }
                 }
@@ -321,7 +330,7 @@ public class DeviceManager implements DeviceStatusListener {
                     d.updateStatus(_deviceManager.get());
                 } else {
                     // We don't know what changed, so let's just get everything
-                    Log.e(LOG_TAG, "LAN mode handler: Couldn't find device with DSN: " + dsn);
+                    Log.e(LOG_TAG, "LAN mode handler (property change): Couldn't find device with DSN: " + dsn);
                     _deviceManager.get()._deviceStatusTimerHandler.postDelayed(_deviceManager.get()._deviceStatusTimerRunnable, 0);
                 }
             }
