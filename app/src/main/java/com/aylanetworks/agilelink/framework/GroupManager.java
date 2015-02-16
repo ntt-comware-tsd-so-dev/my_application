@@ -105,6 +105,15 @@ public class GroupManager {
         _isDirty = true;
     }
 
+    public void removeDeviceFromAllGroups(Device device) {
+        for ( DeviceGroup group : _deviceGroups ) {
+            if (group.removeDevice(device)) {
+                group.pushToServer();
+                notifyGroupMembersChanged(group);
+            }
+        }
+    }
+
     public void pushGroupList() {
         if ( _isDirty ) {
             AylaDatum datum = new AylaDatum();

@@ -13,6 +13,7 @@ import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -104,8 +105,21 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
 
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                // Set the value of the property
+                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatapoint.class);
+                for ( int i = 0; i < _switchedDevice.get().getDevice().properties.length; i++ ) {
+                    AylaProperty p = _switchedDevice.get().getDevice().properties[i];
+                    if ( p.name.equals(PROPERTY_OUTLET)) {
+                        p.datapoint = dp;
+                        p.value = dp.value();
+                        break;
+                    }
+                }
+            }
+
             // Let the device manager know that we've updated ourselves.
-            SessionManager.deviceManager().refreshDeviceStatus(_switchedDevice.get());
+            SessionManager.deviceManager().notifyDeviceStatusChanged(_switchedDevice.get());
         }
     }
 

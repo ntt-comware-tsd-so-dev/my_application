@@ -131,8 +131,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     @Override
-    public void statusUpdated(Device device) {
-        if ( device.equals(_device) ) {
+    public void statusUpdated(Device device, boolean changed) {
+        Log.d(LOG_TAG, "statusUpdated: " + device);
+        if ( changed && device.equals(_device) ) {
             updateUI();
         }
     }
@@ -174,6 +175,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.i(LOG_TAG, "Unregister Device: " + _device);
+
+                        // Remove the device from all groups
+                        SessionManager.deviceManager().getGroupManager().removeDeviceFromAllGroups(_device);
                         _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
                     }
                 })

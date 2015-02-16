@@ -17,7 +17,9 @@ import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -54,22 +56,31 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     static class CreateDatapointHandler extends Handler {
         private WeakReference<DevkitDevice> _devkitDevice;
-
-        public CreateDatapointHandler(DevkitDevice devkitDevice) {
+        private String _propertyName;
+        public CreateDatapointHandler(DevkitDevice devkitDevice, String propertyName) {
             _devkitDevice = new WeakReference<DevkitDevice>(devkitDevice);
+            _propertyName = propertyName;
         }
 
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
-
-            // Let the device manager know that we've updated ourselves.
-            SessionManager.deviceManager().refreshDeviceStatus(_devkitDevice.get());
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                // Set the value of the property
+                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatapoint.class);
+                for ( int i = 0; i < _devkitDevice.get().getDevice().properties.length; i++ ) {
+                    AylaProperty p = _devkitDevice.get().getDevice().properties[i];
+                    if ( p.name.equals(_propertyName)) {
+                        p.datapoint = dp;
+                        p.value = dp.value();
+                        break;
+                    }
+                }
+            }
+            SessionManager.deviceManager().notifyDeviceStatusChanged(_devkitDevice.get());
         }
     }
-
-    private Handler _createDatapointHandler = new CreateDatapointHandler(this);
 
     public void setGreenLED(boolean on) {
         AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
@@ -81,7 +92,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
         AylaDatapoint dp = new AylaDatapoint();
         dp.nValue(on ? 1 : 0);
-        greenLED.createDatapoint(_createDatapointHandler, dp);
+        greenLED.createDatapoint(new CreateDatapointHandler(this, PROPERTY_GREEN_LED), dp);
     }
 
     public void setBlueLED(boolean on) {
@@ -94,7 +105,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
         AylaDatapoint dp = new AylaDatapoint();
         dp.nValue(on ? 1 : 0);
-        blueLED.createDatapoint(_createDatapointHandler, dp);
+        blueLED.createDatapoint(new CreateDatapointHandler(this, PROPERTY_BLUE_LED), dp);
     }
 
     public boolean isGreenLEDOn() {

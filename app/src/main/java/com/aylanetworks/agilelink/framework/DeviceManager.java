@@ -161,6 +161,9 @@ public class DeviceManager implements DeviceStatusListener {
         // listener.getDevice().getDevice().lanModeDisable();
         _lanModeEnabledDevice = null;
         listener.lanModeResult(false);
+
+        // Start polling our device status again so we include this device
+        startPolling();
     }
 
     /**
@@ -292,7 +295,7 @@ public class DeviceManager implements DeviceStatusListener {
             String dsn = notify.dsn;
             String names[] = notify.names;
 
-            Log.d(LOG_TAG, "lanModeHandler: [" + type + "] " + notifyResults);
+            Log.d(LOG_TAG, "lanModeHandler: " + msg);
 
             if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_SESSION) == 0) {
                 if (msg.arg1 > 399) {
@@ -316,7 +319,14 @@ public class DeviceManager implements DeviceStatusListener {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
                         _deviceManager.get()._lanModeEnabledDevice = device;
+
                         if ( device != null ) {
+                            // Remove the LAN-mode-enabled device from the list of devices to poll
+                            List<Device> devicesToPoll = _deviceManager.get()._devicesToPoll;
+                            if (devicesToPoll != null) {
+                                devicesToPoll.remove(device);
+                            }
+
                             // Notify listeners listening for this device
                             for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                                 LANModeListener listener = iter.next();
@@ -333,12 +343,11 @@ public class DeviceManager implements DeviceStatusListener {
                 }
             } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
                     type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
-                // A device's property has changed. Fetch the properties now.
+                // A device's property has changed.
                 Device d = _deviceManager.get().deviceByDSN(dsn);
                 if ( d != null ) {
-                    // Force a change on the property list for this device.
-                    d.getDevice().properties = new AylaProperty[0];
-                    d.updateStatus(_deviceManager.get());
+                    // The properties have already been updated on this device.
+                    _deviceManager.get().notifyDeviceStatusChanged(d);
                 } else {
                     // We don't know what changed, so let's just get everything
                     Log.e(LOG_TAG, "LAN mode handler (property change): Couldn't find device with DSN: " + dsn);
@@ -456,6 +465,12 @@ public class DeviceManager implements DeviceStatusListener {
             // library does not handle a series of requests all at once at this time.
             if ( _devicesToPoll == null ) {
                 _devicesToPoll = new ArrayList<Device>(_deviceList);
+
+                // Don't poll a device in LAN mode
+                if ( _lanModeEnabledDevice != null ) {
+                    _devicesToPoll.remove(_lanModeEnabledDevice);
+                }
+
                 updateNextDeviceStatus();
             } else {
                 Log.d(LOG_TAG, "Already polling device status. Not doing it again so soon.");
@@ -580,9 +595,12 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** This is where we are notified when a device's status has been updated. */
     @Override
-    public void statusUpdated(Device device) {
-        Log.d(LOG_TAG, "Device status updated: " + device);
-        notifyDeviceStatusChanged(device);
+    public void statusUpdated(Device device, boolean changed) {
+        Log.d(LOG_TAG, "Device status updated (" + changed + "): " + device);
+        if ( changed ) {
+            notifyDeviceStatusChanged(device);
+        }
+
         if ( _devicesToPoll != null ) {
             updateNextDeviceStatus();
         }
@@ -596,10 +614,15 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
-    private void notifyDeviceStatusChanged(Device device) {
+    /**
+     * This method may be called whenever the status of a device changes. It notifies all listeners
+     * that the device should be updated in the UI.
+     * @param device Device that changed
+     */
+    public void notifyDeviceStatusChanged(Device device) {
         Log.d(LOG_TAG, "Device status changed: " + device);
         for (DeviceStatusListener listener : _deviceStatusListeners) {
-            listener.statusUpdated(device);
+            listener.statusUpdated(device, true);
         }
     }
 

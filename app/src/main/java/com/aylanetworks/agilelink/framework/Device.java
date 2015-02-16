@@ -31,13 +31,14 @@ import java.util.Map;
 public class Device implements Comparable<Device> {
 
     public interface DeviceStatusListener {
-        void statusUpdated(Device device);
+        void statusUpdated(Device device, boolean changed);
     }
 
     private static final String LOG_TAG = "Device";
 
     /**
      * Default comparator. Sorts alphabetically by DSN.
+     *
      * @param another Device to compare to
      * @return the standard comparator result
      */
@@ -58,10 +59,12 @@ public class Device implements Comparable<Device> {
      */
     public boolean isDeviceChanged(Device other) {
         return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
-               (!getDevice().dsn.equals(other.getDevice().dsn));
+                (!getDevice().dsn.equals(other.getDevice().dsn));
     }
 
-    /** The AylaDevice object wrapped by this class */
+    /**
+     * The AylaDevice object wrapped by this class
+     */
     private AylaDevice _device;
 
     /**
@@ -73,12 +76,16 @@ public class Device implements Comparable<Device> {
         return _device;
     }
 
-    /** Constructor using the AylaDevice parameter */
+    /**
+     * Constructor using the AylaDevice parameter
+     */
     public Device(AylaDevice aylaDevice) {
         _device = aylaDevice;
     }
 
-    /** Private default constructor. */
+    /**
+     * Private default constructor.
+     */
     private Device() {
         // Private constructor. Do not use.
     }
@@ -93,6 +100,11 @@ public class Device implements Comparable<Device> {
      */
     public void updateStatus(final DeviceStatusListener listener) {
         Map<String, String> getPropertyArguments = getPropertyArgumentMap();
+
+        // NOTE: The library will crash if the device's properties are null.
+        if (getDevice().properties == null) {
+            getDevice().properties = new AylaProperty[0];
+        }
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
@@ -100,24 +112,29 @@ public class Device implements Comparable<Device> {
      * Called when the framework fetches properties from the service for this device. The method
      * should return true if something has changed, or false if the properties are the same. This
      * allows the framework to notify listeners only if the device's properties are different.
-     *
+     * <p/>
      * The device's property array should also be replaced with newProperties, unless nothing has changed.
      *
      * @param newProperties An array of properties just fetched from the library
      * @return true if the device has changed as a result of these new properites, or false if
      * the device has not changed.
-     *
+     * <p/>
      * Derived classes may override this method to customize which properties are evaluated to
      * determine if a device change event should be sent.
      */
     public boolean setProperties(AylaProperty[] newProperties) {
-        boolean hasChanged = false;
-        for ( AylaProperty prop : newProperties ) {
-            AylaProperty myProperty = getProperty(prop.name());
-
-            if ( myProperty == null || (!myProperty.value.equals(prop.value)) ) {
-                hasChanged = true;
-                break;
+        boolean hasChanged = (newProperties.length != getDevice().properties.length);
+        if (!hasChanged) {
+            for (AylaProperty prop : newProperties) {
+                AylaProperty myProperty = getProperty(prop.name());
+                Log.v(LOG_TAG, "prop " + prop.name + ": " + prop.value + " myProp: " + myProperty.value);
+                if (myProperty == null || (!myProperty.value.equals(prop.value))) {
+                    hasChanged = true;
+                    Log.v(LOG_TAG, "Changed!");
+                    break;
+                } else {
+                    Log.v(LOG_TAG, "Not changed!");
+                }
             }
         }
 
@@ -129,6 +146,7 @@ public class Device implements Comparable<Device> {
     static class GetPropertiesHandler extends Handler {
         private WeakReference<Device> _device;
         private DeviceStatusListener _listener;
+
         public GetPropertiesHandler(Device device, DeviceStatusListener listener) {
             _device = new WeakReference<Device>(device);
             _listener = listener;
@@ -146,17 +164,19 @@ public class Device implements Comparable<Device> {
 
                 Log.v(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
                 Log.v(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
-
+                if ( properties.length == 0 ) {
+                    Log.e(LOG_TAG, "No properties found!! Message: " + msg);
+                }
                 for (AylaProperty prop : properties) {
                     Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
                 }
 
                 // Did something change?
-                if ( _device.get().setProperties(properties) ) {
-                    if (_listener != null) {
-                        _listener.statusUpdated(_device.get());
-                    }
+                boolean changed = _device.get().setProperties(properties);
+                if (_listener != null) {
+                    _listener.statusUpdated(_device.get(), changed);
                 }
+
             } else {
                 Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
             }
@@ -165,16 +185,17 @@ public class Device implements Comparable<Device> {
 
     /**
      * Returns the AylaProperty of the given name, or null if no property was found.
+     *
      * @param propertyName Name of the property to return
      * @return AylaProperty of the given name, or null if not found
      */
     public AylaProperty getProperty(String propertyName) {
         AylaProperty[] properties = getDevice().properties;
-        if ( properties == null )
+        if (properties == null)
             return null;
 
-        for ( AylaProperty prop : properties ) {
-            if ( prop.name.equals(propertyName))
+        for (AylaProperty prop : properties) {
+            if (prop.name.equals(propertyName))
                 return prop;
         }
         return null;
@@ -184,7 +205,9 @@ public class Device implements Comparable<Device> {
         return false;
     }
 
-    /** UI Methods */
+    /**
+     * UI Methods
+     */
 
     public int getItemViewType() {
         return DeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
@@ -192,14 +215,14 @@ public class Device implements Comparable<Device> {
 
     /**
      * Updates the views in the ViewHolder with information from the Device object.
-     *
+     * <p/>
      * Derived classes should override this method to set up a ViewHolder for display in
      * RecyclerViews.
      *
      * @param holder The view holder for this object
      */
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
-        GenericDeviceViewHolder h = (GenericDeviceViewHolder)holder;
+        GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getDevice().getProductName());
         h._deviceStatusTextView.setText(getDeviceState());
         h._currentDevice = this;
@@ -207,6 +230,7 @@ public class Device implements Comparable<Device> {
 
     /**
      * Returns a Drawable representing the device (thumbnail image)
+     *
      * @param c Context to access resources
      * @return A Drawable object representing the device
      */
@@ -217,6 +241,7 @@ public class Device implements Comparable<Device> {
     /**
      * Returns a fragment used to display details about the device. This fragment is pushed onto
      * the back stack when the user selects an item from the device list.
+     *
      * @param c Context to access resources
      * @return a fragment showing device details
      */
@@ -233,6 +258,7 @@ public class Device implements Comparable<Device> {
      * Returns a string indicating the device type. This string is used when referring to the actual
      * type of the device, such as "Door Sensor" or "Ayla EVB". It should not change based on any
      * characteristics of the specific device, such as device name or state.
+     *
      * @return The name of the type of the device
      */
     public String deviceTypeName() {
@@ -242,6 +268,7 @@ public class Device implements Comparable<Device> {
     /**
      * Returns the registration type used to register this type of device. Derived classes should
      * override this method to return the appropriate registration type for the device.
+     *
      * @return The registration type used to register this device
      */
     public String registrationType() {
@@ -251,36 +278,41 @@ public class Device implements Comparable<Device> {
     /**
      * Returns a string representing the state of the device (on, off, open, closed, etc.)
      * The default implementation returns nothing.
+     *
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
         return "";
     }
 
-    /** Returns the arguments for the call to getProperties(). Derived classes should override this
+    /**
+     * Returns the arguments for the call to getProperties(). Derived classes should override this
      * to return the correct array of properties to be fetched in updateStatus().
+     *
      * @return The map of properties to fetch from the server
      */
     protected ArrayList<String> getPropertyNames() {
         return new ArrayList<>();
     }
 
-    /** Turns the array of property names returned from getPropertyNames() into a space-
+    /**
+     * Turns the array of property names returned from getPropertyNames() into a space-
      * separated string. This is the format required by the library for a list of properties to
      * fetch.
+     *
      * @return a map of the property arguments that can be directly submitted to a getProperties()
      * request.
      */
     protected Map<String, String> getPropertyArgumentMap() {
         ArrayList<String> myProperties = getPropertyNames();
-        if ( myProperties.size() == 0 ) {
+        if (myProperties.size() == 0) {
             return null;
         }
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for ( String name : myProperties ) {
-            if ( !first ) {
+        for (String name : myProperties) {
+            if (!first) {
                 sb.append(" ");
             } else {
                 first = false;
