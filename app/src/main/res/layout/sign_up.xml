@@ -2,6 +2,7 @@
             android:id="@+id/ScrollView01"
             android:layout_width="match_parent"
             android:fillViewport="true"
+            android:clickable="true"
             android:layout_height="match_parent" >
 
     <RelativeLayout

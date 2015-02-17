@@ -36,9 +36,10 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     // List view indexes
     private final int INDEX_REGISTRATION = 0;
     private final int INDEX_WIFI_SETUP = 1;
-    private final int INDEX_PROFILE = 2;
-    private final int INDEX_DELETE_ACCOUNT = 3;
-    private final int INDEX_EMAIL_LOGS = 4;
+    private final int INDEX_NOTIFICATIONS = 2;
+    private final int INDEX_PROFILE = 3;
+    private final int INDEX_DELETE_ACCOUNT = 4;
+    private final int INDEX_EMAIL_LOGS = 5;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
@@ -69,6 +70,15 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
                 R.anim.abc_fade_in, R.anim.abc_fade_out);
+        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+    }
+
+    private void handleNotifications() {
+        NotificationsFragment frag = new NotificationsFragment();
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                R.anim.abc_fade_in, R.anim.abc_fade_out);
+
         ft.add(android.R.id.content, frag).addToBackStack(null).commit();
     }
 
@@ -142,6 +152,10 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
 
             case INDEX_WIFI_SETUP:
                 handleWiFiSetup();
+                break;
+
+            case INDEX_NOTIFICATIONS:
+                handleNotifications();
                 break;
 
             case INDEX_PROFILE:

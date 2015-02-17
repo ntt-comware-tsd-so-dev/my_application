@@ -170,6 +170,7 @@
     <string-array name="settings_items">
         <item>Registration</item>
         <item>WiFi Setup</item>
+        <item>Notifications</item>
         <item>Edit Profile</item>
         <item>Delete Account</item>
         <item>Email logs to Ayla</item>
@@ -180,5 +181,14 @@
         <item>Manage devices in this group</item>
         <item>Create a new device group</item>
     </string-array>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="email_notification">Notify via email</string>
+    <string name="sms_notification">Notify by text message (SMS)</string>
+    <string name="push_notification">Send a push notification to this device</string>
+    <string name="notifications_description">You can be notified when your devices go online or offline. Check all of your preferred notification methods below. Note that for push notifications, each mobile device will need to be updated individually to enable or disable push notifictions to that particular device.</string>
+    <string name="updating_notifications_title">Updating Notifications</string>
+    <string name="updating_notifications_body">Updating  device notifications. Please wait...</string>
 
 </resources>
