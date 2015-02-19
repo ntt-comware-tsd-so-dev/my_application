@@ -105,11 +105,15 @@ public class SessionManager {
     }
 
     public static void addSessionListener(SessionListener listener) {
-        getInstance()._sessionListeners.add(listener);
+        synchronized (getInstance()._sessionListeners) {
+            getInstance()._sessionListeners.add(listener);
+        }
     }
 
     public static void removeSessionListener(SessionListener listener) {
-        getInstance()._sessionListeners.remove(listener);
+        synchronized (getInstance()._sessionListeners) {
+            getInstance()._sessionListeners.remove(listener);
+        }
     }
 
     /** Inner Classes */
@@ -534,8 +538,10 @@ public class SessionManager {
      * Notifiers
      */
     private void notifyLoginStateChanged(boolean loggedIn, AylaUser aylaUser) {
-        for (SessionListener l : _sessionListeners) {
-            l.loginStateChanged(loggedIn, aylaUser);
+        synchronized (_sessionListeners) {
+            for (SessionListener l : _sessionListeners) {
+                l.loginStateChanged(loggedIn, aylaUser);
+            }
         }
     }
 }
