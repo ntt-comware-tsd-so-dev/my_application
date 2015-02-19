@@ -4,19 +4,16 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 
@@ -108,6 +105,59 @@ public class Device implements Comparable<Device> {
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
+
+    /**
+     * Enables or disables notifications of the given type for this device.
+     *
+     * @param notificationType Type of notification to enable or disable
+     * @param enable True to enable, false to disable
+     * @param listener Listener to receive the results of the operation. The following method will be
+     *                 called on the listener once the result has been obtained:
+     *                 {@link DeviceNotificationHelper.DeviceNotificationHelperListener#deviceNotificationUpdated(Device, com.aylanetworks.aaml.AylaDeviceNotification, String, int)}
+     */
+    public void enableDeviceNotification(final String notificationType,
+                                         final boolean enable,
+                                         final DeviceNotificationHelper.DeviceNotificationHelperListener listener) {
+        DeviceNotificationHelper helper = new DeviceNotificationHelper(this, AylaUser.getCurrent());
+        helper.enableDeviceNotifications(notificationType, enable, listener);
+    }
+
+    /**
+     * Returns the notification threshold used for creating DeviceNotifications. Derived classes may
+     * override this value if desired. 300 seconds (5 minutes) is the default.
+     *
+     * @param notificationType Type of notification in question
+     * @return Notification threshold in seconds for the supplied notificationType.
+     */
+    public int getDeviceNotificationThresholdForType(String notificationType) {
+        // Same value for all types in the base class
+        switch ( notificationType ) {
+            case DeviceNotificationHelper.NOTIFICATION_TYPE_IP_CHANGE:
+            case DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECT:
+            case DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_LOST:
+            case DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_RESTORE:
+            default:
+                return 300;
+        }
+    }
+
+    /**
+     * Returns an array of notification types that should be set when creating a new notification.
+     * The DeviceNotificationHelper class calls this method to determine which notification types
+     * should be created for this device when email, push or SMS notifications are enabled for
+     * the device (device notifications).
+     * @return An array of notification types
+     */
+
+    private final static String[] _notificationTypes = {
+            DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_LOST,
+            DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_RESTORE
+    };
+
+    public String[] getNotificationTypes() {
+        return _notificationTypes;
+    }
+
     /**
      * Called when the framework fetches properties from the service for this device. The method
      * should return true if something has changed, or false if the properties are the same. This
@@ -122,18 +172,15 @@ public class Device implements Comparable<Device> {
      * Derived classes may override this method to customize which properties are evaluated to
      * determine if a device change event should be sent.
      */
-    public boolean setProperties(AylaProperty[] newProperties) {
+    protected boolean setProperties(AylaProperty[] newProperties) {
         boolean hasChanged = (newProperties.length != getDevice().properties.length);
         if (!hasChanged) {
             for (AylaProperty prop : newProperties) {
                 AylaProperty myProperty = getProperty(prop.name());
-                Log.v(LOG_TAG, "prop " + prop.name + ": " + prop.value + " myProp: " + myProperty.value);
-                if (myProperty == null || (!myProperty.value.equals(prop.value))) {
+                if ((myProperty == null) || (!myProperty.value.equals(prop.value))) {
                     hasChanged = true;
-                    Log.v(LOG_TAG, "Changed!");
+                    Log.v(LOG_TAG, prop.name + " Changed!");
                     break;
-                } else {
-                    Log.v(LOG_TAG, "Not changed!");
                 }
             }
         }
@@ -143,6 +190,9 @@ public class Device implements Comparable<Device> {
         return hasChanged;
     }
 
+    /**
+     * Class used to receive the results of a request to get the device's properties
+     */
     static class GetPropertiesHandler extends Handler {
         private WeakReference<Device> _device;
         private DeviceStatusListener _listener;
@@ -189,6 +239,7 @@ public class Device implements Comparable<Device> {
      * @param propertyName Name of the property to return
      * @return AylaProperty of the given name, or null if not found
      */
+    @Nullable
     public AylaProperty getProperty(String propertyName) {
         AylaProperty[] properties = getDevice().properties;
         if (properties == null)

@@ -143,6 +143,11 @@ public class SessionManager {
         public String resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
         public String resetPasswordEmailBodyHTML = null;
 
+        // Strings for device notifications
+        public String notificationEmailSubject = "Ayla Device Notification";
+        public String notificationEmailTemplateId = "ayla_notify_template_01";
+        public String notificationEmailBodyHTML = null;
+
         public SessionParameters(Context context) {
             this.context = context;
         }
@@ -171,6 +176,9 @@ public class SessionManager {
             this.resetPasswordEmailSubject = other.resetPasswordEmailSubject;
             this.resetPasswordEmailBodyHTML = other.resetPasswordEmailBodyHTML;
             this.resetPasswordEmailTemplateId = other.resetPasswordEmailTemplateId;
+            this.notificationEmailSubject = other.notificationEmailSubject;
+            this.notificationEmailTemplateId = other.notificationEmailTemplateId;
+            this.notificationEmailBodyHTML = other.notificationEmailBodyHTML;
         }
 
         @Override

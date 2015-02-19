@@ -10,12 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AccountSettings;
-import com.aylanetworks.agilelink.framework.DeviceNotification;
+import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
+import com.aylanetworks.agilelink.framework.SessionManager;
 
 /**
  * Notifications Fragment
@@ -55,7 +58,7 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
 
         // Get our account settings
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-        AccountSettings.fetchAccountSettings(AylaUser.getCurrent(), new UpdateSettingsCallback());
+        AccountSettings.fetchAccountSettings(AylaUser.getCurrent(), new UpdateSettingsCallback(true));
 
         return view;
     }
@@ -105,10 +108,11 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
             _smsCheckbox.setChecked(false);
             _pushCheckbox.setChecked(false);
         } else {
-            _emailCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotification.NOTIFICATION_METHOD_EMAIL));
-            _smsCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotification.NOTIFICATION_METHOD_SMS));
-            _pushCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotification.NOTIFICATION_METHOD_PUSH));
+            _emailCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL));
+            _smsCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS));
+            _pushCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH));
         }
+
         enableCheckboxListeners(true);
     }
 
@@ -123,29 +127,48 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
         Log.d(LOG_TAG, "Email notifications: " + enable);
 
         if ( enable ) {
-            _accountSettings.addNotificationType(DeviceNotification.NOTIFICATION_METHOD_EMAIL);
+            _accountSettings.addNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL);
         } else {
-            _accountSettings.removeNotificationType(DeviceNotification.NOTIFICATION_METHOD_EMAIL);
+            _accountSettings.removeNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL);
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title,
                 R.string.updating_notifications_body);
 
-        _accountSettings.pushToServer(new UpdateSettingsCallback());
+        _accountSettings.pushToServer(new UpdateSettingsCallback(false));
+        updateNotifications(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, enable);
     }
 
     private void enableSMSNotification(boolean enable) {
         Log.d(LOG_TAG, "SMS notifications: " + enable);
         if ( enable ) {
-            _accountSettings.addNotificationType(DeviceNotification.NOTIFICATION_METHOD_SMS);
+            _accountSettings.addNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS);
         } else {
-            _accountSettings.removeNotificationType(DeviceNotification.NOTIFICATION_METHOD_SMS);
+            _accountSettings.removeNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS);
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title,
                 R.string.updating_notifications_body);
 
-        _accountSettings.pushToServer(new UpdateSettingsCallback());
+        _accountSettings.pushToServer(new UpdateSettingsCallback(false));
+        updateNotifications(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, enable);
+    }
+
+    private void updateNotifications(String notificationType, boolean enable) {
+        SessionManager.deviceManager().updateDeviceNotifications(
+                notificationType,
+                enable,
+                new DeviceManager.DeviceNotificationListener() {
+                    @Override
+                    public void notificationsUpdated(boolean succeeded, Message failureMessage) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        if ( succeeded ) {
+                            Toast.makeText(getActivity(), R.string.notifications_updated, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getActivity(), R.string.notification_update_failed, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
     }
 
     private void enablePushNotification(boolean enable) {
@@ -153,11 +176,17 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
     }
 
     private class UpdateSettingsCallback extends AccountSettings.AccountSettingsCallback {
+        private boolean _dismissDialogWhenDone;
+        public UpdateSettingsCallback(boolean dismissDialogWhenDone) {
+            _dismissDialogWhenDone = dismissDialogWhenDone;
+        }
         @Override
         public void settingsUpdated(AccountSettings settings, Message msg) {
             _accountSettings = settings;
             updateCheckboxes();
-            MainActivity.getInstance().dismissWaitDialog();
+            if ( _dismissDialogWhenDone ) {
+                MainActivity.getInstance().dismissWaitDialog();
+            }
         }
     }
 }

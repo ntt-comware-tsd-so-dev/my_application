@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDatum;
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
@@ -164,6 +165,78 @@ public class DeviceManager implements DeviceStatusListener {
 
         // Start polling our device status again so we include this device
         startPolling();
+    }
+
+    /**
+     * Listener class called when device notifications have been updated
+     */
+    static public class DeviceNotificationListener {
+        /**
+         * Called in response to updateDeviceNotifications after all devices have been updated or
+         * an error was encountered.
+         * @param succeeded true if all devices were updated, false otherwise
+         * @param failureMessage If succeeded == false, this contains the message from the server
+         *                       that contains the error
+         */
+        public void notificationsUpdated(boolean succeeded, Message failureMessage) {}
+    }
+
+    /**
+     * Sets or clears notifications on all devices.
+     *
+     * @param notificationType Type of notification to set / clear
+     * @param enable true to set the notification, false to clear it
+     * @param listener listener to be notified when the job is done
+     */
+    public void updateDeviceNotifications(String notificationType, boolean enable, DeviceNotificationListener listener) {
+        List<Device> devicesToUpdate = new ArrayList<>(_deviceList);
+        UpdateAllNotificationsHelper helper =
+                new UpdateAllNotificationsHelper(devicesToUpdate,
+                        notificationType,
+                        enable,
+                        listener);
+        helper.updateNextDevice();
+    }
+
+    private static class UpdateAllNotificationsHelper extends DeviceNotificationHelper.DeviceNotificationHelperListener {
+        private List<Device> _devicesToUpdate;
+        private DeviceNotificationListener _listener;
+        private String _notificationType;
+        private boolean _enable;
+
+        public UpdateAllNotificationsHelper(List<Device> devices,
+                                            String notificationType,
+                                            boolean enable,
+                                            DeviceNotificationListener listener) {
+            _devicesToUpdate = devices;
+            _notificationType = notificationType;
+            _enable = enable;
+            _listener = listener;
+        }
+
+        public void updateNextDevice() {
+            if ( _devicesToUpdate.isEmpty() ) {
+                // We're done!
+                _listener.notificationsUpdated(true, null);
+                return;
+            }
+
+            // Get the device at the head of the list  and update it.
+            Device d = _devicesToUpdate.remove(0);
+            DeviceNotificationHelper helper = new DeviceNotificationHelper(d, AylaUser.getCurrent());
+            helper.enableDeviceNotifications(
+                    _notificationType,
+                    _enable,
+                    new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                        @Override
+                        void deviceNotificationUpdated(Device device, AylaDeviceNotification notification, String notificationType, int error) {
+                            if (error == AylaNetworks.AML_ERROR_OK) {
+                                // We're done with this device. On to the next!
+                                updateNextDevice();
+                            }
+                        }
+                    });
+        }
     }
 
     /**
