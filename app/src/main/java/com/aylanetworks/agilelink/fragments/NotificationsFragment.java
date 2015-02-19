@@ -18,6 +18,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
+import com.aylanetworks.agilelink.framework.PushNotification;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 /**
@@ -55,6 +56,8 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
 
         _pushCheckbox = (CheckBox)view.findViewById(R.id.checkbox_push);
         _pushCheckbox.setOnCheckedChangeListener(this);
+
+        _pushCheckbox.setEnabled(PushNotification.registrationId != null);
 
         // Get our account settings
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
