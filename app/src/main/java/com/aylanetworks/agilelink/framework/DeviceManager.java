@@ -229,7 +229,7 @@ public class DeviceManager implements DeviceStatusListener {
                     _enable,
                     new DeviceNotificationHelper.DeviceNotificationHelperListener() {
                         @Override
-                        void deviceNotificationUpdated(Device device, AylaDeviceNotification notification, String notificationType, int error) {
+                        public void deviceNotificationUpdated(Device device, AylaDeviceNotification notification, String notificationType, int error) {
                             if (error == AylaNetworks.AML_ERROR_OK) {
                                 // We're done with this device. On to the next!
                                 updateNextDevice();

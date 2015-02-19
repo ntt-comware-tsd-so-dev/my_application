@@ -11,6 +11,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,7 +47,7 @@ public class DeviceNotificationHelper {
          *               in the Device.getDevice().deviceNotifications array.
          * @param error Error code. AML_ERROR_OK if the fetch was successful, or an error code otherwise
          */
-        void deviceNotificationsFetched(Device device, int error){}
+        public void deviceNotificationsFetched(Device device, int error){}
 
         /**
          * Called when the helper class has fetched an array of AylaAppNotifications for a particular
@@ -58,7 +59,7 @@ public class DeviceNotificationHelper {
          *                           AylaAppNotification array.
          * @param error Error code. AML_ERROR_OK if the fetch was successful, or an error code otherwise
          */
-        void appNotificationsFetched(Device device, AylaDeviceNotification deviceNotification, int error){}
+        public void appNotificationsFetched(Device device, AylaDeviceNotification deviceNotification, int error){}
 
         /**
          * Called when the helper class has fetched all of the AylaAppNotifications for each AylaDeviceNotification.
@@ -71,7 +72,7 @@ public class DeviceNotificationHelper {
          * @param error AML_ERROR_OK if successful, or an error code otherwise. The last message
          *              returned from the library will be stored in the lastMessage member variable.
          */
-        void deviceStateComplete(Device device, int error){}
+        public void deviceStateComplete(Device device, int error){}
 
         /**
          * Called when the helper class has added or removed a notification and its apps from the
@@ -83,10 +84,18 @@ public class DeviceNotificationHelper {
          * @param error AML_ERROR_OK if successful, or an error code otherwise. The last message
          *              returned from the library will be stored in the lastMessage member variable.
          */
-        void deviceNotificationUpdated(Device device,
+        public void deviceNotificationUpdated(Device device,
                                        AylaDeviceNotification notification,
                                        String notificationType,
                                        int error){}
+
+        /**
+         * Called in response to a call to initializeNewDeviceNotifications
+         * @param device Device that was updated
+         * @param error AML_ERROR_OK if successful, or an error code otherwise. The last message
+         *              returned from the library will be stored in the lastMessage member variable.
+         */
+        public void newDeviceUpdated(Device device, int error){}
 
         /**
          * Stores the last message received from the server. This can be useful in determining details
@@ -128,7 +137,7 @@ public class DeviceNotificationHelper {
         if ( !_deepFetchComplete ) {
             deepFetchNotifications(new DeviceNotificationHelperListener() {
                 @Override
-                void deviceStateComplete(Device device, int error) {
+                public void deviceStateComplete(Device device, int error) {
                     if ( error != AylaNetworks.AML_ERROR_OK ) {
                         Log.e(LOG_TAG, "Failed to deep-fetch notifications for " + _device);
                         // Pass the last message through to the caller's listener
@@ -150,6 +159,44 @@ public class DeviceNotificationHelper {
     }
 
     /**
+     * Creates the appropriate notifications for a new device. This method will check the
+     * AccountSettings to see what notifications should be set on the device, and sets them. The
+     * caller will be notified via the listener interface with a call to
+     */
+    public void initializeNewDeviceNotifications(final DeviceNotificationHelperListener listener) {
+        // Here we can assume that there are no device notifications, as this is a new device.
+        _deepFetchComplete = true;
+        AccountSettings.fetchAccountSettings(AylaUser.getCurrent(), new AccountSettings.AccountSettingsCallback() {
+            @Override
+            public void settingsUpdated(AccountSettings settings, Message msg) {
+                initializeNewDeviceNotifications(settings, listener);
+            }
+        });
+    }
+
+    private void initializeNewDeviceNotifications(AccountSettings settings,
+                                                  DeviceNotificationHelperListener listener) {
+        // We now have the account settings. Create any notifications on the new device that
+        // are set in the settings.
+        String[] availableTypes = {NOTIFICATION_METHOD_EMAIL, NOTIFICATION_METHOD_SMS, NOTIFICATION_METHOD_PUSH};
+        List<String>notificationTypes = new ArrayList<>();
+        for ( String type : availableTypes ) {
+            if ( settings.isNotificationMethodSet(type) ) {
+                notificationTypes.add(type);
+            }
+        }
+
+        if ( notificationTypes.isEmpty() ) {
+            // Just call the listener and we're done.
+            listener.newDeviceUpdated(_device, 0);
+        } else {
+            InitNewDeviceNotificationsHandler handler =
+                    new InitNewDeviceNotificationsHandler(notificationTypes, listener, this);
+            handler.enableNextNotification();
+        }
+    }
+
+    /**
      * Fetches all notifications and apps for the device. When this method is finished, the listener's
      * deviceStateComplete method will be called with the results.
      * @param listener Listener to receive the completion event
@@ -160,7 +207,7 @@ public class DeviceNotificationHelper {
             private int _index = 0;
 
             @Override
-            void deviceNotificationsFetched(Device device, int error) {
+            public void deviceNotificationsFetched(Device device, int error) {
                 if ( error != AylaNetworks.AML_ERROR_OK ) {
                     // Pass the last message through to the caller's listener
                     listener.lastMessage = this.lastMessage;
@@ -192,7 +239,7 @@ public class DeviceNotificationHelper {
             }
 
             @Override
-            void appNotificationsFetched(Device device, AylaDeviceNotification deviceNotification, int error) {
+            public void appNotificationsFetched(Device device, AylaDeviceNotification deviceNotification, int error) {
                 if ( error != AylaNetworks.AML_ERROR_OK ) {
                     // Pass the last message through to the caller's listener
                     listener.lastMessage = this.lastMessage;
@@ -237,7 +284,7 @@ public class DeviceNotificationHelper {
                 notificationType,
                 new DeviceNotificationHelperListener() {
                     @Override
-                    void deviceNotificationUpdated(Device device,
+                    public void deviceNotificationUpdated(Device device,
                                                    AylaDeviceNotification notification,
                                                    String type,
                                                    int error) {
@@ -256,10 +303,12 @@ public class DeviceNotificationHelper {
         // First make sure we have all required notifications set up on this device
         for ( String type : _device.getNotificationTypes() ) {
             AylaDeviceNotification foundNotification = null;
-            for (AylaDeviceNotification n : _device.getDevice().deviceNotifications) {
-                if (n.notificationType.equals(type)) {
-                    foundNotification = n;
-                    break;
+            if ( _device.getDevice().deviceNotifications != null ) {
+                for (AylaDeviceNotification n : _device.getDevice().deviceNotifications) {
+                    if (n.notificationType.equals(type)) {
+                        foundNotification = n;
+                        break;
+                    }
                 }
             }
 
@@ -326,21 +375,23 @@ public class DeviceNotificationHelper {
                            AylaDeviceNotification deviceNotification,
                            DeviceNotificationHelperListener listener) {
         // First check to see if we already have the notification
-        for ( AylaAppNotification app : deviceNotification.appNotifications ) {
-            if ( app.appType.equals(notificationType) ) {
-                // If this is a push notification, make sure the registration ID matches ours
-                if ( notificationType.equals(NOTIFICATION_METHOD_PUSH) ) {
-                    if ( !app.notificationAppParameters.registrationId.equals(PushNotification.registrationId) ) {
-                        continue;
+        if ( deviceNotification.appNotifications != null ) {
+            for (AylaAppNotification app : deviceNotification.appNotifications) {
+                if (app.appType.equals(notificationType)) {
+                    // If this is a push notification, make sure the registration ID matches ours
+                    if (notificationType.equals(NOTIFICATION_METHOD_PUSH)) {
+                        if (!app.notificationAppParameters.registrationId.equals(PushNotification.registrationId)) {
+                            continue;
+                        }
                     }
+                    // We already have the app.
+                    Log.e(LOG_TAG, "createApp: We already have the app. Not creating again!");
+                    listener.deviceNotificationUpdated(_device, deviceNotification, notificationType, 0);
+                    return;
                 }
-                // We already have the app.
-                Log.e(LOG_TAG, "createApp: We already have the app. Not creating again!");
-                listener.deviceNotificationUpdated(_device, deviceNotification, notificationType, 0);
-                return;
             }
         }
-        
+
         AylaAppNotification appNotification = new AylaAppNotification();
 
         AylaUser currentUser = AylaUser.getCurrent();
@@ -443,7 +494,13 @@ public class DeviceNotificationHelper {
                 AylaDeviceNotification n = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDeviceNotification.class);
 
                 // Add the notification to the existing array of notifications on the device object
-                List<AylaDeviceNotification> notifications = new ArrayList<>(Arrays.asList(_device.getDevice().deviceNotifications));
+                List<AylaDeviceNotification> notifications;
+                if ( _device.getDevice().deviceNotifications != null ) {
+                    notifications = new ArrayList<>(Arrays.asList(_device.getDevice().deviceNotifications));
+                } else {
+                    notifications = new ArrayList<>();
+                }
+
                 notifications.add(n);
                 _device.getDevice().deviceNotifications = notifications.toArray(new AylaDeviceNotification[notifications.size()]);
 
@@ -456,6 +513,9 @@ public class DeviceNotificationHelper {
         }
     }
 
+    /**
+     * Handler to create AylaAppNotifications
+     */
     static class CreateAppHandler extends Handler {
         private Device _device;
         private AylaDeviceNotification _deviceNotification;
@@ -492,6 +552,9 @@ public class DeviceNotificationHelper {
         }
     }
 
+    /**
+     * Handler to remove AylaAppNotifications
+     */
     private static class RemoveAppHandler extends Handler {
         private Device _device;
         private String _notificationType;
@@ -527,6 +590,41 @@ public class DeviceNotificationHelper {
 
             AylaAppNotification app = _appNotifications.remove(0);
             app.destroy(this);
+        }
+    }
+
+    private static class InitNewDeviceNotificationsHandler extends Handler {
+        private List<String> _notificationTypes;
+        private DeviceNotificationHelperListener _listener;
+        private WeakReference<DeviceNotificationHelper> _helper;
+
+        public InitNewDeviceNotificationsHandler(List<String> notificationTypes,
+                                                 DeviceNotificationHelperListener listener,
+                                                 DeviceNotificationHelper helper) {
+            _notificationTypes = notificationTypes;
+            _listener = listener;
+            _helper = new WeakReference<DeviceNotificationHelper>(helper);
+        }
+
+        public void enableNextNotification() {
+            if ( _notificationTypes.isEmpty() ) {
+                // We're done.
+                _listener.newDeviceUpdated(_helper.get()._device, 0);
+                return;
+            }
+
+            String type = _notificationTypes.remove(0);
+            _helper.get().enableDeviceNotifications(type, true, new DeviceNotificationHelperListener() {
+                @Override
+                public void deviceNotificationUpdated(Device device, AylaDeviceNotification notification, String notificationType, int error) {
+                    if ( error != AylaNetworks.AML_ERROR_OK ) {
+                        _listener.lastMessage = this.lastMessage;
+                        _listener.newDeviceUpdated(_helper.get()._device, error);
+                    } else {
+                        enableNextNotification();
+                    }
+                }
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.devkit;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,12 +21,17 @@ import java.util.List;
 
 
 public class AgileLinkDeviceCreator extends DeviceCreator {
-    private final static String LOG_TAG = "DevkitDeviceCreator";
+    private final static String LOG_TAG = "AgileLinkDeviceCreator";
 
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SMARTPLUG = 2;
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
+
+        if ( aylaDevice.oemModel == null ) {
+            Log.e(LOG_TAG, "No OEM model found for device: " + aylaDevice);
+            return new Device(aylaDevice);
+        }
 
         if ( aylaDevice.oemModel.equals("ledevb") ) {
             // This is the Ayla devkit.

@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,12 +25,15 @@ import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -199,10 +203,24 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
             MainActivity.getInstance().dismissWaitDialog();
             if ( msg.arg1 >= 200 && msg.arg1 < 300 ) {
                 // Success!
-                Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_success, Toast.LENGTH_LONG).show();
-                _addDeviceFragment.get().getActivity().getSupportFragmentManager().popBackStack();
-                SessionManager.deviceManager().refreshDeviceList();
-                SessionManager.deviceManager().refreshDeviceStatus(null);
+                AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
+                Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(aylaDevice);
+                MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+                // Now update the device notifications
+                DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
+                helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                    @Override
+                    public void newDeviceUpdated(Device device, int error) {
+                        MainActivity mainActivity = MainActivity.getInstance();
+                        mainActivity.dismissWaitDialog();
+                        int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                        mainActivity.getSupportFragmentManager().popBackStack();
+                        SessionManager.deviceManager().refreshDeviceList();
+                        SessionManager.deviceManager().refreshDeviceStatus(null);
+                    }
+                });
+
             } else {
                 // Something went wrong
                 Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
