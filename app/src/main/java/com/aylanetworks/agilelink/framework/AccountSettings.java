@@ -1,13 +1,16 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDatum;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +30,8 @@ public class AccountSettings {
     private static final String LOG_TAG = "AccountSettings";
 
     private static final String NOTIFICATIONS_KEY = "device-notifications";
+
+    private static final String SETTINGS_KEY_PUSH = "enable-push-notifications";
 
     private Set<String> _notificationTypes;
     private AylaUser _aylaUser;
@@ -65,16 +70,37 @@ public class AccountSettings {
         return new ArrayList<>(_notificationTypes);
     }
 
-    public void addNotificationType(String notificationType) {
-        _notificationTypes.add(notificationType);
+    public void addNotificationMethod(String notificationMethod) {
+        if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
+            // We write this into shared preferences, as this setting is on a per-device basis
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(SETTINGS_KEY_PUSH, true);
+            editor.apply();
+        } else {
+            _notificationTypes.add(notificationMethod);
+        }
     }
 
-    public void removeNotificationType(String notificationType) {
-        _notificationTypes.remove(notificationType);
+    public void removeNotificationMethod(String notificationMethod) {
+        if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
+            // We write this into shared preferences, as this setting is on a per-device basis
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(SETTINGS_KEY_PUSH, false);
+            editor.apply();
+        }
+        _notificationTypes.remove(notificationMethod);
     }
 
-    public boolean isNotificationMethodSet(String notificationType) {
-        return _notificationTypes.contains(notificationType);
+    public boolean isNotificationMethodSet(String notificationMethod) {
+        if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH) ) {
+            // Push is stored in local settings
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+            return settings.getBoolean(SETTINGS_KEY_PUSH, false);
+        }
+
+        return _notificationTypes.contains(notificationMethod);
     }
 
     /**
@@ -128,7 +154,7 @@ public class AccountSettings {
                     if ( notifications != null ) {
                         for ( int i = 0; i < notifications.length(); i++ ) {
                             String type = notifications.getString(i);
-                            settings.addNotificationType(type);
+                            settings.addNotificationMethod(type);
                         }
                     }
 

@@ -30,7 +30,7 @@ public class DeviceNotificationHelper {
 
     public static final String NOTIFICATION_METHOD_EMAIL = "email";
     public static final String NOTIFICATION_METHOD_SMS = "sms";
-    public static final String NOTIFICATION_METHOD_PUSH = "push";
+    public static final String NOTIFICATION_METHOD_PUSH = "push_android";
 
     private Device _device;
     private AylaUser _aylaUser;
@@ -290,10 +290,17 @@ public class DeviceNotificationHelper {
                                     DeviceNotificationHelperListener listener) {
         // Get all of the apps for the given notification type and store them
         // in a list
+
         List<AylaAppNotification> appNotifications = new ArrayList<>();
         for ( AylaDeviceNotification dn : _device.getDevice().deviceNotifications ) {
             for ( AylaAppNotification an : dn.appNotifications ) {
                 if ( an.appType.equals(notificationType)) {
+                    // For push notifications, we need to check the ID, as there could be multiples
+                    if ( notificationType.equals(NOTIFICATION_METHOD_PUSH) ) {
+                        if ( !an.notificationAppParameters.registrationId.equals(PushNotification.registrationId) ) {
+                            continue;
+                        }
+                    }
                     appNotifications.add(an);
                 }
             }
@@ -318,17 +325,29 @@ public class DeviceNotificationHelper {
     private void createApp(String notificationType,
                            AylaDeviceNotification deviceNotification,
                            DeviceNotificationHelperListener listener) {
+        // First check to see if we already have the notification
+        for ( AylaAppNotification app : deviceNotification.appNotifications ) {
+            if ( app.appType.equals(notificationType) ) {
+                // If this is a push notification, make sure the registration ID matches ours
+                if ( notificationType.equals(NOTIFICATION_METHOD_PUSH) ) {
+                    if ( !app.notificationAppParameters.registrationId.equals(PushNotification.registrationId) ) {
+                        continue;
+                    }
+                }
+                // We already have the app.
+                Log.e(LOG_TAG, "createApp: We already have the app. Not creating again!");
+                listener.deviceNotificationUpdated(_device, deviceNotification, notificationType, 0);
+                return;
+            }
+        }
+        
         AylaAppNotification appNotification = new AylaAppNotification();
 
         AylaUser currentUser = AylaUser.getCurrent();
         SessionManager.SessionParameters sessionParameters = SessionManager.sessionParameters();
         AylaAppNotificationParameters params = appNotification.notificationAppParameters;
 
-        if ( notificationType.equals("push")) {
-            appNotification.appType = "push_android";
-        } else {
-            appNotification.appType = notificationType;
-        }
+        appNotification.appType = notificationType;
 
         params.applicationId = sessionParameters.appId;
         params.countryCode = currentUser.phoneCountryCode;

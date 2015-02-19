@@ -83,15 +83,15 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
         Log.d(LOG_TAG, "onCheckedChanged: " + buttonView.getId());
         switch ( buttonView.getId() ) {
             case R.id.checkbox_email:
-                enableEmailNotification(isChecked);
+                enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, isChecked);
                 break;
 
             case R.id.checkbox_sms:
-                enableSMSNotification(isChecked);
+                enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, isChecked);
                 break;
 
             case R.id.checkbox_push:
-                enablePushNotification(isChecked);
+                enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH, isChecked);
                 break;
 
             default:
@@ -123,35 +123,20 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
         _pushCheckbox.setOnCheckedChangeListener(listener);
     }
 
-    private void enableEmailNotification(boolean enable) {
+    private void enableNotification(String notificationMethod, boolean enable) {
         Log.d(LOG_TAG, "Email notifications: " + enable);
 
         if ( enable ) {
-            _accountSettings.addNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL);
+            _accountSettings.addNotificationMethod(notificationMethod);
         } else {
-            _accountSettings.removeNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL);
+            _accountSettings.removeNotificationMethod(notificationMethod);
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title,
                 R.string.updating_notifications_body);
 
         _accountSettings.pushToServer(new UpdateSettingsCallback(false));
-        updateNotifications(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, enable);
-    }
-
-    private void enableSMSNotification(boolean enable) {
-        Log.d(LOG_TAG, "SMS notifications: " + enable);
-        if ( enable ) {
-            _accountSettings.addNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS);
-        } else {
-            _accountSettings.removeNotificationType(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS);
-        }
-
-        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title,
-                R.string.updating_notifications_body);
-
-        _accountSettings.pushToServer(new UpdateSettingsCallback(false));
-        updateNotifications(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, enable);
+        updateNotifications(notificationMethod, enable);
     }
 
     private void updateNotifications(String notificationType, boolean enable) {
@@ -169,10 +154,6 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
                         }
                     }
                 });
-    }
-
-    private void enablePushNotification(boolean enable) {
-        Log.d(LOG_TAG, "Push notifications: " + enable);
     }
 
     private class UpdateSettingsCallback extends AccountSettings.AccountSettingsCallback {
