@@ -146,14 +146,15 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         final SessionManager.SessionParameters devkitParams = new SessionManager.SessionParameters(this);
 
         // Swap these to go  between dev and production servers
-        //devkitParams.appId = "AgileLinkDev-id";
-        //devkitParams.appSecret = "AgileLinkDev-4780291";
-
-        devkitParams.appId = "AgileLinkProd-id";
-        devkitParams.appSecret = "AgileLinkProd-8249425";
-
-
+        devkitParams.appId = "AgileLinkDev-id";
+        devkitParams.appSecret = "AgileLinkDev-4780291";
         devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+
+        //devkitParams.appId = "AgileLinkProd-id";
+        //devkitParams.appSecret = "AgileLinkProd-8249425";
+        //devkitParams.serviceType = AylaNetworks.AML_STAGING_SERVICE
+
+
         devkitParams.deviceCreator = new AgileLinkDeviceCreator();
         devkitParams.appVersion = getAppVersion();
 
