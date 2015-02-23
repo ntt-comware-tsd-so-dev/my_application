@@ -193,5 +193,7 @@
     <string name="notifications_updated">Notifications were updated</string>
     <string name="notification_update_failed">Notifications could not be updated</string>
     <string name="registration_success_notification_fail">The device has been registered, but could not update notifications. Please check notifications in Settings.</string>
+    <string name="updating_schedule_title">Updating Schedule</string>
+    <string name="updating_schedule_body">Updating the scheudle for this device. Please wait...</string>
 
 </resources>

@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * Created by Brian King on 2/23/15.
@@ -30,8 +31,9 @@ public class Schedule {
     /**
      * Creates a blank Schedule object
      */
-    public Schedule() {
+    public Schedule(String scheduleName) {
         _schedule = new AylaSchedule();
+        _schedule.name = scheduleName;
     }
 
     /**
@@ -137,6 +139,7 @@ public class Schedule {
         if ( startDate == null ) {
             _schedule.startDate = null;
         } else {
+            startDate.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.startDate = _dateFormatYMD.format(startDate.getTime());
         }
     }
@@ -153,6 +156,7 @@ public class Schedule {
         if ( date != null ) {
             result = Calendar.getInstance();
             result.setTime(date);
+            result.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
 
         return result;
@@ -301,6 +305,11 @@ public class Schedule {
 
     public AylaSchedule getSchedule() {
         return _schedule;
+    }
+
+    @Override
+    public String toString() {
+        return _schedule.name + (_schedule.active ? " (active)" : " (not active)");
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
