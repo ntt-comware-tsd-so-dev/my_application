@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,9 +20,7 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
@@ -324,6 +323,13 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     @Override
     public void lanModeChanged(boolean lanModeEnabled) {
 
+    }
+
+    public void pushFragment(Fragment frag) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                R.anim.abc_fade_in, R.anim.abc_fade_out);
+        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
     }
 
     static class SignUpConfirmationHandler extends Handler {

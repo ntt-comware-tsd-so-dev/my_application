@@ -131,21 +131,28 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
     /**
      * Handler called when attempting to connect to the device's AP
      */
-    private Handler _connectHandler = new Handler() {
+    static class ConnectHandler extends Handler {
+        private WeakReference<WiFiSetupFragment> _fragment;
+
+        public ConnectHandler(WiFiSetupFragment frag) {
+            _fragment = new WeakReference<WiFiSetupFragment>(frag);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Connect handler: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            MainActivity activity = MainActivity.getInstance();
+            activity.dismissWaitDialog();
 
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 String json = (String)msg.obj;
                 AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
-                AylaSetup.getNewDeviceScanForAPs(_scanForAPsHandler);
-                MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_aps_title),
-                        getString(R.string.scanning_for_aps_body));
+                AylaSetup.getNewDeviceScanForAPs(new ScanForAPsHandler(_fragment.get()));
+                activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title),
+                        activity.getString(R.string.scanning_for_aps_body));
             } else {
                 Log.e(LOG_TAG, "Connect handler error: " + msg);
-                Toast.makeText(getActivity(), R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
                 AylaSetup.exit();
             }
         }
@@ -155,17 +162,23 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
      * Handler called with the results for the AP scan (scan for devices)
      */
     private AylaModuleScanResults _apScanResults[];
-    private Handler _scanForAPsHandler = new Handler() {
+    static class ScanForAPsHandler extends Handler {
+        private WeakReference<WiFiSetupFragment> _fragment;
+
+        public ScanForAPsHandler(WiFiSetupFragment fragment) {
+            _fragment = new WeakReference<WiFiSetupFragment>(fragment);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
             Log.d(LOG_TAG, "Scan for APs handler: " + msg);
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 String json = (String)msg.obj;
-                _apScanResults = AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class);
-                ChooseAPDialog d = ChooseAPDialog.newInstance(_apScanResults);
-                d.setTargetFragment(WiFiSetupFragment.this, 0);
-                d.show(getFragmentManager(), "ap");
+                _fragment.get()._apScanResults = AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class);
+                ChooseAPDialog d = ChooseAPDialog.newInstance(_fragment.get()._apScanResults);
+                d.setTargetFragment(_fragment.get(), 0);
+                d.show(MainActivity.getInstance().getSupportFragmentManager(), "ap");
             }
         }
     };
@@ -183,26 +196,26 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
         // Connect to the device
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title),
                 getString(R.string.connecting_to_device_body));
-        AylaSetup.connectToNewDevice(_connectHandler);
+        AylaSetup.connectToNewDevice(new ConnectHandler(this));
     }
 
-    private Handler _connectToServiceHandler = new Handler() {
+    static class ConnectToServiceHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Connect to service handler: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
             AylaSetup.exit();
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                Toast.makeText(getActivity(), R.string.connect_to_service_success, Toast.LENGTH_SHORT).show();
-                getFragmentManager().popBackStack();
+                Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_SHORT).show();
+                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
             } else {
                 // Check for invalid key present in the error message
                 String emsg = (String) msg.obj;
                 if (emsg.contains("invalid key")) {
-                    Toast.makeText(getActivity(), R.string.bad_wifi_password, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.getInstance(), R.string.bad_wifi_password, Toast.LENGTH_LONG).show();
                 } else {
                     String anErrMsg = (String) msg.obj;
-                    Toast.makeText(getActivity(), anErrMsg, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -213,7 +226,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
         AylaSetup.lanPassword = password;
         AylaSetup.lanSecurityType = security;
 
-        AylaSetup.connectNewDeviceToService(_connectToServiceHandler);
+        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler());
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_network_title),
                 getString(R.string.connecting_to_network_body));
     }

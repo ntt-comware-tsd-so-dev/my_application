@@ -59,27 +59,17 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     private void handleRegistration() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                R.anim.abc_fade_in, R.anim.abc_fade_out);
-        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     private void handleWiFiSetup() {
         WiFiSetupFragment frag = WiFiSetupFragment.newInstance();
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                R.anim.abc_fade_in, R.anim.abc_fade_out);
-        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     private void handleNotifications() {
         NotificationsFragment frag = new NotificationsFragment();
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                R.anim.abc_fade_in, R.anim.abc_fade_out);
-
-        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     private void updateProfile() {

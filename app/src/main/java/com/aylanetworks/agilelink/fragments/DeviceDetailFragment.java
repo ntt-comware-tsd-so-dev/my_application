@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -191,7 +192,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void scheduleClicked() {
-        Toast.makeText(getActivity(), "Schedule: Coming soon!", Toast.LENGTH_SHORT).show();
+        ScheduleFragment frag = ScheduleFragment.newInstance(_device);
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     @Override
