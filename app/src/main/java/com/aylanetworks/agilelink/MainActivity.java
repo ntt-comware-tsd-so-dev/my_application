@@ -158,7 +158,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         devkitParams.deviceCreator = new AgileLinkDeviceCreator();
         devkitParams.appVersion = getAppVersion();
 
-        // TODO: Find out why LAN mode is not working with the EVB
         devkitParams.enableLANMode = true;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
