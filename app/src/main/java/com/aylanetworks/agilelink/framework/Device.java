@@ -12,6 +12,7 @@ import android.util.Log;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.R;
@@ -20,6 +21,7 @@ import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,6 +107,23 @@ public class Device implements Comparable<Device> {
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
+    public List<Schedule> getSchedules() {
+        if ( getDevice().schedules == null ) {
+            // Schedules probably not fetched yet
+            return null;
+        }
+
+        List<Schedule> schedules = new ArrayList<>(getDevice().schedules.length);
+        for ( AylaSchedule s : getDevice().schedules) {
+            schedules.add(new Schedule(s));
+        }
+
+        return schedules;
+    }
+
+    public void fetchSchedules(DeviceStatusListener listener) {
+        _device.getAllSchedules(new FetchSchedulesHandler(this, listener), null);
+    }
 
     /**
      * Enables or disables notifications of the given type for this device.
@@ -193,7 +212,7 @@ public class Device implements Comparable<Device> {
     /**
      * Class used to receive the results of a request to get the device's properties
      */
-    static class GetPropertiesHandler extends Handler {
+    protected static class GetPropertiesHandler extends Handler {
         private WeakReference<Device> _device;
         private DeviceStatusListener _listener;
 
@@ -250,6 +269,30 @@ public class Device implements Comparable<Device> {
                 return prop;
         }
         return null;
+    }
+
+    protected static class FetchSchedulesHandler extends Handler {
+        private DeviceStatusListener _listener;
+        private WeakReference<Device> _device;
+
+        public FetchSchedulesHandler(Device device, DeviceStatusListener listener) {
+            _device = new WeakReference<Device>(device);
+            _listener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "fetchSchedules: " + msg);
+
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                _device.get().getDevice().schedules =
+                        AylaSystemUtils.gson.fromJson((String)msg.obj, AylaSchedule[].class);
+                _listener.statusUpdated(_device.get(), true);
+            } else {
+                Log.e(LOG_TAG, "fetchSchedules failed! " + msg);
+                _listener.statusUpdated(_device.get(), false);
+            }
+        }
     }
 
     public boolean isGateway() {

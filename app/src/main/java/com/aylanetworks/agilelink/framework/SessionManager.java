@@ -27,12 +27,9 @@ import java.util.Set;
 
 /**
  * Created by Brian  King on 12/19/14.
- * <p/>
  * The SessionManager class is used to manage the login session with the Ayla service, as well as
  * polling the list of devices.
  */
-
-
 public class SessionManager {
     /**
      * Constants
