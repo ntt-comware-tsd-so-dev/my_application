@@ -192,7 +192,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void scheduleClicked() {
-        ScheduleFragment frag = ScheduleFragment.newInstance(_device);
+        ScheduleContainerFragment frag = ScheduleContainerFragment.newInstance(_device);
         MainActivity.getInstance().pushFragment(frag);
     }
 

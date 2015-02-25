@@ -107,6 +107,7 @@ public class Device implements Comparable<Device> {
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
+    @Nullable
     public List<Schedule> getSchedules() {
         if ( getDevice().schedules == null ) {
             // Schedules probably not fetched yet
@@ -119,6 +120,21 @@ public class Device implements Comparable<Device> {
         }
 
         return schedules;
+    }
+
+    @Nullable
+    public Schedule getSchedule(String scheduleName) {
+        if ( _device.schedules == null ) {
+            return null;
+        }
+
+        for ( AylaSchedule as : _device.schedules ) {
+            if ( as.name.equals(scheduleName) ) {
+                return new Schedule(as);
+            }
+        }
+
+        return null;
     }
 
     public void fetchSchedules(DeviceStatusListener listener) {
