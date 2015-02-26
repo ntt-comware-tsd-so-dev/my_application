@@ -1,12 +1,17 @@
 package com.aylanetworks.agilelink.fragments;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -39,6 +44,7 @@ public class ScheduleFragment extends Fragment {
     private RadioGroup _repeatingRadioGroup;
     private LinearLayout _fullScheduleLayout;
     private LinearLayout _timerScheduleLayout;
+    private LinearLayout _deadFocusLayout;
 
     static ScheduleFragment newInstance(Device device, int scheduleIndex) {
         Bundle args = new Bundle();
@@ -76,6 +82,7 @@ public class ScheduleFragment extends Fragment {
         _repeatingRadioGroup = (RadioGroup)root.findViewById(R.id.repeating_radio_group);
         _fullScheduleLayout = (LinearLayout)root.findViewById(R.id.complex_schedule_layout);
         _timerScheduleLayout = (LinearLayout)root.findViewById(R.id.schedule_timer_layout);
+        _deadFocusLayout = (LinearLayout)root.findViewById(R.id.dead_focus);
 
         // Control configuration / setup
         _scheduleEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -92,8 +99,21 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        _scheduleTitleEditText.setText(String.format(getString(R.string.schedule_title),
-                _device.toString(), _schedule.getName()));
+        _scheduleTitleEditText.setText(_schedule.getName());
+        _scheduleTitleEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ( actionId == EditorInfo.IME_NULL ) {
+                    // Save the schedule name and dismiss the keyboard
+                    _schedule.setName(v.getText().toString());
+                    InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(_scheduleTitleEditText.getWindowToken(), 0);
+                    _repeatingRadioGroup.requestFocus();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         updateUI();
         return root;

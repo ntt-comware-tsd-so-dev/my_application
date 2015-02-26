@@ -201,7 +201,7 @@
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
     <string name="once">Single Event</string>
-    <string name="repeating">Repeating Schedule</string>
+    <string name="repeating">Daily Schedule</string>
     <string name="timer">Timer</string>
     <string name="starting_on">Starting on:</string>
     <string name="ending_on">Ending on:</string>
@@ -211,5 +211,8 @@
     <string name="start_time">Start Time</string>
     <string name="ending_at">Ending At:</string>
     <string name="starting_at">Starting At:</string>
+    <string name="schedule_name">Schedule Name:</string>
+    <string name="turn_my_device">Turn my device:</string>
+    <string name="at">At:</string>
 
 </resources>

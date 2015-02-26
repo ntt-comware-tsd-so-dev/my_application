@@ -6,27 +6,51 @@
                 android:background="@color/detail_background"
                 tools:context="com.aylanetworks.agilelink.fragments.ScheduleFragment">
 
-    <EditText
-        android:id="@+id/schedule_title_edittext"
-        style="@style/PageHeader"
+    <LinearLayout
+        android:id="@+id/dead_focus"
+        android:layout_width="0px"
+        android:layout_height="0px"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"/>
+
+    <LinearLayout
+        android:id="@+id/schedule_title_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:background="@color/light_green_900"
-        />
+        android:orientation="horizontal"
+        android:padding="6dp">
+
+        <TextView
+            style="@android:style/TextAppearance.Medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="6dp"
+            android:text="@string/schedule_name"/>
+
+        <EditText
+            android:id="@+id/schedule_title_edittext"
+            style="@android:style/TextAppearance.Large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:inputType="textCapWords"
+            android:singleLine="true"
+            />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/schedule_help_textview"
         style="@android:style/TextAppearance.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/schedule_title_edittext"
+        android:layout_below="@+id/schedule_title_layout"
         android:padding="10dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         android:text="@string/schedule_help"
         android:textStyle="italic"
-        android:visibility="visible"/>
+        android:visibility="gone"/>
 
     <Switch
         android:id="@+id/schedule_enabled_switch"
@@ -96,12 +120,12 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/complex_schedule_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_below="@id/radio_button_layout"
-                android:id="@+id/complex_schedule_layout"
-                android:visibility="visible">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <!-- Start / end times -->
                 <LinearLayout
@@ -186,37 +210,43 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="S"/>
+
                         <Button
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="M"/>
+
                         <Button
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="T"/>
+
                         <Button
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="W"/>
+
                         <Button
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="T"/>
+
                         <Button
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="F"/>
+
                         <Button
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="S"/>
-                        </LinearLayout>
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -250,7 +280,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical|right"
                             android:layout_weight="0.75"
-                            android:text="@string/start_time"
+                            android:text="9:00 AM"
                             />
 
                     </LinearLayout>
@@ -275,7 +305,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical|right"
                             android:layout_weight="0.75"
-                            android:text="@string/end_time"
+                            android:text="5:00 PM"
                             />
 
                     </LinearLayout>
@@ -284,16 +314,79 @@
 
             <!-- Timer layout -->
             <LinearLayout
+                android:id="@+id/schedule_timer_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/radio_button_layout"
-                android:id="@+id/schedule_timer_layout"
-                android:visibility="gone">
-                <TextView
+                android:orientation="vertical"
+                android:layout_margin="12dp"
+                android:visibility="visible">
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="This is the timer layout here"/>
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        style="@android:style/TextAppearance.Medium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/turn_my_device"/>
+
+                    <RadioGroup
+                        android:id="@+id/on_off_radio_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/radio_on"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/on"
+                            android:checked="true"
+                            />
+
+                        <View
+                            android:layout_width="24dp"
+                            android:layout_height="match_parent"/>
+
+
+                        <RadioButton
+                            android:id="@+id/radio_off"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/off"
+                            />
+
+                    </RadioGroup>
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        style="@android:style/TextAppearance.Medium"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/at"/>
+
+                    <Button
+                        android:id="@+id/timer_time_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|right"
+                        android:layout_weight="0.5"
+                        android:text="5:00 PM"
+                        />
+
+                </LinearLayout>
+            </LinearLayout>
         </RelativeLayout>
     </ScrollView>
 
