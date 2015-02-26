@@ -45,7 +45,7 @@
         android:layout_marginBottom="@dimen/add_button_margin"
         android:layout_marginEnd="@dimen/add_button_margin"
         android:layout_marginRight="@dimen/add_button_margin"
-        android:background="@drawable/oval"
+        android:background="@drawable/add_button"
         android:elevation="@dimen/elevation_low"
         android:src="@android:drawable/ic_input_add"
         android:tint="@android:color/white"/>

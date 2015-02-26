@@ -15,8 +15,8 @@
     <string name="no_devices_found">No Devices Found</string>
     <string name="open">OPEN</string>
     <string name="closed">CLOSED</string>
-    <string name="on">ON</string>
-    <string name="off">OFF</string>
+    <string name="on">Turn On</string>
+    <string name="off">Turn Off</string>
     <string name="device_state_unknown">UNKNOWN</string>
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
@@ -214,5 +214,13 @@
     <string name="schedule_name">Schedule Name:</string>
     <string name="turn_my_device">Turn my device:</string>
     <string name="at">At:</string>
+    <string name="device_in">device in...</string>
+    <string name="weekday_letter_sunday">S</string>
+    <string name="weekday_letter_monday">M</string>
+    <string name="weekday_letter_tuesday">T</string>
+    <string name="weekday_letter_wednesday">W</string>
+    <string name="weekday_letter_thursday">T</string>
+    <string name="weekday_letter_friday">F</string>
+    <string name="weekday_letter_saturday">S</string>
 
 </resources>

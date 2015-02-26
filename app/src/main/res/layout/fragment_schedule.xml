@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:inputType="textCapWords"
+            android:inputType="textCapWords|textNoSuggestions"
             android:singleLine="true"
             />
     </LinearLayout>
@@ -87,32 +87,37 @@
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="8dp"
                 android:animateLayoutChanges="true"
+                android:background="@color/light_green_200"
                 android:orientation="vertical">
 
                 <RadioGroup
                     android:id="@+id/repeating_radio_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
+                    android:layout_gravity="center_vertical"
                     android:gravity="center"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
                     <RadioButton
                         android:id="@+id/radio_timer"
+                        style="@android:style/TextAppearance.Medium"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/timer"
                         />
 
                     <View
-                        android:layout_width="24dp"
+                        android:layout_width="32dp"
                         android:layout_height="match_parent"/>
 
 
                     <RadioButton
                         android:id="@+id/radio_repeating"
+                        style="@android:style/TextAppearance.Medium"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
                         android:text="@string/repeating"
                         />
 
@@ -125,127 +130,98 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/radio_button_layout"
                 android:orientation="vertical"
-                android:visibility="gone">
-
-                <!-- Start / end times -->
-                <LinearLayout
-                    android:id="@+id/start_end_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
-                        android:layout_marginRight="8dp">
-
-                        <TextView
-                            style="@android:style/TextAppearance.Medium"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:text="@string/starting_on"/>
-
-                        <Button
-                            android:id="@+id/starting_on_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|right"
-                            android:layout_weight="0.75"
-                            android:text="12/12/2016"
-                            />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
-                        android:layout_marginRight="8dp">
-
-                        <TextView
-                            style="@android:style/TextAppearance.Medium"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:text="@string/ending_on"/>
-
-                        <Button
-                            android:id="@+id/ending_on_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|right"
-                            android:layout_weight="0.75"
-                            android:text="2/2/2017"
-                            />
+                android:visibility="visible">
 
 
-                    </LinearLayout>
-                </LinearLayout>
 
                 <!-- Schedule Days -->
                 <LinearLayout
                     android:id="@+id/schedule_days_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/start_end_layout"
                     android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
                         android:text="@string/schedule_chooose_days_help"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@color/light_green_400">
+                        android:layout_margin="8dp"
+                        >
 
                         <Button
+                            android:id="@+id/button_sunday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="S"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_sunday"
+                            android:textColor="@android:color/white"/>
 
                         <Button
+                            android:id="@+id/button_monday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="M"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_monday"
+                            android:textColor="@android:color/white"/>
 
                         <Button
+                            android:id="@+id/button_tuesday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="T"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_tuesday"
+                            android:textColor="@android:color/white"/>
 
                         <Button
+                            android:id="@+id/button_wednesday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="W"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_wednesday"
+                            android:textColor="@android:color/white"/>
 
                         <Button
+                            android:id="@+id/button_thursday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="T"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_thursday"
+                            android:textColor="@android:color/white"/>
 
                         <Button
+                            android:id="@+id/button_friday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="F"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_friday"
+                            android:textColor="@android:color/white"/>
 
                         <Button
+                            android:id="@+id/button_saturday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_margin="4dp"
                             android:layout_weight="1"
-                            android:text="S"/>
+                            android:background="@drawable/oval"
+                            android:text="@string/weekday_letter_saturday"
+                            android:textColor="@android:color/white"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -262,28 +238,23 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
-                        android:layout_marginRight="8dp">
-
-                        <TextView
-                            style="@android:style/TextAppearance.Medium"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:text="@string/starting_at"/>
-
+                        android:layout_height="wrap_content">
                         <Button
-                            android:id="@+id/start_time_button"
-                            android:layout_width="0dp"
+                            android:id="@+id/button_turn_on"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|right"
-                            android:layout_weight="0.75"
-                            android:text="9:00 AM"
-                            />
+                            android:text="@string/on"
+                            android:background="@drawable/button_bg"
+                            android:layout_weight="1"/>
+                        <Button
+                            android:id="@+id/button_turn_off"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/off"
+                            android:background="@drawable/button_bg"
+                            android:layout_weight="1"/>
 
-                    </LinearLayout>
+                        </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -297,16 +268,16 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:layout_weight="1"
-                            android:text="@string/ending_at"/>
+                            android:text="@string/on"/>
 
-                        <Button
-                            android:id="@+id/end_time_button"
-                            android:layout_width="0dp"
+                        <TimePicker
+                            android:id="@+id/time_on_off_picker"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|right"
-                            android:layout_weight="0.75"
-                            android:text="5:00 PM"
-                            />
+                            android:layout_gravity="center_horizontal"
+                            android:layout_margin="6dp"
+                            android:timePickerMode="spinner"/>
+
 
                     </LinearLayout>
                 </LinearLayout>
@@ -318,20 +289,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/radio_button_layout"
-                android:orientation="vertical"
                 android:layout_margin="12dp"
-                android:visibility="visible">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
-                        style="@android:style/TextAppearance.Medium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:text="@string/turn_my_device"/>
 
                     <RadioGroup
                         android:id="@+id/on_off_radio_group"
@@ -343,10 +308,11 @@
 
                         <RadioButton
                             android:id="@+id/radio_on"
+                            style="@android:style/TextAppearance.Large"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/on"
                             android:checked="true"
+                            android:text="@string/on"
                             />
 
                         <View
@@ -356,6 +322,7 @@
 
                         <RadioButton
                             android:id="@+id/radio_off"
+                            style="@android:style/TextAppearance.Large"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/off"
@@ -370,21 +337,19 @@
 
                     <TextView
                         style="@android:style/TextAppearance.Medium"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_gravity="center_vertical"
-                        android:text="@string/at"/>
+                        android:layout_margin="6dp"
+                        android:text="@string/device_in"/>
 
-                    <Button
-                        android:id="@+id/timer_time_button"
-                        android:layout_width="0dp"
+                    <TimePicker
+                        android:id="@+id/timer_duration_picker"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical|right"
-                        android:layout_weight="0.5"
-                        android:text="5:00 PM"
-                        />
-
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="6dp"
+                        android:timePickerMode="spinner"/>
                 </LinearLayout>
             </LinearLayout>
         </RelativeLayout>
