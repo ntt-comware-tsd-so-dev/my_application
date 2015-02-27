@@ -9,7 +9,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
@@ -301,6 +300,10 @@ public class Schedule {
         }
 
         return result;
+    }
+
+    public boolean isTimer() {
+        return getEndDate() != null;
     }
 
     public AylaSchedule getSchedule() {

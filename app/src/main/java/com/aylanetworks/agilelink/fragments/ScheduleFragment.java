@@ -17,12 +17,12 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.aylanetworks.aaml.AylaScheduleAction;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Schedule;
@@ -47,8 +47,9 @@ public class ScheduleFragment extends Fragment {
     private TextView _scheduleHelpTextView;
     private Switch _scheduleEnabledSwitch;
     private ScrollView _scrollView;
-    private RadioGroup _repeatingRadioGroup;
+    private RadioGroup _scheduleTypeRadioGroup;
     private LinearLayout _fullScheduleLayout;
+    private RelativeLayout _scheduleDetailsLayout;
     private LinearLayout _timerScheduleLayout;
     private TimePicker _scheduleTimePicker;
     private TimePicker _timerTimePicker;
@@ -98,24 +99,28 @@ public class ScheduleFragment extends Fragment {
         _scheduleHelpTextView = (TextView)root.findViewById(R.id.schedule_help_textview);
         _scheduleEnabledSwitch = (Switch)root.findViewById(R.id.schedule_enabled_switch);
         _scrollView = (ScrollView)root.findViewById(R.id.schedule_scroll_view);
-        _repeatingRadioGroup = (RadioGroup)root.findViewById(R.id.repeating_radio_group);
+        _scheduleTypeRadioGroup = (RadioGroup)root.findViewById(R.id.schedule_type_radio_group);
         _fullScheduleLayout = (LinearLayout)root.findViewById(R.id.complex_schedule_layout);
         _timerScheduleLayout = (LinearLayout)root.findViewById(R.id.schedule_timer_layout);
+        _scheduleDetailsLayout = (RelativeLayout)root.findViewById(R.id.schedule_details_layout);
         _scheduleTimePicker = (TimePicker)root.findViewById(R.id.timer_duration_picker);
         _timerTimePicker = (TimePicker)root.findViewById(R.id.time_on_off_picker);
         _onTimeButton = (Button)root.findViewById(R.id.button_turn_on);
         _offTimeButton = (Button)root.findViewById(R.id.button_turn_off);
 
 
+
         // Control configuration / setup
+        _scheduleEnabledSwitch.setChecked(_schedule.isActive());
         _scheduleEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 scheduleEnabledChanged((Switch) buttonView, isChecked);
             }
         });
+        scheduleEnabledChanged(_scheduleEnabledSwitch, _scheduleEnabledSwitch.isChecked());
 
-        _repeatingRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        _scheduleTypeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 repeatChanged(checkedId);
@@ -131,7 +136,7 @@ public class ScheduleFragment extends Fragment {
                     _schedule.setName(v.getText().toString());
                     InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(_scheduleTitleEditText.getWindowToken(), 0);
-                    _repeatingRadioGroup.requestFocus();
+                    _scheduleTypeRadioGroup.requestFocus();
                     return true;
                 }
                 return false;
@@ -186,7 +191,7 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void onOffChanged(boolean isOn) {
-
+        _scrollView.fullScroll(View.FOCUS_DOWN);
     }
 
     private void repeatChanged(int checkedId) {
@@ -195,40 +200,23 @@ public class ScheduleFragment extends Fragment {
 
     private void scheduleEnabledChanged(Switch scheduleEnabledSwitch, boolean isChecked) {
         _schedule.setActive(isChecked);
+        _scheduleDetailsLayout.setVisibility((isChecked ? View.VISIBLE : View.GONE));
         updateUI();
-    }
-
-    private boolean isOneShot() {
-        if ( _schedule == null ) {
-            return false;
-        }
-
-        if ( _schedule.getInterval() > 0 ) {
-            return false;
-        }
-
-        if ( _schedule.getEndDate() == null ) {
-            return false;
-        }
-
-        return true;
     }
 
     private void updateUI() {
         // Make the UI reflect the schedule for this device
         if ( _schedule == null || !_schedule.isActive() ) {
             // Nothing shown except for the switch
-            _scrollView.setVisibility(View.GONE);
             return;
         }
 
-        _scrollView.setVisibility(View.VISIBLE);
-        int checkedId = _repeatingRadioGroup.getCheckedRadioButtonId();
+        int checkedId = _scheduleTypeRadioGroup.getCheckedRadioButtonId();
         if ( checkedId == -1 ) {
-            _repeatingRadioGroup.check(R.id.radio_timer);
+            _scheduleTypeRadioGroup.check(R.id.radio_timer);
         }
 
-        if ( _repeatingRadioGroup.getCheckedRadioButtonId() == R.id.radio_timer ) {
+        if ( _scheduleTypeRadioGroup.getCheckedRadioButtonId() == R.id.radio_timer ) {
             _timerScheduleLayout.setVisibility(View.VISIBLE);
             _fullScheduleLayout.setVisibility(View.GONE);
         } else {
@@ -250,7 +238,7 @@ public class ScheduleFragment extends Fragment {
         _timerTimePicker.setCurrentHour(startTime.get(Calendar.HOUR));
         _timerTimePicker.setCurrentMinute(startTime.get(Calendar.MINUTE));
 
-        if ( !turnOnIsSelected() ) {
+        if ( !isTurnOnSelected() ) {
             // Add the schedule duration
             startTime.add(Calendar.MINUTE, _schedule.getDuration());
         }
@@ -259,7 +247,7 @@ public class ScheduleFragment extends Fragment {
         _scheduleTimePicker.setCurrentMinute(startTime.get(Calendar.MINUTE));
     }
 
-    private boolean turnOnIsSelected() {
+    private boolean isTurnOnSelected() {
         return _onTimeButton.isSelected();
     }
 }
