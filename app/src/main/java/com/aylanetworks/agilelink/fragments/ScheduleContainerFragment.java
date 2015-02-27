@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Schedule;
@@ -48,9 +49,12 @@ public class ScheduleContainerFragment extends Fragment {
         _device.fetchSchedules(new Device.DeviceStatusListener() {
             @Override
             public void statusUpdated(Device device, boolean changed) {
+                MainActivity.getInstance().dismissWaitDialog();
                 onDeviceUpdated();
             }
         });
+
+        MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
 
         return root;
     }

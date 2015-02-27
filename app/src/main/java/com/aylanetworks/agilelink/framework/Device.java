@@ -13,6 +13,7 @@ import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSchedule;
+import com.aylanetworks.aaml.AylaScheduleAction;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.R;
@@ -301,12 +302,71 @@ public class Device implements Comparable<Device> {
             Log.d(LOG_TAG, "fetchSchedules: " + msg);
 
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
-                _device.get().getDevice().schedules =
+                AylaSchedule[] schedules =
                         AylaSystemUtils.gson.fromJson((String)msg.obj, AylaSchedule[].class);
-                _listener.statusUpdated(_device.get(), true);
+                _device.get().getDevice().schedules = schedules;
+
+
+                List<AylaSchedule> scheduleList = new ArrayList<>();
+
+                // BSK: At some point, the service will be filling out the schedule actions so we
+                // don't have to fetch them. Check each schedule for actions and remove from the
+                // list if they are present.
+                for ( AylaSchedule s : schedules ) {
+                    if ( s.scheduleActions == null ) {
+                        scheduleList.add(s);
+                    }
+                }
+
+                if ( scheduleList.isEmpty() ) {
+                    // Done! No need to fetch any schedule actions.
+                    _listener.statusUpdated(_device.get(), true);
+                } else {
+                    FetchScheduleActionsHandler handler = new FetchScheduleActionsHandler(_device.get(), scheduleList, _listener);
+                    handler.fetchNextAction();
+                }
             } else {
                 Log.e(LOG_TAG, "fetchSchedules failed! " + msg);
                 _listener.statusUpdated(_device.get(), false);
+            }
+        }
+    }
+
+    protected static class FetchScheduleActionsHandler extends Handler {
+        private Device _device;
+        private DeviceStatusListener _listener;
+        private List<AylaSchedule> _schedulesToUpdate;
+        private AylaSchedule _currentSchedule;
+
+        public FetchScheduleActionsHandler(Device device,
+                                           List<AylaSchedule> schedulesToUpdate,
+                                           DeviceStatusListener listener) {
+            _device = device;
+            _schedulesToUpdate = schedulesToUpdate;
+            _listener = listener;
+        }
+
+        public void fetchNextAction() {
+            if ( _schedulesToUpdate.isEmpty() ) {
+                // We're done.
+                Log.d(LOG_TAG, "All schedule actions updated for " + _device);
+                _listener.statusUpdated(_device, true);
+                return;
+            }
+
+            _currentSchedule = _schedulesToUpdate.remove(0);
+            _currentSchedule.getAllActions(this, null);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                _currentSchedule.scheduleActions =
+                        AylaSystemUtils.gson.fromJson((String)msg.obj, AylaScheduleAction[].class);
+                fetchNextAction();
+            } else {
+                Log.e(LOG_TAG, "Failed to fetch schedule actions for " + _currentSchedule);
+                _listener.statusUpdated(_device, false);
             }
         }
     }

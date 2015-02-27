@@ -307,13 +307,19 @@ public class Schedule {
         return result;
     }
 
+    /**
+     * Helper method to return the on time as reflected in the schedule
+     * @return The on time for the schedule, or null if no on time is set
+     */
     @Nullable
     public Calendar getOnTime() {
         boolean offTimeAtEnd = true;
-        AylaScheduleAction action = _schedule.scheduleActions[0];
-        if ( (action.atEnd && action.value.equals("1")) ||
-                (action.atStart && action.value.equals("0")) ) {
-            offTimeAtEnd = false;
+        if ( _schedule.scheduleActions != null ) {
+            AylaScheduleAction action = _schedule.scheduleActions[0];
+            if (action.active && (action.atEnd && action.value.equals("1")) ||
+                    (action.atStart && action.value.equals("0"))) {
+                offTimeAtEnd = false;
+            }
         }
 
         String dateString;
@@ -337,12 +343,19 @@ public class Schedule {
         return calendar;
     }
 
+    /**
+     * Helper method to return the off time of the schedule.
+     * @return The off time, or null if no off time is set
+     */
+    @Nullable
     public Calendar getOffTime() {
         boolean offTimeAtEnd = true;
-        AylaScheduleAction action = _schedule.scheduleActions[0];
-        if ( (action.atEnd && action.value.equals("1")) ||
-                (action.atStart && action.value.equals("0")) ) {
-            offTimeAtEnd = false;
+        if ( _schedule.scheduleActions != null ) {
+            AylaScheduleAction action = _schedule.scheduleActions[0];
+            if (action.active && (action.atEnd && action.value.equals("1")) ||
+                    (action.atStart && action.value.equals("0"))) {
+                offTimeAtEnd = false;
+            }
         }
 
         String dateString;
@@ -352,7 +365,7 @@ public class Schedule {
             dateString = _schedule.startTimeEachDay;
         }
 
-        Date date = null;
+        Date date;
         try {
             date = _dateFormatHMS.parse(dateString);
         } catch (ParseException e) {
@@ -366,6 +379,11 @@ public class Schedule {
         return calendar;
     }
 
+    /**
+     * Helper method to set the on time for a schedule. This method will set the appropriate
+     * schedule actions for the event, taking the offTime into consideration if necessary
+     * @param onTime time to turn the device on
+     */
     public void setOnTime(Calendar onTime) {
         Calendar offTime = getOffTime();
 
@@ -373,49 +391,70 @@ public class Schedule {
             // If we have an off time set, make sure we have exactly one action set to
             // turn off the device at the startTime.
             if ( offTime == null ) {
-                // Remove all actions
-                _schedule.scheduleActions = new AylaScheduleAction[0];
+                // Deactivate all actions
+                for ( AylaScheduleAction action : _schedule.scheduleActions ) {
+                    action.active = false;
+                }
             } else {
                 // Set the off time as the schedule start time, and have one action to turn
                 // the device off
-                setStartTimeEachDay(onTime);
-                _schedule.scheduleActions = new AylaScheduleAction[1];
+                setStartTimeEachDay(offTime);
                 AylaScheduleAction action = _schedule.scheduleActions[0];
                 action.atStart = true;
                 action.atEnd = false;
                 action.value = "0";
+                action.active = true;
             }
         } else {
             if ( offTime != null ) {
-                _schedule.scheduleActions = new AylaScheduleAction[2];
                 AylaScheduleAction action1 = _schedule.scheduleActions[0];
                 AylaScheduleAction action2 = _schedule.scheduleActions[1];
 
                 // See who comes first
                 if ( onTime.compareTo(offTime) < 0 ) {
                     // onTime comes before offTime
+                    setStartTimeEachDay(onTime);
+                    setEndDate(offTime);
                     action1.value = "1";
                     action1.atStart = true;
                     action1.atEnd = false;
+                    action1.active = true;
 
                     action2.value = "0";
                     action2.atStart = false;
                     action2.atEnd = true;
-
+                    action2.active = true;
                 } else {
                     // onTime comes after offTime
+                    setStartTimeEachDay(offTime);
+                    setEndTimeEachDay(onTime);
                     action1.value = "0";
                     action1.atStart = true;
                     action1.atEnd = false;
+                    action1.active = true;
 
                     action2.value = "1";
                     action2.atStart = false;
                     action2.atEnd = true;
+                    action2.active = true;
                 }
+            } else {
+                // No off time set. We have one action only
+                setStartTimeEachDay(onTime);
+                _schedule.scheduleActions[0].value = "1";
+                _schedule.scheduleActions[0].atStart = true;
+                _schedule.scheduleActions[0].atEnd = false;
+                _schedule.scheduleActions[0].active = true;
+                _schedule.scheduleActions[1].active = false;
             }
         }
     }
 
+    /**
+     * Helper method to set the off time for a schedule. This method will set the appropriate
+     * schedule actions for the event, taking the onTime into consideration if necessary
+     * @param offTime time to turn the device off
+     */
     public void setOffTime(Calendar offTime) {
         Calendar onTime = getOnTime();
 
@@ -424,45 +463,64 @@ public class Schedule {
             // turn off the device at the startTime.
             if ( onTime == null ) {
                 // Remove all actions
-                _schedule.scheduleActions = new AylaScheduleAction[0];
+                for ( AylaScheduleAction action : _schedule.scheduleActions ) {
+                    action.active = false;
+                }
             } else {
                 // Set the on time as the schedule start time, and have one action to turn
                 // the device on
                 setStartTimeEachDay(onTime);
-                _schedule.scheduleActions = new AylaScheduleAction[1];
                 AylaScheduleAction action = _schedule.scheduleActions[0];
                 action.atStart = true;
                 action.atEnd = false;
                 action.value = "1";
+                action.active = true;
+                _schedule.scheduleActions[1].active = false;
             }
         } else {
             if ( onTime != null ) {
                 // There is an on time as well. Set up the actions appropriately
-                _schedule.scheduleActions = new AylaScheduleAction[2];
                 AylaScheduleAction action1 = _schedule.scheduleActions[0];
                 AylaScheduleAction action2 = _schedule.scheduleActions[1];
 
                 // See who comes first
                 if ( offTime.compareTo(onTime) < 0 ) {
                     // offTime comes before onTime
+                    setStartTimeEachDay(offTime);
+                    setEndTimeEachDay(onTime);
                     action1.value = "0";
                     action1.atStart = true;
                     action1.atEnd = false;
+                    action1.active = true;
 
                     action2.value = "1";
                     action2.atStart = false;
                     action2.atEnd = true;
-
+                    action2.active = true;
                 } else {
                     // offTime comes after onTime
+                    setStartTimeEachDay(onTime);
+                    setEndTimeEachDay(offTime);
+
                     action1.value = "1";
                     action1.atStart = true;
                     action1.atEnd = false;
+                    action1.active = true;
 
                     action2.value = "0";
                     action2.atStart = false;
                     action2.atEnd = true;
+                    action2.active = true;
                 }
+            } else {
+                // No on time set. We have one action only
+                setStartTimeEachDay(onTime);
+                _schedule.scheduleActions[0].value = "0";
+                _schedule.scheduleActions[0].atStart = true;
+                _schedule.scheduleActions[0].atEnd = false;
+                _schedule.scheduleActions[0].active = true;
+
+                _schedule.scheduleActions[1].active = false;
             }
         }
     }

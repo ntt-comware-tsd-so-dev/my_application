@@ -44,7 +44,6 @@ public class ScheduleFragment extends Fragment {
     private Schedule _schedule;
 
     private EditText _scheduleTitleEditText;
-    private TextView _scheduleHelpTextView;
     private Switch _scheduleEnabledSwitch;
     private ScrollView _scrollView;
     private RadioGroup _scheduleTypeRadioGroup;
@@ -53,8 +52,14 @@ public class ScheduleFragment extends Fragment {
     private LinearLayout _timerScheduleLayout;
     private TimePicker _scheduleTimePicker;
     private TimePicker _timerTimePicker;
-    private Button _onTimeButton;
-    private Button _offTimeButton;
+
+    // On / off time buttons for the repeating schedule
+    private Button _scheduleOnTimeButton;
+    private Button _scheduleOffTimeButton;
+
+    // On off time buttons for the timer
+    private Button _timerTurnOnButton;
+    private Button _timerTurnOffButton;
 
     private static final int[] _weekdayButtonIDs = {
             R.id.button_sunday,
@@ -95,20 +100,20 @@ public class ScheduleFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_schedule, container, false);
 
         // Get our views set up
-        _scheduleTitleEditText = (EditText)root.findViewById(R.id.schedule_title_edittext);
-        _scheduleHelpTextView = (TextView)root.findViewById(R.id.schedule_help_textview);
-        _scheduleEnabledSwitch = (Switch)root.findViewById(R.id.schedule_enabled_switch);
-        _scrollView = (ScrollView)root.findViewById(R.id.schedule_scroll_view);
-        _scheduleTypeRadioGroup = (RadioGroup)root.findViewById(R.id.schedule_type_radio_group);
-        _fullScheduleLayout = (LinearLayout)root.findViewById(R.id.complex_schedule_layout);
-        _timerScheduleLayout = (LinearLayout)root.findViewById(R.id.schedule_timer_layout);
-        _scheduleDetailsLayout = (RelativeLayout)root.findViewById(R.id.schedule_details_layout);
-        _scheduleTimePicker = (TimePicker)root.findViewById(R.id.timer_duration_picker);
-        _timerTimePicker = (TimePicker)root.findViewById(R.id.time_on_off_picker);
-        _onTimeButton = (Button)root.findViewById(R.id.button_turn_on);
-        _offTimeButton = (Button)root.findViewById(R.id.button_turn_off);
+        _scheduleTitleEditText = (EditText) root.findViewById(R.id.schedule_title_edittext);
+        _scheduleEnabledSwitch = (Switch) root.findViewById(R.id.schedule_enabled_switch);
+        _scrollView = (ScrollView) root.findViewById(R.id.schedule_scroll_view);
+        _scheduleTypeRadioGroup = (RadioGroup) root.findViewById(R.id.schedule_type_radio_group);
+        _fullScheduleLayout = (LinearLayout) root.findViewById(R.id.complex_schedule_layout);
+        _timerScheduleLayout = (LinearLayout) root.findViewById(R.id.schedule_timer_layout);
+        _scheduleDetailsLayout = (RelativeLayout) root.findViewById(R.id.schedule_details_layout);
+        _scheduleTimePicker = (TimePicker) root.findViewById(R.id.time_on_off_picker);
+        _timerTimePicker = (TimePicker) root.findViewById(R.id.timer_duration_picker);
+        _scheduleOnTimeButton = (Button) root.findViewById(R.id.button_turn_on);
+        _scheduleOffTimeButton = (Button) root.findViewById(R.id.button_turn_off);
 
-
+        _timerTurnOnButton = (Button) root.findViewById(R.id.timer_turn_on_button);
+        _timerTurnOffButton = (Button) root.findViewById(R.id.timer_turn_off_button);
 
         // Control configuration / setup
         _scheduleEnabledSwitch.setChecked(_schedule.isActive());
@@ -123,7 +128,7 @@ public class ScheduleFragment extends Fragment {
         _scheduleTypeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                repeatChanged(checkedId);
+                updateUI();
             }
         });
 
@@ -143,43 +148,72 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        _onTimeButton.setSelected(true);
-        _onTimeButton.setOnClickListener(new View.OnClickListener() {
+        _scheduleOnTimeButton.setSelected(true);
+        _scheduleOnTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                _onTimeButton.setSelected(true);
-                _offTimeButton.setSelected(false);
-                onOffChanged(true);
+                _scheduleOnTimeButton.setSelected(true);
+                _scheduleOffTimeButton.setSelected(false);
+                updateUI();
             }
         });
 
-        _offTimeButton.setSelected(false);
-        _offTimeButton.setOnClickListener(new View.OnClickListener() {
+        _scheduleOffTimeButton.setSelected(false);
+        _scheduleOffTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                _onTimeButton.setSelected(false);
-                _offTimeButton.setSelected(true);
-                onOffChanged(false);
+                _scheduleOnTimeButton.setSelected(false);
+                _scheduleOffTimeButton.setSelected(true);
+                updateUI();
             }
         });
 
-        _scheduleTimePicker.setIs24HourView(true);
+        _scheduleTimePicker.setIs24HourView(false);
+        _scheduleTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+            @Override
+            public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                Log.d(LOG_TAG, "onTimeChanged: " + hourOfDay + ":" + minute + "(" + view.getCurrentHour() + ":" + view.getCurrentMinute());
+                scheduleTimeChanged(hourOfDay, minute);
+            }
+        });
 
+
+        _timerTimePicker.setIs24HourView(true);
+        _timerTurnOnButton.setSelected(true);
+        _timerTurnOnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                _timerTurnOnButton.setSelected(true);
+                _timerTurnOffButton.setSelected(false);
+                updateUI();
+            }
+        });
+        _timerTurnOffButton.setSelected(false);
+        _timerTurnOffButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                _timerTurnOnButton.setSelected(false);
+                _timerTurnOffButton.setSelected(true);
+                updateUI();
+            }
+        });
+
+        // Set up the buttons for weekdays
         int day = 1;
-        for ( int id : _weekdayButtonIDs ) {
-            final Button b = (Button)root.findViewById(id);
+        for (int id : _weekdayButtonIDs) {
+            final Button b = (Button) root.findViewById(id);
             b.setTag(day++);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Set<Integer> selectedDays = _schedule.getDaysOfWeek();
-                    if ( selectedDays.contains(v.getTag())) {
+                    if (selectedDays.contains((Integer) v.getTag())) {
                         b.setSelected(false);
                         selectedDays.remove(v.getTag());
                         _schedule.setDaysOfWeek(selectedDays);
                     } else {
                         b.setSelected(true);
-                        selectedDays.add((Integer)v.getTag());
+                        selectedDays.add((Integer) v.getTag());
                         _schedule.setDaysOfWeek(selectedDays);
                     }
                 }
@@ -190,12 +224,17 @@ public class ScheduleFragment extends Fragment {
         return root;
     }
 
-    private void onOffChanged(boolean isOn) {
-        _scrollView.fullScroll(View.FOCUS_DOWN);
-    }
+    private void scheduleTimeChanged(int hourOfDay, int minute) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        cal.set(Calendar.MINUTE, minute);
+        cal.set(Calendar.SECOND, 0);
 
-    private void repeatChanged(int checkedId) {
-        updateUI();
+        if (_scheduleOnTimeButton.isSelected()) {
+            _schedule.setOnTime(cal);
+        } else {
+            _schedule.setOffTime(cal);
+        }
     }
 
     private void scheduleEnabledChanged(Switch scheduleEnabledSwitch, boolean isChecked) {
@@ -206,17 +245,17 @@ public class ScheduleFragment extends Fragment {
 
     private void updateUI() {
         // Make the UI reflect the schedule for this device
-        if ( _schedule == null || !_schedule.isActive() ) {
+        if (_schedule == null || !_schedule.isActive()) {
             // Nothing shown except for the switch
             return;
         }
 
         int checkedId = _scheduleTypeRadioGroup.getCheckedRadioButtonId();
-        if ( checkedId == -1 ) {
+        if (checkedId == -1) {
             _scheduleTypeRadioGroup.check(R.id.radio_timer);
         }
 
-        if ( _scheduleTypeRadioGroup.getCheckedRadioButtonId() == R.id.radio_timer ) {
+        if (_scheduleTypeRadioGroup.getCheckedRadioButtonId() == R.id.radio_timer) {
             _timerScheduleLayout.setVisibility(View.VISIBLE);
             _fullScheduleLayout.setVisibility(View.GONE);
         } else {
@@ -225,29 +264,54 @@ public class ScheduleFragment extends Fragment {
         }
 
         // Update the selected days of week
-        for ( int i = 0; i < 7; i++ ) {
-            Button b = (Button)_fullScheduleLayout.findViewById(_weekdayButtonIDs[i]);
+        for (int i = 0; i < 7; i++) {
+            Button b = (Button) _fullScheduleLayout.findViewById(_weekdayButtonIDs[i]);
             Set<Integer> days = _schedule.getDaysOfWeek();
             Log.d(LOG_TAG, "Days: " + days);
             b.setSelected(_schedule.getDaysOfWeek().contains(i + 1));
         }
 
         // Update the time pickers
-        Calendar startTime = _schedule.getStartTimeEachDay();
+        Calendar pickerTime;
+        Calendar now = Calendar.getInstance();
+        try {
+            if (_timerTurnOnButton.isSelected()) {
+                pickerTime = _schedule.getOnTime();
+                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
+                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
+            } else {
+                pickerTime = _schedule.getOffTime();
+                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
+                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
+            }
 
-        _timerTimePicker.setCurrentHour(startTime.get(Calendar.HOUR));
-        _timerTimePicker.setCurrentMinute(startTime.get(Calendar.MINUTE));
+            if (pickerTime == null) {
+                pickerTime = Calendar.getInstance();
+                pickerTime.set(Calendar.HOUR_OF_DAY, 0);
+                pickerTime.set(Calendar.MINUTE, 0);
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            pickerTime = Calendar.getInstance();
+            pickerTime.set(Calendar.HOUR_OF_DAY, 0);
+            pickerTime.set(Calendar.MINUTE, 0);
+        }
+        _timerTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
+        _timerTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
 
-        if ( !isTurnOnSelected() ) {
+        if (_scheduleOnTimeButton.isSelected()) {
             // Add the schedule duration
-            startTime.add(Calendar.MINUTE, _schedule.getDuration());
+            pickerTime = _schedule.getOnTime();
+        } else {
+            pickerTime = _schedule.getOffTime();
         }
 
-        _scheduleTimePicker.setCurrentHour(startTime.get(Calendar.HOUR));
-        _scheduleTimePicker.setCurrentMinute(startTime.get(Calendar.MINUTE));
-    }
+        if (pickerTime == null) {
+            // Set to the current time
+            pickerTime = Calendar.getInstance();
+        }
 
-    private boolean isTurnOnSelected() {
-        return _onTimeButton.isSelected();
+        _scheduleTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
+        _scheduleTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
     }
 }
