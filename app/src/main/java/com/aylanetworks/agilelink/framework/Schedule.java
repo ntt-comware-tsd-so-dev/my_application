@@ -1,8 +1,10 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaSchedule;
+import com.aylanetworks.aaml.AylaScheduleAction;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -81,8 +83,9 @@ public class Schedule {
      */
     public void setStartTimeEachDay(Calendar startTime) {
         if ( startTime == null ) {
-            _schedule.startTimeEachDay = null;
+            _schedule.startTimeEachDay = "";
         } else {
+            startTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.startTimeEachDay = _dateFormatHMS.format(startTime.getTime());
         }
     }
@@ -113,6 +116,7 @@ public class Schedule {
         if ( endTime == null ) {
             _schedule.endTimeEachDay = null;
         } else {
+            endTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.endTimeEachDay = _dateFormatHMS.format(endTime.getTime());
         }
     }
@@ -129,6 +133,7 @@ public class Schedule {
         if ( date != null ) {
             result = Calendar.getInstance();
             result.setTime(date);
+            result.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
 
         return result;
@@ -300,6 +305,174 @@ public class Schedule {
         }
 
         return result;
+    }
+
+    @Nullable
+    public Calendar getOnTime() {
+        boolean offTimeAtEnd = true;
+        AylaScheduleAction action = _schedule.scheduleActions[0];
+        if ( (action.atEnd && action.value.equals("1")) ||
+                (action.atStart && action.value.equals("0")) ) {
+            offTimeAtEnd = false;
+        }
+
+        String dateString;
+        if ( offTimeAtEnd ) {
+            dateString = _schedule.startTimeEachDay;
+        } else {
+            dateString = _schedule.endTimeEachDay;
+        }
+
+        Date date = null;
+        try {
+            date = _dateFormatHMS.parse(dateString);
+        } catch (ParseException e) {
+            Log.e(LOG_TAG, "Failed to parse date: " + dateString);
+            e.printStackTrace();
+            return null;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar;
+    }
+
+    public Calendar getOffTime() {
+        boolean offTimeAtEnd = true;
+        AylaScheduleAction action = _schedule.scheduleActions[0];
+        if ( (action.atEnd && action.value.equals("1")) ||
+                (action.atStart && action.value.equals("0")) ) {
+            offTimeAtEnd = false;
+        }
+
+        String dateString;
+        if ( offTimeAtEnd ) {
+            dateString = _schedule.endTimeEachDay;
+        } else {
+            dateString = _schedule.startTimeEachDay;
+        }
+
+        Date date = null;
+        try {
+            date = _dateFormatHMS.parse(dateString);
+        } catch (ParseException e) {
+            Log.e(LOG_TAG, "Failed to parse date: " + dateString);
+            e.printStackTrace();
+            return null;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar;
+    }
+
+    public void setOnTime(Calendar onTime) {
+        Calendar offTime = getOffTime();
+
+        if ( onTime == null ) {
+            // If we have an off time set, make sure we have exactly one action set to
+            // turn off the device at the startTime.
+            if ( offTime == null ) {
+                // Remove all actions
+                _schedule.scheduleActions = new AylaScheduleAction[0];
+            } else {
+                // Set the off time as the schedule start time, and have one action to turn
+                // the device off
+                setStartTimeEachDay(onTime);
+                _schedule.scheduleActions = new AylaScheduleAction[1];
+                AylaScheduleAction action = _schedule.scheduleActions[0];
+                action.atStart = true;
+                action.atEnd = false;
+                action.value = "0";
+            }
+        } else {
+            if ( offTime != null ) {
+                _schedule.scheduleActions = new AylaScheduleAction[2];
+                AylaScheduleAction action1 = _schedule.scheduleActions[0];
+                AylaScheduleAction action2 = _schedule.scheduleActions[1];
+
+                // See who comes first
+                if ( onTime.compareTo(offTime) < 0 ) {
+                    // onTime comes before offTime
+                    action1.value = "1";
+                    action1.atStart = true;
+                    action1.atEnd = false;
+
+                    action2.value = "0";
+                    action2.atStart = false;
+                    action2.atEnd = true;
+
+                } else {
+                    // onTime comes after offTime
+                    action1.value = "0";
+                    action1.atStart = true;
+                    action1.atEnd = false;
+
+                    action2.value = "1";
+                    action2.atStart = false;
+                    action2.atEnd = true;
+                }
+            }
+        }
+    }
+
+    public void setOffTime(Calendar offTime) {
+        Calendar onTime = getOnTime();
+
+        if ( offTime == null ) {
+            // If we have an on time set, make sure we have exactly one action set to
+            // turn off the device at the startTime.
+            if ( onTime == null ) {
+                // Remove all actions
+                _schedule.scheduleActions = new AylaScheduleAction[0];
+            } else {
+                // Set the on time as the schedule start time, and have one action to turn
+                // the device on
+                setStartTimeEachDay(onTime);
+                _schedule.scheduleActions = new AylaScheduleAction[1];
+                AylaScheduleAction action = _schedule.scheduleActions[0];
+                action.atStart = true;
+                action.atEnd = false;
+                action.value = "1";
+            }
+        } else {
+            if ( onTime != null ) {
+                // There is an on time as well. Set up the actions appropriately
+                _schedule.scheduleActions = new AylaScheduleAction[2];
+                AylaScheduleAction action1 = _schedule.scheduleActions[0];
+                AylaScheduleAction action2 = _schedule.scheduleActions[1];
+
+                // See who comes first
+                if ( offTime.compareTo(onTime) < 0 ) {
+                    // offTime comes before onTime
+                    action1.value = "0";
+                    action1.atStart = true;
+                    action1.atEnd = false;
+
+                    action2.value = "1";
+                    action2.atStart = false;
+                    action2.atEnd = true;
+
+                } else {
+                    // offTime comes after onTime
+                    action1.value = "1";
+                    action1.atStart = true;
+                    action1.atEnd = false;
+
+                    action2.value = "0";
+                    action2.atStart = false;
+                    action2.atEnd = true;
+                }
+            }
+        }
+    }
+
+    public void setIsTimer(boolean isTimer) {
+        if ( isTimer ) {
+            setEndDate(null);
+        } else {
+            setEndDate(Calendar.getInstance());
+        }
     }
 
     public boolean isTimer() {
