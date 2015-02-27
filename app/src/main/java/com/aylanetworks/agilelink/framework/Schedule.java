@@ -105,7 +105,7 @@ public class Schedule {
 
         Calendar result = null;
         if ( date != null ) {
-            result = Calendar.getInstance();
+            result = today();
             result.setTime(date);
         }
 
@@ -131,9 +131,8 @@ public class Schedule {
 
         Calendar result = null;
         if ( date != null ) {
-            result = Calendar.getInstance();
+            result = today();
             result.setTime(date);
-            result.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
 
         return result;
@@ -158,9 +157,8 @@ public class Schedule {
 
         Calendar result = null;
         if ( date != null ) {
-            result = Calendar.getInstance();
+            result = today();
             result.setTime(date);
-            result.setTimeZone(TimeZone.getTimeZone("UTC"));
         }
 
         return result;
@@ -170,6 +168,7 @@ public class Schedule {
         if ( endDate == null ) {
             _schedule.endDate = null;
         } else {
+            endDate.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.endDate = _dateFormatYMD.format(endDate.getTime());
         }
     }
@@ -184,7 +183,7 @@ public class Schedule {
 
         Calendar result = null;
         if ( date != null ) {
-            result = Calendar.getInstance();
+            result = today();
             result.setTime(date);
         }
 
@@ -338,7 +337,7 @@ public class Schedule {
             return null;
         }
 
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = today();
         calendar.setTime(date);
         return calendar;
     }
@@ -374,7 +373,7 @@ public class Schedule {
             return null;
         }
 
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = today();
         calendar.setTime(date);
         return calendar;
     }
@@ -406,6 +405,7 @@ public class Schedule {
                 action.active = true;
             }
         } else {
+            onTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             if ( offTime != null ) {
                 AylaScheduleAction action1 = _schedule.scheduleActions[0];
                 AylaScheduleAction action2 = _schedule.scheduleActions[1];
@@ -478,6 +478,7 @@ public class Schedule {
                 _schedule.scheduleActions[1].active = false;
             }
         } else {
+            offTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             if ( onTime != null ) {
                 // There is an on time as well. Set up the actions appropriately
                 AylaScheduleAction action1 = _schedule.scheduleActions[0];
@@ -529,7 +530,7 @@ public class Schedule {
         if ( isTimer ) {
             setEndDate(null);
         } else {
-            setEndDate(Calendar.getInstance());
+            setEndDate(today());
         }
     }
 
@@ -539,6 +540,12 @@ public class Schedule {
 
     public AylaSchedule getSchedule() {
         return _schedule;
+    }
+
+    protected Calendar today() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return cal;
     }
 
     @Override

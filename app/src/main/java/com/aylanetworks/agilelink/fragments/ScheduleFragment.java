@@ -61,6 +61,8 @@ public class ScheduleFragment extends Fragment {
     private Button _timerTurnOnButton;
     private Button _timerTurnOffButton;
 
+    private boolean _updatingUI;
+
     private static final int[] _weekdayButtonIDs = {
             R.id.button_sunday,
             R.id.button_monday,
@@ -179,6 +181,12 @@ public class ScheduleFragment extends Fragment {
 
 
         _timerTimePicker.setIs24HourView(true);
+        _timerTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+            @Override
+            public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                timerTimeChanged(hourOfDay, minute);
+            }
+        });
         _timerTurnOnButton.setSelected(true);
         _timerTurnOnButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,12 +233,33 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void scheduleTimeChanged(int hourOfDay, int minute) {
+        if ( _updatingUI ) {
+            return;
+        }
+
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
         if (_scheduleOnTimeButton.isSelected()) {
+            _schedule.setOnTime(cal);
+        } else {
+            _schedule.setOffTime(cal);
+        }
+    }
+
+    private void timerTimeChanged(int hourOfDay, int minute) {
+        if ( _updatingUI ) {
+            return;
+        }
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR_OF_DAY, hourOfDay);
+        cal.add(Calendar.MINUTE, minute);
+        cal.set(Calendar.SECOND, 0);
+
+        if (_timerTurnOnButton.isSelected()) {
             _schedule.setOnTime(cal);
         } else {
             _schedule.setOffTime(cal);
@@ -249,6 +278,8 @@ public class ScheduleFragment extends Fragment {
             // Nothing shown except for the switch
             return;
         }
+
+        _updatingUI = true;
 
         int checkedId = _scheduleTypeRadioGroup.getCheckedRadioButtonId();
         if (checkedId == -1) {
@@ -271,34 +302,35 @@ public class ScheduleFragment extends Fragment {
             b.setSelected(_schedule.getDaysOfWeek().contains(i + 1));
         }
 
-        // Update the time pickers
+        // Update the pickers
         Calendar pickerTime;
         Calendar now = Calendar.getInstance();
-        try {
-            if (_timerTurnOnButton.isSelected()) {
-                pickerTime = _schedule.getOnTime();
-                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
-                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
-            } else {
-                pickerTime = _schedule.getOffTime();
-                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
-                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
-            }
 
-            if (pickerTime == null) {
-                pickerTime = Calendar.getInstance();
-                pickerTime.set(Calendar.HOUR_OF_DAY, 0);
-                pickerTime.set(Calendar.MINUTE, 0);
+        // First the timer picker
+        if (_timerTurnOnButton.isSelected()) {
+            pickerTime = _schedule.getOnTime();
+            if (pickerTime != null) {
+                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
+                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
             }
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+        } else {
+            pickerTime = _schedule.getOffTime();
+            if (pickerTime != null) {
+                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
+                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
+            }
+        }
+
+        if (pickerTime == null) {
             pickerTime = Calendar.getInstance();
             pickerTime.set(Calendar.HOUR_OF_DAY, 0);
             pickerTime.set(Calendar.MINUTE, 0);
         }
+
         _timerTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
         _timerTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
 
+        // Now the schedule picker
         if (_scheduleOnTimeButton.isSelected()) {
             // Add the schedule duration
             pickerTime = _schedule.getOnTime();
@@ -307,11 +339,21 @@ public class ScheduleFragment extends Fragment {
         }
 
         if (pickerTime == null) {
-            // Set to the current time
-            pickerTime = Calendar.getInstance();
+            // Set to the on or off time if set, or the current time if not set
+            if ( _scheduleOnTimeButton.isSelected() ) {
+                pickerTime = _schedule.getOffTime();
+            } else {
+                pickerTime = _schedule.getOnTime();
+            }
+
+            if ( pickerTime == null ) {
+                pickerTime = Calendar.getInstance();
+            }
         }
 
         _scheduleTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
         _scheduleTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
+
+        _updatingUI = false;
     }
 }
