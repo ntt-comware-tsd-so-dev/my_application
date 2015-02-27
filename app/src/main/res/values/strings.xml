@@ -222,5 +222,7 @@
     <string name="weekday_letter_thursday">T</string>
     <string name="weekday_letter_friday">F</string>
     <string name="weekday_letter_saturday">S</string>
+    <string name="schedule_updated">The schedule was updated successfully</string>
+    <string name="schedule_update_failed">An error occurred while trying to update the schedule for this device. Please try again later.</string>
 
 </resources>

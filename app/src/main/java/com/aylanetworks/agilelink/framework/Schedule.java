@@ -35,6 +35,7 @@ public class Schedule {
     public Schedule(String scheduleName) {
         _schedule = new AylaSchedule();
         _schedule.name = scheduleName;
+        _schedule.utc = true;
     }
 
     /**
@@ -43,6 +44,7 @@ public class Schedule {
      */
     public Schedule(AylaSchedule schedule) {
         _schedule = schedule;
+        _schedule.utc = true;
     }
 
     /**
@@ -85,8 +87,8 @@ public class Schedule {
         if ( startTime == null ) {
             _schedule.startTimeEachDay = "";
         } else {
-            startTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.startTimeEachDay = _dateFormatHMS.format(startTime.getTime());
+            Log.d(LOG_TAG, "setStartTimeEachDay: " + _schedule.startTimeEachDay);
         }
     }
 
@@ -116,8 +118,8 @@ public class Schedule {
         if ( endTime == null ) {
             _schedule.endTimeEachDay = null;
         } else {
-            endTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.endTimeEachDay = _dateFormatHMS.format(endTime.getTime());
+            Log.d(LOG_TAG, "setEndTimeEachDay: " + _schedule.endTimeEachDay);
         }
     }
 
@@ -142,8 +144,8 @@ public class Schedule {
         if ( startDate == null ) {
             _schedule.startDate = null;
         } else {
-            startDate.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.startDate = _dateFormatYMD.format(startDate.getTime());
+            Log.d(LOG_TAG, "schedule.startDate: " + _schedule.startDate);
         }
     }
 
@@ -168,17 +170,19 @@ public class Schedule {
         if ( endDate == null ) {
             _schedule.endDate = null;
         } else {
-            endDate.setTimeZone(TimeZone.getTimeZone("UTC"));
             _schedule.endDate = _dateFormatYMD.format(endDate.getTime());
+            Log.d(LOG_TAG, "schedule.endDate: " + _schedule.startDate);
         }
     }
 
     public Calendar getEndDate() {
         Date date = null;
-        try {
-            date = _dateFormatYMD.parse(_schedule.endDate);
-        } catch (ParseException e) {
-            Log.d(LOG_TAG, "Invalid date string (endDate): " + _schedule.endDate);
+        if ( _schedule.endDate != null ) {
+            try {
+                date = _dateFormatYMD.parse(_schedule.endDate);
+            } catch (ParseException e) {
+                Log.d(LOG_TAG, "Invalid date string (endDate): " + _schedule.endDate);
+            }
         }
 
         Calendar result = null;
@@ -385,7 +389,6 @@ public class Schedule {
      */
     public void setOnTime(Calendar onTime) {
         Calendar offTime = getOffTime();
-
         if ( onTime == null ) {
             // If we have an off time set, make sure we have exactly one action set to
             // turn off the device at the startTime.
@@ -405,8 +408,8 @@ public class Schedule {
                 action.active = true;
             }
         } else {
-            onTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             if ( offTime != null ) {
+
                 AylaScheduleAction action1 = _schedule.scheduleActions[0];
                 AylaScheduleAction action2 = _schedule.scheduleActions[1];
 
@@ -478,7 +481,6 @@ public class Schedule {
                 _schedule.scheduleActions[1].active = false;
             }
         } else {
-            offTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             if ( onTime != null ) {
                 // There is an on time as well. Set up the actions appropriately
                 AylaScheduleAction action1 = _schedule.scheduleActions[0];
@@ -528,9 +530,9 @@ public class Schedule {
 
     public void setIsTimer(boolean isTimer) {
         if ( isTimer ) {
-            setEndDate(null);
-        } else {
             setEndDate(today());
+        } else {
+            setEndDate(null);
         }
     }
 
@@ -542,9 +544,20 @@ public class Schedule {
         return _schedule;
     }
 
+    public void updateScheduleActions() {
+        _schedule.scheduleActions[0].active = true;
+        _schedule.scheduleActions[0].atStart = true;
+        _schedule.scheduleActions[0].atEnd = false;
+        _schedule.scheduleActions[0].value = "1";
+
+        _schedule.scheduleActions[1].active = true;
+        _schedule.scheduleActions[1].atStart = false;
+        _schedule.scheduleActions[1].atEnd = true;
+        _schedule.scheduleActions[1].value = "0";
+    }
+
     protected Calendar today() {
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         return cal;
     }
 
@@ -566,6 +579,9 @@ public class Schedule {
      */
     static {
         _dateFormatHMS = new SimpleDateFormat("HH:mm:ss");
+        _dateFormatHMS.setTimeZone(TimeZone.getTimeZone("UTC"));
+
         _dateFormatYMD = new SimpleDateFormat("yyyy-MM-dd");
+        _dateFormatYMD.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 }

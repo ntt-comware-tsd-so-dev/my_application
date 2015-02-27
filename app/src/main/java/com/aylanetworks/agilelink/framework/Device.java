@@ -143,6 +143,38 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Updates the schedule on the server
+     * @param schedule Schedule to update on the server
+     */
+    public void updateSchedule(Schedule schedule, DeviceStatusListener listener) {
+        getDevice().updateSchedule(new UpdateScheduleHandler(this, listener),
+                schedule.getSchedule(),
+                schedule.getSchedule().scheduleActions);
+    }
+
+    private static class UpdateScheduleHandler extends Handler {
+        private WeakReference<Device> _device;
+        private DeviceStatusListener _listener;
+
+        public UpdateScheduleHandler(Device device, DeviceStatusListener listener) {
+            _device = new WeakReference<Device>(device);
+            _listener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "updateSchedule results: " + msg);
+
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                _listener.statusUpdated(_device.get(), true);
+            } else {
+                Log.e(LOG_TAG, "updateSchedule failed!");
+                _listener.statusUpdated(_device.get(), false);
+            }
+        }
+    }
+
+    /**
      * Enables or disables notifications of the given type for this device.
      *
      * @param notificationType Type of notification to enable or disable

@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -22,7 +24,9 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Schedule;
@@ -52,6 +56,7 @@ public class ScheduleFragment extends Fragment {
     private LinearLayout _timerScheduleLayout;
     private TimePicker _scheduleTimePicker;
     private TimePicker _timerTimePicker;
+    private Button _saveScheduleButton;
 
     // On / off time buttons for the repeating schedule
     private Button _scheduleOnTimeButton;
@@ -96,7 +101,7 @@ public class ScheduleFragment extends Fragment {
         int scheduleIndex = getArguments().getInt(ARG_SCHEDULE_INDEX);
         _schedule = _device.getSchedules().get(scheduleIndex);
 
-        Log.e(LOG_TAG, "onCreateView(" + _schedule.getName() + ")");
+        Log.d(LOG_TAG, "onCreateView(" + _schedule.getName() + ")");
 
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_schedule, container, false);
@@ -117,6 +122,8 @@ public class ScheduleFragment extends Fragment {
         _timerTurnOnButton = (Button) root.findViewById(R.id.timer_turn_on_button);
         _timerTurnOffButton = (Button) root.findViewById(R.id.timer_turn_off_button);
 
+        _saveScheduleButton = (Button)root.findViewById(R.id.save_schedule);
+
         // Control configuration / setup
         _scheduleEnabledSwitch.setChecked(_schedule.isActive());
         _scheduleEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -127,23 +134,42 @@ public class ScheduleFragment extends Fragment {
         });
         scheduleEnabledChanged(_scheduleEnabledSwitch, _scheduleEnabledSwitch.isChecked());
 
+
         _scheduleTypeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if ( _updatingUI ) {
+                    return;
+                }
+                _schedule.setIsTimer(checkedId == R.id.radio_timer);
                 updateUI();
             }
         });
 
-        _scheduleTitleEditText.setText(_schedule.getName());
+        _scheduleTitleEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                _schedule.setName(s.toString());
+            }
+        });
+
         _scheduleTitleEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_NULL) {
-                    // Save the schedule name and dismiss the keyboard
-                    _schedule.setName(v.getText().toString());
                     InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(_scheduleTitleEditText.getWindowToken(), 0);
-                    _scheduleTypeRadioGroup.requestFocus();
+                    _scheduleEnabledSwitch.requestFocus();
                     return true;
                 }
                 return false;
@@ -228,6 +254,13 @@ public class ScheduleFragment extends Fragment {
             });
         }
 
+        _saveScheduleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveSchedule();
+            }
+        });
+
         updateUI();
         return root;
     }
@@ -243,10 +276,11 @@ public class ScheduleFragment extends Fragment {
         cal.set(Calendar.SECOND, 0);
 
         if (_scheduleOnTimeButton.isSelected()) {
-            _schedule.setOnTime(cal);
+            _schedule.setStartTimeEachDay(cal);
         } else {
-            _schedule.setOffTime(cal);
+            _schedule.setEndTimeEachDay(cal);
         }
+        _schedule.updateScheduleActions();
     }
 
     private void timerTimeChanged(int hourOfDay, int minute) {
@@ -272,8 +306,27 @@ public class ScheduleFragment extends Fragment {
         updateUI();
     }
 
+    private void saveSchedule() {
+        MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
+        _device.updateSchedule(_schedule, new Device.DeviceStatusListener() {
+            @Override
+            public void statusUpdated(Device device, boolean changed) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if (changed) {
+                    Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getActivity(), R.string.schedule_update_failed, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
     private void updateUI() {
         // Make the UI reflect the schedule for this device
+        if ( _schedule != null ) {
+            _scheduleTitleEditText.setText(_schedule.getName());
+        }
+
         if (_schedule == null || !_schedule.isActive()) {
             // Nothing shown except for the switch
             return;
@@ -281,12 +334,10 @@ public class ScheduleFragment extends Fragment {
 
         _updatingUI = true;
 
-        int checkedId = _scheduleTypeRadioGroup.getCheckedRadioButtonId();
-        if (checkedId == -1) {
-            _scheduleTypeRadioGroup.check(R.id.radio_timer);
-        }
+        int checkedId = _schedule.isTimer() ? R.id.radio_timer : R.id.radio_repeating;
+        _scheduleTypeRadioGroup.check(checkedId);
 
-        if (_scheduleTypeRadioGroup.getCheckedRadioButtonId() == R.id.radio_timer) {
+        if (checkedId == R.id.radio_timer) {
             _timerScheduleLayout.setVisibility(View.VISIBLE);
             _fullScheduleLayout.setVisibility(View.GONE);
         } else {
@@ -298,7 +349,6 @@ public class ScheduleFragment extends Fragment {
         for (int i = 0; i < 7; i++) {
             Button b = (Button) _fullScheduleLayout.findViewById(_weekdayButtonIDs[i]);
             Set<Integer> days = _schedule.getDaysOfWeek();
-            Log.d(LOG_TAG, "Days: " + days);
             b.setSelected(_schedule.getDaysOfWeek().contains(i + 1));
         }
 
