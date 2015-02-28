@@ -308,6 +308,13 @@ public class ScheduleFragment extends Fragment {
 
     private void saveSchedule() {
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
+        _schedule.setStartDate(Calendar.getInstance());
+        if ( _schedule.isTimer() ) {
+            _schedule.setEndDate(Calendar.getInstance());
+        }
+        Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
+        Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().endDate);
+
         _device.updateSchedule(_schedule, new Device.DeviceStatusListener() {
             @Override
             public void statusUpdated(Device device, boolean changed) {

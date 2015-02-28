@@ -52,7 +52,7 @@ public class Schedule {
      * @param name The name for the schedule
      */
     public void setName(String name) {
-        _schedule.name = name;
+        _schedule.displayName = name;
     }
 
     /**
@@ -60,7 +60,7 @@ public class Schedule {
      * @return the name of the schedule
      */
     public String getName() {
-        return _schedule.name;
+        return _schedule.displayName;
     }
 
     /**
