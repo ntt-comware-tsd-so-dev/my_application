@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:animateLayoutChanges="true"
-            android:background="@color/detail_background"
+            android:background="@color/device_details_background"
             tools:context="com.aylanetworks.agilelink.fragments.ScheduleFragment">
 
             <LinearLayout
@@ -76,7 +76,7 @@
                 android:animateLayoutChanges="true"
                 android:layout_below="@id/schedule_enabled_switch"
                 android:layout_marginBottom="8dp"
-                android:background="@color/detail_background"
+                android:background="@color/schedule_background"
                 >
                 <!-- One-shot or repeating -->
                 <LinearLayout
@@ -86,7 +86,7 @@
                     android:layout_alignParentTop="true"
                     android:layout_marginTop="8dp"
                     android:animateLayoutChanges="true"
-                    android:background="@color/light_green_200"
+                    android:background="@color/schedule_type_background"
                     android:orientation="vertical">
 
                     <RadioGroup
@@ -157,7 +157,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_sunday"
                                 android:textColor="@android:color/white"/>
 
@@ -167,7 +167,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_monday"
                                 android:textColor="@android:color/white"/>
 
@@ -177,7 +177,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_tuesday"
                                 android:textColor="@android:color/white"/>
 
@@ -187,7 +187,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_wednesday"
                                 android:textColor="@android:color/white"/>
 
@@ -197,7 +197,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_thursday"
                                 android:textColor="@android:color/white"/>
 
@@ -207,7 +207,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_friday"
                                 android:textColor="@android:color/white"/>
 
@@ -217,7 +217,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/oval"
+                                android:background="@drawable/weekday_button"
                                 android:text="@string/weekday_letter_saturday"
                                 android:textColor="@android:color/white"/>
                         </LinearLayout>

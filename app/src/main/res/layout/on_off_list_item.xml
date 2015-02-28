@@ -2,13 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="horizontal"
               android:layout_width="match_parent"
-              android:background="@color/list_background"
+              android:background="@color/card_background"
               android:layout_height="wrap_content">
     <Switch
         style="@style/DeviceListItemTextView"
         android:textStyle="bold"
         android:layout_margin="10dp"
         android:id="@+id/toggle_switch"
+        android:textColor="@color/card_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

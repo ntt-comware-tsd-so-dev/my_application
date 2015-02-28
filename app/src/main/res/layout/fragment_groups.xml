@@ -20,7 +20,7 @@
         android:layout_marginEnd="@dimen/add_button_margin"
         android:layout_marginRight="@dimen/add_button_margin"
         android:tint="@android:color/white"
-        android:background="@drawable/oval"
+        android:background="@drawable/weekday_button"
         android:elevation="@dimen/elevation_low"
         android:src="@android:drawable/ic_input_add"/>
 

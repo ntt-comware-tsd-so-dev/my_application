@@ -129,10 +129,10 @@ public class ScheduleFragment extends Fragment {
         _scheduleEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                scheduleEnabledChanged((Switch) buttonView, isChecked);
+                scheduleEnabledChanged(isChecked);
             }
         });
-        scheduleEnabledChanged(_scheduleEnabledSwitch, _scheduleEnabledSwitch.isChecked());
+        scheduleEnabledChanged(_scheduleEnabledSwitch.isChecked());
 
 
         _scheduleTypeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -300,7 +300,7 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
-    private void scheduleEnabledChanged(Switch scheduleEnabledSwitch, boolean isChecked) {
+    private void scheduleEnabledChanged(boolean isChecked) {
         _schedule.setActive(isChecked);
         _scheduleDetailsLayout.setVisibility((isChecked ? View.VISIBLE : View.GONE));
         updateUI();

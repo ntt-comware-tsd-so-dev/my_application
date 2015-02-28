@@ -279,34 +279,52 @@
 
 
     <!-- Application configuration colors -->
-    <color name="app_background">#888888</color>
-    <color name="app_foreground">#FFFFFF</color>
 
-    <!-- Colors for list views -->
-    <color name="list_background">#FFFFFF</color>
-    <color name="list_foreground">#000000</color>
+    <color name="app_background">@color/light_green_200</color>
+    <color name="app_foreground">@android:color/white</color>
+    <color name="title_bar">@color/light_green_700</color>
 
-    <!-- Colors for selected list items -->
-    <color name="list_bg_selected">@color/light_green_400</color>
+    <!-- Colors for card views -->
+    <color name="card_background">@android:color/white</color>
+    <color name="card_text">@android:color/black</color>
+
+    <!-- Default button background gradients -->
+    <color name="button_start">@color/light_green_200</color>
+    <color name="button_end">@color/light_green_400</color>
+    <color name="button_selected_start">@color/light_green_400</color>
+    <color name="button_selected_end">@color/light_green_800</color>
+
+    <!-- Colors for normal or selected list items -->
     <color name="list_bg_normal">@android:color/white</color>
+    <color name="list_bg_selected">@color/light_green_400</color>
+
+    <!-- Color for the round "+" button -->
+    <color name="add_button_bg">@color/light_green_500</color>
+    <color name="add_button_fg">@android:color/white</color>
 
     <!-- Colors for detail views -->
-    <color name="detail_background">#FFFFFF</color>
-    <color name="bar_background">#888888</color>
+    <color name="device_details_background">@android:color/white</color>
+    <color name="device_details_bottom_bar_background">@color/grey_800</color>
+
+    <!-- Colors for the schedule page -->
+    <color name="schedule_background">@android:color/white</color>
+    <color name="schedule_type_background">@color/light_green_200</color>
+    <color name="schedule_weekday_button_selected">@color/light_green_800</color>
+    <color name="schedule_weekday_button_deselected">@color/grey_600</color>
+
+    <!-- Colors for the WiFi Setup page -->
+    <color name="wifi_setup_background">@android:color/white</color>
+    <color name="wifi_setup_no_devices_text">@color/light_green_800</color>
 
     <!-- Colors for destructive operations, such as deleting, unregistering, etc. -->
-    <color name="destructive_bg">#AA0000</color>
+    <color name="destructive_bg">@color/red_900</color>
     <color name="destructive_fg">#FFFFFF</color>
 
-    <!-- Device-specific colors -->
+    <!-- Colors of the bars under the blue / green bulbs -->
     <color name="blue_bulb_bg">#88003388</color>
     <color name="green_bulb_bg">#88008800</color>
 
-    <!-- Standard colors -->
-    <color name="blue">#0000FF</color>
-    <color name="dark_blue">#000066</color>
-    <color name="green">#00FF00</color>
-    <color name="dark_green">#006600</color>
-    <color name="cyan">#00FFFF</color>
+    <!-- Color of the link text on the login screen -->
     <color name="link">#00688B</color>
-</resources>
+
+ </resources>
