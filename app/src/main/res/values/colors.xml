@@ -280,26 +280,29 @@
 
     <!-- Application configuration colors -->
 
-    <color name="app_background">@color/light_green_200</color>
-    <color name="app_foreground">@android:color/white</color>
-    <color name="title_bar">@color/light_green_700</color>
+    <color name="app_theme_primary">@color/dark_purple_500</color>
+    <color name="app_theme_primary_dark">@color/dark_purple_900</color>
+    <color name="app_theme_accent">@color/dark_purple_A400</color>
+
+    <color name="title_bar">@color/dark_purple_700</color>
+    <color name="title_bar_text">@android:color/white</color>
 
     <!-- Colors for card views -->
     <color name="card_background">@android:color/white</color>
     <color name="card_text">@android:color/black</color>
 
     <!-- Default button background gradients -->
-    <color name="button_start">@color/light_green_200</color>
-    <color name="button_end">@color/light_green_400</color>
-    <color name="button_selected_start">@color/light_green_400</color>
-    <color name="button_selected_end">@color/light_green_800</color>
+    <color name="button_start">@color/dark_purple_200</color>
+    <color name="button_end">@color/dark_purple_400</color>
+    <color name="button_selected_start">@color/dark_purple_400</color>
+    <color name="button_selected_end">@color/dark_purple_800</color>
 
     <!-- Colors for normal or selected list items -->
     <color name="list_bg_normal">@android:color/white</color>
-    <color name="list_bg_selected">@color/light_green_400</color>
+    <color name="list_bg_selected">@color/dark_purple_400</color>
 
     <!-- Color for the round "+" button -->
-    <color name="add_button_bg">@color/light_green_500</color>
+    <color name="add_button_bg">@color/dark_purple_500</color>
     <color name="add_button_fg">@android:color/white</color>
 
     <!-- Colors for detail views -->
@@ -308,13 +311,13 @@
 
     <!-- Colors for the schedule page -->
     <color name="schedule_background">@android:color/white</color>
-    <color name="schedule_type_background">@color/light_green_200</color>
-    <color name="schedule_weekday_button_selected">@color/light_green_800</color>
+    <color name="schedule_type_background">@color/dark_purple_200</color>
+    <color name="schedule_weekday_button_selected">@color/dark_purple_800</color>
     <color name="schedule_weekday_button_deselected">@color/grey_600</color>
 
     <!-- Colors for the WiFi Setup page -->
     <color name="wifi_setup_background">@android:color/white</color>
-    <color name="wifi_setup_no_devices_text">@color/light_green_800</color>
+    <color name="wifi_setup_no_devices_text">@color/dark_purple_800</color>
 
     <!-- Colors for destructive operations, such as deleting, unregistering, etc. -->
     <color name="destructive_bg">@color/red_900</color>
