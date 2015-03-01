@@ -273,7 +273,21 @@ public class Device implements Comparable<Device> {
         @Override
         public void handleMessage(Message msg) {
 
+            if (_device == null) {
+                Log.e(LOG_TAG, "Device _device is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
+                return;
+            }
+
+            if (_device.get() == null) {
+                Log.e(LOG_TAG, "Device _device.get() is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
+                return;
+            }
             AylaDevice d = _device.get().getDevice();
+
+            if (d == null) {
+                Log.e(LOG_TAG, "AylaDevice d is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
+                return;
+            }
 
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 // Update our properties
