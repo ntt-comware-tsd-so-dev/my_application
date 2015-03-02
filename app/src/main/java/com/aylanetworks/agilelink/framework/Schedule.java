@@ -552,15 +552,19 @@ public class Schedule {
     }
 
     public void updateScheduleActions() {
-        _schedule.scheduleActions[0].active = true;
-        _schedule.scheduleActions[0].atStart = true;
-        _schedule.scheduleActions[0].atEnd = false;
-        _schedule.scheduleActions[0].value = "1";
+        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length >= 2 ) {
+            _schedule.scheduleActions[0].active = true;
+            _schedule.scheduleActions[0].atStart = true;
+            _schedule.scheduleActions[0].atEnd = false;
+            _schedule.scheduleActions[0].value = "1";
 
-        _schedule.scheduleActions[1].active = true;
-        _schedule.scheduleActions[1].atStart = false;
-        _schedule.scheduleActions[1].atEnd = true;
-        _schedule.scheduleActions[1].value = "0";
+            _schedule.scheduleActions[1].active = true;
+            _schedule.scheduleActions[1].atStart = false;
+            _schedule.scheduleActions[1].atEnd = true;
+            _schedule.scheduleActions[1].value = "0";
+        } else {
+            Log.e(LOG_TAG, "Actions not set up for schedule- ignoring");
+        }
     }
 
     protected Calendar today() {
