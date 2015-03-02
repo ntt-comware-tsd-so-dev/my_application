@@ -636,6 +636,11 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Returns true if newDeviceList differs from our previous version (_deviceList) */
     private boolean deviceListChanged(List<Device>newDeviceList) {
+        if ( newDeviceList != null ) {
+            // Sort the new list of devices
+            Collections.sort(newDeviceList, _deviceComparator);
+        }
+
         if ( _deviceList == null && newDeviceList != null ) {
             return true;
         }
@@ -652,8 +657,6 @@ public class DeviceManager implements DeviceStatusListener {
             return true;
         }
 
-        // Sort the new list of devices
-        Collections.sort(newDeviceList, _deviceComparator);
 
         // See if any of the devices have changed.
         for ( int i = 0; i < _deviceList.size(); i++ ) {
