@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,6 +77,9 @@ public class ScheduleContainerFragment extends Fragment {
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             TextView tv = new TextView(getActivity());
+            tv.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            tv.setTextColor(getResources().getColor(R.color.app_theme_primary_dark));
+            tv.setGravity(Gravity.CENTER);
             tv.setText(R.string.no_schedules_found);
             return tv;
         }
@@ -93,7 +97,6 @@ public class ScheduleContainerFragment extends Fragment {
                 return new EmptyFragment();
             }
 
-            Schedule schedule = _device.getSchedules().get(position);
             ScheduleFragment frag = ScheduleFragment.newInstance(_device, position);
             return frag;
         }
