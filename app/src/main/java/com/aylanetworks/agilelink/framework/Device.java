@@ -25,9 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
+/*
+ * Device.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/22/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class Device implements Comparable<Device> {
 
     public interface DeviceStatusListener {

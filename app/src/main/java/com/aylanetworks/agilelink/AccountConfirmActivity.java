@@ -6,8 +6,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-/**
+/*
+ * AccountConfirmActivity.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/9/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
 public class AccountConfirmActivity extends Activity {
     private final static String LOG_TAG = "AccountConfirmActivity";

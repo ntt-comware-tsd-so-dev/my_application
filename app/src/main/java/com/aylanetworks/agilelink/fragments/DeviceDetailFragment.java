@@ -35,7 +35,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * DeviceDetailFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/15/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
 public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener {
     public final static String LOG_TAG = "DeviceDetailFragment";

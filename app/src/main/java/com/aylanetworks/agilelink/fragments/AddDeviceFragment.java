@@ -41,9 +41,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
+ * AddDeviceFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/21/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSelectedListener, View.OnClickListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 

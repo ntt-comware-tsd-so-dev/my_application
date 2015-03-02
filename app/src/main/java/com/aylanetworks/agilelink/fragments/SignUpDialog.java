@@ -24,9 +24,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
 
-/**
+/*
+ * SignUpDialog.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/20/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SignUpDialog extends Dialog implements View.OnClickListener {
 
     public interface SignUpListener {

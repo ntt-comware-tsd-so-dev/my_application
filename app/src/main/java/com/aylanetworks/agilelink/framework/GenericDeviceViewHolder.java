@@ -9,9 +9,14 @@ import android.widget.TextView;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 
-/**
+/*
+ * GenericDeviceViewHolder.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/23/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
     private static final String LOG_TAG = "GenericDeviceViewHolder";
 

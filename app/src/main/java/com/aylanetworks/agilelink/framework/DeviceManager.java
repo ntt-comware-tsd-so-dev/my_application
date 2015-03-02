@@ -27,9 +27,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-/**
+/*
+ * DeviceManager.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceManager implements DeviceStatusListener {
     /** Interfaces */
     public interface DeviceListListener {

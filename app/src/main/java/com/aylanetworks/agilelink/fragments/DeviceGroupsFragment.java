@@ -29,9 +29,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
+ * DeviceGroupsFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/5/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceGroupsFragment extends AllDevicesFragment {
     private static final String LOG_TAG = "DeviceGroupsFragment";
 

@@ -37,9 +37,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Main UI for the demo app.
+/*
+ * PushNotification.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 2/5/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class PushNotification extends AylaSystemUtils {
 
     public static final String EXTRA_MESSAGE = "message";

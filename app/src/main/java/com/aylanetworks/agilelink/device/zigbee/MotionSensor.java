@@ -8,9 +8,14 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
-/**
+/*
+ * MotionSensor.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class MotionSensor extends Device {
     public MotionSensor(AylaDevice aylaDevice) {
         super(aylaDevice);

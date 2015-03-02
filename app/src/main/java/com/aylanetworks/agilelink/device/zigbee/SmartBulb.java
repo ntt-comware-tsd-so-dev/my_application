@@ -8,9 +8,14 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
-/**
+/*
+ * SmartBulb.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SmartBulb extends Device {
     public SmartBulb(AylaDevice aylaDevice) {
         super(aylaDevice);

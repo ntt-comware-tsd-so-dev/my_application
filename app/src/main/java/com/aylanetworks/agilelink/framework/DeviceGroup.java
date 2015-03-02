@@ -28,9 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
+/*
+ * DeviceGroup.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/5/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceGroup {
     private final static String LOG_TAG = "DeviceGroup";
 

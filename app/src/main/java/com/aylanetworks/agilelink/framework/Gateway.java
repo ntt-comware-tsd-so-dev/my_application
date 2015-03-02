@@ -11,9 +11,14 @@ import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 
-/**
+/*
+ * Gateway.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/22/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class Gateway extends Device {
     private final String LOG_TAG = "Gateway";
 
