@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -9,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -70,6 +72,15 @@ public class ScheduleContainerFragment extends Fragment {
         _adapter.notifyDataSetChanged();
     }
 
+    public static class EmptyFragment extends Fragment {
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            TextView tv = new TextView(getActivity());
+            tv.setText(R.string.no_schedules_found);
+            return tv;
+        }
+    }
+
     public class SchedulePagerAdapter extends FragmentPagerAdapter {
 
         public SchedulePagerAdapter(FragmentManager fm) {
@@ -78,6 +89,10 @@ public class ScheduleContainerFragment extends Fragment {
 
         @Override
         public Fragment getItem(int position) {
+            if ( _device.getSchedules().size() == 0 ) {
+                return new EmptyFragment();
+            }
+
             Schedule schedule = _device.getSchedules().get(position);
             ScheduleFragment frag = ScheduleFragment.newInstance(_device, position);
             return frag;
@@ -85,11 +100,20 @@ public class ScheduleContainerFragment extends Fragment {
 
         @Override
         public int getCount() {
+            int count = _device.getSchedules().size();
+            if ( count == 0 ) {
+                return 1;
+            }
+
             return _device.getSchedules().size();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
+            if ( _device.getSchedules().size() == 0 ) {
+                return getString(R.string.no_schedules_found);
+            }
+
             return _device.getSchedules().get(position).getName();
         }
     }

@@ -324,7 +324,7 @@ public class Schedule {
     @Nullable
     public Calendar getOnTime() {
         boolean offTimeAtEnd = true;
-        if ( _schedule.scheduleActions != null ) {
+        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length > 0 ) {
             AylaScheduleAction action = _schedule.scheduleActions[0];
             if (action.active && (action.atEnd && action.value.equals("1")) ||
                     (action.atStart && action.value.equals("0"))) {
@@ -360,7 +360,7 @@ public class Schedule {
     @Nullable
     public Calendar getOffTime() {
         boolean offTimeAtEnd = true;
-        if ( _schedule.scheduleActions != null ) {
+        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length > 0 ) {
             AylaScheduleAction action = _schedule.scheduleActions[0];
             if (action.active && (action.atEnd && action.value.equals("1")) ||
                     (action.atStart && action.value.equals("0"))) {
