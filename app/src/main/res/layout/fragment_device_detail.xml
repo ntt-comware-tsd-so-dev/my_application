@@ -46,18 +46,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_below="@id/device_properties"
-        android:layout_above="@+id/unregister_device"
-        android:id="@+id/listView"/>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:background="@color/destructive_bg"
-        android:textColor="@color/destructive_fg"
-        android:text="@string/unregister_device"
         android:layout_above="@+id/bottom_button_row"
-        android:id="@+id/unregister_device"/>
+        android:id="@+id/listView"/>
 
     <!-- Layout for the button row at the bottom -->
 
@@ -70,35 +60,23 @@
         android:baselineAligned="false"
         android:id="@+id/bottom_button_row">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center">
-
             <Button
-                android:layout_width="fill_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="center"
+                android:layout_margin="4dp"
                 android:text="@string/notifications"
                 android:id="@+id/notifications_button"/>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_weight="1">
-
             <Button
-                android:layout_width="fill_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="center"
+                android:layout_margin="4dp"
                 android:text="@string/schedule"
                 android:id="@+id/schedule_button"/>
-
-        </LinearLayout>
 
     </LinearLayout>
 

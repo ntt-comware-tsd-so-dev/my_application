@@ -41,7 +41,6 @@
         android:layout_gravity="center_horizontal|bottom"
         android:layout_margin="10dp"
         android:layout_weight="0"
-        android:background="@drawable/button_bg"
         android:text="@string/scan"
         />
 

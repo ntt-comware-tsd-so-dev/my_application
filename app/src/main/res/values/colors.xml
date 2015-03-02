@@ -297,6 +297,9 @@
 
     <color name="app_theme_window_background">@android:color/white</color>
 
+    <!-- Button foreground (text) color. Background is @drawable/button_bg -->
+    <color name="button_fg">@android:color/white</color>
+
     <!-- Specific color assignments -->
 
     <color name="title_bar">@color/app_theme_primary_medium_dark</color>
@@ -322,7 +325,7 @@
 
     <!-- Colors for detail views -->
     <color name="device_details_background">@color/app_theme_window_background</color>
-    <color name="device_details_bottom_bar_background">@color/app_theme_primary_medium_dark</color>
+    <color name="device_details_bottom_bar_background">@color/app_theme_primary_dark</color>
 
     <!-- Colors for the schedule page -->
     <color name="schedule_background">@color/app_theme_window_background</color>

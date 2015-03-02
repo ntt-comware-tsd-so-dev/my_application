@@ -129,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/radio_button_layout"
                     android:orientation="vertical"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
 
                     <!-- Schedule Days -->
@@ -152,9 +152,10 @@
                             >
 
                             <Button
+                                style="@android:style/Widget.Button"
                                 android:id="@+id/button_sunday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -164,7 +165,7 @@
                             <Button
                                 android:id="@+id/button_monday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -174,7 +175,7 @@
                             <Button
                                 android:id="@+id/button_tuesday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -184,7 +185,7 @@
                             <Button
                                 android:id="@+id/button_wednesday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -194,7 +195,7 @@
                             <Button
                                 android:id="@+id/button_thursday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -204,7 +205,7 @@
                             <Button
                                 android:id="@+id/button_friday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -214,7 +215,7 @@
                             <Button
                                 android:id="@+id/button_saturday"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
                                 android:layout_margin="4dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/weekday_button"
@@ -244,7 +245,6 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/button_bg"
                                 android:text="@string/on"/>
 
                             <Button
@@ -253,7 +253,6 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
                                 android:layout_weight="1"
-                                android:background="@drawable/button_bg"
                                 android:text="@string/off"/>
 
                         </LinearLayout>
@@ -291,7 +290,6 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
                             android:layout_weight="1"
-                            android:background="@drawable/button_bg"
                             android:text="@string/on"/>
 
                         <Button
@@ -300,7 +298,6 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
                             android:layout_weight="1"
-                            android:background="@drawable/button_bg"
                             android:text="@string/off"/>
 
                     </LinearLayout>
@@ -325,7 +322,6 @@
         android:layout_alignParentBottom="true"
         android:layout_gravity="center_horizontal|bottom"
         android:layout_margin="10dp"
-        android:background="@drawable/button_bg"
         android:text="@string/save_schedule"
         />
 </RelativeLayout>
