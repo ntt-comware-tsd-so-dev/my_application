@@ -15,8 +15,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 
-/**
+/*
+ * DeviceGroup.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/23/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
 /**

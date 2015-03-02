@@ -11,9 +11,14 @@ import com.aylanetworks.agilelink.R;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
+ * DeviceCreator.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/23/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceCreator {
     public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
 

@@ -13,9 +13,14 @@ import com.aylanetworks.agilelink.framework.Device;
 
 import java.util.List;
 
-/**
+/*
+ * DeviceTypeAdapter.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/27/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceTypeAdapter extends ArrayAdapter<Device> {
 
     public DeviceTypeAdapter(Context c, Device[] objects) {

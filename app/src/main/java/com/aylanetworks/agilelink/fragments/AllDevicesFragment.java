@@ -31,13 +31,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.List;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Large screen devices (such as tablets) are supported by replacing the ListView
- * with a GridView.
- * <p/>
+/*
+ * AllDevicesFragment.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 12/30/2014.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class AllDevicesFragment extends Fragment
         implements Device.DeviceStatusListener,
         DeviceManager.DeviceListListener, SessionManager.SessionListener, View.OnClickListener {

@@ -23,9 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
+/*
+ * GroupManager.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/9/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class GroupManager {
     private final static String LOG_TAG = "GroupManager";
     private boolean _isDirty;

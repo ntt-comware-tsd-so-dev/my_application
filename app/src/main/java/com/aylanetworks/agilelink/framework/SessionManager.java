@@ -25,8 +25,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/*
+ * SessionManager.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
+ */
+
 /**
- * Created by Brian  King on 12/19/14.
  * The SessionManager class is used to manage the login session with the Ayla service, as well as
  * polling the list of devices.
  */

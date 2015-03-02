@@ -13,9 +13,14 @@ import com.aylanetworks.agilelink.framework.Device;
 
 import java.util.ArrayList;
 
-/**
+/*
+ * DoorSensor.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DoorSensor extends Device {
     private static String LOG_TAG = "DoorSensor";
 

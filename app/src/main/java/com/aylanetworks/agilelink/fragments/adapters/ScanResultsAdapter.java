@@ -9,9 +9,14 @@ import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaHostScanResults;
 
-/**
+/*
+ * ScanResultsAdapter.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/28/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class ScanResultsAdapter extends ArrayAdapter<AylaHostScanResults> {
     public ScanResultsAdapter(Context c, AylaHostScanResults[] objects) {
         super(c, android.R.layout.simple_list_item_1, objects);

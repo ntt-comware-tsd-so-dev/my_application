@@ -22,9 +22,14 @@ import com.aylanetworks.agilelink.framework.Device;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/**
+/*
+ * SmartPlug.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SmartPlug extends Device implements CompoundButton.OnCheckedChangeListener {
     private final static String LOG_TAG = "SmartPlug";
     private final static String PROPERTY_SWITCH_ON = "1_in_0x0006_0x0000";

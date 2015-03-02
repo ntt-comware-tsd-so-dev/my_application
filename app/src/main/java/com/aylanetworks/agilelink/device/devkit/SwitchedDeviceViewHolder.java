@@ -7,9 +7,14 @@ import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
 
-/**
+/*
+ * SwitchedDeviceViewHolder.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/5/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SwitchedDeviceViewHolder extends RecyclerView.ViewHolder {
     public ImageButton _switchButton;
     public TextView _deviceNameTextView;

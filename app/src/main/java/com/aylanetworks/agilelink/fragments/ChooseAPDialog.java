@@ -26,9 +26,14 @@ import com.aylanetworks.agilelink.R;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Brian King on 1/28/15.
+/*
+ * ChooseAPDialog.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 1/28/2015.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItemClickListener, TextWatcher, TextView.OnEditorActionListener {
 
     private final static String LOG_TAG = "ChooseAPDialog";

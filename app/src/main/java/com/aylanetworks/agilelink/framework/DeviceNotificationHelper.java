@@ -16,9 +16,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
+/*
+ * DeviceNotificationHelper.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/17/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceNotificationHelper {
     private static final String LOG_TAG = "DNHelper";
 

@@ -16,9 +16,14 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Schedule;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-/**
- * A simple {@link Fragment} subclass.
+/*
+ * ScheduleContainerFragment.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 2/17/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class ScheduleContainerFragment extends Fragment {
     private final static String ARG_DEVICE_DSN = "deviceDSN";
 
