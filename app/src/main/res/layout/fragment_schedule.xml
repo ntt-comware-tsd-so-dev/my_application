@@ -39,8 +39,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingRight="6dp"
-                    android:textStyle="bold"
-                    android:text="@string/schedule_name"/>
+                    android:text="@string/schedule_name"
+                    android:textStyle="bold"/>
 
                 <EditText
                     android:id="@+id/schedule_title_edittext"
@@ -49,8 +49,8 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
                     android:inputType="textCapWords|textNoSuggestions"
-                    android:textStyle="italic"
                     android:singleLine="true"
+                    android:textStyle="italic"
                     />
             </LinearLayout>
 
@@ -73,9 +73,9 @@
                 android:id="@+id/schedule_details_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:animateLayoutChanges="true"
                 android:layout_below="@id/schedule_enabled_switch"
                 android:layout_marginBottom="8dp"
+                android:animateLayoutChanges="true"
                 android:background="@color/schedule_background"
                 >
                 <!-- One-shot or repeating -->
@@ -129,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/radio_button_layout"
                     android:orientation="vertical"
-                    android:visibility="visible">
+                    android:visibility="gone">
 
 
                     <!-- Schedule Days -->
@@ -258,30 +258,16 @@
 
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+
+                        <TimePicker
+                            android:id="@+id/time_on_off_picker"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="8dp"
-                            android:layout_marginRight="8dp">
-
-                            <TextView
-                                style="@android:style/TextAppearance.Medium"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
-                                android:layout_weight="1"
-                                android:text="@string/on"/>
-
-                            <TimePicker
-                                android:id="@+id/time_on_off_picker"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:layout_margin="6dp"
-                                android:timePickerMode="spinner"/>
+                            android:layout_gravity="center_horizontal"
+                            android:layout_margin="6dp"
+                            android:timePickerMode="spinner"/>
 
 
-                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -293,52 +279,39 @@
                     android:layout_below="@id/radio_button_layout"
                     android:layout_margin="8dp"
                     android:orientation="vertical"
-                    android:visibility="gone">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <Button
-                                android:id="@+id/timer_turn_on_button"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/button_bg"
-                                android:text="@string/on"/>
-
-                            <Button
-                                android:id="@+id/timer_turn_off_button"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/button_bg"
-                                android:text="@string/off"/>
-
-                        </LinearLayout>
+                    android:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <TextView
-                            style="@android:style/TextAppearance.Medium"
+                        <Button
+                            android:id="@+id/timer_turn_on_button"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_margin="6dp"
-                            android:text="@string/device_in"/>
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/button_bg"
+                            android:text="@string/on"/>
+
+                        <Button
+                            android:id="@+id/timer_turn_off_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/button_bg"
+                            android:text="@string/off"/>
+
+                    </LinearLayout>
 
                         <TimePicker
                             android:id="@+id/timer_duration_picker"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
-                            android:layout_margin="6dp"
+                            android:layout_margin="16dp"
                             android:timePickerMode="spinner"/>
-                    </LinearLayout>
                 </LinearLayout>
             </RelativeLayout>
 
