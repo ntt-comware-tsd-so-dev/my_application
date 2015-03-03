@@ -1,0 +1,4 @@
+keystore password: aylarocks
+key alias: AgileLink
+key password: @agilelink123
+
