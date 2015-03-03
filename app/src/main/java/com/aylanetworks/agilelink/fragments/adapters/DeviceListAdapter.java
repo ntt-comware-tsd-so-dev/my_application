@@ -14,9 +14,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.List;
 
-/**
+/*
+ * DeviceListAdapter.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/30/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 
 /**
  * Default list adapter for displaying devices. Used by the AllDevicesFragment.

@@ -27,9 +27,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/**
+/*
+ * DevkitDevice.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/14/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DevkitDevice extends Device implements View.OnClickListener {
     private static final String LOG_TAG = "DevkitDevice";
 

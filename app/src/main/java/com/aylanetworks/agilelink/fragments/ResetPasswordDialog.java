@@ -31,9 +31,14 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
+/*
+ * ResetPasswordDialog.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/11/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class ResetPasswordDialog extends DialogFragment {
     private static final String LOG_TAG = "ResetPasswordDialog";
 

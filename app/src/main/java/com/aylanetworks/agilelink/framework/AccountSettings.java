@@ -22,10 +22,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
+/*
+ * AccountSettings.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/17/15.
- * Class used to store / retrieve AylaDatum-based settings for the account
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class AccountSettings {
     private static final String LOG_TAG = "AccountSettings";
 

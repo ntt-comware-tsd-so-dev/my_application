@@ -21,9 +21,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/**
+/*
+ * SwitchedDevice.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/4/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SwitchedDevice extends Device implements View.OnClickListener {
     private final static String LOG_TAG = "SwitchedDevice";
     public final static String PROPERTY_OUTLET = "outlet1";

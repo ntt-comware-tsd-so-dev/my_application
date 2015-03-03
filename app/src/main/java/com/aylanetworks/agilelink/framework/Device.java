@@ -25,9 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
+/*
+ * Device.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/22/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class Device implements Comparable<Device> {
 
     public interface DeviceStatusListener {
@@ -273,15 +278,11 @@ public class Device implements Comparable<Device> {
         @Override
         public void handleMessage(Message msg) {
 
-            if (_device == null) {
-                Log.e(LOG_TAG, "Device _device is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
-                return;
-            }
-
             if (_device.get() == null) {
                 Log.e(LOG_TAG, "Device _device.get() is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
                 return;
             }
+
             AylaDevice d = _device.get().getDevice();
 
             if (d == null) {

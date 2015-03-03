@@ -23,9 +23,14 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Brian King on 2/4/15.
+/*
+ * EditProfileDialog.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 2/4.15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class EditProfileDialog extends Dialog implements View.OnClickListener {
     private final static String LOG_TAG = "EditProfileDialog";
 

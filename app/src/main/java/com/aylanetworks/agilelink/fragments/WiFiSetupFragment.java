@@ -34,9 +34,14 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
+/*
+ * WiFiSetupFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/28/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
         AdapterView.OnItemClickListener, ChooseAPDialog.ChooseAPResults {
     private static final String LOG_TAG = "WiFiSetupFragment";

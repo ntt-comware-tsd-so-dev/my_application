@@ -35,9 +35,14 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
+/*
+ * SignInDialog.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/30/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SignInDialog extends DialogFragment {
     public static final String ARG_USERNAME = "username";
     public static final String ARG_PASSWORD = "password";
@@ -76,7 +81,7 @@ public class SignInDialog extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.AppTheme);
     }
 
     @Override

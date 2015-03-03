@@ -35,9 +35,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.util.Calendar;
 import java.util.Set;
 
-/**
- * Fragment for presenting scheduling UI
+/*
+ * ScheduleFragment.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 2/17/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class ScheduleFragment extends Fragment {
     private final static String LOG_TAG = "ScheduleFragment";
 

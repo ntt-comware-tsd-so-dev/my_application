@@ -26,9 +26,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
+/*
+ * SettingsFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/28/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class SettingsFragment extends Fragment implements AdapterView.OnItemClickListener {
     private final static String LOG_TAG = "SettingsFragment";
     private ListView _listView;

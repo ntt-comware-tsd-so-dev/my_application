@@ -224,5 +224,6 @@
     <string name="weekday_letter_saturday">S</string>
     <string name="schedule_updated">The schedule was updated successfully</string>
     <string name="schedule_update_failed">An error occurred while trying to update the schedule for this device. Please try again later.</string>
+    <string name="no_schedules_found">No Schedules Found</string>
 
 </resources>

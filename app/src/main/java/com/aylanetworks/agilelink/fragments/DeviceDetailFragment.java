@@ -12,6 +12,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -35,7 +38,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * DeviceDetailFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 1/15/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
 public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener {
     public final static String LOG_TAG = "DeviceDetailFragment";
@@ -61,6 +68,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setHasOptionsMenu(true);
         _device = null;
         if (getArguments() != null ) {
             String dsn = getArguments().getString(ARG_DEVICE_DSN);
@@ -82,10 +90,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _titleView = (TextView)view.findViewById(R.id.device_name);
         _imageView = (ImageView)view.findViewById(R.id.device_image);
 
-        Button button = (Button)view.findViewById(R.id.unregister_device);
-        button.setOnClickListener(this);
-
-        button = (Button)view.findViewById(R.id.notifications_button);
+        Button button = (Button)view.findViewById(R.id.notifications_button);
         button.setOnClickListener(this);
 
         button = (Button)view.findViewById(R.id.schedule_button);
@@ -115,6 +120,23 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
             _listView.setAdapter(_adapter);
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_device_details, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_unregister_device) {
+            unregisterDevice();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -199,10 +221,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onClick(View v) {
         switch ( v.getId() ) {
-            case R.id.unregister_device:
-                unregisterDevice();
-                break;
-
             case R.id.notifications_button:
                 notificationsClicked();
                 break;

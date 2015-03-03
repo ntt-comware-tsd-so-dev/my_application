@@ -15,8 +15,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 
-/**
+/*
+ * DeviceGroup.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/23/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
 /**
@@ -320,7 +324,7 @@ public class Schedule {
     @Nullable
     public Calendar getOnTime() {
         boolean offTimeAtEnd = true;
-        if ( _schedule.scheduleActions != null ) {
+        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length > 0 ) {
             AylaScheduleAction action = _schedule.scheduleActions[0];
             if (action.active && (action.atEnd && action.value.equals("1")) ||
                     (action.atStart && action.value.equals("0"))) {
@@ -356,7 +360,7 @@ public class Schedule {
     @Nullable
     public Calendar getOffTime() {
         boolean offTimeAtEnd = true;
-        if ( _schedule.scheduleActions != null ) {
+        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length > 0 ) {
             AylaScheduleAction action = _schedule.scheduleActions[0];
             if (action.active && (action.atEnd && action.value.equals("1")) ||
                     (action.atStart && action.value.equals("0"))) {
@@ -548,15 +552,19 @@ public class Schedule {
     }
 
     public void updateScheduleActions() {
-        _schedule.scheduleActions[0].active = true;
-        _schedule.scheduleActions[0].atStart = true;
-        _schedule.scheduleActions[0].atEnd = false;
-        _schedule.scheduleActions[0].value = "1";
+        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length >= 2 ) {
+            _schedule.scheduleActions[0].active = true;
+            _schedule.scheduleActions[0].atStart = true;
+            _schedule.scheduleActions[0].atEnd = false;
+            _schedule.scheduleActions[0].value = "1";
 
-        _schedule.scheduleActions[1].active = true;
-        _schedule.scheduleActions[1].atStart = false;
-        _schedule.scheduleActions[1].atEnd = true;
-        _schedule.scheduleActions[1].value = "0";
+            _schedule.scheduleActions[1].active = true;
+            _schedule.scheduleActions[1].atStart = false;
+            _schedule.scheduleActions[1].atEnd = true;
+            _schedule.scheduleActions[1].value = "0";
+        } else {
+            Log.e(LOG_TAG, "Actions not set up for schedule- ignoring");
+        }
     }
 
     protected Calendar today() {

@@ -12,9 +12,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
+ * NexTurnDeviceCreator.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 12/19/14.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class NexTurnDeviceCreator extends DeviceCreator {
     private final static String LOG_TAG = "nexTurnDeviceCreator";
 

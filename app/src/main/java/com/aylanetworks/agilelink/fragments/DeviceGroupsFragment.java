@@ -29,9 +29,14 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
+ * DeviceGroupsFragment.java
+ * AgileLink Application Framework
+ *
  * Created by Brian King on 2/5/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class DeviceGroupsFragment extends AllDevicesFragment {
     private static final String LOG_TAG = "DeviceGroupsFragment";
 
@@ -79,11 +84,15 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         // We can't add devices or delete the group here.
         boolean visible = !isAllDevicesSelected();
         MenuItem item = menu.findItem(R.id.action_delete_group);
-        item.setVisible(visible);
+        if ( item != null ) {
+            item.setVisible(visible);
+        }
 
         item = menu.findItem(R.id.action_add_device);
-        item.setTitle(R.string.action_manage_devices_in_group);
-        item.setVisible(visible);
+        if ( item != null ) {
+            item.setTitle(R.string.action_manage_devices_in_group);
+            item.setVisible(visible);
+        }
 
         super.onPrepareOptionsMenu(menu);
     }
