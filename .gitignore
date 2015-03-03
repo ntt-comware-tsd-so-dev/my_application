@@ -8,4 +8,6 @@
 /libs
 /libraries
 *.iml
+*.apk
+*.ap_
 
