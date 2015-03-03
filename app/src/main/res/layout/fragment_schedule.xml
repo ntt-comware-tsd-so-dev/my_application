@@ -78,16 +78,42 @@
                 android:animateLayoutChanges="true"
                 android:background="@color/schedule_background"
                 >
+
+                <LinearLayout
+                    android:id="@+id/property_selection_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/button_selected_end"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@android:style/TextAppearance.Medium"
+                        android:padding="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:textColor="@color/button_fg"
+                        android:textStyle="italic"
+                        android:text="@string/schedule_properties_description"/>
+
+                    <RadioGroup
+                        android:id="@+id/property_selection_radio_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                    </RadioGroup>
+
+                </LinearLayout>
+
                 <!-- One-shot or repeating -->
                 <LinearLayout
                     android:id="@+id/radio_button_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
+                    android:layout_below="@id/property_selection_layout"
                     android:layout_marginTop="8dp"
                     android:animateLayoutChanges="true"
                     android:background="@color/schedule_type_background"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
                     <RadioGroup
                         android:id="@+id/schedule_type_radio_group"

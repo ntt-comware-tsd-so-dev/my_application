@@ -16,6 +16,7 @@ import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.aaml.AylaScheduleAction;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 
@@ -115,13 +116,13 @@ public class Device implements Comparable<Device> {
 
     @Nullable
     public List<Schedule> getSchedules() {
-        if ( getDevice().schedules == null ) {
+        if (getDevice().schedules == null) {
             // Schedules probably not fetched yet
             return null;
         }
 
         List<Schedule> schedules = new ArrayList<>(getDevice().schedules.length);
-        for ( AylaSchedule s : getDevice().schedules) {
+        for (AylaSchedule s : getDevice().schedules) {
             schedules.add(new Schedule(s));
         }
 
@@ -130,12 +131,12 @@ public class Device implements Comparable<Device> {
 
     @Nullable
     public Schedule getSchedule(String scheduleName) {
-        if ( _device.schedules == null ) {
+        if (_device.schedules == null) {
             return null;
         }
 
-        for ( AylaSchedule as : _device.schedules ) {
-            if ( as.name.equals(scheduleName) ) {
+        for (AylaSchedule as : _device.schedules) {
+            if (as.name.equals(scheduleName)) {
                 return new Schedule(as);
             }
         }
@@ -148,7 +149,66 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Returns an array of property names that can be used in schedules. The default implementation
+     * returns an empty array, as we know nothing about the schedules of an unknown device.
+     *
+     * @return An array of property names that can be set in a schedule
+     */
+    public String[] getSchedulablePropertyNames() {
+        return new String[0];
+    }
+
+    /**
+     * Returns a friendly name for a property name. This is used in schedules when presenting
+     * a choice to the user regarding which properties to control. For example, a SwitchedDevice
+     * overrides this method to return "Switch" when refering to the "outlet1" property used to
+     * control the switch.
+     *
+     * @param propertyName Property name to translate into something presentable to the user
+     * @return The friendly name for the property
+     */
+    public String friendlyNameForPropertyName(String propertyName) {
+        return MainActivity.getInstance().getString(R.string.unknown_property_name);
+    }
+
+    /**
+     * Returns an action string for a particular property for when it is set or cleared in a
+     * schedule. This string represents the action the user will be performing when setting
+     * or clearing a property for a schedule. The default implementation returns
+     * "Turn on" if setAction is true, or "Turn off" if setAction is false. The text
+     * returned from this method will be presented to the user as options to manipulate this
+     * property in response to a schedule event.
+     *
+     * @param propertyName Name of the property
+     * @param setAction True if the action is to set, false if the action is to clear
+     * @return a string indicating the action
+     */
+    public String scheduledActionNameForProperty(String propertyName, boolean setAction) {
+        return MainActivity.getInstance().getString(setAction ? R.string.turn_on : R.string.turn_off);
+    }
+
+    /**
+     * Returns the property value that should be set in a schedule action. The activate parameter
+     * indicates whether the action is being activated (set, turned on, etc.) or deactivated
+     * (cleared, turned off, etc.). The default implementation returns "1" to set and "0" to clear
+     * an action.
+     *
+     * @param propertyName Name of the property
+     * @param activate True to return the value for activating a property, false for deactivate
+     * @return The value the schedule action should be set to for the given property and activate
+     * parameter
+     */
+    public String propertyValueForScheduleAction(String propertyName, boolean activate) {
+        if (activate) {
+            return "1";
+        } else {
+            return "0";
+        }
+    }
+
+    /**
      * Updates the schedule on the server
+     *
      * @param schedule Schedule to update on the server
      */
     public void updateSchedule(Schedule schedule, DeviceStatusListener listener) {
@@ -170,7 +230,7 @@ public class Device implements Comparable<Device> {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "updateSchedule results: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 _listener.statusUpdated(_device.get(), true);
             } else {
                 Log.e(LOG_TAG, "updateSchedule failed!");
@@ -183,10 +243,10 @@ public class Device implements Comparable<Device> {
      * Enables or disables notifications of the given type for this device.
      *
      * @param notificationType Type of notification to enable or disable
-     * @param enable True to enable, false to disable
-     * @param listener Listener to receive the results of the operation. The following method will be
-     *                 called on the listener once the result has been obtained:
-     *                 {@link DeviceNotificationHelper.DeviceNotificationHelperListener#deviceNotificationUpdated(Device, com.aylanetworks.aaml.AylaDeviceNotification, String, int)}
+     * @param enable           True to enable, false to disable
+     * @param listener         Listener to receive the results of the operation. The following method will be
+     *                         called on the listener once the result has been obtained:
+     *                         {@link DeviceNotificationHelper.DeviceNotificationHelperListener#deviceNotificationUpdated(Device, com.aylanetworks.aaml.AylaDeviceNotification, String, int)}
      */
     public void enableDeviceNotification(final String notificationType,
                                          final boolean enable,
@@ -204,7 +264,7 @@ public class Device implements Comparable<Device> {
      */
     public int getDeviceNotificationThresholdForType(String notificationType) {
         // Same value for all types in the base class
-        switch ( notificationType ) {
+        switch (notificationType) {
             case DeviceNotificationHelper.NOTIFICATION_TYPE_IP_CHANGE:
             case DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECT:
             case DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_LOST:
@@ -219,6 +279,7 @@ public class Device implements Comparable<Device> {
      * The DeviceNotificationHelper class calls this method to determine which notification types
      * should be created for this device when email, push or SMS notifications are enabled for
      * the device (device notifications).
+     *
      * @return An array of notification types
      */
 
@@ -297,7 +358,7 @@ public class Device implements Comparable<Device> {
 
                 Log.v(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
                 Log.v(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
-                if ( properties.length == 0 ) {
+                if (properties.length == 0) {
                     Log.e(LOG_TAG, "No properties found!! Message: " + msg);
                 }
                 for (AylaProperty prop : properties) {
@@ -348,9 +409,9 @@ public class Device implements Comparable<Device> {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "fetchSchedules: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 AylaSchedule[] schedules =
-                        AylaSystemUtils.gson.fromJson((String)msg.obj, AylaSchedule[].class);
+                        AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSchedule[].class);
                 _device.get().getDevice().schedules = schedules;
 
 
@@ -359,13 +420,13 @@ public class Device implements Comparable<Device> {
                 // BSK: At some point, the service will be filling out the schedule actions so we
                 // don't have to fetch them. Check each schedule for actions and remove from the
                 // list if they are present.
-                for ( AylaSchedule s : schedules ) {
-                    if ( s.scheduleActions == null ) {
+                for (AylaSchedule s : schedules) {
+                    if (s.scheduleActions == null) {
                         scheduleList.add(s);
                     }
                 }
 
-                if ( scheduleList.isEmpty() ) {
+                if (scheduleList.isEmpty()) {
                     // Done! No need to fetch any schedule actions.
                     _listener.statusUpdated(_device.get(), true);
                 } else {
@@ -394,7 +455,7 @@ public class Device implements Comparable<Device> {
         }
 
         public void fetchNextAction() {
-            if ( _schedulesToUpdate.isEmpty() ) {
+            if (_schedulesToUpdate.isEmpty()) {
                 // We're done.
                 Log.d(LOG_TAG, "All schedule actions updated for " + _device);
                 _listener.statusUpdated(_device, true);
@@ -407,9 +468,9 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 _currentSchedule.scheduleActions =
-                        AylaSystemUtils.gson.fromJson((String)msg.obj, AylaScheduleAction[].class);
+                        AylaSystemUtils.gson.fromJson((String) msg.obj, AylaScheduleAction[].class);
                 fetchNextAction();
             } else {
                 Log.e(LOG_TAG, "Failed to fetch schedule actions for " + _currentSchedule);

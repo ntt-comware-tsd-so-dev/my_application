@@ -14,6 +14,7 @@ import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -57,6 +58,19 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         }
 
         return false;
+    }
+
+    @Override
+    public String[] getSchedulablePropertyNames() {
+        return new String[]{PROPERTY_OUTLET};
+    }
+
+    @Override
+    public String friendlyNameForPropertyName(String propertyName) {
+        if ( propertyName.equals(PROPERTY_OUTLET) ) {
+            return MainActivity.getInstance().getString(R.string.property_outlet_friendly_name);
+        }
+        return MainActivity.getInstance().getString(R.string.unknown_property_name);
     }
 
     @Override

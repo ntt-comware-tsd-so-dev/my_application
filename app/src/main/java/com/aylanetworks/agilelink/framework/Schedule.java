@@ -6,12 +6,15 @@ import android.util.Log;
 import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.aaml.AylaScheduleAction;
 
+import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -34,16 +37,11 @@ public class Schedule {
     private static String LOG_TAG = "Schedule";
 
     // The internal AylaSchedule object
-    AylaSchedule _schedule;
+    private AylaSchedule _schedule;
 
-    /**
-     * Creates a blank Schedule object
-     */
-    public Schedule(String scheduleName) {
-        _schedule = new AylaSchedule();
-        _schedule.name = scheduleName;
-        _schedule.utc = true;
-    }
+    // Maps of property names to their enable / disable action strings
+    private Map<String, String> _actionEnableMap;
+    private Map<String, String> _actionDisableMap;
 
     /**
      * Creates a Schedule object initialized with the given AylaSchedule object
@@ -52,6 +50,41 @@ public class Schedule {
     public Schedule(AylaSchedule schedule) {
         _schedule = schedule;
         _schedule.utc = true;
+        _actionEnableMap = new HashMap<>();
+        _actionDisableMap = new HashMap<>();
+    }
+
+    /**
+     * Adds a property as an action for this schedule
+     * @param propertyName Name of the property to add to the schedule
+     * @param enableValue String value that should be set when the action is enabled
+     * @param disableValue String value that should be set when the action is disabled
+     */
+    public void addAction(String propertyName, String enableValue, String disableValue) {
+        _actionEnableMap.put(propertyName, enableValue);
+        _actionDisableMap.put(propertyName, disableValue);
+    }
+
+    /**
+     * Removes a property as an action for this schedule
+     * @param propertyName Name of the property to remove from the schedule
+     */
+    public void removeAction(String propertyName) {
+        _actionEnableMap.remove(propertyName);
+        _actionDisableMap.remove(propertyName);
+    }
+
+    public boolean hasActionNamed(String actionName) {
+        if ( _schedule.scheduleActions == null ) {
+            return false;
+        }
+
+        for ( AylaScheduleAction action : _schedule.scheduleActions ) {
+            if ( action.name.equals(actionName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -552,18 +585,46 @@ public class Schedule {
     }
 
     public void updateScheduleActions() {
-        if ( _schedule.scheduleActions != null && _schedule.scheduleActions.length >= 2 ) {
-            _schedule.scheduleActions[0].active = true;
-            _schedule.scheduleActions[0].atStart = true;
-            _schedule.scheduleActions[0].atEnd = false;
-            _schedule.scheduleActions[0].value = "1";
+        // Create our schedule actions array based on our action maps
+        Calendar oldOnTime = getOnTime();
+        Calendar oldOffTime = getOffTime();
 
-            _schedule.scheduleActions[1].active = true;
-            _schedule.scheduleActions[1].atStart = false;
-            _schedule.scheduleActions[1].atEnd = true;
-            _schedule.scheduleActions[1].value = "0";
-        } else {
-            Log.e(LOG_TAG, "Actions not set up for schedule- ignoring");
+        boolean startEndReversed = (isTimer() &&
+                oldOnTime != null &&
+                oldOffTime != null &&
+                (oldOnTime.compareTo(oldOffTime) < 0));
+
+        if ( _actionEnableMap.keySet().size() == 0 ) {
+            // No actions to set.
+            _schedule.scheduleActions = new AylaScheduleAction[0];
+            return;
+        }
+
+        _schedule.scheduleActions = new AylaScheduleAction[_actionDisableMap.keySet().size() * 2];
+        int scheduleIndex = 0;
+        for ( String propertyName : _actionEnableMap.keySet() ) {
+
+            // The "on" action
+            _schedule.scheduleActions[scheduleIndex] = new AylaScheduleAction();
+            _schedule.scheduleActions[scheduleIndex].baseType = "boolean";
+            _schedule.scheduleActions[scheduleIndex].type = "SchedulePropertyAction";
+            _schedule.scheduleActions[scheduleIndex].name = propertyName;
+            _schedule.scheduleActions[scheduleIndex].active = true;
+            _schedule.scheduleActions[scheduleIndex].atStart = !startEndReversed;
+            _schedule.scheduleActions[scheduleIndex].atEnd = startEndReversed;
+            _schedule.scheduleActions[scheduleIndex].value = _actionEnableMap.get(propertyName);
+            scheduleIndex++;
+
+            // The "off" action
+            _schedule.scheduleActions[scheduleIndex] = new AylaScheduleAction();
+            _schedule.scheduleActions[scheduleIndex].baseType = "boolean";
+            _schedule.scheduleActions[scheduleIndex].type = "SchedulePropertyAction";
+            _schedule.scheduleActions[scheduleIndex].name = propertyName;
+            _schedule.scheduleActions[scheduleIndex].active = true;
+            _schedule.scheduleActions[scheduleIndex].atStart = startEndReversed;
+            _schedule.scheduleActions[scheduleIndex].atEnd = !startEndReversed;
+            _schedule.scheduleActions[scheduleIndex].value = _actionDisableMap.get(propertyName);
+            scheduleIndex++;
         }
     }
 

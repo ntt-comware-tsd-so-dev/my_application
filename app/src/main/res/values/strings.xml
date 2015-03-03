@@ -225,5 +225,12 @@
     <string name="schedule_updated">The schedule was updated successfully</string>
     <string name="schedule_update_failed">An error occurred while trying to update the schedule for this device. Please try again later.</string>
     <string name="no_schedules_found">No Schedules Found</string>
+    <string name="unknown_property_name">Unknown</string>
+    <string name="property_outlet_friendly_name">Switch</string>
+    <string name="turn_on">Turn on</string>
+    <string name="turn_off">Turn off</string>
+    <string name="blue_led">Blue LED</string>
+    <string name="green_led">Green LED</string>
+    <string name="schedule_properties_description">Select which action you would like to update with this schedule:</string>
 
 </resources>

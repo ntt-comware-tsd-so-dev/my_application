@@ -15,9 +15,11 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -33,6 +35,8 @@ import com.aylanetworks.agilelink.framework.Schedule;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /*
@@ -62,6 +66,9 @@ public class ScheduleFragment extends Fragment {
     private TimePicker _scheduleTimePicker;
     private TimePicker _timerTimePicker;
     private Button _saveScheduleButton;
+
+    private LinearLayout _propertySelectionLayout;
+    private RadioGroup _propertySelectionRadioGroup;
 
     // On / off time buttons for the repeating schedule
     private Button _scheduleOnTimeButton;
@@ -123,6 +130,9 @@ public class ScheduleFragment extends Fragment {
         _timerTimePicker = (TimePicker) root.findViewById(R.id.timer_duration_picker);
         _scheduleOnTimeButton = (Button) root.findViewById(R.id.button_turn_on);
         _scheduleOffTimeButton = (Button) root.findViewById(R.id.button_turn_off);
+
+        _propertySelectionLayout = (LinearLayout) root.findViewById(R.id.property_selection_layout);
+        _propertySelectionRadioGroup = (RadioGroup) root.findViewById(R.id.property_selection_radio_group);
 
         _timerTurnOnButton = (Button) root.findViewById(R.id.timer_turn_on_button);
         _timerTurnOffButton = (Button) root.findViewById(R.id.timer_turn_off_button);
@@ -266,6 +276,8 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
+        setupPropertySelection();
+
         updateUI();
         return root;
     }
@@ -331,6 +343,62 @@ public class ScheduleFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void setupPropertySelection() {
+        _propertySelectionRadioGroup.removeAllViewsInLayout();
+
+        Map<String, String> enableActions = new HashMap<>();
+        Map<String, String> disableActions = new HashMap<>();
+
+        int selectedID = -1;
+        RadioButton firstRadioButton = null;
+
+        String[] propertyNames = _device.getSchedulablePropertyNames();
+        for ( String propertyName : propertyNames ) {
+            RadioButton rb = new RadioButton(getActivity());
+            rb.setText(_device.friendlyNameForPropertyName(propertyName));
+            rb.setTag(propertyName);
+            rb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            rb.setTextColor(getResources().getColor(R.color.button_fg));
+            rb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    propertySelectionChanged((RadioButton) buttonView, isChecked);
+                }
+            });
+
+            _propertySelectionRadioGroup.addView(rb);
+            if ( selectedID == -1 ) {
+                selectedID = rb.getId();
+            }
+        }
+
+        _propertySelectionRadioGroup.check(selectedID);
+
+        // If we only have one choice, don't even bother displaying the UI
+        if ( propertyNames.length == 1 ) {
+            _propertySelectionLayout.setVisibility(View.GONE);
+        } else {
+            _propertySelectionLayout.setVisibility(View.VISIBLE);
+        }
+
+        _schedule.updateScheduleActions();
+        _propertySelectionLayout.requestLayout();
+    }
+
+    private void propertySelectionChanged(RadioButton radioButton, boolean isChecked) {
+        String propertyName = (String)radioButton.getTag();
+        Log.d(LOG_TAG, "Property selection changed: " + propertyName);
+
+        if ( isChecked ) {
+            _schedule.addAction(propertyName,
+                    _device.propertyValueForScheduleAction(propertyName, true),
+                    _device.propertyValueForScheduleAction(propertyName, false));
+        } else {
+            _schedule.removeAction(propertyName);
+        }
+        _schedule.updateScheduleActions();
     }
 
     private void updateUI() {
