@@ -96,11 +96,13 @@
                         android:textStyle="italic"
                         android:text="@string/schedule_properties_description"/>
 
-                    <RadioGroup
-                        android:id="@+id/property_selection_radio_group"
+                    <LinearLayout
+                        android:id="@+id/property_selection_checkbox_layout"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                    </RadioGroup>
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    </LinearLayout>
 
                 </LinearLayout>
 

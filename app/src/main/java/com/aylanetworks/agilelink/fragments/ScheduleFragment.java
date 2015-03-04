@@ -68,7 +68,7 @@ public class ScheduleFragment extends Fragment {
     private Button _saveScheduleButton;
 
     private LinearLayout _propertySelectionLayout;
-    private RadioGroup _propertySelectionRadioGroup;
+    private LinearLayout _propertySelectionCheckboxLayout;
 
     // On / off time buttons for the repeating schedule
     private Button _scheduleOnTimeButton;
@@ -132,7 +132,7 @@ public class ScheduleFragment extends Fragment {
         _scheduleOffTimeButton = (Button) root.findViewById(R.id.button_turn_off);
 
         _propertySelectionLayout = (LinearLayout) root.findViewById(R.id.property_selection_layout);
-        _propertySelectionRadioGroup = (RadioGroup) root.findViewById(R.id.property_selection_radio_group);
+        _propertySelectionCheckboxLayout = (LinearLayout) root.findViewById(R.id.property_selection_checkbox_layout);
 
         _timerTurnOnButton = (Button) root.findViewById(R.id.timer_turn_on_button);
         _timerTurnOffButton = (Button) root.findViewById(R.id.timer_turn_off_button);
@@ -346,35 +346,28 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void setupPropertySelection() {
-        _propertySelectionRadioGroup.removeAllViewsInLayout();
+        _propertySelectionCheckboxLayout.removeAllViewsInLayout();
 
         Map<String, String> enableActions = new HashMap<>();
         Map<String, String> disableActions = new HashMap<>();
 
-        int selectedID = -1;
-        RadioButton firstRadioButton = null;
-
         String[] propertyNames = _device.getSchedulablePropertyNames();
         for ( String propertyName : propertyNames ) {
-            RadioButton rb = new RadioButton(getActivity());
-            rb.setText(_device.friendlyNameForPropertyName(propertyName));
-            rb.setTag(propertyName);
-            rb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
-            rb.setTextColor(getResources().getColor(R.color.button_fg));
-            rb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            CheckBox cb = new CheckBox(getActivity());
+            cb.setText(_device.friendlyNameForPropertyName(propertyName));
+            cb.setTag(propertyName);
+            cb.setChecked(_schedule.isPropertyActive(propertyName));
+            cb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            cb.setTextColor(getResources().getColor(R.color.button_fg));
+            cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    propertySelectionChanged((RadioButton) buttonView, isChecked);
+                    propertySelectionChanged((CheckBox) buttonView, isChecked);
                 }
             });
 
-            _propertySelectionRadioGroup.addView(rb);
-            if ( selectedID == -1 ) {
-                selectedID = rb.getId();
-            }
+            _propertySelectionCheckboxLayout.addView(cb);
         }
-
-        _propertySelectionRadioGroup.check(selectedID);
 
         // If we only have one choice, don't even bother displaying the UI
         if ( propertyNames.length == 1 ) {
@@ -387,14 +380,12 @@ public class ScheduleFragment extends Fragment {
         _propertySelectionLayout.requestLayout();
     }
 
-    private void propertySelectionChanged(RadioButton radioButton, boolean isChecked) {
-        String propertyName = (String)radioButton.getTag();
+    private void propertySelectionChanged(CheckBox cb, boolean isChecked) {
+        String propertyName = (String)cb.getTag();
         Log.d(LOG_TAG, "Property selection changed: " + propertyName);
 
         if ( isChecked ) {
-            _schedule.addAction(propertyName,
-                    _device.propertyValueForScheduleAction(propertyName, true),
-                    _device.propertyValueForScheduleAction(propertyName, false));
+            _schedule.addAction(propertyName);
         } else {
             _schedule.removeAction(propertyName);
         }
