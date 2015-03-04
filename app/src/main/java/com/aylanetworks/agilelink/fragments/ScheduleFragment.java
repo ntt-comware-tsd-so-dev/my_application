@@ -323,7 +323,25 @@ public class ScheduleFragment extends Fragment {
         updateUI();
     }
 
+    private boolean checkSchedule() {
+        int errorMessage = 0;
+        if ( _schedule.getActions().size() == 0 ) {
+           errorMessage = R.string.no_actions_set;
+        }
+
+        if ( errorMessage != 0 ) {
+            Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();
+        }
+
+        return errorMessage == 0;
+    }
+
     private void saveSchedule() {
+        // Make sure that all required fields are set
+        if ( !checkSchedule() ) {
+            return;
+        }
+
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
         _schedule.setStartDate(Calendar.getInstance());
         if ( _schedule.isTimer() ) {
@@ -350,13 +368,17 @@ public class ScheduleFragment extends Fragment {
 
         Map<String, String> enableActions = new HashMap<>();
         Map<String, String> disableActions = new HashMap<>();
-
+        int nSelected = 0;
+        CheckBox firstCheckBox = null;
         String[] propertyNames = _device.getSchedulablePropertyNames();
         for ( String propertyName : propertyNames ) {
             CheckBox cb = new CheckBox(getActivity());
             cb.setText(_device.friendlyNameForPropertyName(propertyName));
             cb.setTag(propertyName);
-            cb.setChecked(_schedule.isPropertyActive(propertyName));
+            if ( _schedule.isPropertyActive(propertyName) ) {
+                cb.setChecked(true);
+                nSelected++;
+            }
             cb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
             cb.setTextColor(getResources().getColor(R.color.button_fg));
             cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -365,15 +387,22 @@ public class ScheduleFragment extends Fragment {
                     propertySelectionChanged((CheckBox) buttonView, isChecked);
                 }
             });
-
+            if ( firstCheckBox == null ) {
+                firstCheckBox = cb;
+            }
             _propertySelectionCheckboxLayout.addView(cb);
         }
 
         // If we only have one choice, don't even bother displaying the UI
         if ( propertyNames.length == 1 ) {
             _propertySelectionLayout.setVisibility(View.GONE);
+            _schedule.addAction(propertyNames[0]);
         } else {
             _propertySelectionLayout.setVisibility(View.VISIBLE);
+            if ( nSelected == 0 && firstCheckBox != null ) {
+                // Check the first box
+                firstCheckBox.setChecked(true);
+            }
         }
 
         _schedule.updateScheduleActions();

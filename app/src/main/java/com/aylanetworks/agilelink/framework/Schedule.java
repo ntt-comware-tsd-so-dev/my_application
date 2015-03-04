@@ -70,6 +70,28 @@ public class Schedule {
         _actionProperties.remove(propertyName);
     }
 
+    public Set<String> getActions() {
+        return new HashSet<>(_actionProperties);
+    }
+
+    /**
+     * Returns true if an action matching the propertyName is active.
+     * @param propertyName Name of the property to check for activity
+     * @return True if at least one action for the specified property is active
+     */
+    public boolean isPropertyActive(String propertyName) {
+        if ( _schedule.scheduleActions == null ) {
+            return false;
+        }
+
+        for ( AylaScheduleAction action : _schedule.scheduleActions ) {
+            if ( action.name.equals(propertyName) && action.active ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Sets the name of this schedule
      *
@@ -104,24 +126,6 @@ public class Schedule {
      */
     public boolean isActive() {
         return _schedule.active;
-    }
-
-    /**
-     * Returns true if an action matching the propertyName is active.
-     * @param propertyName Name of the property to check for activity
-     * @return True if at least one action for the specified property is active
-     */
-    public boolean isPropertyActive(String propertyName) {
-        if ( _schedule.scheduleActions == null ) {
-            return false;
-        }
-
-        for ( AylaScheduleAction action : _schedule.scheduleActions ) {
-            if ( action.name.equals(propertyName) && action.active ) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

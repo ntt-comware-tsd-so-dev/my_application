@@ -232,5 +232,6 @@
     <string name="blue_led">Blue LED</string>
     <string name="green_led">Green LED</string>
     <string name="schedule_properties_description">Select which action you would like to update with this schedule:</string>
+    <string name="no_actions_set">Please select at least one action to update with this schedule</string>
 
 </resources>
