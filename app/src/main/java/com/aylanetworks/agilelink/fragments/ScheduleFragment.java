@@ -15,9 +15,11 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -33,6 +35,8 @@ import com.aylanetworks.agilelink.framework.Schedule;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /*
@@ -62,6 +66,9 @@ public class ScheduleFragment extends Fragment {
     private TimePicker _scheduleTimePicker;
     private TimePicker _timerTimePicker;
     private Button _saveScheduleButton;
+
+    private LinearLayout _propertySelectionLayout;
+    private LinearLayout _propertySelectionCheckboxLayout;
 
     // On / off time buttons for the repeating schedule
     private Button _scheduleOnTimeButton;
@@ -123,6 +130,9 @@ public class ScheduleFragment extends Fragment {
         _timerTimePicker = (TimePicker) root.findViewById(R.id.timer_duration_picker);
         _scheduleOnTimeButton = (Button) root.findViewById(R.id.button_turn_on);
         _scheduleOffTimeButton = (Button) root.findViewById(R.id.button_turn_off);
+
+        _propertySelectionLayout = (LinearLayout) root.findViewById(R.id.property_selection_layout);
+        _propertySelectionCheckboxLayout = (LinearLayout) root.findViewById(R.id.property_selection_checkbox_layout);
 
         _timerTurnOnButton = (Button) root.findViewById(R.id.timer_turn_on_button);
         _timerTurnOffButton = (Button) root.findViewById(R.id.timer_turn_off_button);
@@ -266,6 +276,8 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
+        setupPropertySelection();
+
         updateUI();
         return root;
     }
@@ -311,7 +323,25 @@ public class ScheduleFragment extends Fragment {
         updateUI();
     }
 
+    private boolean checkSchedule() {
+        int errorMessage = 0;
+        if ( _schedule.isActive() && _schedule.getActions().size() == 0 ) {
+           errorMessage = R.string.no_actions_set;
+        }
+
+        if ( errorMessage != 0 ) {
+            Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();
+        }
+
+        return errorMessage == 0;
+    }
+
     private void saveSchedule() {
+        // Make sure that all required fields are set
+        if ( !checkSchedule() ) {
+            return;
+        }
+
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
         _schedule.setStartDate(Calendar.getInstance());
         if ( _schedule.isTimer() ) {
@@ -331,6 +361,65 @@ public class ScheduleFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void setupPropertySelection() {
+        _propertySelectionCheckboxLayout.removeAllViewsInLayout();
+
+        Map<String, String> enableActions = new HashMap<>();
+        Map<String, String> disableActions = new HashMap<>();
+        int nSelected = 0;
+        CheckBox firstCheckBox = null;
+        String[] propertyNames = _device.getSchedulablePropertyNames();
+        for ( String propertyName : propertyNames ) {
+            CheckBox cb = new CheckBox(getActivity());
+            cb.setText(_device.friendlyNameForPropertyName(propertyName));
+            cb.setTag(propertyName);
+            if ( _schedule.isPropertyActive(propertyName) ) {
+                cb.setChecked(true);
+                _schedule.addAction(propertyName);
+                nSelected++;
+            }
+            cb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            cb.setTextColor(getResources().getColor(R.color.button_fg));
+            cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    propertySelectionChanged((CheckBox) buttonView, isChecked);
+                }
+            });
+            if ( firstCheckBox == null ) {
+                firstCheckBox = cb;
+            }
+            _propertySelectionCheckboxLayout.addView(cb);
+        }
+
+        // If we only have one choice, don't even bother displaying the UI
+        if ( propertyNames.length == 1 ) {
+            _propertySelectionLayout.setVisibility(View.GONE);
+            _schedule.addAction(propertyNames[0]);
+        } else {
+            _propertySelectionLayout.setVisibility(View.VISIBLE);
+            if ( nSelected == 0 && firstCheckBox != null ) {
+                // Check the first box
+                firstCheckBox.setChecked(true);
+            }
+        }
+
+        _schedule.updateScheduleActions();
+        _propertySelectionLayout.requestLayout();
+    }
+
+    private void propertySelectionChanged(CheckBox cb, boolean isChecked) {
+        String propertyName = (String)cb.getTag();
+        Log.d(LOG_TAG, "Property selection changed: " + propertyName);
+
+        if ( isChecked ) {
+            _schedule.addAction(propertyName);
+        } else {
+            _schedule.removeAction(propertyName);
+        }
+        _schedule.updateScheduleActions();
     }
 
     private void updateUI() {

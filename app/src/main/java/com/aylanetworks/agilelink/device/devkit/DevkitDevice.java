@@ -20,6 +20,7 @@ import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -127,6 +128,23 @@ public class DevkitDevice extends Device implements View.OnClickListener {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String[] getSchedulablePropertyNames() {
+        return new String[]{PROPERTY_BLUE_LED, PROPERTY_GREEN_LED};
+    }
+
+    @Override
+    public String friendlyNameForPropertyName(String propertyName) {
+        switch ( propertyName ) {
+            case PROPERTY_BLUE_LED:
+                return MainActivity.getInstance().getString(R.string.blue_led);
+
+            case PROPERTY_GREEN_LED:
+                return MainActivity.getInstance().getString(R.string.green_led);
+        }
+        return MainActivity.getInstance().getString(R.string.unknown_property_name);
     }
 
     @Override
