@@ -325,7 +325,7 @@ public class ScheduleFragment extends Fragment {
 
     private boolean checkSchedule() {
         int errorMessage = 0;
-        if ( _schedule.getActions().size() == 0 ) {
+        if ( _schedule.isActive() && _schedule.getActions().size() == 0 ) {
            errorMessage = R.string.no_actions_set;
         }
 
@@ -377,6 +377,7 @@ public class ScheduleFragment extends Fragment {
             cb.setTag(propertyName);
             if ( _schedule.isPropertyActive(propertyName) ) {
                 cb.setChecked(true);
+                _schedule.addAction(propertyName);
                 nSelected++;
             }
             cb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
