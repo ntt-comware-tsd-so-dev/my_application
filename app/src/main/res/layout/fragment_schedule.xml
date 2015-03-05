@@ -9,11 +9,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="8dp"
+        android:layout_above="@+id/save_schedule"
         >
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             android:background="@color/device_details_background"
             tools:context="com.aylanetworks.agilelink.fragments.ScheduleFragment">
@@ -344,7 +345,7 @@
     </ScrollView>
 
     <Button
-        android:id="@+id/save_schedule"
+        android:id="@id/save_schedule"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
