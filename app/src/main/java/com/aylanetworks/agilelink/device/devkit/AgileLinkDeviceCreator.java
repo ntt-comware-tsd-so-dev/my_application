@@ -31,20 +31,17 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
-       if ( aylaDevice.productClass.equals("demo") ) {
+       if ( aylaDevice.oemModel.equals("ledevb") ) {
             // This is the Ayla devkit.
             return new DevkitDevice(aylaDevice);
         }
 
-        if ( aylaDevice.productClass.equals("smartplug1") ) {
+        if ( aylaDevice.oemModel.equals("smartplug1") ) {
             // This is the Ayla Demo Smart plug
             return new SwitchedDevice(aylaDevice);
         }
 
-        //AY001MTC1 aylaDevice.productClass.equals("EWPlug1"))
-        if ( aylaDevice.model.equals("AY001MTC1")  &&
-                (aylaDevice.productClass.equals("") || aylaDevice.productClass.equals("EWPlug1"))
-           )
+        if ( aylaDevice.oemModel.equals("EWPlug1") )
         {
             // This is an Everwin MFI/Homekit enabled smart plug.
             return new SwitchedDevice(aylaDevice);
