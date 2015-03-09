@@ -104,6 +104,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder)holder;
+        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
         h._deviceNameTextView.setText(getDevice().getProductName());
 
         int drawableId = isOn() ? R.drawable.smartplug_button_on : R.drawable.smartplug_button_off;
