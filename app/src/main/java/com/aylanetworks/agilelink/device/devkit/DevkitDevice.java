@@ -194,6 +194,8 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         // Device name
         DevkitDeviceViewHolder h = (DevkitDeviceViewHolder) holder;
+        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+
         h._deviceNameTextView.setText(getDevice().getProductName());
 
         // Blue button state

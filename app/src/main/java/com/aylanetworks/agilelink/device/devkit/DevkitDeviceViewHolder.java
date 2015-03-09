@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
@@ -21,6 +22,7 @@ public class DevkitDeviceViewHolder extends RecyclerView.ViewHolder {
     public ImageButton _greenButton;
     public ImageButton _blueButton;
     public ImageView _buttonStateImageView;
+    public ProgressBar _spinner;
 
     public DevkitDeviceViewHolder(View v) {
         super(v);
@@ -29,5 +31,6 @@ public class DevkitDeviceViewHolder extends RecyclerView.ViewHolder {
         _greenButton = (ImageButton)v.findViewById(R.id.green_button);
         _blueButton = (ImageButton)v.findViewById(R.id.blue_button);
         _buttonStateImageView = (ImageView)v.findViewById(R.id.blue_button_state_image);
+        _spinner = (ProgressBar)v.findViewById(R.id.spinner);
     }
 }
