@@ -156,9 +156,15 @@ public class DeviceGroup {
             datum.key = getGroupID();
             JSONArray dsnArray = new JSONArray(_deviceDSNs);
 
-            Map<String, String> datumMap = new HashMap<>();
-            datumMap.put(DSN_ARRAY_KEY, dsnArray.toString());
-            datum.value = new JSONObject(datumMap).toString();
+            JSONObject datumMap = new JSONObject();
+            try {
+                datumMap.put(DSN_ARRAY_KEY, dsnArray);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            datum.value = datumMap.toString();
 
             Log.d(LOG_TAG, "pushToServer: " + datum.key + ":" + datum.value);
 
@@ -300,8 +306,7 @@ public class DeviceGroup {
         _deviceDSNs.clear();
         try {
             JSONObject map = new JSONObject(datum.value);
-            String deviceListJSON = (String) map.get(DSN_ARRAY_KEY);
-            JSONArray array = new JSONArray(deviceListJSON);
+            JSONArray array = (JSONArray)map.get(DSN_ARRAY_KEY);
             for (int i = 0; i < array.length(); i++) {
                 _deviceDSNs.add(array.get(i).toString());
             }
