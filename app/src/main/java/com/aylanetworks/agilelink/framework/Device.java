@@ -365,6 +365,15 @@ public class Device implements Comparable<Device> {
                     Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
                 }
 
+                // At this point, enable ourselves in LAN mode if we were the last device
+                // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
+                // things don't seem to work very well.
+                DeviceManager dm = SessionManager.deviceManager();
+                if ( dm.isLastLanModeDevice(_device.get()) ) {
+                    Log.d(LOG_TAG, "Entering LAN mode (I was the last LAN mode device): " + _device.get());
+                    dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
+                }
+
                 // Did something change?
                 boolean changed = _device.get().setProperties(properties);
                 if (_listener != null) {

@@ -1,7 +1,10 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDatum;
@@ -13,6 +16,8 @@ import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.device.devkit.DevkitDevice;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 
 import org.json.JSONException;
@@ -36,6 +41,9 @@ import java.util.Set;
  */
 
 public class DeviceManager implements DeviceStatusListener {
+    private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
+
+
     /** Interfaces */
     public interface DeviceListListener {
         void deviceListChanged();
@@ -170,6 +178,29 @@ public class DeviceManager implements DeviceStatusListener {
 
         // Start polling our device status again so we include this device
         startPolling();
+    }
+
+    /**
+     * Saves the specified device as the last device to enter LAN mode. This device will be
+     * asked to re-enter LAN mode the next time the application is launched.
+     *
+     * @param device Device that has just entered LAN mode
+     */
+    public void setLastLanModeDevice(Device device) {
+        // Save the last LAN mode device in user settings so we can re-enable it next time
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
+    }
+
+    /**
+     * Returns true if the specified device was the last device supplied to setLastLanModeDevice().
+     * @param device Device to check
+     * @return true if this device was the last LAN-mode enabled device, otherwise false
+     */
+    public boolean isLastLanModeDevice(Device device) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
+        return device.getDevice().dsn.equals(lastDSN);
     }
 
     /**
@@ -397,6 +428,7 @@ public class DeviceManager implements DeviceStatusListener {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
                         _deviceManager.get()._lanModeEnabledDevice = device;
+                        _deviceManager.get().setLastLanModeDevice(device);
 
                         if ( device != null ) {
                             // Remove the LAN-mode-enabled device from the list of devices to poll
