@@ -89,6 +89,8 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     }
 
     public void setGreenLED(boolean on) {
+        getDevice().lanModeEnable();
+
         AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
         if (greenLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
@@ -102,6 +104,8 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     }
 
     public void setBlueLED(boolean on) {
+        getDevice().lanModeEnable();
+
         AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
         if (blueLED == null) {
             Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);

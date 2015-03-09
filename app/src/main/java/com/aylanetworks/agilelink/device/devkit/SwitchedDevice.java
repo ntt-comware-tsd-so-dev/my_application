@@ -39,6 +39,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     }
 
     public void toggle() {
+        getDevice().lanModeEnable();
         AylaProperty prop = getProperty(PROPERTY_OUTLET);
         if ( prop == null ) {
             Log.e(LOG_TAG, "Could not find property " + PROPERTY_OUTLET);
