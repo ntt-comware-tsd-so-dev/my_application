@@ -313,6 +313,10 @@ public class DeviceGroup {
         } catch (JSONException e) {
             e.printStackTrace();
             _deviceDSNs.clear();
+        } catch (ClassCastException e) {
+            Log.e(LOG_TAG, "Old-style JSON found in group list. Clearing group list for now.");
+            e.printStackTrace();
+            _deviceDSNs.clear();
         }
 
         Log.d(LOG_TAG, "JSON: " + datum.value + "\nDSNs: " + _deviceDSNs);
