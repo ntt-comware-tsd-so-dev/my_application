@@ -45,7 +45,7 @@ public class AccountSettings {
     private static final String SETTINGS_KEY_PUSH = "enable-push-notifications";
 
     private Set<String> _notificationTypes;
-    private String _ownerContactID;
+    private Integer _ownerContactID;
     private AylaUser _aylaUser;
 
     public static class AccountSettingsCallback {
@@ -116,11 +116,11 @@ public class AccountSettings {
         return _notificationTypes.contains(notificationMethod);
     }
 
-    public void setOwnerContactID(String ownerContactID) {
+    public void setOwnerContactID(Integer ownerContactID) {
         _ownerContactID = ownerContactID;
     }
 
-    public String getOwnerContactID() {
+    public Integer getOwnerContactID() {
         return _ownerContactID;
     }
 
@@ -183,7 +183,7 @@ public class AccountSettings {
                     }
 
                     // Get the owner ID
-                    settings._ownerContactID = jsonObject.getString(OWNER_ID_KEY);
+                    settings._ownerContactID = jsonObject.getInt(OWNER_ID_KEY);
 
                     // Done. We can call the callback now.
                     _callback.settingsUpdated(settings, msg);
