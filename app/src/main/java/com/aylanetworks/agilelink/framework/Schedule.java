@@ -41,15 +41,43 @@ public class Schedule {
     // Maps of property names to their enable / disable action strings
     private Set<String> _actionProperties;
 
+    // Time zone for the device this schedule is for
+    private TimeZone _timeZone;
+
+    // Date formatters. We use formatters in the time zone of the device for schedules,
+    // and a static formatter in UTC for timers.
+    private DateFormat _dateFormatHMS;
+    private DateFormat _dateFormatYMD;
+
+    static DateFormat _dateFormatHMSUTC;
+    static {
+        _dateFormatHMSUTC = new SimpleDateFormat("HH:mm:ss");
+        _dateFormatHMSUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
     /**
      * Creates a Schedule object initialized with the given AylaSchedule object
      *
      * @param schedule AylaSchedule used to initialize this Schedule object
      */
-    public Schedule(AylaSchedule schedule) {
+    public Schedule(AylaSchedule schedule, TimeZone timeZone) {
         _schedule = schedule;
-        _schedule.utc = true;
+
+        if ( timeZone == null ) {
+            _timeZone = TimeZone.getTimeZone("UTC");
+            _schedule.utc = true;
+        } else {
+            _timeZone = timeZone;
+            _schedule.utc = false;
+        }
+
         _actionProperties = new HashSet<>();
+
+        _dateFormatHMS = new SimpleDateFormat("HH:mm:ss");
+        _dateFormatHMS.setTimeZone(_timeZone);
+
+        _dateFormatYMD = new SimpleDateFormat("yyyy-MM-dd");
+        _dateFormatYMD.setTimeZone(_timeZone);
     }
 
     /**
@@ -129,11 +157,36 @@ public class Schedule {
     }
 
     /**
+     * Updates the time zone used for this schedule. Will update the start / end times to reflect
+     * the new time zone.
+     * @param timeZone Time zone to use for this schedule. Pass null to use UTC time.
+     */
+    public void setTimeZone(TimeZone timeZone) {
+        // Save the previous date formatter so we can update the times propertly
+        DateFormat oldFormat = _dateFormatHMS;
+
+        if ( timeZone == null || timeZone.equals(TimeZone.getTimeZone("UTC"))) {
+            _schedule.utc = true;
+            _timeZone = TimeZone.getTimeZone("UTC");
+            _dateFormatHMS.setTimeZone(_timeZone);
+        } else {
+            _schedule.utc = false;
+            _timeZone = timeZone;
+            _dateFormatHMS.setTimeZone(timeZone);
+        }
+    }
+
+    public TimeZone getTimeZone() {
+        return _timeZone;
+    }
+
+    /**
      * Sets the schedules start time each day
      *
      * @param startTime Time the schedule should start each day
      */
     public void setStartTimeEachDay(Calendar startTime) {
+        _schedule.utc = false;
         if (startTime == null) {
             _schedule.startTimeEachDay = "";
         } else {
@@ -166,6 +219,7 @@ public class Schedule {
     }
 
     public void setEndTimeEachDay(Calendar endTime) {
+        _schedule.utc = false;
         if (endTime == null) {
             _schedule.endTimeEachDay = null;
         } else {
@@ -222,7 +276,7 @@ public class Schedule {
             _schedule.endDate = null;
         } else {
             _schedule.endDate = _dateFormatYMD.format(endDate.getTime());
-            Log.d(LOG_TAG, "schedule.endDate: " + _schedule.startDate);
+            Log.d(LOG_TAG, "schedule.endDate: " + _schedule.endDate);
         }
     }
 
@@ -386,7 +440,7 @@ public class Schedule {
 
         Date date = null;
         try {
-            date = _dateFormatHMS.parse(dateString);
+            date = _dateFormatHMSUTC.parse(dateString);
         } catch (ParseException e) {
             Log.e(LOG_TAG, "Failed to parse date: " + dateString);
             e.printStackTrace();
@@ -394,6 +448,7 @@ public class Schedule {
         }
 
         Calendar calendar = today();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar.setTime(date);
         return calendar;
     }
@@ -423,7 +478,7 @@ public class Schedule {
 
         Date date;
         try {
-            date = _dateFormatHMS.parse(dateString);
+            date = _dateFormatHMSUTC.parse(dateString);
         } catch (ParseException e) {
             Log.e(LOG_TAG, "Failed to parse date: " + dateString);
             e.printStackTrace();
@@ -431,6 +486,7 @@ public class Schedule {
         }
 
         Calendar calendar = today();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar.setTime(date);
         return calendar;
     }
@@ -442,6 +498,7 @@ public class Schedule {
      * @param onTime time to turn the device on
      */
     public void setOnTime(Calendar onTime) {
+        _schedule.utc = true;
         Calendar offTime = getOffTime();
         if (onTime == null) {
             // If we have an off time set, make sure we have exactly one action set to
@@ -454,7 +511,7 @@ public class Schedule {
             } else {
                 // Set the off time as the schedule start time, and have one action to turn
                 // the device off
-                setStartTimeEachDay(offTime);
+                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime);
                 for ( String propertyName : _actionProperties ) {
                     List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
                     AylaScheduleAction action = actions.get(0);
@@ -480,8 +537,8 @@ public class Schedule {
                     // See who comes first
                     if (onTime.compareTo(offTime) < 0) {
                         // onTime comes before offTime
-                        setStartTimeEachDay(onTime);
-                        setEndDate(offTime);
+                        _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
+                        _schedule.endTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
                         action1.value = "1";
                         action1.atStart = true;
                         action1.atEnd = false;
@@ -493,8 +550,8 @@ public class Schedule {
                         action2.active = true;
                     } else {
                         // onTime comes after offTime
-                        setStartTimeEachDay(offTime);
-                        setEndTimeEachDay(onTime);
+                        _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
+                        _schedule.endTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
                         action1.value = "0";
                         action1.atStart = true;
                         action1.atEnd = false;
@@ -508,7 +565,7 @@ public class Schedule {
                 }
             } else {
                 // No off time set. We have one action only
-                setStartTimeEachDay(onTime);
+                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
                 for ( String propertyName : _actionProperties ) {
                     List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
                     if ( actions.size() != 2 ) {
@@ -538,7 +595,7 @@ public class Schedule {
      */
     public void setOffTime(Calendar offTime) {
         Calendar onTime = getOnTime();
-
+        _schedule.utc = true;
         if (offTime == null) {
             // If we have an on time set, make sure we have exactly one action set to
             // turn off the device at the startTime.
@@ -550,7 +607,7 @@ public class Schedule {
             } else {
                 // Set the on time as the schedule start time, and have one action to turn
                 // the device on
-                setStartTimeEachDay(onTime);
+                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
                 AylaScheduleAction action = _schedule.scheduleActions[0];
                 action.atStart = true;
                 action.atEnd = false;
@@ -567,8 +624,8 @@ public class Schedule {
                 // See who comes first
                 if (offTime.compareTo(onTime) < 0) {
                     // offTime comes before onTime
-                    setStartTimeEachDay(offTime);
-                    setEndTimeEachDay(onTime);
+                    _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
+                    _schedule.endTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
                     action1.value = "0";
                     action1.atStart = true;
                     action1.atEnd = false;
@@ -580,8 +637,8 @@ public class Schedule {
                     action2.active = true;
                 } else {
                     // offTime comes after onTime
-                    setStartTimeEachDay(onTime);
-                    setEndTimeEachDay(offTime);
+                    _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
+                    _schedule.endTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
 
                     action1.value = "1";
                     action1.atStart = true;
@@ -595,7 +652,7 @@ public class Schedule {
                 }
             } else {
                 // No on time set. We have one action only
-                setStartTimeEachDay(onTime);
+                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
                 _schedule.scheduleActions[0].value = "0";
                 _schedule.scheduleActions[0].atStart = true;
                 _schedule.scheduleActions[0].atEnd = false;
@@ -689,24 +746,5 @@ public class Schedule {
     @Override
     public String toString() {
         return _schedule.name + (_schedule.active ? " (active)" : " (not active)");
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Private Section
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    // Static date formatters
-    private static DateFormat _dateFormatHMS;
-    private static DateFormat _dateFormatYMD;
-
-    /**
-     * Static initialization
-     */
-    static {
-        _dateFormatHMS = new SimpleDateFormat("HH:mm:ss");
-        _dateFormatHMS.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        _dateFormatYMD = new SimpleDateFormat("yyyy-MM-dd");
-        _dateFormatYMD.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
  }

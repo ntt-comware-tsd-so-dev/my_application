@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -38,6 +39,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 /*
  * ScheduleFragment.java
@@ -288,6 +290,7 @@ public class ScheduleFragment extends Fragment {
         }
 
         Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(_device.getTimeZone());
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
@@ -306,6 +309,7 @@ public class ScheduleFragment extends Fragment {
         }
 
         Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.add(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.add(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
@@ -343,10 +347,23 @@ public class ScheduleFragment extends Fragment {
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
-        _schedule.setStartDate(Calendar.getInstance());
+
+        // Start date is always "right now".
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(_device.getTimeZone());
+        _schedule.setStartDate(cal);
+
+        // Only timers have an end date set. Whether that date is today or tomorrow depends on
+        // how long the timer is set for.
         if ( _schedule.isTimer() ) {
-            _schedule.setEndDate(Calendar.getInstance());
+            // If the end time is an hour that is less than the start time hour, then the schedule
+            // should end tomorrow (we're going to span midnight).
+            if ( _schedule.getEndTimeEachDay().get(Calendar.HOUR_OF_DAY) < _schedule.getStartTimeEachDay().get(Calendar.HOUR_OF_DAY) ) {
+                cal.add(Calendar.DAY_OF_MONTH, 1);
+            }
+            _schedule.setEndDate(cal);
         }
+
         Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
         Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().endDate);
 
@@ -456,6 +473,7 @@ public class ScheduleFragment extends Fragment {
         // Update the pickers
         Calendar pickerTime;
         Calendar now = Calendar.getInstance();
+        now.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // First the timer picker
         if (_timerTurnOnButton.isSelected()) {

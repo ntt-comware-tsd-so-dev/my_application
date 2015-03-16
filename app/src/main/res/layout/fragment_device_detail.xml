@@ -13,10 +13,20 @@
         android:orientation="horizontal">
 
         <ImageView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/device_image"
+            android:layout_weight="0"
+            />
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/device_image"
-            />
+            android:layout_gravity="right|center_vertical"
+            android:layout_weight="1"
+            android:layout_margin="10dp"
+            android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
@@ -24,9 +34,33 @@
             android:layout_alignParentTop="true"
             android:layout_margin="10dp"
             android:textStyle="bold"
+            android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Testing 123"
             android:id="@+id/device_name" />
+
+            <Button
+                android:id="@+id/timezone_button"
+                style="@style/AgileLinkButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:padding="4dp"
+                android:layout_margin="4dp"
+                android:text="@string/timezone_button_text"/>
+
+            <Button
+                android:id="@+id/sharing_button"
+                style="@style/AgileLinkButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:padding="4dp"
+                android:layout_margin="4dp"
+                android:text="@string/sharing_button_text"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <TextView
