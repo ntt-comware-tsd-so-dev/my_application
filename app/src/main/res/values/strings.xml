@@ -233,5 +233,16 @@
     <string name="green_led">Green LED</string>
     <string name="schedule_properties_description">Select which action you would like to update with this schedule:</string>
     <string name="no_actions_set">Please select at least one action to update with this schedule</string>
+    <string name="timezone_button_text">Timezone...</string>
+    <string name="sharing_button_text">Share Device...</string>
+    <string name="choose_timezone">Select the time zone for this device</string>
+    <string name="fetching_timezone_title">Fetching device timezone...</string>
+    <string name="fetching_timezone_body">Fetching the current timezone for your device from the server. Please wait...</string>
+    <string name="updating_timezone_title">Updating time zone...</string>
+    <string name="updating_timezone_body">Updating the time zone for your device. Please wait...</string>
+    <string name="timezone_update_success">The timezone for this device was updated successfully</string>
+    <string name="timezone_update_failure">An error occurred while trying to update the time zone for this device</string>
+    <string name="timezone_fetch_failed">An error occurred while trying to get the current timezone for this device. Please try again later.</string>
+
 
 </resources>

@@ -21,11 +21,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.AylaTimezone;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
@@ -36,6 +39,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * DeviceDetailFragment.java
@@ -94,6 +98,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         button.setOnClickListener(this);
 
         button = (Button)view.findViewById(R.id.schedule_button);
+        button.setOnClickListener(this);
+
+        button = (Button)view.findViewById(R.id.timezone_button);
+        button.setOnClickListener(this);
+
+        button = (Button)view.findViewById(R.id.sharing_button);
         button.setOnClickListener(this);
 
         updateUI();
@@ -218,6 +228,69 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         MainActivity.getInstance().pushFragment(frag);
     }
 
+    private void sharingClicked() {
+        Toast.makeText(getActivity(), "Coming soon!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void timezoneClicked() {
+        // Fetch the timezone for the device
+        MainActivity.getInstance().showWaitDialog(R.string.fetching_timezone_title, R.string.fetching_timezone_body);
+        _device.fetchTimezone(new Device.DeviceStatusListener() {
+            @Override
+            public void statusUpdated(Device device, boolean changed) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if ( changed ) {
+                    chooseTimezone();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(),
+                            R.string.timezone_fetch_failed,
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void chooseTimezone() {
+        String currentTimezone = _device.getDevice().timezone.tzId;
+        final String[] timezones = TimeZone.getAvailableIDs();
+        int checkedItem = -1;
+        if ( currentTimezone != null ) {
+            // Find the index of the item to check in our dialog's list
+            for ( int i = 0; i < timezones.length; i++ ) {
+                String tz = timezones[i];
+                if (tz.equals(currentTimezone)) {
+                    checkedItem = i;
+                    break;
+                }
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(R.string.choose_timezone)
+                .setSingleChoiceItems(timezones, checkedItem, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(LOG_TAG, "Item selected: " + timezones[which]);
+                    }
+                })
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ListView lv = ((AlertDialog)dialog).getListView();
+                        int itemPos = lv.getCheckedItemPosition();
+                        if ( itemPos > -1 ) {
+                            Log.d(LOG_TAG, "Selected item: " + timezones[itemPos]);
+                            setDeviceTimezone(timezones[itemPos]);
+                        } else {
+                            Log.d(LOG_TAG, "No selected item");
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create()
+                .show();
+    }
+
     @Override
     public void onClick(View v) {
         switch ( v.getId() ) {
@@ -229,9 +302,30 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 scheduleClicked();
                 break;
 
+            case R.id.sharing_button:
+                sharingClicked();
+                break;
+
+            case R.id.timezone_button:
+                timezoneClicked();
+                break;
+
             default:
                 Log.e(LOG_TAG, "Unknown button click: " + v);
          }
+    }
+
+    private void setDeviceTimezone(String timezoneName) {
+        MainActivity.getInstance().showWaitDialog(R.string.updating_timezone_title, R.string.updating_timezone_body);
+        _device.setTimeZone(timezoneName, new Device.DeviceStatusListener() {
+            @Override
+            public void statusUpdated(Device device, boolean changed) {
+                MainActivity.getInstance().dismissWaitDialog();
+                Toast.makeText(MainActivity.getInstance(),
+                        changed ? R.string.timezone_update_success : R.string.timezone_update_failure,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     public class PropertyListAdapter extends ArrayAdapter<AylaProperty> {
@@ -252,9 +346,11 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             TextView propName = (TextView)convertView.findViewById(R.id.device_name);
             TextView propValue = (TextView)convertView.findViewById(R.id.device_state);
+            ProgressBar progressBar = (ProgressBar)convertView.findViewById(R.id.spinner);
 
             propName.setText(prop.name());
             propValue.setText(prop.value);
+            progressBar.setVisibility(View.GONE);
 
             return convertView;
         }
