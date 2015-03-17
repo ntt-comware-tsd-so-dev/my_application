@@ -44,7 +44,7 @@
 
         <service android:name="com.aylanetworks.aaml.AylaExecuteRequest"/>
 
-        <receiver android:name="com.aylanetworks.aaml.AylaConnectivyListener">
+        <receiver android:name="com.aylanetworks.aaml.AylaConnectivityListener">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
