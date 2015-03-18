@@ -340,6 +340,10 @@ public class Schedule {
         return result;
     }
 
+    public void setAllDaysOfWeek() {
+        _schedule.daysOfWeek = new int[]{1,2,3,4,5,6,7};
+    }
+
     public void setDaysOfMonth(Set<Integer> daysOfMonth) {
         if (daysOfMonth == null) {
             _schedule.daysOfMonth = new int[0];
@@ -421,7 +425,7 @@ public class Schedule {
      * @return The on time for the schedule, or null if no on time is set
      */
     @Nullable
-    public Calendar getOnTime() {
+    public Calendar getTimerOnTime() {
         boolean offTimeAtEnd = true;
         if (_schedule.scheduleActions != null && _schedule.scheduleActions.length > 0) {
             AylaScheduleAction action = _schedule.scheduleActions[0];
@@ -431,18 +435,11 @@ public class Schedule {
             }
         }
 
-        String dateString;
-        if (offTimeAtEnd) {
-            dateString = _schedule.startTimeEachDay;
-        } else {
-            dateString = _schedule.endTimeEachDay;
-        }
-
         Date date = null;
         try {
-            date = _dateFormatHMSUTC.parse(dateString);
+            date = _dateFormatHMSUTC.parse(_schedule.startTimeEachDay);
         } catch (ParseException e) {
-            Log.e(LOG_TAG, "Failed to parse date: " + dateString);
+            Log.e(LOG_TAG, "Failed to parse date: " + _schedule.startTimeEachDay);
             e.printStackTrace();
             return null;
         }
@@ -450,6 +447,9 @@ public class Schedule {
         Calendar calendar = today();
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar.setTime(date);
+        if ( !offTimeAtEnd ) {
+            calendar.add(Calendar.SECOND, _schedule.duration);
+        }
         return calendar;
     }
 
@@ -459,7 +459,7 @@ public class Schedule {
      * @return The off time, or null if no off time is set
      */
     @Nullable
-    public Calendar getOffTime() {
+    public Calendar getTimerOffTime() {
         boolean offTimeAtEnd = true;
         if (_schedule.scheduleActions != null && _schedule.scheduleActions.length > 0) {
             AylaScheduleAction action = _schedule.scheduleActions[0];
@@ -469,18 +469,11 @@ public class Schedule {
             }
         }
 
-        String dateString;
-        if (offTimeAtEnd) {
-            dateString = _schedule.endTimeEachDay;
-        } else {
-            dateString = _schedule.startTimeEachDay;
-        }
-
         Date date;
         try {
-            date = _dateFormatHMSUTC.parse(dateString);
+            date = _dateFormatHMSUTC.parse(_schedule.startTimeEachDay);
         } catch (ParseException e) {
-            Log.e(LOG_TAG, "Failed to parse date: " + dateString);
+            Log.e(LOG_TAG, "Failed to parse date: " + _schedule.startTimeEachDay);
             e.printStackTrace();
             return null;
         }
@@ -488,18 +481,25 @@ public class Schedule {
         Calendar calendar = today();
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar.setTime(date);
+        if ( offTimeAtEnd ) {
+            calendar.add(Calendar.SECOND, _schedule.duration);
+        }
         return calendar;
     }
 
     /**
-     * Helper method to set the on time for a schedule. This method will set the appropriate
+     * Helper method to set the on time for a timer. This method will set the appropriate
      * schedule actions for the event, taking the offTime into consideration if necessary
      *
      * @param onTime time to turn the device on
      */
-    public void setOnTime(Calendar onTime) {
+    public void setTimerOnTime(Calendar onTime) {
+        // Timers always use UTC and a duration rather than an end time, and are valid every day
+        setAllDaysOfWeek();
         _schedule.utc = true;
-        Calendar offTime = getOffTime();
+        _schedule.endTimeEachDay = "";
+
+        Calendar offTime = getTimerOffTime();
         if (onTime == null) {
             // If we have an off time set, make sure we have exactly one action set to
             // turn off the device at the startTime.
@@ -512,6 +512,7 @@ public class Schedule {
                 // Set the off time as the schedule start time, and have one action to turn
                 // the device off
                 _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime);
+                _schedule.duration = 0;
                 for ( String propertyName : _actionProperties ) {
                     List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
                     AylaScheduleAction action = actions.get(0);
@@ -538,7 +539,7 @@ public class Schedule {
                     if (onTime.compareTo(offTime) < 0) {
                         // onTime comes before offTime
                         _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
-                        _schedule.endTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
+                        _schedule.duration = (int)((offTime.getTimeInMillis() - onTime.getTimeInMillis()) / 1000);
                         action1.value = "1";
                         action1.atStart = true;
                         action1.atEnd = false;
@@ -551,7 +552,7 @@ public class Schedule {
                     } else {
                         // onTime comes after offTime
                         _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
-                        _schedule.endTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
+                        _schedule.duration = (int)((onTime.getTimeInMillis() - offTime.getTimeInMillis()) / 1000);
                         action1.value = "0";
                         action1.atStart = true;
                         action1.atEnd = false;
@@ -566,6 +567,7 @@ public class Schedule {
             } else {
                 // No off time set. We have one action only
                 _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
+                _schedule.duration = 0;
                 for ( String propertyName : _actionProperties ) {
                     List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
                     if ( actions.size() != 2 ) {
@@ -593,9 +595,12 @@ public class Schedule {
      *
      * @param offTime time to turn the device off
      */
-    public void setOffTime(Calendar offTime) {
-        Calendar onTime = getOnTime();
+    public void setTimerOffTime(Calendar offTime) {
+        Calendar onTime = getTimerOnTime();
         _schedule.utc = true;
+        _schedule.endTimeEachDay = "";
+        setAllDaysOfWeek();
+
         if (offTime == null) {
             // If we have an on time set, make sure we have exactly one action set to
             // turn off the device at the startTime.
@@ -608,6 +613,7 @@ public class Schedule {
                 // Set the on time as the schedule start time, and have one action to turn
                 // the device on
                 _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
+                _schedule.duration = 0;
                 AylaScheduleAction action = _schedule.scheduleActions[0];
                 action.atStart = true;
                 action.atEnd = false;
@@ -625,7 +631,7 @@ public class Schedule {
                 if (offTime.compareTo(onTime) < 0) {
                     // offTime comes before onTime
                     _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
-                    _schedule.endTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
+                    _schedule.duration = (int)((onTime.getTimeInMillis() - offTime.getTimeInMillis()) / 1000);
                     action1.value = "0";
                     action1.atStart = true;
                     action1.atEnd = false;
@@ -638,7 +644,7 @@ public class Schedule {
                 } else {
                     // offTime comes after onTime
                     _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
-                    _schedule.endTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
+                    _schedule.duration = (int)((offTime.getTimeInMillis() - onTime.getTimeInMillis()) / 1000);
 
                     action1.value = "1";
                     action1.atStart = true;
@@ -653,6 +659,7 @@ public class Schedule {
             } else {
                 // No on time set. We have one action only
                 _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
+                _schedule.duration = 0;
                 _schedule.scheduleActions[0].value = "0";
                 _schedule.scheduleActions[0].atStart = true;
                 _schedule.scheduleActions[0].atEnd = false;
@@ -681,8 +688,8 @@ public class Schedule {
 
     public void updateScheduleActions() {
         // Update our schedule actions array based on our actions and dates
-        Calendar oldOnTime = getOnTime();
-        Calendar oldOffTime = getOffTime();
+        Calendar oldOnTime = getTimerOnTime();
+        Calendar oldOffTime = getTimerOffTime();
 
         boolean startEndReversed = (isTimer() &&
                 oldOnTime != null &&

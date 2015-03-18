@@ -7,7 +7,6 @@ import android.support.v4.app.Fragment;
 
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,7 +19,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -315,9 +313,9 @@ public class ScheduleFragment extends Fragment {
         cal.set(Calendar.SECOND, 0);
 
         if (_timerTurnOnButton.isSelected()) {
-            _schedule.setOnTime(cal);
+            _schedule.setTimerOnTime(cal);
         } else {
-            _schedule.setOffTime(cal);
+            _schedule.setTimerOffTime(cal);
         }
     }
 
@@ -352,15 +350,7 @@ public class ScheduleFragment extends Fragment {
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(_device.getTimeZone());
         _schedule.setStartDate(cal);
-
-        // Only timers have an end date set. Whether that date is today or tomorrow depends on
-        // how long the timer is set for.
         if ( _schedule.isTimer() ) {
-            // If the end time is an hour that is less than the start time hour, then the schedule
-            // should end tomorrow (we're going to span midnight).
-            if ( _schedule.getEndTimeEachDay().get(Calendar.HOUR_OF_DAY) < _schedule.getStartTimeEachDay().get(Calendar.HOUR_OF_DAY) ) {
-                cal.add(Calendar.DAY_OF_MONTH, 1);
-            }
             _schedule.setEndDate(cal);
         }
 
@@ -477,13 +467,13 @@ public class ScheduleFragment extends Fragment {
 
         // First the timer picker
         if (_timerTurnOnButton.isSelected()) {
-            pickerTime = _schedule.getOnTime();
+            pickerTime = _schedule.getTimerOnTime();
             if (pickerTime != null) {
                 pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
                 pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
             }
         } else {
-            pickerTime = _schedule.getOffTime();
+            pickerTime = _schedule.getTimerOffTime();
             if (pickerTime != null) {
                 pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
                 pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
@@ -502,17 +492,17 @@ public class ScheduleFragment extends Fragment {
         // Now the schedule picker
         if (_scheduleOnTimeButton.isSelected()) {
             // Add the schedule duration
-            pickerTime = _schedule.getOnTime();
+            pickerTime = _schedule.getTimerOnTime();
         } else {
-            pickerTime = _schedule.getOffTime();
+            pickerTime = _schedule.getTimerOffTime();
         }
 
         if (pickerTime == null) {
             // Set to the on or off time if set, or the current time if not set
             if ( _scheduleOnTimeButton.isSelected() ) {
-                pickerTime = _schedule.getOffTime();
+                pickerTime = _schedule.getTimerOffTime();
             } else {
-                pickerTime = _schedule.getOnTime();
+                pickerTime = _schedule.getTimerOnTime();
             }
 
             if ( pickerTime == null ) {
