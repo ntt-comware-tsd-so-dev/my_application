@@ -86,6 +86,14 @@ public class SessionManager {
         return _globalSessionManager;
     }
 
+    public AccountSettings getAccountSettings() {
+        return _accountSettings;
+    }
+
+    public ContactManager getContactManager() {
+        return _contactManager;
+    }
+
     public static void registerNewUser(final AylaUser user, final Handler resultHandler) {
         Map<String, String> callParams = new HashMap<String, String>();
         callParams.put("email", user.email);
@@ -317,6 +325,16 @@ public class SessionManager {
         _sessionListeners = new HashSet<>();
     }
 
+    /**
+     * Account settings object
+     */
+    private AccountSettings _accountSettings;
+
+    /**
+     * Contact manager object
+     */
+    private ContactManager _contactManager;
+
     /** Private Methods */
 
     /**
@@ -405,6 +423,9 @@ public class SessionManager {
                 editor.putString(PREFS_PASSWORD, _sessionManager.get()._sessionParameters.password);
                 editor.putString(PREFS_USERNAME, _sessionManager.get()._sessionParameters.username);
                 editor.apply();
+
+                // Fetches the account settings and stores them
+                _sessionManager.get().fetchAccountSettings();
 
                 // Create the device manager and have it start polling the device list
                 _sessionManager.get()._deviceManager = new DeviceManager();
@@ -513,6 +534,22 @@ public class SessionManager {
         }
 
         return true;
+    }
+
+    private void fetchAccountSettings() {
+        Log.d(LOG_TAG, "Fetching account settings...");
+        AccountSettings.fetchAccountSettings(AylaUser.getCurrent(), new AccountSettings.AccountSettingsCallback() {
+            @Override
+            public void settingsUpdated(AccountSettings settings, Message msg) {
+                Log.d(LOG_TAG, "Account settings fetch result: " + msg);
+                if ( settings != null ) {
+                    _accountSettings = settings;
+                    // Now we can create our contact manager
+                    _contactManager = new ContactManager();
+                    _contactManager.fetchContacts(new ContactManager.ContactManagerListener(), false);
+                }
+            }
+        });
     }
 
     /**

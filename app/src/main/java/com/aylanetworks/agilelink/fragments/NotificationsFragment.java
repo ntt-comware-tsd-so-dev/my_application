@@ -31,7 +31,6 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 
 public class NotificationsFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
     private static final String LOG_TAG = "NotificationsFragment";
-    private AccountSettings _accountSettings;
 
     private CheckBox _emailCheckbox;
     private CheckBox _smsCheckbox;
@@ -109,15 +108,16 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
 
     private void updateCheckboxes() {
         enableCheckboxListeners(false);
-        if ( _accountSettings == null ) {
+        AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+        if ( accountSettings == null ) {
             // Nothing checked
             _emailCheckbox.setChecked(false);
             _smsCheckbox.setChecked(false);
             _pushCheckbox.setChecked(false);
         } else {
-            _emailCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL));
-            _smsCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS));
-            _pushCheckbox.setChecked(_accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH));
+            _emailCheckbox.setChecked(accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL));
+            _smsCheckbox.setChecked(accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS));
+            _pushCheckbox.setChecked(accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH));
         }
 
         enableCheckboxListeners(true);
@@ -132,17 +132,18 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
 
     private void enableNotification(String notificationMethod, boolean enable) {
         Log.d(LOG_TAG, "Email notifications: " + enable);
+        AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
 
         if ( enable ) {
-            _accountSettings.addNotificationMethod(notificationMethod);
+            accountSettings.addNotificationMethod(notificationMethod);
         } else {
-            _accountSettings.removeNotificationMethod(notificationMethod);
+            accountSettings.removeNotificationMethod(notificationMethod);
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title,
                 R.string.updating_notifications_body);
 
-        _accountSettings.pushToServer(new UpdateSettingsCallback(false));
+        accountSettings.pushToServer(new UpdateSettingsCallback(false));
         updateNotifications(notificationMethod, enable);
     }
 
@@ -170,7 +171,6 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
         }
         @Override
         public void settingsUpdated(AccountSettings settings, Message msg) {
-            _accountSettings = settings;
             updateCheckboxes();
             if ( _dismissDialogWhenDone ) {
                 MainActivity.getInstance().dismissWaitDialog();
