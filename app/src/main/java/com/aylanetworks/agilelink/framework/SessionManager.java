@@ -372,6 +372,7 @@ public class SessionManager {
      */
     static class LoginHandler extends Handler {
         private WeakReference<SessionManager> _sessionManager;
+
         public LoginHandler(SessionManager sessionManager) {
             _sessionManager = new WeakReference<SessionManager>(sessionManager);
         }
@@ -412,16 +413,17 @@ public class SessionManager {
                 AylaUser.setCurrent(_sessionManager.get()._aylaUser);
                 _sessionManager.get().notifyLoginStateChanged(true, _sessionManager.get()._aylaUser);
             } else {
-                String json = (String)msg.obj;
+                String json = (String) msg.obj;
                 String errorMessage = null;
                 try {
                     JSONObject results = new JSONObject(json);
                     errorMessage = results.getString("error");
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    errorMessage = json;
                 }
 
-                if ( errorMessage != null ) {
+                if (errorMessage != null) {
                     Toast.makeText(_sessionManager.get()._sessionParameters.context, errorMessage, Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(_sessionManager.get()._sessionParameters.context, R.string.unknown_error, Toast.LENGTH_LONG).show();
@@ -448,64 +450,39 @@ public class SessionManager {
                 PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
         String savedPassword = settings.getString(PREFS_PASSWORD, "");
 
-        // Make sure the service is reachable, or LAN mode is available
-        int serviceReachability = AylaReachability.getConnectivity();
-        if (serviceReachability != AylaNetworks.AML_REACHABILITY_REACHABLE) {
-            if (_sessionParameters.enableLANMode) {
-                if (!_sessionParameters.username.equals(savedUsername) ||
-                        !_sessionParameters.password.equals(savedPassword)) {
-                    // Invalid username or password
-                    Toast.makeText(MainActivity.getInstance(), R.string.invalid_email_password, Toast.LENGTH_LONG).show();
-                    return;
-                }
-            } else {
-                // LAN mode not available and the network is not reachable
-                Toast.makeText(MainActivity.getInstance(), R.string.network_not_reachable, Toast.LENGTH_LONG).show();
-                return;
-            }
+        if (!_sessionParameters.username.equals(savedUsername) ||
+                !_sessionParameters.password.equals(savedPassword)) {
+            // Invalid username or password
+            Toast.makeText(MainActivity.getInstance(), R.string.invalid_email_password, Toast.LENGTH_LONG).show();
+            return;
         }
 
-        if (serviceReachability == AylaNetworks.AML_REACHABILITY_REACHABLE) {
-
-            // If cached credentials match, use the refresh token
-            if (savedUser != null && savedUser.email != null && savedUser.email.equals(_sessionParameters.username) &&
-                    savedPassword.equals(_sessionParameters.password)) {
-                // We have a cached user and password that match. Try to refresh the access token.
-                // First make sure it hasn't expired:
-                int secondsToExpiry = savedUser.accessTokenSecondsToExpiry();
-                if (secondsToExpiry < 21600) {    // Less than 6 hours
-                    // Normal login
-                    Log.d(LOG_TAG, "Normal login (access token expired)");
-                    AylaUser.login(_loginHandler,
-                            _sessionParameters.username,
-                            _sessionParameters.password,
-                            _sessionParameters.appId,
-                            _sessionParameters.appSecret);
-
-                } else {
-                    Log.d(LOG_TAG, "Refreshing access token");
-                    AylaUser.refreshAccessToken(_loginHandler, savedUser.getRefreshToken());
-                }
-            } else {
+        // If cached credentials match, use the refresh token
+        if (savedUser != null && savedUser.email != null && savedUser.email.equals(_sessionParameters.username) &&
+                savedPassword.equals(_sessionParameters.password)) {
+            // We have a cached user and password that match. Try to refresh the access token.
+            // First make sure it hasn't expired:
+            int secondsToExpiry = savedUser.accessTokenSecondsToExpiry();
+            if (secondsToExpiry < 21600) {    // Less than 6 hours
                 // Normal login
-                Log.d(LOG_TAG, "Normal login");
+                Log.d(LOG_TAG, "Normal login (access token expired)");
                 AylaUser.login(_loginHandler,
                         _sessionParameters.username,
                         _sessionParameters.password,
                         _sessionParameters.appId,
                         _sessionParameters.appSecret);
+            } else {
+                Log.d(LOG_TAG, "Refreshing access token");
+                AylaUser.refreshAccessToken(_loginHandler, savedUser.getRefreshToken());
             }
         } else {
-            // Service is not reachable. Do LAN login instead.
-            AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "amca.signin", "userLogin", "Successful", "userLogin_lanmode");
-            Toast.makeText(AylaNetworks.appContext, R.string.wlan_signin, Toast.LENGTH_LONG).show();
-            AylaSystemUtils.serviceReachableTimeout = -1;    // UX Optimization in LAN MODE: don't test service reachability
-
-            AylaUser aylaUser = new AylaUser();
-            aylaUser.setauthHeaderValue("none");
-            aylaUser.setExpiresIn(0);
-            aylaUser.setRefreshToken("");
-            AylaUser.setCurrent(aylaUser);
+            // Normal login
+            Log.d(LOG_TAG, "Normal login");
+            AylaUser.login(_loginHandler,
+                    _sessionParameters.username,
+                    _sessionParameters.password,
+                    _sessionParameters.appId,
+                    _sessionParameters.appSecret);
         }
     }
 
