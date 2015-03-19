@@ -18,8 +18,10 @@ import java.util.List;
 public class ContactListAdapter extends RecyclerView.Adapter {
     private List<AylaContact> _aylaContacts;
 
-    public ContactListAdapter() {
-        _aylaContacts = SessionManager.getInstance().getContactManager().getContacts();
+    public ContactListAdapter() {}
+
+    public ContactListAdapter(boolean includeOwner) {
+        _aylaContacts = SessionManager.getInstance().getContactManager().getContacts(includeOwner);
     }
 
     @Override

@@ -43,8 +43,13 @@ public class ContactManager {
         _aylaContactList = new ArrayList<>();
     }
 
-    public List<AylaContact>getContacts() {
-        return new ArrayList<>(_aylaContactList);
+    public List<AylaContact>getContacts(boolean includeOwner) {
+        List<AylaContact> contacts = new ArrayList<>(_aylaContactList);
+        if ( !includeOwner ) {
+            contacts.remove(getOwnerContact());
+        }
+
+        return contacts;
     }
 
     public void addContact(AylaContact contact, ContactManagerListener listener) {
@@ -78,7 +83,7 @@ public class ContactManager {
     }
 
     public void updateContact(AylaContact contact, ContactManagerListener listener) {
-        Log.d(LOG_TAG, "udpateContact: " + contact);
+        Log.d(LOG_TAG, "updateContact: " + contact);
         contact.update(new ContactHandler(ContactHandler.Command.UPDATE, contact, this, listener));
     }
 

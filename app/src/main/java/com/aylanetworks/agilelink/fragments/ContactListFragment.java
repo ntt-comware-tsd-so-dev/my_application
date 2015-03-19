@@ -50,7 +50,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             @Override
             public void contactListUpdated(ContactManager manager, boolean succeeded) {
                 MainActivity.getInstance().dismissWaitDialog();
-                _recyclerView.setAdapter(new ContactListAdapter());
+                _recyclerView.setAdapter(new ContactListAdapter(false));
             }
         }, true);
 
