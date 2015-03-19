@@ -31,12 +31,12 @@
     <string name="signingIn">Signing in...</string>
     <string name="signingUp">Signing up...</string>
     <string name="confirmPassword">confirm password</string>
-    <string name="lastName">last name</string>
-    <string name="country">country</string>
-    <string name="firstName">first name</string>
-    <string name="phoneNumber">phone number</string>
-    <string name="evbNumber">EVB number</string>
-    <string name="zip">zip</string>
+    <string name="lastName">Last Name</string>
+    <string name="country">Country</string>
+    <string name="firstName">First Name</string>
+    <string name="phoneNumber">Phone Number</string>
+    <string name="evbNumber">EVB Number</string>
+    <string name="zip">Zip</string>
     <string name="signUp">Sign up</string>
     <string name="password_required">A password is required</string>
     <string name="password_no_match">The password you entered does not match the confirmed password entry</string>
@@ -246,6 +246,21 @@
     <string name="timezone_fetch_failed">An error occurred while trying to get the current timezone for this device. Please try again later.</string>
     <string name="fetching_contacts_title">Fetching Contacts</string>
     <string name="fetching_contacts_body">Updating your list of contacts. Please wait...</string>
+    <string name="country_code">Country Code</string>
+    <string name="display_name">Display Name</string>
+    <string name="save_contact">Save Contact</string>
+    <string name="street_address">Street Address</string>
+    <string name="create_contact">Create Contact</string>
+    <string name="update_contact">Update Contact</string>
+    <string name="contact_email_phone_required">A phone number or email address is required</string>
+    <string name="contact_updated">The contact information was saved</string>
+    <string name="contact_update_failed">An unknown error occurred while trying to update the information for this contact. Please try again later.</string>
+    <string name="updating_contact_title">Updating Contact</string>
+    <string name="updating_contact_body">Sending contact information to the server. Please wait...</string>
+    <string name="confirm_delete_contact_title">Delete Contact</string>
+    <string name="confirm_delete_contact_body" formatted="false">Are you sure you want to remove \"%s\" from your contact list?</string>
+    <string name="deleting_contact_title">Removing Contact</string>
+    <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
 
 
 </resources>

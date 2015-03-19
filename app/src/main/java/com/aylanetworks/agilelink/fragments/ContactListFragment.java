@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink.fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,7 +21,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 /**
  * Created by Brian King on 3/19/15.
  */
-public class ContactListFragment extends Fragment implements View.OnClickListener {
+public class ContactListFragment extends Fragment implements View.OnClickListener, FragmentManager.OnBackStackChangedListener {
     private final static String LOG_TAG = "ContactListFrag";
 
     private RecyclerView _recyclerView;
@@ -28,6 +29,18 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
     public static ContactListFragment newInstance() {
         return new ContactListFragment();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getFragmentManager().addOnBackStackChangedListener(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getFragmentManager().removeOnBackStackChangedListener(this);
     }
 
     @Override
@@ -55,11 +68,18 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         }, true);
 
         return view;
-
     }
 
     @Override
     public void onClick(View v) {
         Log.d(LOG_TAG, "Add button clicked");
+        EditContactFragment frag = EditContactFragment.newInstance(null);
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        Log.d(LOG_TAG, "Back stack changed");
+        _recyclerView.setAdapter(new ContactListAdapter(false));
     }
 }

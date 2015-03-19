@@ -107,8 +107,8 @@ public class ContactManager {
      * @param user The AylaUser to update from
      */
     public static void updateContactFromUser(AylaContact contact, AylaUser user) {
-        contact.firstName = user.firstname;
-        contact.lastName = user.lastname;
+        contact.firstname = user.firstname;
+        contact.lastname = user.lastname;
 
         // TODO: This may be different in other locales
         contact.displayName = user.firstname + " " + user.lastname;

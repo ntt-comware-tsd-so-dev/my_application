@@ -244,12 +244,12 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                     Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
                 } else {
                     ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
-                    ownerContact.firstName = _editProfileDialog.get()._firstName.getText().toString();
-                    ownerContact.lastName = _editProfileDialog.get()._lastName.getText().toString();
+                    ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
+                    ownerContact.lastname = _editProfileDialog.get()._lastName.getText().toString();
                     ownerContact.zipCode = _editProfileDialog.get()._zip.getText().toString();
                     ownerContact.country = _editProfileDialog.get()._country.getText().toString();
                     ownerContact.phoneCountryCode = AylaUser.getCurrent().phoneCountryCode;
-                    ownerContact.displayName = ownerContact.firstName + " " + ownerContact.lastName;
+                    ownerContact.displayName = ownerContact.firstname + " " + ownerContact.lastname;
 
                     cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
                         @Override
