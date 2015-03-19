@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.accounts.Account;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
@@ -39,9 +40,6 @@ public class ContactManager {
      */
     public ContactManager() {
         Log.d(LOG_TAG, "ContactManager created");
-        if ( SessionManager.getInstance().getAccountSettings() == null ) {
-            throw new RuntimeException("Cannot create the contact manager before AccountSettings have been fetched");
-        }
         _aylaContactList = new ArrayList<>();
     }
 
@@ -55,7 +53,13 @@ public class ContactManager {
 
     @Nullable
     public AylaContact getOwnerContact() {
-        Integer ownerID = SessionManager.getInstance().getAccountSettings().getOwnerContactID();
+        AccountSettings settings = SessionManager.getInstance().getAccountSettings();
+        if ( settings == null ) {
+            Log.e(LOG_TAG, "Trying to get owner contact, but we have no account settings yet");
+            return null;
+        }
+
+        Integer ownerID = settings.getOwnerContactID();
         if ( ownerID == null ) {
             return null;
         }
@@ -227,10 +231,16 @@ public class ContactManager {
                     case ADD_OWNER:{
                         AylaContact newContact = gson.fromJson((String) msg.obj, AylaContact.class);
                         _contactManager.get()._aylaContactList.add(newContact);
+
                         if ( _command == Command.ADD_OWNER ) {
-                            SessionManager.getInstance().getAccountSettings().setOwnerContactID(newContact.id);
-                            SessionManager.getInstance().getAccountSettings().pushToServer(new AccountSettings.AccountSettingsCallback());
-                            Log.d(LOG_TAG, "Owner contact ID: " + newContact.id);
+                            AccountSettings settings = SessionManager.getInstance().getAccountSettings();
+                            if ( settings != null ) {
+                                settings.setOwnerContactID(newContact.id);
+                                settings.pushToServer(new AccountSettings.AccountSettingsCallback());
+                                Log.d(LOG_TAG, "Owner contact ID: " + newContact.id);
+                            } else {
+                                Log.e(LOG_TAG, "Can't set owner contact ID without account settings");
+                            }
                         }
                     }
                     break;

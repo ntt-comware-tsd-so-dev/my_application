@@ -427,6 +427,10 @@ public class SessionManager {
                 // Fetches the account settings and stores them
                 _sessionManager.get().fetchAccountSettings();
 
+                // Create the contacts manager. It will fetch the contact list once the account
+                // settings have been fetched (so it knows who the owner contact is)
+                _sessionManager.get()._contactManager = new ContactManager();
+
                 // Create the device manager and have it start polling the device list
                 _sessionManager.get()._deviceManager = new DeviceManager();
                 _sessionManager.get()._deviceManager.startPolling();
@@ -545,7 +549,6 @@ public class SessionManager {
                 if ( settings != null ) {
                     _accountSettings = settings;
                     // Now we can create our contact manager
-                    _contactManager = new ContactManager();
                     _contactManager.fetchContacts(new ContactManager.ContactManagerListener(), false);
                 }
             }
