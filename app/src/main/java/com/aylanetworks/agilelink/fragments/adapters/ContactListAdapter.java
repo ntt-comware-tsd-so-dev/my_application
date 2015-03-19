@@ -2,12 +2,14 @@ package com.aylanetworks.agilelink.fragments.adapters;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.media.Image;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,6 +56,18 @@ public class ContactListAdapter extends RecyclerView.Adapter {
             }
         } else {
             h._contactNameTextView.setText(contact.displayName);
+        }
+
+        if ( !TextUtils.isEmpty(contact.email)) {
+            h._emailButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.app_theme_accent));
+        } else {
+            h._emailButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.grey_700));
+        }
+
+        if ( !TextUtils.isEmpty(contact.phoneNumber) ) {
+            h._smsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.app_theme_accent));
+        } else {
+            h._smsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.grey_700));
         }
     }
 
@@ -112,8 +126,18 @@ public class ContactListAdapter extends RecyclerView.Adapter {
         });
     }
 
+    private void toggleEmail(int position) {
+        Toast.makeText(MainActivity.getInstance(), "Toggle Email Notifications: Coming soon!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void toggleSMS(int position) {
+        Toast.makeText(MainActivity.getInstance(), "Toggle SMS Notifications: Coming soon!", Toast.LENGTH_SHORT).show();
+    }
+
     private class ContactViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         public TextView _contactNameTextView;
+        public ImageButton _emailButton;
+        public ImageButton _smsButton;
 
         public ContactViewHolder(View v) {
             super(v);
@@ -121,11 +145,22 @@ public class ContactListAdapter extends RecyclerView.Adapter {
             v.setOnClickListener(this);
             v.setOnLongClickListener(this);
             _contactNameTextView = (TextView) v.findViewById(R.id.contact_name);
+            _emailButton = (ImageButton)v.findViewById(R.id.button_email);
+            _smsButton = (ImageButton)v.findViewById(R.id.button_sms);
+
+            _emailButton.setOnClickListener(this);
+            _smsButton.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            editContact(getPosition());
+            if ( v == _emailButton ) {
+                toggleEmail(getPosition());
+            } else if ( v == _smsButton ) {
+                toggleSMS(getPosition());
+            } else {
+                editContact(getPosition());
+            }
         }
 
         @Override
