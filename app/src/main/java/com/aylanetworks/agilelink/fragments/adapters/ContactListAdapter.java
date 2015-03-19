@@ -2,9 +2,11 @@ package com.aylanetworks.agilelink.fragments.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaContact;
 import com.aylanetworks.agilelink.R;
@@ -16,6 +18,8 @@ import java.util.List;
  * Created by Brian King on 3/18/15.
  */
 public class ContactListAdapter extends RecyclerView.Adapter {
+    private final static String LOG_TAG = "ContactListAdapter";
+
     private List<AylaContact> _aylaContacts;
 
     public ContactListAdapter() {}
@@ -34,6 +38,7 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ContactViewHolder h = (ContactViewHolder)holder;
         AylaContact contact = _aylaContacts.get(position);
+
         if (TextUtils.isEmpty(contact.displayName) || TextUtils.isEmpty(contact.displayName.trim())) {
             if ( TextUtils.isEmpty(contact.firstName) && TextUtils.isEmpty(contact.lastName)) {
                 h._contactNameTextView.setText(contact.email);
@@ -48,5 +53,34 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return _aylaContacts.size();
+    }
+
+    public void editContact(int position) {
+        AylaContact contact = _aylaContacts.get(position);
+        Log.d(LOG_TAG, "Editing contact: " + contact);
+    }
+
+    private class ContactViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+        public TextView _contactNameTextView;
+
+        public ContactViewHolder(View v) {
+            super(v);
+
+            v.setOnClickListener(this);
+            v.setOnLongClickListener(this);
+            _contactNameTextView = (TextView)v.findViewById(R.id.contact_name);
+        }
+
+        @Override
+        public void onClick(View v) {
+            editContact(getPosition());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            // Bring up a menu
+            Log.d(LOG_TAG, "onLongClick: " + getPosition());
+            return true;
+        }
     }
 }
