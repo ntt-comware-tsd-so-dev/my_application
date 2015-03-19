@@ -169,6 +169,7 @@
     <!-- Settings menu items -->
     <string-array name="settings_items">
         <item>Registration</item>
+        <item>Contact List</item>
         <item>WiFi Setup</item>
         <item>Notifications</item>
         <item>Edit Profile</item>
@@ -243,6 +244,8 @@
     <string name="timezone_update_success">The timezone for this device was updated successfully</string>
     <string name="timezone_update_failure">An error occurred while trying to update the time zone for this device</string>
     <string name="timezone_fetch_failed">An error occurred while trying to get the current timezone for this device. Please try again later.</string>
+    <string name="fetching_contacts_title">Fetching Contacts</string>
+    <string name="fetching_contacts_body">Updating your list of contacts. Please wait...</string>
 
 
 </resources>

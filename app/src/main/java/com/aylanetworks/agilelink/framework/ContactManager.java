@@ -32,7 +32,7 @@ public class ContactManager {
 
     public static class ContactManagerListener {
         public Message lastMessage;
-        void contactListUpdated(ContactManager manager, boolean succeeded) {}
+        public void contactListUpdated(ContactManager manager, boolean succeeded) {}
     }
 
     /**
@@ -78,6 +78,7 @@ public class ContactManager {
     }
 
     public void updateContact(AylaContact contact, ContactManagerListener listener) {
+        Log.d(LOG_TAG, "udpateContact: " + contact);
         contact.update(new ContactHandler(ContactHandler.Command.UPDATE, contact, this, listener));
     }
 
@@ -95,12 +96,12 @@ public class ContactManager {
         AylaContact.get(new FetchContactsHandler(this, listener, deepFetch), null);
     }
 
-    private List<AylaContact> _aylaContactList;
-
-    private void createOwnerContact() {
-        AylaUser user = AylaUser.getCurrent();
-        AylaContact contact = new AylaContact();
-
+    /**
+     * Helper method used to update an AylaContact with information from an AylaUser
+     * @param contact The AylaContact to update
+     * @param user The AylaUser to update from
+     */
+    public static void updateContactFromUser(AylaContact contact, AylaUser user) {
         contact.firstName = user.firstname;
         contact.lastName = user.lastname;
 
@@ -112,6 +113,15 @@ public class ContactManager {
         contact.phoneCountryCode = user.phoneCountryCode;
         contact.phoneNumber = user.phone;
         contact.streetAddress = user.street;
+    }
+
+    private List<AylaContact> _aylaContactList;
+
+    public void createOwnerContact() {
+        AylaUser user = AylaUser.getCurrent();
+        AylaContact contact = new AylaContact();
+
+        updateContactFromUser(contact, user);
 
         Log.d(LOG_TAG, "Adding owner contact: " + contact);
         contact.create(new ContactHandler(ContactHandler.Command.ADD_OWNER, contact, this, new ContactManagerListener()), null);
@@ -170,8 +180,11 @@ public class ContactManager {
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 // Replace our existing contact with the updated one
                 AylaContact updatedContact = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaContact.class);
+                Log.d(LOG_TAG, "Updated contact: " + updatedContact);
+
                 for ( AylaContact contact : _contactManager.get()._aylaContactList ) {
                     if ( contact.id == updatedContact.id ) {
+                        Log.d(LOG_TAG, "Old contact found: " + contact);
                         _contactManager.get()._aylaContactList.remove(contact);
                         break;
                     }
@@ -224,6 +237,8 @@ public class ContactManager {
         @Override
         public void handleMessage(Message msg) {
             _listener.lastMessage = msg;
+            Log.d(LOG_TAG, "ContactHandler [" + _command.toString() + "] " + msg);
+
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 Gson gson = AylaSystemUtils.gson;
                 switch (_command) {

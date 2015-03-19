@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.fragments.adapters;
 
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +32,15 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ContactViewHolder h = (ContactViewHolder)holder;
         AylaContact contact = _aylaContacts.get(position);
-        h._contactNameTextView.setText(contact.displayName);
+        if (TextUtils.isEmpty(contact.displayName) || TextUtils.isEmpty(contact.displayName.trim())) {
+            if ( TextUtils.isEmpty(contact.firstName) && TextUtils.isEmpty(contact.lastName)) {
+                h._contactNameTextView.setText(contact.email);
+            } else {
+                h._contactNameTextView.setText(contact.firstName + " " + contact.lastName);
+            }
+        } else {
+            h._contactNameTextView.setText(contact.displayName);
+        }
     }
 
     @Override

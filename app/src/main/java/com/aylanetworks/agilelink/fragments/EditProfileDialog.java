@@ -12,11 +12,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaContact;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -202,11 +204,19 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                 String json = (String) msg.obj;
                 AylaUser user = AylaSystemUtils.gson.fromJson(json, AylaUser.class);
                 Log.d(LOG_TAG, "User: " + user);
+
+                // Save the auth info- it's not filled out in the returned user object
+                AylaUser oldUser = AylaUser.getCurrent();
+                user.setAccessToken(oldUser.getAccessToken());
+                user.setRefreshToken(oldUser.getRefreshToken());
+                user.setExpiresIn(oldUser.getExpiresIn());
+
                 AylaUser.setCurrent(user);
                 _editProfileDialog.get().updateFields();
             }
         }
     }
+
     private GetInfoHandler _getInfoHandler = new GetInfoHandler(this);
 
     static class UpdateProfileHandler extends Handler {
@@ -223,10 +233,35 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
             Log.d(LOG_TAG, "Update profile handler: " + msg);
 
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
-                _editProfileDialog.get().dismiss();
-            } else {
+                // Update the owner contact information
+                ContactManager cm = SessionManager.getInstance().getContactManager();
+                AylaContact ownerContact = cm.getOwnerContact();
 
+                if ( ownerContact == null ) {
+                    Log.e(LOG_TAG, "No owner contact found! Creating...");
+                    cm.createOwnerContact();
+                    _editProfileDialog.get().dismiss();
+                    Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
+                } else {
+                    ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
+                    ownerContact.firstName = _editProfileDialog.get()._firstName.getText().toString();
+                    ownerContact.lastName = _editProfileDialog.get()._lastName.getText().toString();
+                    ownerContact.zipCode = _editProfileDialog.get()._zip.getText().toString();
+                    ownerContact.country = _editProfileDialog.get()._country.getText().toString();
+                    ownerContact.phoneCountryCode = AylaUser.getCurrent().phoneCountryCode;
+                    ownerContact.displayName = ownerContact.firstName + " " + ownerContact.lastName;
+
+                    cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
+                        @Override
+                        public void contactListUpdated(ContactManager manager, boolean succeeded) {
+                            _editProfileDialog.get().dismiss();
+                            Toast.makeText(MainActivity.getInstance(),
+                                    succeeded ? R.string.profile_updated : R.string.error_changing_profile,
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            } else {
                 String errMsg = null;
                 if (msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS) {
                     AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "errors", jsonResults, "userSignUp");
