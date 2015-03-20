@@ -38,6 +38,15 @@
         <item name="android:layout_width">wrap_content</item>
     </style>
 
+    <!-- Style for text views in list items that show a contact -->
+    <style name="ContactTextView" parent="@android:style/TextAppearance.Medium">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">10dp</item>
+    </style>
+
     <!-- Style for text views used as a title -->
     <style name="PageHeader" parent="@android:style/TextAppearance.Large">
         <item name="android:layout_gravity">center_horizontal</item>
