@@ -72,12 +72,20 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     private static MainActivity _theInstance;
 
+    /** Returns the one and only instance of this activity */
     public static MainActivity getInstance() {
         return _theInstance;
     }
 
     ProgressDialog _progressDialog;
 
+    /**
+     * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
+     * The caller should call dismissWaitDialog() when finished.
+     *
+     * @param title title of the dialog
+     * @param message message of the dialog
+     */
     public void showWaitDialog(String title, String message) {
         if (_progressDialog != null) {
             dismissWaitDialog();
@@ -90,12 +98,22 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         _progressDialog = ProgressDialog.show(this, title, message, true);
     }
 
+    /**
+     * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
+     * The caller should call dismissWaitDialog() when finished.
+     *
+     * @param titleId String ID for the title of the dialog
+     * @param messageId String ID for the message of the dialog
+     */
     public void showWaitDialog(int titleId, int messageId) {
         String title = getResources().getString(titleId);
         String message = getResources().getString(messageId);
         showWaitDialog(title, message);
     }
 
+    /**
+     * Dismisses the wait dialog shown with showWaitDialog()
+     */
     public void dismissWaitDialog() {
         if (_progressDialog != null) {
             _progressDialog.dismiss();
@@ -103,12 +121,45 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
     }
 
+    /**
+     * Returns a string containing the app version defined in the package
+     * @return The app version string
+     */
+    public String getAppVersion() {
+        PackageInfo info = null;
+        try {
+            info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return getString(R.string.unknown_app_version);
+        }
+
+        return info.versionName + "." + info.versionCode;
+    }
+
+    /** Listener interface for the pickContact method */
     public interface PickContactListener {
+        /**
+         * When the contact picker activity has finished, this method will be called with a
+         * Cursor object that can be examined to obtain the contact information needed to
+         * populate an AylaContact object.
+         *
+         * @param cursor Cursor into the selected contact query results, or null if the
+         *               operation was canceled.
+         */
         void contactPicked(Cursor cursor);
     }
 
     private PickContactListener _pickContactListener;
     private static final int REQ_PICK_CONTACT = 1;
+
+    /**
+     * Launches the system's contact picker activity and calls the PickContactListener with
+     * a cursor containing query results for the selected contact, or null if the user canceled
+     * the operation.
+     *
+     * @param listener listener to be notified with the selected contact cursor, or null if canceled
+     */
     public void pickContact(PickContactListener listener) {
         _pickContactListener = listener;
         Intent intent = new Intent(Intent.ACTION_PICK,
@@ -401,6 +452,10 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     }
 
+    /**
+     * Pushes the specified fragment onto the back stack using a fade animation
+     * @param frag The fragment to be pushed
+     */
     public void pushFragment(Fragment frag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
@@ -445,7 +500,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
     private SignUpConfirmationHandler _signUpConfirmationHandler = new SignUpConfirmationHandler();
 
-    void handleUserSignupToken(String token) {
+    private void handleUserSignupToken(String token) {
         Log.d(LOG_TAG, "handleUserSignupToken: " + token);
 
         if (AylaUser.user.getauthHeaderValue().contains("none")) {
@@ -466,18 +521,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     private SignInDialog _loginDialog;
-
-    public String getAppVersion() {
-        PackageInfo info = null;
-        try {
-            info = getPackageManager().getPackageInfo(getPackageName(), 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-            return getString(R.string.unknown_app_version);
-        }
-
-        return info.versionName + "." + info.versionCode;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
