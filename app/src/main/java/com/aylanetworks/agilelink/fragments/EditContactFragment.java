@@ -55,6 +55,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
 
     private AylaContact _aylaContact;
 
+    private boolean _dontDismiss;       // Set to true if we pick a contact from here rather than
+                                        // from the contact list fragment
+
     public static EditContactFragment newInstance(AylaContact contact) {
         Bundle args = new Bundle();
         args.putInt(ARG_CONTACT_ID, contact == null ? 0 : contact.id);
@@ -80,11 +83,17 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Add from contact
-        MainActivity.getInstance().pickContact(this);
-        return true;
+        switch ( item.getItemId() ) {
+            case R.id.action_fill_from_contact:
+                _dontDismiss = true;
+                MainActivity.getInstance().pickContact(this);
+                return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -227,6 +236,10 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     public void contactPicked(Cursor cursor) {
         Log.d(LOG_TAG, "Contact picked: " + cursor);
         if (cursor == null) {
+            // Cancel. Pop ourselves off the stack if we were launched from elsewhere
+            if ( !_dontDismiss) {
+                getFragmentManager().popBackStack();
+            }
             return;
         }
 
@@ -287,7 +300,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
                     }
 
                     int indexZip = cursor.getColumnIndex(StructuredPostal.POSTCODE);
-                    if ( indexZip != -1 ) {
+                    if (indexZip != -1) {
                         _zipCode.setText(cursor.getString(indexZip));
                     }
                     break;
@@ -307,7 +320,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         ArrayAdapter phoneAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, phones);
         _phoneNumber.setAdapter(phoneAdapter);
 
-        if ( phones.length > 0 ) {
+        if (phones.length > 0) {
             try {
                 Phonenumber.PhoneNumber num = phoneUtil.parse(phones[0], "US");
                 Integer countryCode = num.getCountryCode();

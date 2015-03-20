@@ -8,10 +8,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaContact;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
@@ -34,6 +39,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         getFragmentManager().addOnBackStackChangedListener(this);
     }
 
@@ -68,6 +74,28 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         }, true);
 
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_add_contact, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch ( item.getItemId() ) {
+             case R.id.action_fill_from_contact:
+                // Push the edit contact fragment and set it as the delegate of the contact picker
+                EditContactFragment frag = EditContactFragment.newInstance(null);
+                MainActivity.getInstance().pushFragment(frag);
+                MainActivity.getInstance().pickContact(frag);
+                return true;
+        }
+
+        return false;
     }
 
     @Override
