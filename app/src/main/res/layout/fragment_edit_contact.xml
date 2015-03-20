@@ -97,6 +97,7 @@
             android:layout_weight="1"
             android:gravity="right"
             android:paddingRight="12dp"
+            android:layout_gravity="center_vertical"
             android:text="@string/emailAddress"
             />
 
@@ -123,6 +124,7 @@
             android:layout_weight="1"
             android:gravity="right"
             android:paddingRight="12dp"
+            android:layout_gravity="center_vertical"
             android:text="@string/street_address"
             />
 

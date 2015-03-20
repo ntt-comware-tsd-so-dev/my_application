@@ -40,33 +40,15 @@ public class ComboBox extends LinearLayout {
         this.createChildControls(context, attrs);
     }
 
+    private final static String ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android";
+
     private void createChildControls(Context context, AttributeSet attrs) {
         this.setOrientation(HORIZONTAL);
         this.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT));
 
-        _text = new AutoCompleteTextView(context);
+        _text = new AutoCompleteTextView(context, attrs);
         _text.setSingleLine();
-
-        int inputType = InputType.TYPE_CLASS_TEXT
-                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-                | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE
-                | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
-
-        if (attrs != null) {
-            String inputTypeAttr = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "inputType");
-            if (inputTypeAttr != null && inputTypeAttr.startsWith("0x")) {
-                inputTypeAttr = inputTypeAttr.substring(2);
-            }
-
-            try {
-                inputType = Integer.parseInt(inputTypeAttr, 16);
-            } catch (NumberFormatException e) {
-                Log.e(LOG_TAG, "Input type not parsable: " + inputTypeAttr);
-            }
-        }
-
-        _text.setInputType(inputType);
 
         this.addView(_text, new LayoutParams(LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT, 1));
