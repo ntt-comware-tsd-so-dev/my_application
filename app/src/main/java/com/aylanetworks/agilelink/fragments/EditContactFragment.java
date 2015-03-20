@@ -1,11 +1,16 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,7 +27,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 /**
  * Created by Brian King on 3/19/15.
  */
-public class EditContactFragment extends Fragment implements View.OnClickListener, TextWatcher {
+public class EditContactFragment extends Fragment implements View.OnClickListener, TextWatcher, MainActivity.PickContactListener {
 
     private EditText _firstName;
     private EditText _lastName;
@@ -50,11 +55,25 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setHasOptionsMenu(true);
         int contactID = getArguments().getInt(ARG_CONTACT_ID);
         if ( contactID != 0 ) {
             _aylaContact = SessionManager.getInstance().getContactManager().getContactByID(contactID);
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_add_contact, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Add from contact
+        MainActivity.getInstance().pickContact(this);
+        return true;
     }
 
     @Override
@@ -191,5 +210,10 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         }
 
         _displayName.setText(sb.toString());
+    }
+
+    @Override
+    public void contactPicked(Cursor cursor) {
+        Log.d(LOG_TAG, "Contact picked: " + cursor);
     }
 }

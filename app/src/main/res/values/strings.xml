@@ -261,6 +261,7 @@
     <string name="confirm_delete_contact_body" formatted="false">Are you sure you want to remove \"%s\" from your contact list?</string>
     <string name="deleting_contact_title">Removing Contact</string>
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
+    <string name="fill_from_contact">Get from Contacts</string>
 
 
 </resources>
