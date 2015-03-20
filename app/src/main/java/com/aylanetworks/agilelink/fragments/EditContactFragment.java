@@ -10,12 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaContact;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.controls.ComboBox;
 import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -27,7 +27,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     private EditText _firstName;
     private EditText _lastName;
     private EditText _displayName;
-    private EditText _email;
+    private ComboBox _email;
     private EditText _countryCode;
     private EditText _phoneNumber;
     private EditText _streetAddress;
@@ -64,7 +64,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         _firstName = (EditText)view.findViewById(R.id.first_name);
         _lastName = (EditText)view.findViewById(R.id.last_name);
         _displayName = (EditText)view.findViewById(R.id.display_name);
-        _email = (EditText)view.findViewById(R.id.email_address);
+        _email = (ComboBox)view.findViewById(R.id.email_address);
         _countryCode = (EditText)view.findViewById(R.id.country_code);
         _phoneNumber = (EditText)view.findViewById(R.id.phone_number);
         _streetAddress = (EditText)view.findViewById(R.id.street_address);
@@ -128,7 +128,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         _aylaContact.firstname = _firstName.getText().toString();
         _aylaContact.lastname = _lastName.getText().toString();
         _aylaContact.displayName = _displayName.getText().toString();
-        _aylaContact.email = _email.getText().toString();
+        _aylaContact.email = _email.getText();
         _aylaContact.phoneCountryCode = _countryCode.getText().toString();
         _aylaContact.phoneNumber = _phoneNumber.getText().toString();
         _aylaContact.streetAddress = _streetAddress.getText().toString();

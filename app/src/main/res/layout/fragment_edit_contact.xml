@@ -100,7 +100,7 @@
             android:text="@string/emailAddress"
             />
 
-        <EditText
+        <com.aylanetworks.agilelink.controls.ComboBox
             android:id="@+id/email_address"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
