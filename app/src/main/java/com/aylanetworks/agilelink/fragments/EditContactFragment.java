@@ -70,6 +70,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        getActivity().invalidateOptionsMenu();
         int contactID = getArguments().getInt(ARG_CONTACT_ID);
         if (contactID != 0) {
             _aylaContact = SessionManager.getInstance().getContactManager().getContactByID(contactID);
@@ -79,7 +80,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.menu_add_contact, menu);
+        inflater.inflate(R.menu.menu_fill_contact, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -87,7 +88,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch ( item.getItemId() ) {
-            case R.id.action_fill_from_contact:
+            case R.id.action_fill_from_contact2:
                 _dontDismiss = true;
                 MainActivity.getInstance().pickContact(this);
                 return true;
