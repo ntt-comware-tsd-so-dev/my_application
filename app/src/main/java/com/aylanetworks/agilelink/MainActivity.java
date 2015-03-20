@@ -122,7 +122,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         final Intent finalData = data;
 
         if (reqCode == REQ_PICK_CONTACT && _pickContactListener != null) {
-            new Thread(new Runnable() {
+            // Run on the UI thread
+            mViewPager.post(new Runnable() {
                 @Override
                 public void run() {
                     if ( rc == RESULT_OK ) {
@@ -138,6 +139,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                                 ContactsContract.CommonDataKinds.Phone.NUMBER,
                                 ContactsContract.CommonDataKinds.Phone.TYPE,
                                 ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
+                                ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE,
                                 ContactsContract.CommonDataKinds.Email.DATA };
 
                         final String SELECTION = ContactsContract.Data.MIMETYPE + "=? OR "
@@ -162,7 +164,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     }
                     _pickContactListener = null;
                 }
-            }).start();
+            });
         }
     }
 

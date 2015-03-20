@@ -46,6 +46,7 @@ public class ComboBox extends LinearLayout {
         this.setOrientation(HORIZONTAL);
         this.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT));
+        this.setFocusable(true);
 
         _text = new AutoCompleteTextView(context, attrs);
         _text.setSingleLine();
@@ -55,6 +56,7 @@ public class ComboBox extends LinearLayout {
 
         _button = new ImageButton(context);
         _button.setImageResource(android.R.drawable.arrow_down_float);
+        _button.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         _button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,6 +64,7 @@ public class ComboBox extends LinearLayout {
             }
         });
         _button.setVisibility(View.GONE);
+        _button.setFocusable(false);
         this.addView(_button, new LayoutParams(LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT));
     }
@@ -75,6 +78,7 @@ public class ComboBox extends LinearLayout {
     public <T extends ListAdapter & Filterable> void setAdapter(T adapter) {
         if ( adapter != null && adapter.getCount() > 0 ) {
             _button.setVisibility(View.VISIBLE);
+            _text.setText((String)adapter.getItem(0));
         } else {
             _button.setVisibility(View.GONE);
         }

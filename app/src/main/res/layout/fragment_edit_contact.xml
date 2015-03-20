@@ -5,219 +5,241 @@
               android:background="@color/app_theme_window_background"
               android:orientation="vertical">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="0dip"
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:text="@string/firstName"
-            />
+            android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/first_name"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/firstName"
-            android:inputType="textCapWords"
-            android:nextFocusDown="@+id/last_name"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/firstName"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/first_name"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/firstName"
+                    android:inputType="textCapWords"
+                    android:nextFocusForward="@+id/last_name"
+                    android:nextFocusDown="@+id/last_name"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:text="@string/lastName"
-            />
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/last_name"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/lastName"
-            android:inputType="textCapWords"
-            android:nextFocusForward="@+id/display_name"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/lastName"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <EditText
+                    android:id="@id/last_name"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/lastName"
+                    android:inputType="textCapWords"
+                    android:nextFocusForward="@+id/display_name"
+                    android:nextFocusDown="@+id/display_name"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:text="@string/display_name"
-            />
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/display_name"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/display_name"
-            android:inputType="textCapWords"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/display_name"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <EditText
+                    android:id="@id/display_name"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/display_name"
+                    android:inputType="textCapWords"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:layout_gravity="center_vertical"
-            android:text="@string/emailAddress"
-            />
+            </LinearLayout>
 
-        <com.aylanetworks.agilelink.controls.ComboBox
-            android:id="@+id/email_address"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/emailAddress"
-            android:inputType="textEmailAddress"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/emailAddress"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <com.aylanetworks.agilelink.controls.ComboBox
+                    android:id="@+id/email_address"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/emailAddress"
+                    android:inputType="textEmailAddress"
+                    android:imeOptions="actionNext"
+                    android:nextFocusForward="@+id/street_address"
+                    android:nextFocusDown="@+id/street_address"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:layout_gravity="center_vertical"
-            android:text="@string/street_address"
-            />
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/street_address"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/street_address"
-            android:inputType="textMultiLine|textCapWords"
-            android:maxLines="6"
-            android:minLines="2"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/street_address"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/street_address"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/street_address"
+                    android:inputType="textMultiLine|textCapWords"
+                    android:maxLines="6"
+                    android:minLines="2"
+                    android:nextFocusForward="@+id/zip_code"
+                    android:nextFocusDown="@+id/zip_code"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:text="@string/zip"
-            />
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/zip_code"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/zip"
-            android:inputType="number"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/zip"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/zip_code"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/zip"
+                    android:inputType="number"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:text="@string/country_code"
-            />
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/country_code"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/country_code"
-            android:inputType="number"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/country_code"
+                    />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/country_code"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/country_code"
+                    android:inputType="number"
+                    />
 
-        <TextView
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:paddingRight="12dp"
-            android:text="@string/phoneNumber"
-            />
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/phone_number"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="@string/phoneNumber"
-            android:inputType="phone"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="12dp"
+                    android:text="@string/phoneNumber"
+                    />
+
+                <com.aylanetworks.agilelink.controls.ComboBox
+                    android:id="@+id/phone_number"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:hint="@string/phoneNumber"
+                    android:inputType="phone"
+                    android:imeOptions="actionDone"
+                    android:nextFocusForward="@+id/save_contact"
+                    android:nextFocusDown="@+id/save_contact"
+                    />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <Button
         android:id="@+id/save_contact"
