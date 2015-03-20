@@ -43,6 +43,12 @@ public class ContactManager {
         _aylaContactList = new ArrayList<>();
     }
 
+    /**
+     * Returns the list of AylaContacts for the current user.
+     * @param includeOwner If set to true, will include the owner contact in the list. Otherwise
+     *                     the owner contact will not be included.
+     * @return the list of AylaContacts for the current user.
+     */
     public List<AylaContact>getContacts(boolean includeOwner) {
         List<AylaContact> contacts = new ArrayList<>(_aylaContactList);
         if ( !includeOwner ) {
@@ -52,10 +58,23 @@ public class ContactManager {
         return contacts;
     }
 
+    /**
+     * Adds the provided AylaContact to the current user's account. The listener will be notified
+     * when the contact has been updated on the server, or if an error occurred.
+     * @param contact The AylaContact to add.
+     * @param listener The listener to be notified when the contact has been added to the user's
+     *                 account, or if an error occurrs.
+     */
     public void addContact(AylaContact contact, ContactManagerListener listener) {
         contact.create(new ContactHandler(ContactHandler.Command.ADD, contact, this, listener), null);
     }
 
+    /**
+     * Returns the owner contact. The owner contact is the contact that represents the owner of the
+     * account. This contact does not show up in the contact list, and is updated when the user's
+     * profile is modified (within the app).
+     * @return the owner contact, or null if not found.
+     */
     @Nullable
     public AylaContact getOwnerContact() {
         AccountSettings settings = SessionManager.getInstance().getAccountSettings();
@@ -72,6 +91,11 @@ public class ContactManager {
         return getContactByID(ownerID);
     }
 
+    /**
+     * Returns the contact with the specified contact ID
+     * @param contactID The contact's ID
+     * @return The contact with the specified contact ID, or null if not found.
+     */
     @Nullable
     public AylaContact getContactByID(int contactID) {
         for ( AylaContact contact : _aylaContactList ) {
@@ -82,11 +106,21 @@ public class ContactManager {
         return null;
     }
 
+    /**
+     * Updates the specified contact on the user's account.
+     * @param contact The modified contact to update
+     * @param listener Listener to be notified when the operation is complete
+     */
     public void updateContact(AylaContact contact, ContactManagerListener listener) {
         Log.d(LOG_TAG, "updateContact: " + contact);
         contact.update(new ContactHandler(ContactHandler.Command.UPDATE, contact, this, listener));
     }
 
+    /**
+     * Deletes the specified contact on the user's account.
+     * @param contact The contact to be removed
+     * @param listener Listener to be notified when the operation is complete
+     */
     public void deleteContact(AylaContact contact, ContactManagerListener listener) {
         contact.delete(new ContactHandler(ContactHandler.Command.DELETE, contact, this, listener));
     }
@@ -122,6 +156,10 @@ public class ContactManager {
 
     private List<AylaContact> _aylaContactList;
 
+    /**
+     * Creates the owner contact from the AylaUser returned from AylaUser.getCurrent(), and sets
+     * the contact ID in the account settings datum.
+     */
     public void createOwnerContact() {
         AylaUser user = AylaUser.getCurrent();
         AylaContact contact = new AylaContact();
@@ -260,6 +298,7 @@ public class ContactManager {
                                 Log.d(LOG_TAG, "Owner contact ID: " + newContact.id);
                             } else {
                                 Log.e(LOG_TAG, "Can't set owner contact ID without account settings");
+                                msg.what = AylaNetworks.AML_ERROR_FAIL;
                             }
                         }
                     }
