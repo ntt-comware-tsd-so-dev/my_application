@@ -3,13 +3,16 @@ package com.aylanetworks.agilelink;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
@@ -97,6 +100,71 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         if (_progressDialog != null) {
             _progressDialog.dismiss();
             _progressDialog = null;
+        }
+    }
+
+    public interface PickContactListener {
+        void contactPicked(Cursor cursor);
+    }
+
+    private PickContactListener _pickContactListener;
+    private static final int REQ_PICK_CONTACT = 1;
+    public void pickContact(PickContactListener listener) {
+        _pickContactListener = listener;
+        Intent intent = new Intent(Intent.ACTION_PICK,
+                ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, REQ_PICK_CONTACT);
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        final int rc = resultCode;
+        final Intent finalData = data;
+
+        if (reqCode == REQ_PICK_CONTACT && _pickContactListener != null) {
+            // Run on the UI thread
+            mViewPager.post(new Runnable() {
+                @Override
+                public void run() {
+                    if ( rc == RESULT_OK ) {
+                        // Query for all the contact info we care about
+                        Uri contactData = finalData.getData();
+                        Uri dataUri = Uri
+                                .withAppendedPath(
+                                        contactData,
+                                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
+                        final String PROJECTION[] = { ContactsContract.Data.MIMETYPE,
+                                ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
+                                ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
+                                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                                ContactsContract.CommonDataKinds.Phone.TYPE,
+                                ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
+                                ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE,
+                                ContactsContract.CommonDataKinds.Email.DATA };
+
+                        final String SELECTION = ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=?";
+
+                        String SELECTION_ARGS[] = {
+                                ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
+                                ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE,
+                                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE };
+
+                        String SORT = ContactsContract.Data.MIMETYPE;
+                        Cursor c = getContentResolver().query(dataUri,
+                                PROJECTION, SELECTION, SELECTION_ARGS,
+                                SORT);
+                        _pickContactListener.contactPicked(c);
+
+                    } else {
+                        _pickContactListener.contactPicked(null);
+                    }
+                    _pickContactListener = null;
+                }
+            });
         }
     }
 
