@@ -138,7 +138,21 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             _displayName.setText(_aylaContact.displayName);
             _email.setText(_aylaContact.email);
             _countryCode.setText(_aylaContact.phoneCountryCode);
-            _phoneNumber.setText(_aylaContact.phoneNumber);
+
+            PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+            Phonenumber.PhoneNumber phoneNumber = null;
+            try {
+                phoneNumber = util.parse(_aylaContact.phoneNumber, "US");
+            } catch (NumberParseException e) {
+                e.printStackTrace();
+            }
+
+            if ( phoneNumber != null ) {
+                _phoneNumber.setText(util.format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164));
+            } else {
+                _phoneNumber.setText(_aylaContact.phoneNumber);
+            }
+
             _streetAddress.setText(_aylaContact.streetAddress);
             _zipCode.setText(_aylaContact.zipCode);
             _button.setText(getString(R.string.update_contact));
@@ -170,7 +184,11 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         _aylaContact.displayName = _displayName.getText().toString();
         _aylaContact.email = _email.getText();
         _aylaContact.phoneCountryCode = _countryCode.getText().toString();
-        _aylaContact.phoneNumber = _phoneNumber.getText().toString();
+        _aylaContact.phoneNumber = _phoneNumber.getText();
+
+        // The server is picky about the format of the phone number
+        _aylaContact.phoneNumber = _aylaContact.phoneNumber.replaceAll("[^0-9]", "");
+
         _aylaContact.streetAddress = _streetAddress.getText().toString();
         _aylaContact.zipCode = _zipCode.getText().toString();
 
