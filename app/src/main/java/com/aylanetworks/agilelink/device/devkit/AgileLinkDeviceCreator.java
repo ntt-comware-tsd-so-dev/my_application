@@ -31,18 +31,22 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
-       if ( aylaDevice.oemModel.equals("ledevb") ) {
+        if (aylaDevice.oemModel == null) {
+            Log.e(LOG_TAG, "No oemModel set on device: " + aylaDevice);
+            return new Device(aylaDevice);
+        }
+
+        if (aylaDevice.oemModel.equals("ledevb")) {
             // This is the Ayla devkit.
             return new DevkitDevice(aylaDevice);
         }
 
-        if ( aylaDevice.oemModel.equals("smartplug1") ) {
+        if (aylaDevice.oemModel.equals("smartplug1")) {
             // This is the Ayla Demo Smart plug
             return new SwitchedDevice(aylaDevice);
         }
 
-        if ( aylaDevice.oemModel.equals("EWPlug1") )
-        {
+        if (aylaDevice.oemModel.equals("EWPlug1")) {
             // This is an Everwin MFI/Homekit enabled smart plug.
             return new SwitchedDevice(aylaDevice);
         }
@@ -55,8 +59,8 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
         View v = null;
-        switch ( viewType ) {
-             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
+        switch (viewType) {
+            case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
                 v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_devkit_device, parent, false);
                 return new DevkitDeviceViewHolder(v);
 
