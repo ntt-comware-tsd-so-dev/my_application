@@ -43,7 +43,6 @@ import java.util.Set;
 public class DeviceManager implements DeviceStatusListener {
     private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
 
-
     /** Interfaces */
     public interface DeviceListListener {
         void deviceListChanged();
