@@ -15,6 +15,7 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.aaml.AylaScheduleAction;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.AylaTimezone;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 /*
  * Device.java
@@ -122,8 +124,13 @@ public class Device implements Comparable<Device> {
         }
 
         List<Schedule> schedules = new ArrayList<>(getDevice().schedules.length);
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        if ( getDevice().timezone.tzId != null ) {
+            tz = TimeZone.getTimeZone(getDevice().timezone.tzId);
+        }
+
         for (AylaSchedule s : getDevice().schedules) {
-            schedules.add(new Schedule(s));
+            schedules.add(new Schedule(s, tz));
         }
 
         return schedules;
@@ -137,15 +144,26 @@ public class Device implements Comparable<Device> {
 
         for (AylaSchedule as : _device.schedules) {
             if (as.name.equals(scheduleName)) {
-                return new Schedule(as);
+                return new Schedule(as, getTimeZone());
             }
         }
 
         return null;
     }
 
-    public void fetchSchedules(DeviceStatusListener listener) {
-        _device.getAllSchedules(new FetchSchedulesHandler(this, listener), null);
+    public void fetchSchedules(final DeviceStatusListener listener) {
+        // First make sure the timezone on the device is up to date
+        fetchTimezone(new DeviceStatusListener() {
+            @Override
+            public void statusUpdated(Device device, boolean changed) {
+                if (changed) {
+                    _device.getAllSchedules(new FetchSchedulesHandler(Device.this, listener), null);
+                } else {
+                    // Failed to get the timezone.
+                    listener.statusUpdated(Device.this, false);
+                }
+            }
+        });
     }
 
     /**
@@ -423,7 +441,6 @@ public class Device implements Comparable<Device> {
                         AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSchedule[].class);
                 _device.get().getDevice().schedules = schedules;
 
-
                 List<AylaSchedule> scheduleList = new ArrayList<>();
 
                 // BSK: At some point, the service will be filling out the schedule actions so we
@@ -573,6 +590,39 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Fetches the timezone for this device and notifies the listener when done. If the fetch was
+     * successful, the listener's statusUpdated method will be called with changed set to true.
+     * Otherwise statusUpdated will be called with changed set to false.
+     *
+     * @param listener Listener to be notified when the timezone has been fetched
+     */
+    public void fetchTimezone(DeviceStatusListener listener) {
+        _device.getTimezone(new FetchTimezoneHandler(this, listener));
+    }
+
+    /**
+     * Sets the time zone for the device. This method also updates any schedules using local time
+     * to use the new time zone.
+     * @param timeZone Time zone identifier (e.g. "America/Los_Angeles")
+     * @param listener Listener to be notified when the timezone has been updated. The changed
+     *                 argument to statusUpdated() will be set to true if the time zone was updated,
+     *                 or false if it could not be updated.
+     */
+    public void setTimeZone(String timeZone, DeviceStatusListener listener) {
+        String oldTimeZone = _device.timezone.tzId;
+        _device.timezone.tzId = timeZone;
+        _device.updateTimezone(new SetTimezoneHandler(this, oldTimeZone, listener));
+    }
+
+    public TimeZone getTimeZone() {
+        if ( _device.timezone.tzId == null ) {
+            return null;
+        }
+
+        return TimeZone.getTimeZone(_device.timezone.tzId);
+    }
+
+    /**
      * Returns the arguments for the call to getProperties(). Derived classes should override this
      * to return the correct array of properties to be fetched in updateStatus().
      *
@@ -610,5 +660,53 @@ public class Device implements Comparable<Device> {
         Map<String, String> paramMap = new HashMap<String, String>();
         paramMap.put("names", sb.toString());
         return paramMap;
+    }
+
+    private static class SetTimezoneHandler extends Handler {
+        private WeakReference<Device> _device;
+        private String _previousTimeZone;
+        private DeviceStatusListener _listener;
+
+        public SetTimezoneHandler(Device device, String previousTimeZone, DeviceStatusListener listener) {
+            _device = new WeakReference<Device>(device);
+            _previousTimeZone = previousTimeZone;
+            _listener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Set timezone response: " + msg);
+
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                // Set the updated timezone on the device object
+                _device.get()._device.timezone = AylaSystemUtils.gson.fromJson((String)msg.obj,
+                        AylaTimezone.class);
+
+                _listener.statusUpdated(_device.get(), true);
+            } else {
+                // Uh-oh.
+                _listener.statusUpdated(_device.get(), false);
+            }
+        }
+    }
+
+    private static class FetchTimezoneHandler extends Handler {
+        private WeakReference<Device> _device;
+        private DeviceStatusListener _listener;
+
+        public FetchTimezoneHandler(Device device, DeviceStatusListener listener) {
+            _device = new WeakReference<Device>(device);
+            _listener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                _device.get().getDevice().timezone = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaTimezone.class);
+                Log.d(LOG_TAG, "Timezone: " + _device.get().getDevice().timezone);
+            }
+            _listener.statusUpdated(_device.get(), msg.what == AylaNetworks.AML_ERROR_OK);
+        }
     }
 }

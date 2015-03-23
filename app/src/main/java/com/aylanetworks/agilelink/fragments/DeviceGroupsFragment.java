@@ -160,6 +160,15 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
         for (DeviceGroup group : groups) {
             Button b = new Button(getActivity());
+
+            layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            layoutParams.setMargins(8, 0, 8, 0);
+            layoutParams.gravity = Gravity.CENTER_VERTICAL;
+            b.setLayoutParams(layoutParams);
+
+            b.setGravity(Gravity.CENTER_HORIZONTAL|Gravity.CENTER_VERTICAL);
+            b.setPadding(24,24,24,24);
+
             b.setText(group.getGroupName());
             b.setTag(group);
             b.setLayoutParams(layoutParams);

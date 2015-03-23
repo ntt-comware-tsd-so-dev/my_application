@@ -33,11 +33,19 @@ import java.util.Set;
 public class AccountSettings {
     private static final String LOG_TAG = "AccountSettings";
 
+    // Keys set in the datum JSON
+    // Key to an array of strings of enabled notification types. Can be either
+    // NOTIFICATION_METHOD_EMAIL or NOTIFICATION_METHOD_SMS.
     private static final String NOTIFICATIONS_KEY = "device-notifications";
 
+    // Key to a string representing the contact ID of the account owner (AylaUser).
+    private static final String OWNER_ID_KEY = "owner-contact-id";
+
+    // Keys into the local shared preferences database
     private static final String SETTINGS_KEY_PUSH = "enable-push-notifications";
 
     private Set<String> _notificationTypes;
+    private Integer _ownerContactID;
     private AylaUser _aylaUser;
 
     public static class AccountSettingsCallback {
@@ -67,6 +75,7 @@ public class AccountSettings {
 
     public AccountSettings(AylaUser aylaUser){
         _aylaUser = aylaUser;
+        _ownerContactID = null;
         _notificationTypes = new HashSet<>();
     }
 
@@ -107,6 +116,14 @@ public class AccountSettings {
         return _notificationTypes.contains(notificationMethod);
     }
 
+    public void setOwnerContactID(Integer ownerContactID) {
+        _ownerContactID = ownerContactID;
+    }
+
+    public Integer getOwnerContactID() {
+        return _ownerContactID;
+    }
+
     /**
      * Returns the key of the AylaDatum object used to store the account settings
      * @return the key into the account settings datum
@@ -124,6 +141,9 @@ public class AccountSettings {
 
         try {
             obj.put(NOTIFICATIONS_KEY, array);
+            if ( _ownerContactID != null ) {
+                obj.put(OWNER_ID_KEY, _ownerContactID);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -161,6 +181,9 @@ public class AccountSettings {
                             settings.addNotificationMethod(type);
                         }
                     }
+
+                    // Get the owner ID
+                    settings._ownerContactID = jsonObject.getInt(OWNER_ID_KEY);
 
                     // Done. We can call the callback now.
                     _callback.settingsUpdated(settings, msg);

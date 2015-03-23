@@ -19,7 +19,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -38,6 +37,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 /*
  * ScheduleFragment.java
@@ -288,6 +288,7 @@ public class ScheduleFragment extends Fragment {
         }
 
         Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(_device.getTimeZone());
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
@@ -306,14 +307,15 @@ public class ScheduleFragment extends Fragment {
         }
 
         Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.add(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.add(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
         if (_timerTurnOnButton.isSelected()) {
-            _schedule.setOnTime(cal);
+            _schedule.setTimerOnTime(cal);
         } else {
-            _schedule.setOffTime(cal);
+            _schedule.setTimerOffTime(cal);
         }
     }
 
@@ -343,10 +345,15 @@ public class ScheduleFragment extends Fragment {
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
-        _schedule.setStartDate(Calendar.getInstance());
+
+        // Start date is always "right now".
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(_device.getTimeZone());
+        _schedule.setStartDate(cal);
         if ( _schedule.isTimer() ) {
-            _schedule.setEndDate(Calendar.getInstance());
+            _schedule.setEndDate(cal);
         }
+
         Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
         Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().endDate);
 
@@ -456,16 +463,17 @@ public class ScheduleFragment extends Fragment {
         // Update the pickers
         Calendar pickerTime;
         Calendar now = Calendar.getInstance();
+        now.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // First the timer picker
         if (_timerTurnOnButton.isSelected()) {
-            pickerTime = _schedule.getOnTime();
+            pickerTime = _schedule.getTimerOnTime();
             if (pickerTime != null) {
                 pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
                 pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
             }
         } else {
-            pickerTime = _schedule.getOffTime();
+            pickerTime = _schedule.getTimerOffTime();
             if (pickerTime != null) {
                 pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
                 pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
@@ -484,17 +492,17 @@ public class ScheduleFragment extends Fragment {
         // Now the schedule picker
         if (_scheduleOnTimeButton.isSelected()) {
             // Add the schedule duration
-            pickerTime = _schedule.getOnTime();
+            pickerTime = _schedule.getTimerOnTime();
         } else {
-            pickerTime = _schedule.getOffTime();
+            pickerTime = _schedule.getTimerOffTime();
         }
 
         if (pickerTime == null) {
             // Set to the on or off time if set, or the current time if not set
             if ( _scheduleOnTimeButton.isSelected() ) {
-                pickerTime = _schedule.getOffTime();
+                pickerTime = _schedule.getTimerOffTime();
             } else {
-                pickerTime = _schedule.getOnTime();
+                pickerTime = _schedule.getTimerOnTime();
             }
 
             if ( pickerTime == null ) {

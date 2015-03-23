@@ -3,13 +3,16 @@ package com.aylanetworks.agilelink;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
@@ -69,12 +72,20 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     private static MainActivity _theInstance;
 
+    /** Returns the one and only instance of this activity */
     public static MainActivity getInstance() {
         return _theInstance;
     }
 
     ProgressDialog _progressDialog;
 
+    /**
+     * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
+     * The caller should call dismissWaitDialog() when finished.
+     *
+     * @param title title of the dialog
+     * @param message message of the dialog
+     */
     public void showWaitDialog(String title, String message) {
         if (_progressDialog != null) {
             dismissWaitDialog();
@@ -87,16 +98,124 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         _progressDialog = ProgressDialog.show(this, title, message, true);
     }
 
+    /**
+     * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
+     * The caller should call dismissWaitDialog() when finished.
+     *
+     * @param titleId String ID for the title of the dialog
+     * @param messageId String ID for the message of the dialog
+     */
     public void showWaitDialog(int titleId, int messageId) {
         String title = getResources().getString(titleId);
         String message = getResources().getString(messageId);
         showWaitDialog(title, message);
     }
 
+    /**
+     * Dismisses the wait dialog shown with showWaitDialog()
+     */
     public void dismissWaitDialog() {
         if (_progressDialog != null) {
             _progressDialog.dismiss();
             _progressDialog = null;
+        }
+    }
+
+    /**
+     * Returns a string containing the app version defined in the package
+     * @return The app version string
+     */
+    public String getAppVersion() {
+        PackageInfo info = null;
+        try {
+            info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return getString(R.string.unknown_app_version);
+        }
+
+        return info.versionName + "." + info.versionCode;
+    }
+
+    /** Listener interface for the pickContact method */
+    public interface PickContactListener {
+        /**
+         * When the contact picker activity has finished, this method will be called with a
+         * Cursor object that can be examined to obtain the contact information needed to
+         * populate an AylaContact object.
+         *
+         * @param cursor Cursor into the selected contact query results, or null if the
+         *               operation was canceled.
+         */
+        void contactPicked(Cursor cursor);
+    }
+
+    private PickContactListener _pickContactListener;
+    private static final int REQ_PICK_CONTACT = 1;
+
+    /**
+     * Launches the system's contact picker activity and calls the PickContactListener with
+     * a cursor containing query results for the selected contact, or null if the user canceled
+     * the operation.
+     *
+     * @param listener listener to be notified with the selected contact cursor, or null if canceled
+     */
+    public void pickContact(PickContactListener listener) {
+        _pickContactListener = listener;
+        Intent intent = new Intent(Intent.ACTION_PICK,
+                ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, REQ_PICK_CONTACT);
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        final int rc = resultCode;
+        final Intent finalData = data;
+
+        if (reqCode == REQ_PICK_CONTACT && _pickContactListener != null) {
+            // Run on the UI thread
+            mViewPager.post(new Runnable() {
+                @Override
+                public void run() {
+                    if ( rc == RESULT_OK ) {
+                        // Query for all the contact info we care about
+                        Uri contactData = finalData.getData();
+                        Uri dataUri = Uri
+                                .withAppendedPath(
+                                        contactData,
+                                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
+                        final String PROJECTION[] = { ContactsContract.Data.MIMETYPE,
+                                ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
+                                ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
+                                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                                ContactsContract.CommonDataKinds.Phone.TYPE,
+                                ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
+                                ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE,
+                                ContactsContract.CommonDataKinds.Email.DATA };
+
+                        final String SELECTION = ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=? OR "
+                                + ContactsContract.Data.MIMETYPE + "=?";
+
+                        String SELECTION_ARGS[] = {
+                                ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
+                                ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE,
+                                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE };
+
+                        String SORT = ContactsContract.Data.MIMETYPE;
+                        Cursor c = getContentResolver().query(dataUri,
+                                PROJECTION, SELECTION, SELECTION_ARGS,
+                                SORT);
+                        _pickContactListener.contactPicked(c);
+
+                    } else {
+                        _pickContactListener.contactPicked(null);
+                    }
+                    _pickContactListener = null;
+                }
+            });
         }
     }
 
@@ -333,6 +452,10 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     }
 
+    /**
+     * Pushes the specified fragment onto the back stack using a fade animation
+     * @param frag The fragment to be pushed
+     */
     public void pushFragment(Fragment frag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
@@ -377,7 +500,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
     private SignUpConfirmationHandler _signUpConfirmationHandler = new SignUpConfirmationHandler();
 
-    void handleUserSignupToken(String token) {
+    private void handleUserSignupToken(String token) {
         Log.d(LOG_TAG, "handleUserSignupToken: " + token);
 
         if (AylaUser.user.getauthHeaderValue().contains("none")) {
@@ -398,18 +521,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     private SignInDialog _loginDialog;
-
-    public String getAppVersion() {
-        PackageInfo info = null;
-        try {
-            info = getPackageManager().getPackageInfo(getPackageName(), 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-            return getString(R.string.unknown_app_version);
-        }
-
-        return info.versionName + "." + info.versionCode;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -40,11 +40,12 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
 
     // List view indexes
     private final int INDEX_REGISTRATION = 0;
-    private final int INDEX_WIFI_SETUP = 1;
-    private final int INDEX_NOTIFICATIONS = 2;
-    private final int INDEX_PROFILE = 3;
-    private final int INDEX_DELETE_ACCOUNT = 4;
-    private final int INDEX_EMAIL_LOGS = 5;
+    private final int INDEX_CONTACTS = 1;
+    private final int INDEX_WIFI_SETUP = 2;
+    private final int INDEX_NOTIFICATIONS = 3;
+    private final int INDEX_PROFILE = 4;
+    private final int INDEX_DELETE_ACCOUNT = 5;
+    private final int INDEX_EMAIL_LOGS = 6;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
@@ -64,6 +65,11 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     private void handleRegistration() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    private void handleContacts() {
+        ContactListFragment frag = ContactListFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -143,6 +149,10 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         switch ( position ) {
             case INDEX_REGISTRATION:
                 handleRegistration();
+                break;
+
+            case INDEX_CONTACTS:
+                handleContacts();
                 break;
 
             case INDEX_WIFI_SETUP:
