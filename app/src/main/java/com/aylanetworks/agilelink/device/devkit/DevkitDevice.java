@@ -23,6 +23,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -84,7 +85,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
                     }
                 }
             }
-            _devkitDevice.get().getDevice().lanModeEnable();
+            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_devkitDevice.get()));
             SessionManager.deviceManager().notifyDeviceStatusChanged(_devkitDevice.get());
         }
     }

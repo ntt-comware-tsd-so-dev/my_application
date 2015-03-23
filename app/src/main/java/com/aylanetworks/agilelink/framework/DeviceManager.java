@@ -156,9 +156,14 @@ public class DeviceManager implements DeviceStatusListener {
             // We can't enter LAN mode for any devices.
             listener.lanModeResult(false);
         } else {
-            _startingLANMode = true;
-            _lanModeListeners.add(listener);
-            listener.getDevice().getDevice().lanModeEnable();
+            if ( _lanModeEnabledDevice == listener._device ) {
+                Log.d(LOG_TAG, listener._device + " is already in LAN mode");
+                listener.lanModeResult(true);
+            } else {
+                _startingLANMode = true;
+                _lanModeListeners.add(listener);
+                listener.getDevice().getDevice().lanModeEnable();
+            }
         }
     }
 
@@ -457,6 +462,7 @@ public class DeviceManager implements DeviceStatusListener {
                 Device d = _deviceManager.get().deviceByDSN(dsn);
                 if ( d != null ) {
                     // The properties have already been updated on this device.
+                    Log.d(LOG_TAG, "LAN mode handler: Device changed: " + d);
                     _deviceManager.get().notifyDeviceStatusChanged(d);
                 } else {
                     // We don't know what changed, so let's just get everything
@@ -575,11 +581,6 @@ public class DeviceManager implements DeviceStatusListener {
             // library does not handle a series of requests all at once at this time.
             if ( _devicesToPoll == null ) {
                 _devicesToPoll = new ArrayList<Device>(_deviceList);
-
-                // Don't poll a device in LAN mode
-                if ( _lanModeEnabledDevice != null ) {
-                    _devicesToPoll.remove(_lanModeEnabledDevice);
-                }
 
                 updateNextDeviceStatus();
             } else {

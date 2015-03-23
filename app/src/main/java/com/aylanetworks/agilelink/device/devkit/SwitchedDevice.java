@@ -17,6 +17,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -138,7 +139,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
                 }
             }
 
-            _switchedDevice.get().getDevice().lanModeEnable();
+            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_switchedDevice.get()));
             // Let the device manager know that we've updated ourselves.
             SessionManager.deviceManager().notifyDeviceStatusChanged(_switchedDevice.get());
         }
