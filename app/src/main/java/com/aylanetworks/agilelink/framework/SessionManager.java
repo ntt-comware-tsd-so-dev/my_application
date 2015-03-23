@@ -239,12 +239,12 @@ public class SessionManager {
             return false;
         }
 
-        Log.d(LOG_TAG, "Starting session with parameters:\n" + getInstance()._sessionParameters);
-
         SessionManager sm = getInstance();
 
         sm._sessionParameters.username = username;
         sm._sessionParameters.password = password;
+
+        Log.d(LOG_TAG, "Starting session with parameters:\n" + getInstance()._sessionParameters);
 
         return sm.start();
     }
@@ -474,13 +474,6 @@ public class SessionManager {
         SharedPreferences settings =
                 PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
         String savedPassword = settings.getString(PREFS_PASSWORD, "");
-
-        if (!_sessionParameters.username.equals(savedUsername) ||
-                !_sessionParameters.password.equals(savedPassword)) {
-            // Invalid username or password
-            Toast.makeText(MainActivity.getInstance(), R.string.invalid_email_password, Toast.LENGTH_LONG).show();
-            return;
-        }
 
         // If cached credentials match, use the refresh token
         if (savedUser != null && savedUser.email != null && savedUser.email.equals(_sessionParameters.username) &&
