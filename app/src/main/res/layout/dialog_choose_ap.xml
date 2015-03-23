@@ -22,6 +22,7 @@
         android:layout_weight="1"/>
 
     <TextView
+        android:id="@+id/choose_ap_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="0"

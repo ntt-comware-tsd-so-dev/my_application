@@ -71,6 +71,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
     private List<String> _ssidList;
     private List<String> _securityList;
     private EditText _passwordEditText;
+    private TextView _textView;
     private Button _connectButton;
 
     @Override
@@ -93,6 +94,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
             }
         });
 
+        _textView = (TextView)root.findViewById(R.id.choose_ap_textview);
         _connectButton = (Button)root.findViewById(R.id.button_connect);
         _connectButton.setEnabled(false);
         _connectButton.setOnClickListener(new View.OnClickListener() {
@@ -144,6 +146,8 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
             _passwordEditText.setText("");
             _passwordEditText.setEnabled(true);
             _connectButton.setEnabled(false);
+            String message = getString(R.string.choose_ap_details, _selectedSSID);
+            _textView.setText(message);
         }
         Log.d(LOG_TAG, "onItemClick: " + _selectedSSID + " [" + _selectedSecurity + "]");
     }

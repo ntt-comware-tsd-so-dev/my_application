@@ -262,6 +262,7 @@
     <string name="deleting_contact_title">Removing Contact</string>
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
     <string name="fill_from_contact">Add new from address book</string>
+    <string name="choose_ap_details" formatted="false">Enter the password for the \"%s\" access point</string>
 
 
 </resources>

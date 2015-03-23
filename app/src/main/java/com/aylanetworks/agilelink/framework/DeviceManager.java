@@ -205,7 +205,7 @@ public class DeviceManager implements DeviceStatusListener {
     public boolean isLastLanModeDevice(Device device) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
         String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
-        return device.getDevice().dsn.equals(lastDSN);
+        return lastDSN != null && device.getDevice().dsn != null && device.getDevice().dsn.equals(lastDSN);
     }
 
     /**
