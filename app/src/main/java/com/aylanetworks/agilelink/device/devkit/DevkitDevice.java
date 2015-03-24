@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.devkit;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -212,5 +213,13 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         bulbId = isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown;
         h._blueButton.setImageDrawable(h._blueButton.getContext().getResources().getDrawable(bulbId));
         h._blueButton.setOnClickListener(this);
+
+        // Is this a shared device?
+        int color = MainActivity.getInstance().getResources().getColor(R.color.card_text);
+        if ( !getDevice().amOwner() ) {
+            // Yes, this device is shared.
+            color = MainActivity.getInstance().getResources().getColor(R.color.card_shared_text);
+        }
+        h._deviceNameTextView.setTextColor(color);
     }
 }

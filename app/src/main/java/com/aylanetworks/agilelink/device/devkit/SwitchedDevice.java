@@ -113,6 +113,14 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
         h._switchButton.setImageDrawable(buttonDrawable);
         h._switchButton.setOnClickListener(this);
+
+        // Is this a shared device?
+        int color = MainActivity.getInstance().getResources().getColor(R.color.card_text);
+        if ( !getDevice().amOwner() ) {
+            // Yes, this device is shared.
+            color = MainActivity.getInstance().getResources().getColor(R.color.card_shared_text);
+        }
+        h._deviceNameTextView.setTextColor(color);
     }
 
     static class CreateDatapointHandler extends Handler {

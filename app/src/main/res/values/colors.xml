@@ -308,6 +308,8 @@
     <!-- Colors for card views -->
     <color name="card_background">@android:color/white</color>
     <color name="card_text">@android:color/black</color>
+    <!-- Color for text on a shared device -->
+    <color name="card_shared_text">@color/app_theme_primary_dark</color>
 
     <!-- Default button background gradients -->
     <color name="button_start">@color/app_theme_primary_light</color>
