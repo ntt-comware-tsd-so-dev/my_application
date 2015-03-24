@@ -36,9 +36,44 @@ import java.util.TimeZone;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
+/**
+ * The Device class represents a physical device connected to the Ayla network. This class is
+ * designed to be overridden to provide device-specific functionality and user interface
+ * components.
+ *
+ * Each Device class wraps an AylaDevice object, which is passed to the Device constructor. Devices
+ * are created via the {@link DeviceCreator#deviceForAylaDevice(com.aylanetworks.aaml.AylaDevice)}
+ * method of the {@link DeviceCreator} class, which parses information from the underlying
+ * {@link AylaDevice} object to identify the correct Device-derived class to create with the object.
+ *
+ * When creating an Agile Link-derived application, implementers should create a Device-derived
+ * class for each type of hardware device supported by the application. The AylaDevice objects
+ * received from the server will be passed to the DeviceCreator's deviceForAylaDevice method in
+ * order that the DeviceCreator can create the appropriate Device-derived object to contain it.
+ *
+ * Derived classes should override the following methods:
+ * <ul>
+ *     <li>{@link #getPropertyNames()}</li>
+ *     <li>{@link #deviceTypeName()}</li>
+ *     <li>{@link #getDeviceDrawable(android.content.Context)}</li>
+ *     <li>{@link #registrationType()}</li>
+ *     <li>{@link #getItemViewType()}</li>
+ *     <li>{@link #bindViewHolder(android.support.v7.widget.RecyclerView.ViewHolder)}</li>
+ *     <li>{@link #getSchedulablePropertyNames()}</li>
+ *     <li>{@link #friendlyNameForPropertyName(String)}</li>
+ * </ul>
+ */
 public class Device implements Comparable<Device> {
 
+    /**
+     * Interface called whenever the status of a device changes.
+     */
     public interface DeviceStatusListener {
+        /**
+         * Method called whenever the status of a device has changed
+         * @param device Device whose status has changed
+         * @param changed true if the status changed, or false if an error occurred
+         */
         void statusUpdated(Device device, boolean changed);
     }
 
@@ -116,6 +151,11 @@ public class Device implements Comparable<Device> {
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
+    /**
+     * Returns the list of {@link Schedule} objects associated with this device.
+     * @return A list of {@link Schedule} objects, or null if none exist or have not been
+     * retrieved from the server.
+     */
     @Nullable
     public List<Schedule> getSchedules() {
         if (getDevice().schedules == null) {
@@ -136,6 +176,11 @@ public class Device implements Comparable<Device> {
         return schedules;
     }
 
+    /**
+     * Returns the schedule for this device with the supplied name, or null if not found
+     * @param scheduleName Name of the schedule to retrieve
+     * @return The schedule with the supplied name, or null
+     */
     @Nullable
     public Schedule getSchedule(String scheduleName) {
         if (_device.schedules == null) {
@@ -151,6 +196,12 @@ public class Device implements Comparable<Device> {
         return null;
     }
 
+    /**
+     * Fetches the schedules for this device from the server. On completion, the listener's
+     * statusUpdated method will be called with the changed parameter set to true if the fetch
+     * was successful, or false if the schedules could not be fetched.
+     * @param listener Listener to be notified when the schedules have been fetched
+     */
     public void fetchSchedules(final DeviceStatusListener listener) {
         // First make sure the timezone on the device is up to date
         fetchTimezone(new DeviceStatusListener() {
@@ -505,6 +556,12 @@ public class Device implements Comparable<Device> {
         }
     }
 
+    /**
+     * Returns true if this device is a gateway device. Derived classes should override this
+     * method if the device is a gateway device.
+     *
+     * @return True if this device is a gateway device, or false otherwise.
+     */
     public boolean isGateway() {
         return false;
     }
@@ -513,6 +570,21 @@ public class Device implements Comparable<Device> {
      * UI Methods
      */
 
+    /**
+     * Returns an integer representing the item view type for this device. This method is called
+     * when displaying a CardView representing this device. The item view type should be different
+     * for each type of CardView displayed for a device.
+     *
+     * The value returned from this method will be passed to the
+     * {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType(android.view.ViewGroup, int)}
+     * method of the {@link com.aylanetworks.agilelink.framework.DeviceCreator} object, which uses
+     * it to determine the appropriate ViewHolder object to create for the Device.
+     *
+     * Multiple device types may use the same item view type if the view displayed for these devices
+     * are the same. Most devices will have their own unique views displayed.
+     *
+     * @return An integer representing the type of view for this item.
+     */
     public int getItemViewType() {
         return DeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
@@ -614,6 +686,12 @@ public class Device implements Comparable<Device> {
         _device.updateTimezone(new SetTimezoneHandler(this, oldTimeZone, listener));
     }
 
+    /**
+     * Returns the time zone associated with this device. Schedules are displayed in the time zone
+     * of the device rather than the time zone of the phone / tablet running this app.
+     *
+     * @return The time zone of the device, or null if none found
+     */
     public TimeZone getTimeZone() {
         if ( _device.timezone.tzId == null ) {
             return null;

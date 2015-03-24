@@ -27,6 +27,17 @@ import java.util.Map;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
+/**
+ * The ContactManager class is used to organize, store and update a list of AylaContact objects.
+ *
+ * Contacts contain information about how somebody might be notified in the case of device events.
+ * This information currently includes a person's email address and SMS phone number, as well as
+ * identifying information such as first and last names, a display name, street address, etc.
+ *
+ * The {@link com.aylanetworks.agilelink.framework.SessionManager} creates a ContactManager after
+ * the user logs in and initializes it with information retrieved from the server. This object
+ * can be accessed via {@link com.aylanetworks.agilelink.framework.SessionManager#getContactManager()}.
+ */
 public class ContactManager {
     private final static String LOG_TAG = "ContactManager";
 

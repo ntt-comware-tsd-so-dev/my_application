@@ -40,16 +40,35 @@ import java.util.Set;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
+
+/**
+ * The DeviceManager manages the list of Device objects associated with the user's account. It
+ * polls the list of devices and the status of each device, and can notify interested parties of
+ * changes.
+ *
+ * The class also provides methods to add and remove devices (register / unregister), enter / exit
+ * LAN mode and to update the device notifications for a particular device.
+ *
+ * The {@link com.aylanetworks.agilelink.framework.SessionManager} creates an instance of the
+ * DeviceManager, which can be obtained via a call to
+ * {@link SessionManager#deviceManager()}. This instance should be used throughout the application.
+ * Additional instances of the DeviceManager should not be created.
+ */
 public class DeviceManager implements DeviceStatusListener {
     private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
 
     /** Interfaces */
     public interface DeviceListListener {
+        /**
+         * Called when the list of devices has changed.
+         */
         void deviceListChanged();
     }
 
     /**
-     * Listener class called when a device has entered or exited LAN mode
+     * Listener class called when a device has entered or exited LAN mode. The LANModeListener
+     * retains a reference to the underlying device object, which is passed back to the lanModeResult
+     * method when the LAN mode state has changed.
      */
     static public class LANModeListener {
         private Device _device;
@@ -122,11 +141,21 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
+    /**
+     * Sets the comparator used for sorting the list of devices. The default comparator uses the
+     * Device object's compareTo method.
+     *
+     * @param comparator
+     */
     public void setDeviceComparator(Comparator<Device> comparator) {
         _deviceComparator = comparator;
         Collections.sort(_deviceList, _deviceComparator);
     }
 
+    /**
+     * Returns the Comparator used to sort the device list
+     * @return the Comparator used to sort the device list
+     */
     public Comparator<Device>getDeviceComparator() {
         return _deviceComparator;
     }
@@ -166,6 +195,10 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
+    /**
+     * Exits LAN mode. The listener is immediately notified.
+     * @param listener Listener to be notified when LAN mode has been exited.
+     */
     public void exitLANMode(LANModeListener listener) {
         // BSK: There is no notification received for disabling LAN mode.
         // The interface is kept consistent with enterLANMode(), but is strictly speaking not
@@ -312,24 +345,44 @@ public class DeviceManager implements DeviceStatusListener {
 
     // Poll interval methods
 
+    /**
+     * Returns the poll interval for polling the list of devices, in milliseconds.
+     * @return Number of ms between calls to fetch the list of devices
+     */
     public int getDeviceListPollInterval() {
         return _deviceListPollInterval;
     }
 
+    /**
+     * Sets the poll interval for polling the list of devices, in milliseconds.
+     * @param deviceListPollInterval Number of ms to wait before requesting the device list again
+     */
     public void setDeviceListPollInterval(int deviceListPollInterval) {
         _deviceListPollInterval = deviceListPollInterval;
     }
 
+    /**
+     * Returns the poll interval for polling the status of devices, in milliseconds.
+     * @return The number of milliseconds to wait before fetching the device statuses again
+     */
     public int getDeviceStatusPollInterval() {
         return _deviceStatusPollInterval;
     }
 
+    /**
+     * Sets the poll interval for polling the status of devices, in milliseconds
+     * @param deviceStatusPollInterval Number of ms to wait between device status fetches
+     */
     public void setDeviceStatusPollInterval(int deviceStatusPollInterval) {
         _deviceStatusPollInterval = deviceStatusPollInterval;
     }
 
     // Listener methods
 
+    /**
+     * Adds a DeviceListListener to be notified when the list of devices has changed.
+     * @param listener Listener to be notified of device list changes
+     */
     public void addDeviceListListener(DeviceListListener listener) {
         boolean startTimer = (_deviceListListeners.size() == 0);
         _deviceListListeners.add(listener);
@@ -339,10 +392,20 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
+    /**
+     * Removes a listener to be notified on device list changes
+     * @param listener Listener to be removed
+     */
     public void removeDeviceListListener(DeviceListListener listener) {
         _deviceListListeners.remove(listener);
     }
 
+    /**
+     * Adds a listener to be notified of device status changes. The listener will be called once
+     * for each device that has changed status.
+     *
+     * @param listener Listener to be notified of device status changes.
+     */
     public void addDeviceStatusListener(DeviceStatusListener listener) {
         boolean startTimer = (_deviceStatusListeners.size() == 0);
         _deviceStatusListeners.add(listener);
@@ -352,6 +415,10 @@ public class DeviceManager implements DeviceStatusListener {
         }
     }
 
+    /**
+     * Removes a listener to be notfied of changes to device status
+     * @param listener Listener to be removed
+     */
     public void removeDeviceStatusListener(DeviceStatusListener listener) {
         _deviceStatusListeners.remove(listener);
     }

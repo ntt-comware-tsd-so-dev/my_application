@@ -30,6 +30,23 @@ import java.util.Set;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
+
+/**
+ * AccountSettings is a class used to store and retrieve information related to the user's account,
+ * but not part of the AylaUser object. Currently the class stores the following information:
+ * <ul>
+ *     <li>The selected notification types for device status: Push, SMS and Email
+ *     <li>The contact ID of the owner
+ * </ul>
+ * <p>
+ * The AccountSettings object can be retreived from the server using tht static method
+ * {@link #fetchAccountSettings(com.aylanetworks.aaml.AylaUser, com.aylanetworks.agilelink.framework.AccountSettings.AccountSettingsCallback)}.
+ * This method will fetch the latest AccountSettings information from the server and return an
+ * initialized AccountSettings object to the callback.
+ *
+ * The SessionManager fetches the AccountSettings from the server after login. This can be accessed
+ * via {@link SessionManager#getAccountSettings()}.
+ */
 public class AccountSettings {
     private static final String LOG_TAG = "AccountSettings";
 
@@ -59,7 +76,9 @@ public class AccountSettings {
     };
 
     /**
-     * Fetches the account settings from the server
+     * Fetches the account settings from the server. The callback is called with an initialized
+     * AccountSettings object, or null if an error occurred.
+     *
      * @param user Account user that owns the settings
      * @param callback Callback called when the settings have been retrieved from the server
      */
@@ -68,21 +87,48 @@ public class AccountSettings {
         user.getDatumWithKey(new FetchDatumHandler(user, callback), getDatumName());
     }
 
+    /**
+     * Updates data on the server with the current AccountSettings information.
+     * @param callback Callback called when the settings have been updated.
+     */
     public void pushToServer(AccountSettingsCallback callback) {
         AylaDatum datum = createDatum();
         _aylaUser.updateDatum(new UpdateDatumHandler(this, callback), datum);
     }
 
+    /**
+     * Constructor with an AylaUser initializer
+     * @param aylaUser AylaUser that owns the AccountSettings information
+     */
     public AccountSettings(AylaUser aylaUser){
         _aylaUser = aylaUser;
         _ownerContactID = null;
         _notificationTypes = new HashSet<>();
     }
 
+    /**
+     * Returns a list of notification types that are enabled for this account. This list can include
+     * one or more of:
+     * <ul>
+     *     <li>{@link com.aylanetworks.agilelink.framework.DeviceNotificationHelper#NOTIFICATION_METHOD_EMAIL}
+     *     <li>{@link com.aylanetworks.agilelink.framework.DeviceNotificationHelper#NOTIFICATION_METHOD_PUSH}
+     *     <li>{@link com.aylanetworks.agilelink.framework.DeviceNotificationHelper#NOTIFICATION_METHOD_SMS}
+     * </ul>
+     * @return an array of Strings representing the enabled device notification types for this account
+     */
     public List<String> getNotificationTypes() {
         return new ArrayList<>(_notificationTypes);
     }
 
+    /**
+     * Adds the specified notification method to the user's preferences. Note that this only stores
+     * the information and does not update any device notifications on the devices themselves.
+     *
+     * Callers should call the {@link #pushToServer(com.aylanetworks.agilelink.framework.AccountSettings.AccountSettingsCallback)}
+     * method in order to persist changes to AccountSettings once all local updates have been made.
+     *
+     * @param notificationMethod
+     */
     public void addNotificationMethod(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
             // We write this into shared preferences, as this setting is on a per-device basis
@@ -95,6 +141,14 @@ public class AccountSettings {
         }
     }
 
+    /**
+     * Removes the supplied notification method from the list of enabled notification methods.
+     *
+     * Callers should call the {@link #pushToServer(com.aylanetworks.agilelink.framework.AccountSettings.AccountSettingsCallback)}
+     * method in order to persist changes to AccountSettings once all local updates have been made.
+     *
+     * @param notificationMethod
+     */
     public void removeNotificationMethod(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
             // We write this into shared preferences, as this setting is on a per-device basis
@@ -106,6 +160,11 @@ public class AccountSettings {
         _notificationTypes.remove(notificationMethod);
     }
 
+    /**
+     * Returns true if the supplied notification method is set on the user's account.
+     * @param notificationMethod String of the notification method to test
+     * @return true if the method is set, or false if not
+     */
     public boolean isNotificationMethodSet(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH) ) {
             // Push is stored in local settings
@@ -116,10 +175,22 @@ public class AccountSettings {
         return _notificationTypes.contains(notificationMethod);
     }
 
+    /**
+     * Sets the owner's contact ID. This ID is used when examining the Contacts list to identify
+     * the contact associated with the owner's account (AylaUser).
+     *
+     * @param ownerContactID The contact ID of the owner
+     */
     public void setOwnerContactID(Integer ownerContactID) {
         _ownerContactID = ownerContactID;
     }
 
+    /**
+     * Returns the owner's contact ID. This ID is used when examining the Contacts list to identify
+     * the contact associated with the owner's account (AylaUser).
+     *
+     * @return the contact ID of the owner of the account
+     */
     public Integer getOwnerContactID() {
         return _ownerContactID;
     }
@@ -132,6 +203,10 @@ public class AccountSettings {
         return SessionManager.sessionParameters().appId + "-settings";
     }
 
+    /**
+     * Creates the AylaDatum object containing the AccountSettings JSON data
+     * @return The AylaDatum object to be set on the server with the AccountSettings JSON data
+     */
     protected AylaDatum createDatum() {
         AylaDatum datum = new AylaDatum();
         datum.key = getDatumName();
