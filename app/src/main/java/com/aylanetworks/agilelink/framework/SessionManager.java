@@ -36,6 +36,27 @@ import java.util.Set;
 /**
  * The SessionManager class is used to manage the login session with the Ayla service, as well as
  * polling the list of devices.
+ *
+ * The SessionManager is used as a singleton object. Users of this class should use the
+ * {@link #getInstance()} static method to obtain the single instance of the SessionManager.
+ * <p/>
+ *
+ * The manager is configured using the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters}
+ * class. Implementers should create an instance of SessionParameters and pass this to the SessionManager
+ * via {@link #setParameters(com.aylanetworks.agilelink.framework.SessionManager.SessionParameters)}.
+ * Once the parameters have been set, the user can be logged in via a call to
+ * {@link #startSession(String, String)} to log in normally, or can log in via OAuth using
+ * {@link #startOAuthSession(android.os.Message)}.
+ * <p/>
+ *
+ * Once the session has been started, the SessionManager creates the following objects:
+ * <ul>
+ *     <li>{@link com.aylanetworks.agilelink.framework.AccountSettings} to store account-specific information</li>
+ *     <li>{@link com.aylanetworks.agilelink.framework.DeviceManager} for fetching and polling the device list</li>
+ *     <li>{@link com.aylanetworks.agilelink.framework.ContactManager} for adding, removing, updating contacts</li>
+ *     <li>{@link com.aylanetworks.agilelink.framework.GroupManager} for managing groups of devices</li>
+ * </ul>
+ * These objects are used throughout the application.
  */
 public class SessionManager {
     /**
@@ -59,6 +80,12 @@ public class SessionManager {
         public void lanModeChanged(boolean lanModeEnabled);
     }
 
+    /**
+     * Sets the parameters for the session. This method should be called before any other
+     * SessionManager methods.
+     *
+     * @param parameters Parameters for this session
+     */
     public static void setParameters(SessionParameters parameters) {
         getInstance()._sessionParameters = new SessionParameters(parameters);
         // Initialize the Ayla library
@@ -68,6 +95,9 @@ public class SessionManager {
 
     }
 
+    /**
+     * Clears out the saved user. Call this when the user wishes to log out without cached credentials.
+     */
     public static void clearSavedUser() {
         SharedPreferences settings =
                 PreferenceManager.getDefaultSharedPreferences(getInstance()._sessionParameters.context);
@@ -79,6 +109,10 @@ public class SessionManager {
         AylaUser.setCurrent(new AylaUser());
     }
 
+    /**
+     * Returns the singleton instance of the SessionManager
+     * @return the SessionManager object
+     */
     public static SessionManager getInstance() {
         if (_globalSessionManager == null) {
             _globalSessionManager = new SessionManager();
@@ -86,14 +120,30 @@ public class SessionManager {
         return _globalSessionManager;
     }
 
+    /**
+     * Returns the current AccountSettings object for the logged-in user
+     * @return the AccountSettings for this account
+     */
     public AccountSettings getAccountSettings() {
         return _accountSettings;
     }
 
+    /**
+     * Returns the contact manager for this account.
+     * @return the ContactManager for this account.
+     */
     public ContactManager getContactManager() {
         return _contactManager;
     }
 
+    /**
+     * Registers the given AylaUser with the AylaService. This creates an account for the user
+     * and sends the user an email with confirmation instructions.
+     *
+     * @param user The AylaUser to register
+     * @param resultHandler Handler to receive the results of the call to
+     *                      {@link AylaUser#signUp(android.os.Handler, java.util.Map, String, String)}
+     */
     public static void registerNewUser(final AylaUser user, final Handler resultHandler) {
         Map<String, String> callParams = new HashMap<String, String>();
         callParams.put("email", user.email);
@@ -116,12 +166,20 @@ public class SessionManager {
         AylaUser.signUp(resultHandler, callParams, params.appId, params.appSecret);
     }
 
+    /**
+     * Adds a listener who will be notified when the state of the session changes (log out, log in, etc.)
+     * @param listener Listener to be notified of session state changes
+     */
     public static void addSessionListener(SessionListener listener) {
         synchronized (getInstance()._sessionListeners) {
             getInstance()._sessionListeners.add(listener);
         }
     }
 
+    /**
+     * Removes a session listener from the list of listeners to be notified of session state changes
+     * @param listener Listener to remove
+     */
     public static void removeSessionListener(SessionListener listener) {
         synchronized (getInstance()._sessionListeners) {
             getInstance()._sessionListeners.remove(listener);
