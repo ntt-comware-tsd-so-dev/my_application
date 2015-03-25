@@ -134,36 +134,168 @@ public class SessionManager {
      * Class used to provide session parameters.
      */
     public static class SessionParameters {
+        /**
+         * Context used for UI / resources / etc. Android-specific.
+         */
         public Context context = null;
+
+        /**
+         * Regular expression string for SSID scans.
+         *
+         * This string is used to filter the list of SSIDs returned from a WiFi network scan.
+         * The default value returns SSIDs that begin with "Ayla", "T-Stat" or "Plug", followed
+         * by a dash and a string of 12 hexadecimal characters.
+         * <p/>
+         * If your device broadcasts a different SSID for WiFi setup, set this parameter to a
+         * regular expression that matches any supported devices' SSID.
+         */
         public String deviceSsidRegex = "^Ayla-[0-9A-Fa-f]{12}|^T-Stat-[0-9A-Fa-f]{12}|^Plug-[0-9A-Fa-f]{12}";
+
+        /**
+         * Application version. Passed to the Ayla library during initialization.
+         */
         public String appVersion = "0.1";
+
+        /**
+         * Sender ID for push notifications. Android-specific. @see {@link com.aylanetworks.agilelink.framework.PushNotification}
+         * for details.
+         */
         public String pushNotificationSenderId = "103052998040";
+
+        /**
+         * App ID passed to the Ayla library. Each app has its own unique ID.
+         */
         public String appId = "aMCA-id";
+
+        /**
+         * App secret passed to the Ayla library. Unique to the app ID.
+         */
         public String appSecret = "aMCA-9097620";
+
+        /**
+         * {@link com.aylanetworks.agilelink.framework.DeviceCreator} object.
+         * Implementers should create a class derived from DeviceCreator
+         * to return Device objects for this application.
+         */
         public DeviceCreator deviceCreator = new DeviceCreator();
+
+        /**
+         * Username for login
+         */
         public String username;
+
+        /**
+         * Password for login
+         */
         public String password;
+
+        /**
+         * Access token used to log in without username or password
+         */
         public String accessToken;
+
+        /**
+         * Refresh token used to continue a previous session
+         */
         public String refreshToken;
+
+        /**
+         * Set to true to allow LAN mode operations application-wide
+         */
         public boolean enableLANMode = false;
+
+        /**
+         * Service type the Ayla library should connect to. Set to one of:
+         * <ul>
+         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEVICE_SERVICE}</li>
+         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_FIELD_SERVICE}</li>
+         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEVELOPMENT_SERVICE}</li>
+         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_STAGING_SERVICE}</li>
+         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEMO_SERVICE}</li>
+         * </ul>
+         */
         public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
+
+        /**
+         * Logging level for the Ayla library. Set to one of:
+         *
+         * <ul>
+         * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_NONE}</li>
+         * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ERROR}</li>
+         * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_WARNING}</li>
+         * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_INFO}</li>
+         * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ALL}</li>
+         * </ul>
+         */
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
 
-        // Strings for new user registration. Can be modified by the application if desired.
+        // Registration email parameters
+
+        /**
+         * Template ID for the initial registration email sent to the user upon account creation.
+         * If this is null, the {@link #registrationEmailBodyHTML} should contain an HTML
+         * string used for this email message.
+         */
         public String registrationEmailTemplateId = "ayla_confirmation_template_01";
+
+        /**
+         * Subject for the email sent to the user upon initial account creation.
+         */
         public String registrationEmailSubject = "Ayla Sign-up Confirmation";
+
+        /**
+         * HTML body for the email sent to the user upon initial account creation. This is used
+         * if the template ID is null.
+         */
         public String registrationEmailBodyHTML = null;
 
-        // Strings for password reset. Can be modified by the application if desired.
+        // Reset password email parameters
+
+        /**
+         * Subject for the email sent to the user upon requesting a password reset.
+         */
         public String resetPasswordEmailSubject = "Ayla Reset Password Confirmation";
+
+        /**
+         * Template ID for the email sent to the user upon requesting a password reset.
+         * If this is null, the {@link #resetPasswordEmailBodyHTML} should contain an HTML
+         * string used for this email message.
+         */
         public String resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
+
+        /**
+         * HTML body for the email sent to the user upon requesting a password reset. This is used
+         * if the template ID is null.
+         */
         public String resetPasswordEmailBodyHTML = null;
 
-        // Strings for device notifications
+        // Device notification email parameters
+
+
+        /**
+         * Subject for the email sent to the user when a device goes online or offline.
+         */
         public String notificationEmailSubject = "Ayla Device Notification";
+
+
+        /**
+         * Template ID for the email sent to the user when a device goes online or offline.
+         * If this is null, the {@link #notificationEmailBodyHTML} should contain an HTML
+         * string used for this email message.
+         */
         public String notificationEmailTemplateId = "ayla_notify_template_01";
+
+
+        /**
+         * HTML body for the email sent to the user when a device goes online or offline. This is used
+         * if the template ID is null.
+         */
         public String notificationEmailBodyHTML = null;
 
+        /**
+         * SessionParameters constructor
+         * @param context Context for resources
+         */
         public SessionParameters(Context context) {
             this.context = context;
         }
@@ -232,6 +364,17 @@ public class SessionManager {
 
     /**
      * Initializes and starts a new session, stopping any existing sessions first.
+     *
+     * This method logs the user in, and if successful creates a {@link com.aylanetworks.agilelink.framework.DeviceManager},
+     * fetches the current {@link com.aylanetworks.agilelink.framework.AccountSettings} from the
+     * server and notifies any {@link com.aylanetworks.agilelink.framework.SessionManager.SessionListener}
+     * listeners that have registered that the session has been started.
+     *
+     * At this point the DeviceManager will fetch the list of devices from the server and begin
+     * polling them for updates.
+     *
+     * If the user wishes to log out, the application should call {@link #stopSession()} to shut
+     * down the library and clean up.
      */
     public static boolean startSession(String username, String password) {
         if (getInstance()._sessionParameters == null) {
@@ -249,12 +392,16 @@ public class SessionManager {
         return sm.start();
     }
 
+    /**
+     * Starts a session using the response Message from a call to {@link AylaUser#loginThroughOAuth}
+     * @param oAuthResponseMessage The Message returned from a successful call to {@link AylaUser#loginThroughOAuth}
+     */
     public static void startOAuthSession(Message oAuthResponseMessage) {
         getInstance()._loginHandler.handleMessage(oAuthResponseMessage);
     }
 
     /**
-     * Closes network connections and logs out the user
+     * Closes network connections and logs out the user.
      */
     public static boolean stopSession() {
         getInstance().stop();
