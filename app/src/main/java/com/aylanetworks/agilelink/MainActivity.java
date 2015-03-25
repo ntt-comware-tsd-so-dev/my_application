@@ -311,24 +311,29 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     private void showLoginDialog() {
-        if ( _loginDialog == null ) {
-            _loginDialog = new SignInDialog();
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                if ( _loginDialog == null ) {
+                    _loginDialog = new SignInDialog();
 
-            // We always want to show the "All Devices" page first
-            mViewPager.setCurrentItem(0);
+                    // We always want to show the "All Devices" page first
+                    mViewPager.setCurrentItem(0);
 
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-            String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
-            String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
+                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                    String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
+                    String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
-            Bundle args = new Bundle();
-            args.putString(SignInDialog.ARG_USERNAME, savedUsername);
-            args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
-            _loginDialog.setArguments(args);
-            _loginDialog.show(getSupportFragmentManager(), "signin");
-        } else {
-            Log.e(LOG_TAG, "Login dialog is already being shown!");
-        }
+                    Bundle args = new Bundle();
+                    args.putString(SignInDialog.ARG_USERNAME, savedUsername);
+                    args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
+                    _loginDialog.setArguments(args);
+                    _loginDialog.show(getSupportFragmentManager(), "signin");
+                } else {
+                    Log.e(LOG_TAG, "Login dialog is already being shown!");
+                }
+            }
+        });
     }
 
     @Override
@@ -426,20 +431,26 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     // SessionListener methods
     @Override
-    public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
-        dismissWaitDialog();
-        Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
-        if ( !loggedIn ) {
-            mViewPager.setCurrentItem(0);
-            if ( _loginDialog == null ) {
-                showLoginDialog();
+    public void loginStateChanged(final boolean loggedIn, AylaUser aylaUser) {
+        // Post in a handler in case we just resumed and the instance state has changed
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                dismissWaitDialog();
+                Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
+                if ( !loggedIn ) {
+                    mViewPager.setCurrentItem(0);
+                    if ( _loginDialog == null ) {
+                        showLoginDialog();
+                    }
+                } else {
+                    if ( _loginDialog != null ) {
+                        _loginDialog.dismiss();
+                        _loginDialog = null;
+                    }
+                }
             }
-        } else {
-            if ( _loginDialog != null ) {
-                _loginDialog.dismiss();
-                _loginDialog = null;
-            }
-        }
+        });
     }
 
     @Override
