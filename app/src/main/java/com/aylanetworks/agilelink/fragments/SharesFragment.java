@@ -115,8 +115,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     private void confirmRemoveShare(final AylaShare share, boolean amOwner) {
-
-        String email = amOwner ? share.ownerProfile.email : share.userProfile.email;
+        String email = amOwner ? share.userProfile.email : share.ownerProfile.email;
         Device device = SessionManager.deviceManager().deviceByDSN(share.resourceId);
         String deviceName = "[unknown device]";
         if ( device != null ) {
