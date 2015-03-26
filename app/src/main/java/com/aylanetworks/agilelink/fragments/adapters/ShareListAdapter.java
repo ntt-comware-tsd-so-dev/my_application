@@ -40,6 +40,10 @@ public class ShareListAdapter extends ArrayAdapter<AylaShare> {
             Device device = SessionManager.deviceManager().deviceByDSN(share.resourceId);
             if ( device != null ) {
                 tv1.setText(device.toString());
+                tv1.setTextColor(getContext().getResources().getColor(R.color.card_text));
+            } else {
+                tv1.setText(share.resourceId);
+                tv1.setTextColor(getContext().getResources().getColor(R.color.destructive_bg));
             }
         } else {
             tv1.setText("");

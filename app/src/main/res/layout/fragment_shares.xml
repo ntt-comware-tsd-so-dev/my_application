@@ -39,6 +39,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
+            <TextView
+                android:id="@+id/my_shares_empty"
+                android:textColor="@color/empty_list_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:text="@string/sharing_with_others_empty"/>
+
         </LinearLayout>
 
         <LinearLayout
@@ -58,6 +68,16 @@
                 android:id="@+id/listview_devices_shared_with_me"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/shared_with_me_empty"
+                android:textColor="@color/empty_list_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:text="@string/shared_with_me_empty"/>
 
         </LinearLayout>
 

@@ -22,10 +22,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaShare;
-import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
@@ -34,9 +34,10 @@ import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 
-public class SharesFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class SharesFragment extends Fragment implements AdapterView.OnItemClickListener, ShareDevicesFragment.ShareDevicesListener {
     private final static String LOG_TAG = "SharesFragment";
 
     private ListView _listViewSharedByMe;
@@ -58,9 +59,11 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
         _listViewSharedByMe = (ListView)root.findViewById(R.id.listview_devices_i_share);
         _listViewSharedByMe.setOnItemClickListener(this);
+        _listViewSharedByMe.setEmptyView(root.findViewById(R.id.my_shares_empty));
 
         _listViewSharedToMe = (ListView)root.findViewById(R.id.listview_devices_shared_with_me);
         _listViewSharedToMe.setOnItemClickListener(this);
+        _listViewSharedToMe.setEmptyView(root.findViewById(R.id.shared_with_me_empty));
 
         ImageButton addButton = (ImageButton)root.findViewById(R.id.add_button);
 
@@ -94,6 +97,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
     private void addTapped() {
         Log.d(LOG_TAG, "Add button tapped");
+        ShareDevicesFragment dlg = ShareDevicesFragment.newInstance(this);
+        dlg.show(getFragmentManager(), "dlg");
     }
 
     @Override
@@ -119,7 +124,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         }
 
         int messageID = amOwner ? R.string.confirm_remove_share_message : R.string.confirm_remove_shared_device_message;
-        String formattedMessage = getActivity().getString(R.string.confirm_remove_share_message, deviceName, email);
+        String formattedMessage = getActivity().getString(messageID, deviceName, email);
         new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.confirm_remove_share_title)
                 .setMessage(formattedMessage)
@@ -135,6 +140,56 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 .create().show();
     }
 
+    private static class AddSharesHandler extends Handler {
+        private WeakReference<SharesFragment> _frag;
+        private List<Device> _devicesToAdd;
+        private String _email;
+
+        public AddSharesHandler(SharesFragment frag, String email, List<Device> devicesToAdd) {
+            _frag = new WeakReference<SharesFragment>(frag);
+            _email = email;
+            _devicesToAdd = devicesToAdd;
+        }
+
+        public void addNextShare() {
+            if ( _devicesToAdd.isEmpty() ) {
+                MainActivity.getInstance().dismissWaitDialog();
+                _frag.get().fetchShares();
+                return;
+            }
+
+            Device device = _devicesToAdd.remove(0);
+            AylaShare share = new AylaShare();
+            share.userEmail = _email;
+            device.getDevice().createShare(this, share);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                addNextShare();
+            } else {
+                Log.e(LOG_TAG, "Add share failed: " + msg);
+                MainActivity.getInstance().dismissWaitDialog();
+                String message = MainActivity.getInstance().getString(R.string.error_creating_share);
+                if ( msg.obj != null ) {
+                    message = (String)msg.obj;
+                }
+                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    @Override
+    public void shareDevices(String email, List<Device> devices) {
+        // We got this call from the ShareDevicesFragment.
+        if ( !devices.isEmpty() ) {
+            AddSharesHandler handler = new AddSharesHandler(this, email, devices);
+            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
+            handler.addNextShare();
+        }
+    }
+
     private static class DeleteShareHandler extends Handler {
         private WeakReference<SharesFragment> _frag;
 
@@ -148,6 +203,12 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             Log.d(LOG_TAG, "Delete share: " + msg);
             if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
                 _frag.get().fetchShares();
+            } else {
+                String message = MainActivity.getInstance().getString(R.string.error_deleting_share);
+                if ( msg.obj != null ) {
+                    message = (String)msg.obj;
+                }
+                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
             }
         }
     }
