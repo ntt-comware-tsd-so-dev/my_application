@@ -28,6 +28,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaGrant;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
@@ -110,6 +111,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         button = (Button)view.findViewById(R.id.sharing_button);
         button.setOnClickListener(this);
+        if ( !_device.getDevice().amOwner() ) {
+            button.setVisibility(View.GONE);
+        }
 
         updateUI();
 
@@ -140,14 +144,38 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.menu_device_details, menu);
+        // TODO: BSK: If we start getting share IDs back in the Grant objects, we can remove a share here.
+        if ( _device.getDevice().amOwner() ) {
+            inflater.inflate(R.menu.menu_device_details, menu);
+        }
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    private static class DeleteShareHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Delete share: " + msg);
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                Toast.makeText(MainActivity.getInstance(), R.string.share_removed, Toast.LENGTH_LONG).show();
+                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
+            } else {
+                String message = MainActivity.getInstance().getResources().getString(R.string.remove_share_failure);
+                if ( msg.obj != null ) {
+                    message = (String)msg.obj;
+                }
+                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_unregister_device) {
-            unregisterDevice();
+            if ( _device.getDevice().amOwner() ) {
+                unregisterDevice();
+            } else {
+                removeShare();
+            }
             return true;
         }
 
@@ -217,6 +245,29 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                         // Remove the device from all groups
                         SessionManager.deviceManager().getGroupManager().removeDeviceFromAllGroups(_device);
                         _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(R.drawable.ic_launcher)
+                .show();
+    }
+
+    private void removeShare() {
+        // Confirm first!
+        Resources res = getActivity().getResources();
+
+        new AlertDialog.Builder(getActivity())
+                .setTitle(res.getString(R.string.confirm_remove_share_title))
+                .setMessage(res.getString(R.string.confirm_remove_shared_device_message_short))
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(LOG_TAG, "Un-share Device: " + _device);
+
+                        AylaShare share = new AylaShare();
+                        AylaGrant grant = _device.getDevice().grant;
+                        share.id = grant.shareId;
+                        share.delete(new DeleteShareHandler());
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)

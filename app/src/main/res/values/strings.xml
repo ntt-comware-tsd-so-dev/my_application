@@ -273,6 +273,7 @@
     <string name="removing_share_title">Removing Share</string>
     <string name="removing_share_body">Removing the share from the server. Please wait...</string>
     <string name="confirm_remove_shared_device_message">Are you sure you want to remove \"%1$s\" from your device list?<p/>This device was shared with you by %2$s.</string>
+    <string name="confirm_remove_shared_device_message_short">Are you sure you want to remove this shared device from your account?</string>
     <string name="add_device_share_title">Share %s</string>
     <string name="add_device_share_message">Enter the email address of the Ayla user you would like to share this device with:</string>
     <string name="share_device_success">The share has been set up successfully.</string>
@@ -285,6 +286,9 @@
     <string name="shared_with_me_empty">No devices shared with me</string>
     <string name="error_deleting_share">An unknown error occurred while trying to delete this share. Please try again later.</string>
     <string name="error_creating_share">An unknown error occurred while trying to create a share. Please try again later.</string>
+    <string name="no_devices_to_share">There are no devices that can be shared registered to this account.</string>
+    <string name="share_removed">The shared device has been removed from your account.</string>
+    <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
 
 
 </resources>

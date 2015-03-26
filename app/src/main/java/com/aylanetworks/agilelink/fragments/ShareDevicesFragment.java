@@ -61,6 +61,22 @@ public class ShareDevicesFragment extends DialogFragment {
 
         _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         List<Device> deviceList = SessionManager.deviceManager().deviceList();
+        // Remove devices that we don't own from this list
+        List<Device> filteredList = new ArrayList<Device>();
+        for ( Device d : deviceList ) {
+            if ( d.getDevice().amOwner() ) {
+                filteredList.add(d);
+            }
+        }
+
+        if ( filteredList.isEmpty() ) {
+            return new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.new_share)
+                    .setMessage(R.string.no_devices_to_share)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .create();
+        }
+
         Device devices[] = deviceList.toArray(new Device[deviceList.size()]);
         _deviceList.setAdapter(new ArrayAdapter<Device>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
 
