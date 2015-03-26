@@ -174,7 +174,7 @@
         <item>Notifications</item>
         <item>Edit Profile</item>
         <item>Delete Account</item>
-        <item>Email logs to Ayla</item>
+        <item>Shares</item>
     </string-array>
 
     <!-- Add device or group menu items -->
@@ -263,6 +263,20 @@
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
     <string name="fill_from_contact">Add new from address book</string>
     <string name="choose_ap_details" formatted="false">Enter the password for the \"%s\" access point</string>
+    <string name="shares">Device Shares</string>
+    <string name="devices_i_share">Devices I am sharing with others</string>
+    <string name="devices_shared_with_me">Devices shared with me</string>
+    <string name="fetching_shares_title">Fetching Shares</string>
+    <string name="fetching_shares_body">Updating your list of shares from the server. Please wait...</string>
+    <string name="confirm_remove_share_message" formatted="false">Are you sure you want to stop sharing \"%1$s\" with %2$s?</string>
+    <string name="confirm_remove_share_title">Remove Share</string>
+    <string name="removing_share_title">Removing Share</string>
+    <string name="removing_share_body">Removing the share from the server. Please wait...</string>
+    <string name="confirm_remove_shared_device_message">Are you sure you want to remove \"%1$s\" from your device list? This device was shared to you by %2$s.</string>
+    <string name="add_device_share_title">Share %s</string>
+    <string name="add_device_share_message">Enter the email address of the Ayla user you would like to share this device with:</string>
+    <string name="share_device_success">The share has been set up successfully.</string>
+    <string name="share_device_fail">An unknown error occurred when trying to set up this share. Please make sure the email address entered is owned by an existing Ayla account holder.</string>
 
 
 </resources>

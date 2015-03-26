@@ -18,6 +18,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaShare;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -45,7 +47,7 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     private final int INDEX_NOTIFICATIONS = 3;
     private final int INDEX_PROFILE = 4;
     private final int INDEX_DELETE_ACCOUNT = 5;
-    private final int INDEX_EMAIL_LOGS = 6;
+    private final int INDEX_SHARES = 6;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
@@ -143,6 +145,30 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         }
     }
 
+    private static class GetSharesHandler extends Handler {
+        private final static String LOG_TAG = "GetSharesHandler";
+
+        public GetSharesHandler() {}
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "GetSharesHandler: " + msg);
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                AylaShare[] shares = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaShare[].class);
+                for ( AylaShare share : shares ) {
+                    Log.d(LOG_TAG, share.toString());
+                }
+            }
+        }
+    }
+
+    private void handleShares() {
+        Log.d(LOG_TAG, "handleShares()");
+
+        SharesFragment frag = SharesFragment.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(LOG_TAG, "onItemClick: " + position);
@@ -171,7 +197,10 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
                 deleteAccount();
                 break;
 
-            case INDEX_EMAIL_LOGS:
+            case INDEX_SHARES:
+                handleShares();
+                break;
+
             default:
                 Toast.makeText(getActivity(), "Coming soon!", Toast.LENGTH_SHORT).show();
         }

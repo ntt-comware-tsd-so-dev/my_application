@@ -14,6 +14,7 @@ import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
@@ -25,6 +26,7 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -771,6 +773,71 @@ public class DeviceManager implements DeviceStatusListener {
             }
         }
         return false;
+    }
+
+    public static class FetchSharesListener {
+        public AylaShare ownedShares[];
+        public AylaShare receivedShares[];
+        public Message lastMessage;
+        public boolean fetchOwned;
+        public boolean fetchReceived;
+
+        public FetchSharesListener(boolean fetchOwned, boolean fetchReceived) {
+            this.fetchOwned = fetchOwned;
+            this.fetchReceived = fetchReceived;
+        }
+
+        public void sharesFetched(boolean successful){}
+    }
+
+    public void fetchShares(FetchSharesListener listener) {
+        FetchSharesHandler handler = new FetchSharesHandler(listener);
+        if ( listener.fetchOwned ) {
+            AylaShare.getOwnsOrReceives(handler, AylaUser.getCurrent(), false, null);
+        } else if ( listener.fetchReceived ) {
+            AylaShare.getOwnsOrReceives(handler, AylaUser.getCurrent(), true, null);
+        } else {
+            // Nothing selected!
+            Log.e(LOG_TAG, "fetchShares called without wanting any type of share!");
+            listener.sharesFetched(false);
+        }
+    }
+
+    private static class FetchSharesHandler extends Handler {
+        private FetchSharesListener _listener;
+        private boolean _fetchingOwned;
+
+        public FetchSharesHandler(FetchSharesListener listener) {
+            _listener = listener;
+            if ( listener.fetchOwned ) {
+                _fetchingOwned = true;
+            }
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            _listener.lastMessage = msg;
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                AylaShare shares[] = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaShare[].class);
+
+                if ( _fetchingOwned ) {
+                    _listener.ownedShares = shares;
+                    _fetchingOwned = false;
+                    if ( _listener.fetchReceived ) {
+                        AylaShare.getReceives(this, AylaUser.getCurrent(), null);
+                    } else {
+                        // We're done.
+                        _listener.sharesFetched(true);
+                    }
+                } else {
+                    _listener.receivedShares = shares;
+                    _listener.sharesFetched(true);
+                }
+            } else {
+                _listener.sharesFetched(false);
+            }
+        }
     }
 
     /** This is where we are notified when a device's status has been updated. */

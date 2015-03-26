@@ -10,6 +10,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -27,8 +30,10 @@ import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaTimezone;
+import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
@@ -229,7 +234,46 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void sharingClicked() {
-        Toast.makeText(getActivity(), "Coming soon!", Toast.LENGTH_SHORT).show();
+        final EditText editText = new EditText(getActivity());
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        editText.setHint(R.string.emailAddress);
+        String title = getResources().getString(R.string.add_device_share_title, _device.toString());
+        new AlertDialog.Builder(getActivity())
+                .setTitle(title)
+                .setMessage(R.string.add_device_share_message)
+                .setView(editText)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(LOG_TAG, "Share device with " + editText.getText());
+                        shareWith(editText.getText().toString());
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create().show();
+        editText.requestFocus();
+    }
+
+    private void shareWith(String email) {
+        AylaShare share = new AylaShare();
+        share.userEmail = email;
+        share.create(new CreateShareHandler(), _device.getDevice());
+    }
+
+    private static class CreateShareHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "CreateShareHandler: " + msg);
+            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+                Toast.makeText(MainActivity.getInstance(), R.string.share_device_success, Toast.LENGTH_SHORT).show();
+            } else {
+                String error = (String)msg.obj;
+                if (TextUtils.isEmpty(error)) {
+                    error = MainActivity.getInstance().getString(R.string.share_device_fail);
+                }
+                Toast.makeText(MainActivity.getInstance(), error, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void timezoneClicked() {
