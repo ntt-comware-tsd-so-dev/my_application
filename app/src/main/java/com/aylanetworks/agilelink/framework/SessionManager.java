@@ -106,6 +106,7 @@ public class SessionManager {
         editor.apply();
         AylaSystemUtils.saveSetting(AYLA_SETTING_CURRENT_USER, "");
         AylaUser.setCurrent(new AylaUser());
+        AylaUser.setCachedUser(AylaUser.getCurrent());
     }
 
     /**
@@ -653,6 +654,8 @@ public class SessionManager {
                 _sessionManager.get()._deviceManager = new DeviceManager();
                 _sessionManager.get()._deviceManager.startPolling();
 
+                // Cache this user so we can log in with the same credentials again
+                AylaUser.setCachedUser(_sessionManager.get()._aylaUser);
                 AylaUser.setCurrent(_sessionManager.get()._aylaUser);
                 _sessionManager.get().notifyLoginStateChanged(true, _sessionManager.get()._aylaUser);
             } else {
@@ -679,8 +682,7 @@ public class SessionManager {
 
     private void logIn() {
 
-        Log.d(LOG_TAG, "Normal login");
-        Log.d(LOG_TAG, "Saved user: " + AylaUser.getCachedUser());
+        Log.d(LOG_TAG, "User Login");
         AylaUser.login(_loginHandler,
                 _sessionParameters.username,
                 _sessionParameters.password,
