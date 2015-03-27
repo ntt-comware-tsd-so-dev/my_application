@@ -436,7 +436,7 @@ public class DeviceNotificationHelper {
             _listener.lastMessage = msg;
             Log.d(LOG_TAG, "getNotifications: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _device.getDevice().deviceNotifications = AylaSystemUtils.gson.fromJson((String)msg.obj,
                         AylaDeviceNotification[].class);
                 _listener.deviceNotificationsFetched(_device, 0);
@@ -466,7 +466,7 @@ public class DeviceNotificationHelper {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "getApps: " + msg);
             _listener.lastMessage = msg;
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _deviceNotification.appNotifications = AylaSystemUtils.gson.fromJson((String)msg.obj,
                         AylaAppNotification[].class);
 
@@ -495,7 +495,7 @@ public class DeviceNotificationHelper {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "CreateNotificationHandler: " + msg);
             _listener.lastMessage = msg;
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AylaDeviceNotification n = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDeviceNotification.class);
 
                 // Add the notification to the existing array of notifications on the device object
@@ -538,7 +538,7 @@ public class DeviceNotificationHelper {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "CreateAppHandler: " + msg);
             _listener.lastMessage = msg;
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AylaAppNotification appNotification =
                         AylaSystemUtils.gson.fromJson((String)msg.obj, AylaAppNotification.class);
 
@@ -579,7 +579,7 @@ public class DeviceNotificationHelper {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "RemoveAppHandler: " + msg);
             _listener.lastMessage = msg;
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 removeNextApp();
             } else {
                 _listener.deviceNotificationUpdated(_device, null, _notificationType, msg.what);

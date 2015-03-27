@@ -69,13 +69,6 @@ public class SignInDialog extends DialogFragment {
     private SignInDialogListener _listener;
 
     public SignInDialog() {
-        AylaReachability.determineReachability(true);
-        AylaUser aylaUser = new AylaUser();
-        AylaUser.setCurrent(aylaUser);
-
-        aylaUser.setauthHeaderValue("none");
-        aylaUser.setExpiresIn(0);
-        aylaUser.setRefreshToken("");
     }
 
     @Override
@@ -191,7 +184,7 @@ public class SignInDialog extends DialogFragment {
                             public void handleMessage(Message msg) {
                                 Log.d(LOG_TAG, "Resend email result: " + msg);
 
-                                if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                                if (AylaNetworks.succeeded(msg)) {
                                     Toast.makeText(getActivity(), R.string.email_confirmation_sent, Toast.LENGTH_LONG).show();
                                 } else {
                                     // Get the error out of the message if we can
@@ -244,7 +237,7 @@ public class SignInDialog extends DialogFragment {
                             public void handleMessage(Message msg) {
                                 Log.d(LOG_TAG, "Reset password result: " + msg);
 
-                                if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                                if (AylaNetworks.succeeded(msg)) {
                                     Toast.makeText(getActivity(), R.string.password_reset_sent, Toast.LENGTH_LONG).show();
                                 } else {
                                     // Get the error out of the message if we can
@@ -298,7 +291,7 @@ public class SignInDialog extends DialogFragment {
             _signInDialog.get()._webView.setVisibility(View.GONE);
             _signInDialog.get()._loginButton.setVisibility(View.VISIBLE);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _signInDialog.get()._listener.signInOAuth(msg);
             }
         }

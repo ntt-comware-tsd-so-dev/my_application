@@ -121,7 +121,7 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Delete account result: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 // Log out and show a toast
                 SessionManager.clearSavedUser();
                 SessionManager.stopSession();
@@ -153,7 +153,7 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "GetSharesHandler: " + msg);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AylaShare[] shares = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaShare[].class);
                 for ( AylaShare share : shares ) {
                     Log.d(LOG_TAG, share.toString());

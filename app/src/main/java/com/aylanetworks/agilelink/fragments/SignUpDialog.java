@@ -127,7 +127,7 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
             ProgressBar progress = (ProgressBar)_signUpDialog.get().findViewById(R.id.pbProgressBar);
 
             progress.setVisibility(View.GONE);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AylaUser newUser = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
                 if ( _signUpDialog.get()._signUpListener != null ) {
                     _signUpDialog.get()._signUpListener.signUpSucceeded(newUser);

@@ -704,7 +704,7 @@ public class DeviceManager implements DeviceStatusListener {
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 // Create our device array
                 Log.v(LOG_TAG, "Device list JSON: " + msg.obj);
                 List<Device> newDeviceList = new ArrayList<Device>();
@@ -818,7 +818,7 @@ public class DeviceManager implements DeviceStatusListener {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             _listener.lastMessage = msg;
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AylaShare shares[] = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaShare[].class);
 
                 if ( _fetchingOwned ) {

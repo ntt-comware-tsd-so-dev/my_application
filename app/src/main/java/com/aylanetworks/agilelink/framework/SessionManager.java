@@ -10,7 +10,6 @@ import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaCache;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
@@ -36,11 +35,11 @@ import java.util.Set;
 /**
  * The SessionManager class is used to manage the login session with the Ayla service, as well as
  * polling the list of devices.
- *
+ * <p/>
  * The SessionManager is used as a singleton object. Users of this class should use the
  * {@link #getInstance()} static method to obtain the single instance of the SessionManager.
  * <p/>
- *
+ * <p/>
  * The manager is configured using the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters}
  * class. Implementers should create an instance of SessionParameters and pass this to the SessionManager
  * via {@link #setParameters(com.aylanetworks.agilelink.framework.SessionManager.SessionParameters)}.
@@ -48,13 +47,13 @@ import java.util.Set;
  * {@link #startSession(String, String)} to log in normally, or can log in via OAuth using
  * {@link #startOAuthSession(android.os.Message)}.
  * <p/>
- *
+ * <p/>
  * Once the session has been started, the SessionManager creates the following objects:
  * <ul>
- *     <li>{@link com.aylanetworks.agilelink.framework.AccountSettings} to store account-specific information</li>
- *     <li>{@link com.aylanetworks.agilelink.framework.DeviceManager} for fetching and polling the device list</li>
- *     <li>{@link com.aylanetworks.agilelink.framework.ContactManager} for adding, removing, updating contacts</li>
- *     <li>{@link com.aylanetworks.agilelink.framework.GroupManager} for managing groups of devices</li>
+ * <li>{@link com.aylanetworks.agilelink.framework.AccountSettings} to store account-specific information</li>
+ * <li>{@link com.aylanetworks.agilelink.framework.DeviceManager} for fetching and polling the device list</li>
+ * <li>{@link com.aylanetworks.agilelink.framework.ContactManager} for adding, removing, updating contacts</li>
+ * <li>{@link com.aylanetworks.agilelink.framework.GroupManager} for managing groups of devices</li>
  * </ul>
  * These objects are used throughout the application.
  */
@@ -111,6 +110,7 @@ public class SessionManager {
 
     /**
      * Returns the singleton instance of the SessionManager
+     *
      * @return the SessionManager object
      */
     public static SessionManager getInstance() {
@@ -122,6 +122,7 @@ public class SessionManager {
 
     /**
      * Returns the current AccountSettings object for the logged-in user
+     *
      * @return the AccountSettings for this account
      */
     public AccountSettings getAccountSettings() {
@@ -130,6 +131,7 @@ public class SessionManager {
 
     /**
      * Returns the contact manager for this account.
+     *
      * @return the ContactManager for this account.
      */
     public ContactManager getContactManager() {
@@ -140,7 +142,7 @@ public class SessionManager {
      * Registers the given AylaUser with the AylaService. This creates an account for the user
      * and sends the user an email with confirmation instructions.
      *
-     * @param user The AylaUser to register
+     * @param user          The AylaUser to register
      * @param resultHandler Handler to receive the results of the call to
      *                      {@link AylaUser#signUp(android.os.Handler, java.util.Map, String, String)}
      */
@@ -168,6 +170,7 @@ public class SessionManager {
 
     /**
      * Adds a listener who will be notified when the state of the session changes (log out, log in, etc.)
+     *
      * @param listener Listener to be notified of session state changes
      */
     public static void addSessionListener(SessionListener listener) {
@@ -178,6 +181,7 @@ public class SessionManager {
 
     /**
      * Removes a session listener from the list of listeners to be notified of session state changes
+     *
      * @param listener Listener to remove
      */
     public static void removeSessionListener(SessionListener listener) {
@@ -199,7 +203,7 @@ public class SessionManager {
 
         /**
          * Regular expression string for SSID scans.
-         *
+         * <p/>
          * This string is used to filter the list of SSIDs returned from a WiFi network scan.
          * The default value returns SSIDs that begin with "Ayla", "T-Stat" or "Plug", followed
          * by a dash and a string of 12 hexadecimal characters.
@@ -276,7 +280,7 @@ public class SessionManager {
 
         /**
          * Logging level for the Ayla library. Set to one of:
-         *
+         * <p/>
          * <ul>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_NONE}</li>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ERROR}</li>
@@ -352,6 +356,7 @@ public class SessionManager {
 
         /**
          * SessionParameters constructor
+         *
          * @param context Context for resources
          */
         public SessionParameters(Context context) {
@@ -422,15 +427,15 @@ public class SessionManager {
 
     /**
      * Initializes and starts a new session, stopping any existing sessions first.
-     *
+     * <p/>
      * This method logs the user in, and if successful creates a {@link com.aylanetworks.agilelink.framework.DeviceManager},
      * fetches the current {@link com.aylanetworks.agilelink.framework.AccountSettings} from the
      * server and notifies any {@link com.aylanetworks.agilelink.framework.SessionManager.SessionListener}
      * listeners that have registered that the session has been started.
-     *
+     * <p/>
      * At this point the DeviceManager will fetch the list of devices from the server and begin
      * polling them for updates.
-     *
+     * <p/>
      * If the user wishes to log out, the application should call {@link #stopSession()} to shut
      * down the library and clean up.
      */
@@ -452,6 +457,7 @@ public class SessionManager {
 
     /**
      * Starts a session using the response Message from a call to {@link AylaUser#loginThroughOAuth}
+     *
      * @param oAuthResponseMessage The Message returned from a successful call to {@link AylaUser#loginThroughOAuth}
      */
     public static void startOAuthSession(Message oAuthResponseMessage) {
@@ -570,6 +576,9 @@ public class SessionManager {
                 _sessionParameters.appId);
         Log.d(LOG_TAG, "Push notification registration ID: " + PushNotification.registrationId);
 
+        // Set the timeout for network searches for the service
+        AylaSystemUtils.serviceReachableTimeout = AylaNetworks.AML_SERVICE_REACHABLE_TIMEOUT;
+
         // Log in
         logIn();
 
@@ -605,23 +614,27 @@ public class SessionManager {
             Log.d(LOG_TAG, "Login Handler");
             Log.d(LOG_TAG, "Message: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 Log.d(LOG_TAG, "Login successful");
+
+                if ( msg.what == AylaNetworks.AML_ERROR_ASYNC_OK_CACHED ) {
+                    // This is a LAN login
+                    Log.d(LOG_TAG, "LAN login!");
+                    Toast.makeText(MainActivity.getInstance(), R.string.lan_login_message, Toast.LENGTH_LONG).show();
+                }
 
                 // Save the auth info for the user
                 _sessionManager.get()._aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
                 _sessionManager.get()._aylaUser.email = _sessionManager.get()._sessionParameters.username;
                 _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
                 _sessionManager.get()._aylaUser = AylaUser.setCurrent(_sessionManager.get()._aylaUser);
-                String userJson = AylaSystemUtils.gson.toJson(_sessionManager.get()._aylaUser, AylaUser.class);
-                AylaSystemUtils.saveSetting(AYLA_SETTING_CURRENT_USER, userJson);
 
                 // Store the access / refresh token in our session parameters
                 _sessionManager.get()._sessionParameters.refreshToken = _sessionManager.get()._aylaUser.getRefreshToken();
                 _sessionManager.get()._sessionParameters.accessToken = _sessionManager.get()._aylaUser.getAccessToken();
 
                 _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
-                AylaCache.clearAll();
+
                 SharedPreferences settings =
                         PreferenceManager.getDefaultSharedPreferences(_sessionManager.get()._sessionParameters.context);
                 SharedPreferences.Editor editor = settings.edit();
@@ -665,48 +678,15 @@ public class SessionManager {
     private LoginHandler _loginHandler = new LoginHandler(this);
 
     private void logIn() {
-        // Make sure the network is reachable
-        AylaReachability.determineReachability(true);
 
-        // Get the saved user and password
-        AylaUser savedUser = null;
-        String savedUsername = null;
-        String savedUserJson = AylaSystemUtils.loadSavedSetting(AYLA_SETTING_CURRENT_USER, "");
-        if (savedUserJson.length() > 0) {
-            savedUser = AylaSystemUtils.gson.fromJson(savedUserJson, AylaUser.class);
-            savedUsername = savedUser.email;
-        }
-        SharedPreferences settings =
-                PreferenceManager.getDefaultSharedPreferences(_sessionParameters.context);
-        String savedPassword = settings.getString(PREFS_PASSWORD, "");
+        Log.d(LOG_TAG, "Normal login");
+        Log.d(LOG_TAG, "Saved user: " + AylaUser.getCachedUser());
+        AylaUser.login(_loginHandler,
+                _sessionParameters.username,
+                _sessionParameters.password,
+                _sessionParameters.appId,
+                _sessionParameters.appSecret);
 
-        // If cached credentials match, use the refresh token
-        if (savedUser != null && savedUser.email != null && savedUser.email.equals(_sessionParameters.username) &&
-                savedPassword.equals(_sessionParameters.password)) {
-            // We have a cached user and password that match. Try to refresh the access token.
-            // First make sure it hasn't expired:
-            int secondsToExpiry = savedUser.accessTokenSecondsToExpiry();
-            if (secondsToExpiry < 21600) {    // Less than 6 hours
-                // Normal login
-                Log.d(LOG_TAG, "Normal login (access token expired)");
-                AylaUser.login(_loginHandler,
-                        _sessionParameters.username,
-                        _sessionParameters.password,
-                        _sessionParameters.appId,
-                        _sessionParameters.appSecret);
-            } else {
-                Log.d(LOG_TAG, "Refreshing access token");
-                AylaUser.refreshAccessToken(_loginHandler, savedUser.getRefreshToken());
-            }
-        } else {
-            // Normal login
-            Log.d(LOG_TAG, "Normal login");
-            AylaUser.login(_loginHandler,
-                    _sessionParameters.username,
-                    _sessionParameters.password,
-                    _sessionParameters.appId,
-                    _sessionParameters.appSecret);
-        }
     }
 
     private boolean checkParameters() {
@@ -744,7 +724,7 @@ public class SessionManager {
             @Override
             public void settingsUpdated(AccountSettings settings, Message msg) {
                 Log.d(LOG_TAG, "Account settings fetch result: " + msg);
-                if ( settings != null ) {
+                if (settings != null) {
                     _accountSettings = settings;
                     // Now we can create our contact manager
                     _contactManager.fetchContacts(new ContactManager.ContactManagerListener(), false);

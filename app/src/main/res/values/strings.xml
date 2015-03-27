@@ -289,6 +289,7 @@
     <string name="no_devices_to_share">There are no devices that can be shared registered to this account.</string>
     <string name="share_removed">The shared device has been removed from your account.</string>
     <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
+    <string name="lan_login_message">LAN login. Application functionality is limited.</string>
 
 
 </resources>

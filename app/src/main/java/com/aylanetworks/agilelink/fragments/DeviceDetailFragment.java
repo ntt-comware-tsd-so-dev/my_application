@@ -155,7 +155,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Delete share: " + msg);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 Toast.makeText(MainActivity.getInstance(), R.string.share_removed, Toast.LENGTH_LONG).show();
                 MainActivity.getInstance().getSupportFragmentManager().popBackStack();
             } else {
@@ -213,7 +213,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 Log.i(LOG_TAG, "Device unregistered: " + _deviceDetailFragment.get()._device);
 
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
@@ -315,7 +315,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "CreateShareHandler: " + msg);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 Toast.makeText(MainActivity.getInstance(), R.string.share_device_success, Toast.LENGTH_SHORT).show();
             } else {
                 String error = (String)msg.obj;

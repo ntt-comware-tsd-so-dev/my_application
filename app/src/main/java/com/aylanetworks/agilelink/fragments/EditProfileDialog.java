@@ -157,7 +157,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
             Log.d(LOG_TAG, "Change password handler: " + msg);
             String jsonResults = (String) msg.obj;
 
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
                 params.password = _editProfileDialog.get()._password.getText().toString();
 
@@ -200,7 +200,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "_getInfoHandler: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 String json = (String) msg.obj;
                 AylaUser user = AylaSystemUtils.gson.fromJson(json, AylaUser.class);
                 Log.d(LOG_TAG, "User: " + user);
@@ -232,7 +232,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
             String jsonResults = (String) msg.obj;
             Log.d(LOG_TAG, "Update profile handler: " + msg);
 
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 // Update the owner contact information
                 ContactManager cm = SessionManager.getInstance().getContactManager();
                 AylaContact ownerContact = cm.getOwnerContact();
