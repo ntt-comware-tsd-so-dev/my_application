@@ -39,22 +39,6 @@ dependencies {
     compile project(':libraries:Android_AylaLibrary')
 }
 
-task updateGitRepo(dependsOn: 'cloneGitRepo') << {
-    def grgit = Grgit.open("../libraries/Android_AylaLibrary")
-    grgit.fetch()
-    grgit.checkout(branch: 'master')
-    grgit.pull()
-    println("Ayla library updated")
-}
-
-task cloneGitRepo(type: GitClone) {
-    def destination = file("../libraries/Android_AylaLibrary")
-    uri = "https://github.com/AylaNetworks/Android_AylaLibrary.git"
-    destinationPath = destination
-    bare = false
-    enabled = !destination.exists() //to clone only once
-}
-
 android.applicationVariants.all { variant ->
     task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
         description "Generates Javadoc for $variant.name."

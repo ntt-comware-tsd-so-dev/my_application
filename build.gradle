@@ -1,6 +1,4 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-apply from: 'https://raw.github.com/bat-cha/gradle-plugin-git-dependencies/0.2/git-dependencies.gradle'
-defaultTasks 'cloneGitRepo'
 
 buildscript {
     repositories {
