@@ -263,7 +263,7 @@ public class SessionManager {
         public String refreshToken;
 
         /**
-         * Set to true to allow LAN mode operations application-wide
+         * Set to true to allow LAN mode operations application-wide, including LAN login
          */
         public boolean enableLANMode = false;
 
@@ -619,9 +619,14 @@ public class SessionManager {
                 Log.d(LOG_TAG, "Login successful");
 
                 if ( msg.arg1 == AylaNetworks.AML_ERROR_ASYNC_OK_CACHED ) {
-                    // This is a LAN login
-                    Log.d(LOG_TAG, "LAN login!");
-                    Toast.makeText(MainActivity.getInstance(), R.string.lan_login_message, Toast.LENGTH_LONG).show();
+                    // This is a LAN login. If we don't allow it, then fail. Otherwise we'll continue.
+                    if (_sessionManager.get()._sessionParameters.enableLANMode) {
+                        Log.d(LOG_TAG, "LAN login!");
+                        Toast.makeText(MainActivity.getInstance(), R.string.lan_login_message, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.getInstance(), R.string.network_not_reachable, Toast.LENGTH_LONG).show();
+                        return;
+                    }
                 }
 
                 // Save the auth info for the user
