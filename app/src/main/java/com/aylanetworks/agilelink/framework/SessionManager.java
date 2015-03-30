@@ -191,6 +191,15 @@ public class SessionManager {
         }
     }
 
+    /**
+     * Returns true if LAN mode is permitted during this session. This returns the value set in
+     * {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#enableLANMode}.
+     * @return
+     */
+    public boolean lanModePermitted() {
+        return _sessionParameters.enableLANMode;
+    }
+
     /** Inner Classes */
 
     /**
@@ -263,7 +272,9 @@ public class SessionManager {
         public String refreshToken;
 
         /**
-         * Set to true to allow LAN mode operations application-wide, including LAN login
+         * Set to true to allow LAN mode operations application-wide. If this is set to true, the
+         * app will attempt to connect via the LAN to devices under certain circumstances. If set
+         * to false, LAN mode will not be attempted.
          */
         public boolean enableLANMode = false;
 

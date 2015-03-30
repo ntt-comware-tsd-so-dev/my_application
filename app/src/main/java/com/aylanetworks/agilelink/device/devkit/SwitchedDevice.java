@@ -132,24 +132,30 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
+            Log.i("CDP", "Switched: createDatapointHandler called: " + msg);
 
-            if ( AylaNetworks.succeeded(msg) ) {
+            if (AylaNetworks.succeeded(msg)) {
                 // Set the value of the property
-                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatapoint.class);
-                for ( int i = 0; i < _switchedDevice.get().getDevice().properties.length; i++ ) {
-                    AylaProperty p = _switchedDevice.get().getDevice().properties[i];
-                    if ( p.name.equals(PROPERTY_OUTLET)) {
+                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
+                for (int i = 0; i < _switchedDevice.get().getDevice().properties.length; i++) {
+                    AylaProperty p = _switchedDevice.get().getProperty(PROPERTY_OUTLET);
+                    if (p != null) {
                         p.datapoint = dp;
                         p.value = dp.value();
+                        Log.d("CDP", "Datapoint " + p.name + " set to " + p.value);
                         break;
+                    } else {
+                        Log.e("CDP", "Could not find a property named " + PROPERTY_OUTLET);
                     }
                 }
             }
 
-            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_switchedDevice.get()));
-            // Let the device manager know that we've updated ourselves.
-            SessionManager.deviceManager().notifyDeviceStatusChanged(_switchedDevice.get());
+            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_switchedDevice.get()) {
+                @Override
+                public void lanModeResult(boolean isInLANMode) {
+                    SessionManager.deviceManager().notifyDeviceStatusChanged(_switchedDevice.get());
+                }
+            });
         }
     }
 

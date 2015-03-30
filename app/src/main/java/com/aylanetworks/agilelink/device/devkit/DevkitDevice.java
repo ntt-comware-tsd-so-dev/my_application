@@ -65,6 +65,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     static class CreateDatapointHandler extends Handler {
         private WeakReference<DevkitDevice> _devkitDevice;
         private String _propertyName;
+
         public CreateDatapointHandler(DevkitDevice devkitDevice, String propertyName) {
             _devkitDevice = new WeakReference<DevkitDevice>(devkitDevice);
             _propertyName = propertyName;
@@ -73,21 +74,26 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
-            if ( AylaNetworks.succeeded(msg) ) {
+            Log.i("CDP", "Devkit: createDatapointHandler called: " + msg);
+            if (AylaNetworks.succeeded(msg)) {
                 // Set the value of the property
-                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatapoint.class);
-                for ( int i = 0; i < _devkitDevice.get().getDevice().properties.length; i++ ) {
-                    AylaProperty p = _devkitDevice.get().getDevice().properties[i];
-                    if ( p.name.equals(_propertyName)) {
-                        p.datapoint = dp;
-                        p.value = dp.value();
-                        break;
-                    }
+                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
+                AylaProperty p = _devkitDevice.get().getProperty(_propertyName);
+                if (p != null) {
+                    p.datapoint = dp;
+                    p.value = dp.value();
+                    Log.d("CDP", "Datapoint " + p.name + " set to " + p.value);
+                } else {
+                    Log.e("CDP", "No property found called " + _propertyName);
                 }
             }
-            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_devkitDevice.get()));
-            SessionManager.deviceManager().notifyDeviceStatusChanged(_devkitDevice.get());
+
+            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_devkitDevice.get()) {
+                @Override
+                public void lanModeResult(boolean isInLANMode) {
+                    SessionManager.deviceManager().notifyDeviceStatusChanged(_devkitDevice.get());
+                }
+            });
         }
     }
 
@@ -140,7 +146,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
-        switch ( propertyName ) {
+        switch (propertyName) {
             case PROPERTY_BLUE_LED:
                 return MainActivity.getInstance().getString(R.string.blue_led);
 
@@ -216,7 +222,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
         // Is this a shared device?
         int color = MainActivity.getInstance().getResources().getColor(R.color.card_text);
-        if ( !getDevice().amOwner() ) {
+        if (!getDevice().amOwner()) {
             // Yes, this device is shared.
             color = MainActivity.getInstance().getResources().getColor(R.color.card_shared_text);
         }

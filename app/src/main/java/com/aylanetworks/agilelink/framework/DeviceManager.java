@@ -181,11 +181,11 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     public void enterLANMode(LANModeListener listener) {
-        Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
-        if ( !SessionManager.sessionParameters().enableLANMode ) {
+        if ( !SessionManager.getInstance().lanModePermitted() ) {
             // We can't enter LAN mode for any devices.
             listener.lanModeResult(false);
         } else {
+            Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
             if ( _lanModeEnabledDevice == listener._device ) {
                 Log.d(LOG_TAG, listener._device + " is already in LAN mode");
                 listener.lanModeResult(true);
