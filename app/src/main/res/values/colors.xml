@@ -353,6 +353,11 @@
     <color name="blue_bulb_bg">#88003388</color>
     <color name="green_bulb_bg">#88008800</color>
 
+    <!-- Colors of the power button in various states -->
+    <color name="power_on">@color/green_600</color>
+    <color name="power_off">@color/grey_600</color>
+    <color name="power_pending">@color/yellow_600</color>
+
     <!-- Color of the link text on the login screen -->
     <color name="link">#00688B</color>
 
