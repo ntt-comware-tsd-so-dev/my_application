@@ -451,6 +451,9 @@ public class Device implements Comparable<Device> {
 
             } else {
                 Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
+                if ( _listener != null ) {
+                    _listener.statusUpdated(_device.get(), true);
+                }
             }
         }
     }
