@@ -618,7 +618,7 @@ public class SessionManager {
             if (AylaNetworks.succeeded(msg)) {
                 Log.d(LOG_TAG, "Login successful");
 
-                if ( msg.what == AylaNetworks.AML_ERROR_ASYNC_OK_CACHED ) {
+                if ( msg.arg1 == AylaNetworks.AML_ERROR_ASYNC_OK_CACHED ) {
                     // This is a LAN login
                     Log.d(LOG_TAG, "LAN login!");
                     Toast.makeText(MainActivity.getInstance(), R.string.lan_login_message, Toast.LENGTH_LONG).show();
