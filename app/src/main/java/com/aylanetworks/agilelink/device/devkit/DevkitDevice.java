@@ -74,7 +74,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 // Set the value of the property
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatapoint.class);
                 for ( int i = 0; i < _devkitDevice.get().getDevice().properties.length; i++ ) {

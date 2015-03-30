@@ -241,7 +241,7 @@ public class AccountSettings {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Message: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AccountSettings settings = new AccountSettings(_user);
                 // We have our settings datum.
                 AylaDatum datum = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatum.class);
@@ -291,7 +291,7 @@ public class AccountSettings {
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _callback.settingsUpdated(_accountSettings.get(), msg);
             } else {
                 // Not found? Try calling create.

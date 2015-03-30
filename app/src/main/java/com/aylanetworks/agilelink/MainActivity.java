@@ -72,7 +72,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     private static MainActivity _theInstance;
 
-    /** Returns the one and only instance of this activity */
+    /**
+     * Returns the one and only instance of this activity
+     */
     public static MainActivity getInstance() {
         return _theInstance;
     }
@@ -83,7 +85,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
      * The caller should call dismissWaitDialog() when finished.
      *
-     * @param title title of the dialog
+     * @param title   title of the dialog
      * @param message message of the dialog
      */
     public void showWaitDialog(String title, String message) {
@@ -102,7 +104,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
      * The caller should call dismissWaitDialog() when finished.
      *
-     * @param titleId String ID for the title of the dialog
+     * @param titleId   String ID for the title of the dialog
      * @param messageId String ID for the message of the dialog
      */
     public void showWaitDialog(int titleId, int messageId) {
@@ -123,6 +125,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     /**
      * Returns a string containing the app version defined in the package
+     *
      * @return The app version string
      */
     public String getAppVersion() {
@@ -137,7 +140,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         return info.versionName + "." + info.versionCode;
     }
 
-    /** Listener interface for the pickContact method */
+    /**
+     * Listener interface for the pickContact method
+     */
     public interface PickContactListener {
         /**
          * When the contact picker activity has finished, this method will be called with a
@@ -177,21 +182,21 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             mViewPager.post(new Runnable() {
                 @Override
                 public void run() {
-                    if ( rc == RESULT_OK ) {
+                    if (rc == RESULT_OK) {
                         // Query for all the contact info we care about
                         Uri contactData = finalData.getData();
                         Uri dataUri = Uri
                                 .withAppendedPath(
                                         contactData,
                                         ContactsContract.Contacts.Data.CONTENT_DIRECTORY);
-                        final String PROJECTION[] = { ContactsContract.Data.MIMETYPE,
+                        final String PROJECTION[] = {ContactsContract.Data.MIMETYPE,
                                 ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
                                 ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
                                 ContactsContract.CommonDataKinds.Phone.NUMBER,
                                 ContactsContract.CommonDataKinds.Phone.TYPE,
                                 ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
                                 ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE,
-                                ContactsContract.CommonDataKinds.Email.DATA };
+                                ContactsContract.CommonDataKinds.Email.DATA};
 
                         final String SELECTION = ContactsContract.Data.MIMETYPE + "=? OR "
                                 + ContactsContract.Data.MIMETYPE + "=? OR "
@@ -202,7 +207,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                                 ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
                                 ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
                                 ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE,
-                                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE };
+                                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE};
 
                         String SORT = ContactsContract.Data.MIMETYPE;
                         Cursor c = getContentResolver().query(dataUri,
@@ -314,7 +319,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-                if ( _loginDialog == null ) {
+                if (_loginDialog == null) {
                     _loginDialog = new SignInDialog();
 
                     // We always want to show the "All Devices" page first
@@ -337,51 +342,36 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     @Override
-    public void onBackPressed() {
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0 && SessionManager.isLoggedIn()) {
-            SessionManager.stopSession();
-            showLoginDialog();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
 
+        Log.d(LOG_TAG, "onPause");
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
         }
 
-        SessionManager.SessionParameters params = SessionManager.sessionParameters();
-        if (params != null && params.enableLANMode) {
-            AylaLanMode.pause(false);
-        }
+        AylaLanMode.pause(false);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        Log.d(LOG_TAG, "onResume");
         // Check to see if we're resuming due to the user tapping on the confirmation email link
         Uri uri = AccountConfirmActivity.uri;
-        if ( uri == null ) {
+        if (uri == null) {
             uri = getIntent().getData();
         }
 
-        if ( uri != null ) {
+        if (uri != null) {
             Log.i(LOG_TAG, "onResume: URI is " + uri);
             handleOpenURI(uri);
             // Clear out the URI
             AccountConfirmActivity.uri = null;
         }
 
-        SessionManager.SessionParameters params = SessionManager.sessionParameters();
-
-        if (_loginDialog == null && params != null && params.enableLANMode) {
-            AylaLanMode.resume();
-        }
+        AylaLanMode.resume();
 
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().startPolling();
@@ -399,7 +389,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         // aylacontrol://user_reset_password_token?token=3DrjCTqs
 
         String path = uri.getLastPathSegment();
-        if ( path == null ) {
+        if (path == null) {
             // Some URIs are formatted without a path after the host. Just use the hostname in
             // this case.
             path = uri.getHost();
@@ -438,13 +428,13 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             public void run() {
                 dismissWaitDialog();
                 Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
-                if ( !loggedIn ) {
+                if (!loggedIn) {
                     mViewPager.setCurrentItem(0);
-                    if ( _loginDialog == null ) {
+                    if (_loginDialog == null) {
                         showLoginDialog();
                     }
                 } else {
-                    if ( _loginDialog != null ) {
+                    if (_loginDialog != null) {
                         _loginDialog.dismiss();
                         _loginDialog = null;
                     }
@@ -465,6 +455,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     /**
      * Pushes the specified fragment onto the back stack using a fade animation
+     *
      * @param frag The fragment to be pushed
      */
     public void pushFragment(Fragment frag) {
@@ -480,7 +471,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             String jsonResults = (String) msg.obj;
 
             // clear sign-up token
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 // save auth info of current user
                 AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
                 AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
@@ -491,7 +482,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 MainActivity.getInstance()._loginDialog.setUsername(aylaUser.email);
 
                 // save existing user info
-                AylaSystemUtils.saveSetting("currentUser", jsonResults);	// Allow lib access for accessToken refresh
+                AylaSystemUtils.saveSetting("currentUser", jsonResults);    // Allow lib access for accessToken refresh
             } else {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "userSignUpConfirmation", "Failed", "userSignUpConfirmation_handler");
                 int resID;
@@ -509,6 +500,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             }
         }
     }
+
     private SignUpConfirmationHandler _signUpConfirmationHandler = new SignUpConfirmationHandler();
 
     private void handleUserSignupToken(String token) {
@@ -586,7 +578,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     public void signIn(String username, String password) {
         showWaitDialog(R.string.signingIn, R.string.signingIn);
         SessionManager.startSession(username, password);
-   }
+    }
 
     private class ErrorMessage {
         @Expose
@@ -595,13 +587,13 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     @Override
     public void signInOAuth(Message msg) {
-        if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+        if (AylaNetworks.succeeded(msg)) {
             // Make sure we have an auth token. Sometimes we get back "OK" but there is
             // really an error message.
-            AylaUser user = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
-            if ( user == null || user.getAccessToken() == null || user.getRefreshToken() == null ) {
-                ErrorMessage errorMessage = AylaSystemUtils.gson.fromJson((String)msg.obj, ErrorMessage.class);
-                if ( errorMessage != null ) {
+            AylaUser user = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
+            if (user == null || user.getAccessToken() == null || user.getRefreshToken() == null) {
+                ErrorMessage errorMessage = AylaSystemUtils.gson.fromJson((String) msg.obj, ErrorMessage.class);
+                if (errorMessage != null) {
                     Toast.makeText(this, errorMessage.error, Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(this, getString(R.string.error_signing_in), Toast.LENGTH_LONG).show();
@@ -613,7 +605,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 SessionManager.startOAuthSession(msg);
             }
         } else {
-            if ( msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE ) {
+            if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
                 Toast.makeText(this, getString(R.string.error_no_connectivity), Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this, getString(R.string.unknown_error), Toast.LENGTH_LONG).show();

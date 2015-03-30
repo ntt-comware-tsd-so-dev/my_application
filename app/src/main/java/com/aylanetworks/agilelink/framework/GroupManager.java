@@ -192,7 +192,7 @@ public class GroupManager {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "fetchGroupIndexHandler: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _groupManager.get()._datumExistsOnServer = true;
                 String json = (String)msg.obj;
                 AylaDatum datum = AylaSystemUtils.gson.fromJson(json, AylaDatum.class);
@@ -232,7 +232,7 @@ public class GroupManager {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Create group list handler: " + msg);
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 _groupManager.get()._datumExistsOnServer = true;
             } else {
                 Log.e(LOG_TAG, "Create / update group list failed: " + msg);

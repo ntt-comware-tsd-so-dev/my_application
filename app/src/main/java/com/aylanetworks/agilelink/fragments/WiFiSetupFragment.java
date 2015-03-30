@@ -96,7 +96,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
             Log.d(LOG_TAG, "Got scan results: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 TextView tv = (TextView)_wiFiSetupFragment.get()._listView.getEmptyView();
                 tv.setText(R.string.no_devices_found);
 
@@ -149,7 +149,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
             MainActivity activity = MainActivity.getInstance();
             activity.dismissWaitDialog();
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
                 AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
                 AylaSetup.getNewDeviceScanForAPs(new ScanForAPsHandler(_fragment.get()));
@@ -178,7 +178,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
             Log.d(LOG_TAG, "Scan for APs handler: " + msg);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
                 _fragment.get()._apScanResults = AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class);
                 ChooseAPDialog d = ChooseAPDialog.newInstance(_fragment.get()._apScanResults);
@@ -210,7 +210,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
             Log.d(LOG_TAG, "Connect to service handler: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
             AylaSetup.exit();
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_SHORT).show();
                 MainActivity.getInstance().getSupportFragmentManager().popBackStack();
             } else {

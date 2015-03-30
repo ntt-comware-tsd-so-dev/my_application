@@ -299,7 +299,7 @@ public class Device implements Comparable<Device> {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "updateSchedule results: " + msg);
 
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 _listener.statusUpdated(_device.get(), true);
             } else {
                 Log.e(LOG_TAG, "updateSchedule failed!");
@@ -420,7 +420,7 @@ public class Device implements Comparable<Device> {
                 return;
             }
 
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 // Update our properties
                 AylaProperty[] properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
                         AylaProperty[].class);
@@ -451,6 +451,9 @@ public class Device implements Comparable<Device> {
 
             } else {
                 Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
+                if ( _listener != null ) {
+                    _listener.statusUpdated(_device.get(), true);
+                }
             }
         }
     }
@@ -487,7 +490,7 @@ public class Device implements Comparable<Device> {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "fetchSchedules: " + msg);
 
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 AylaSchedule[] schedules =
                         AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSchedule[].class);
                 _device.get().getDevice().schedules = schedules;
@@ -545,7 +548,7 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 _currentSchedule.scheduleActions =
                         AylaSystemUtils.gson.fromJson((String) msg.obj, AylaScheduleAction[].class);
                 fetchNextAction();
@@ -756,7 +759,7 @@ public class Device implements Comparable<Device> {
             Log.d(LOG_TAG, "Set timezone response: " + msg);
 
             MainActivity.getInstance().dismissWaitDialog();
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 // Set the updated timezone on the device object
                 _device.get()._device.timezone = AylaSystemUtils.gson.fromJson((String)msg.obj,
                         AylaTimezone.class);
@@ -780,11 +783,11 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _device.get().getDevice().timezone = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaTimezone.class);
                 Log.d(LOG_TAG, "Timezone: " + _device.get().getDevice().timezone);
             }
-            _listener.statusUpdated(_device.get(), msg.what == AylaNetworks.AML_ERROR_OK);
+            _listener.statusUpdated(_device.get(), AylaNetworks.succeeded(msg));
         }
     }
 }

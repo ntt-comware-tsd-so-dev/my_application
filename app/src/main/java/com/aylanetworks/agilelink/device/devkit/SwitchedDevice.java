@@ -134,7 +134,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
             super.handleMessage(msg);
             Log.i(LOG_TAG, "Devkit: createDatapointHandler called: " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 // Set the value of the property
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDatapoint.class);
                 for ( int i = 0; i < _switchedDevice.get().getDevice().properties.length; i++ ) {

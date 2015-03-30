@@ -209,7 +209,7 @@ public class ContactManager {
 
         private void handleContactList(Message msg) {
             _listener.lastMessage = msg;
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 AylaContact[] contacts = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaContact[].class);
                 _contactManager.get()._aylaContactList = new ArrayList<AylaContact>(Arrays.asList(contacts));
 
@@ -231,7 +231,7 @@ public class ContactManager {
         }
 
         private void handleContactDetails(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 // Replace our existing contact with the updated one
                 AylaContact updatedContact = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaContact.class);
                 Log.d(LOG_TAG, "Updated contact: " + updatedContact);
@@ -293,7 +293,7 @@ public class ContactManager {
             _listener.lastMessage = msg;
             Log.d(LOG_TAG, "ContactHandler [" + _command.toString() + "] " + msg);
 
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 Gson gson = AylaSystemUtils.gson;
                 switch (_command) {
                     case ADD:
@@ -337,7 +337,7 @@ public class ContactManager {
                 }
             }
 
-            _listener.contactListUpdated(_contactManager.get(), msg.what == AylaNetworks.AML_ERROR_OK);
+            _listener.contactListUpdated(_contactManager.get(), AylaNetworks.succeeded(msg));
         }
     }
 }

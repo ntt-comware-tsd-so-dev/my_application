@@ -165,7 +165,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 addNextShare();
             } else {
                 Log.e(LOG_TAG, "Add share failed: " + msg);
@@ -200,7 +200,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
             Log.d(LOG_TAG, "Delete share: " + msg);
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 _frag.get().fetchShares();
             } else {
                 String message = MainActivity.getInstance().getString(R.string.error_deleting_share);

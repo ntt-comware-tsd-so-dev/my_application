@@ -108,7 +108,7 @@ public class ResetPasswordDialog extends DialogFragment {
 
         @Override
         public void handleMessage(Message msg) {
-            if ( msg.what == AylaNetworks.AML_ERROR_OK ) {
+            if ( AylaNetworks.succeeded(msg) ) {
                 Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.password_changed, Toast.LENGTH_LONG).show();
             } else {
                 if ( msg.arg1 == 422 ) {

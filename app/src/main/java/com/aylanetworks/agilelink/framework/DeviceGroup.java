@@ -130,7 +130,7 @@ public class DeviceGroup {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "fetchGroupMembers: " + msg);
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 _deviceGroup.get()._isDirty = false;
                 _deviceGroup.get()._datumExistsOnServer = true;
 
@@ -334,7 +334,7 @@ public class DeviceGroup {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "updateDatumHandler: " + msg);
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 Log.d(LOG_TAG, "Datum updated");
             } else {
                 Log.e(LOG_TAG, "updateDatumHandler: Failed: " + msg);
