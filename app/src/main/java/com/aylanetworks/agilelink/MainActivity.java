@@ -290,6 +290,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         devkitParams.appVersion = getAppVersion();
 
         devkitParams.enableLANMode = true;
+        devkitParams.allowLANLogin = true;
         devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
 
         // Set the SessionManager's registration fields to our own values

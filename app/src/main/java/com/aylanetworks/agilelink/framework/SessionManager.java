@@ -268,6 +268,12 @@ public class SessionManager {
         public boolean enableLANMode = false;
 
         /**
+         * Set to true to allow the user to log in using cached credentials when the cloud
+         * service is not available, but the local network with devices on it is.
+         */
+        public boolean allowLANLogin = false;
+
+        /**
          * Service type the Ayla library should connect to. Set to one of:
          * <ul>
          * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEVICE_SERVICE}</li>
@@ -382,6 +388,7 @@ public class SessionManager {
             this.serviceType = other.serviceType;
             this.loggingLevel = other.loggingLevel;
             this.enableLANMode = other.enableLANMode;
+            this.allowLANLogin = other.allowLANLogin;
             this.registrationEmailSubject = other.registrationEmailSubject;
             this.registrationEmailTemplateId = other.registrationEmailTemplateId;
             this.registrationEmailBodyHTML = other.registrationEmailBodyHTML;
@@ -410,6 +417,7 @@ public class SessionManager {
                     "  serviceType: " + serviceType + "\n" +
                     "  loggingLevel: " + loggingLevel + "\n" +
                     "  enableLANMode: " + enableLANMode +
+                    "  allowLANLogin: " + allowLANLogin +
                     "  registrationEmailTemplateId: " + registrationEmailTemplateId + "\n" +
                     "  registrationEmailSubject: " + registrationEmailSubject + "\n" +
                     "  registrationEmailBodyHTML: " + registrationEmailBodyHTML + "\n" +
@@ -620,7 +628,7 @@ public class SessionManager {
 
                 if ( msg.arg1 == AylaNetworks.AML_ERROR_ASYNC_OK_CACHED ) {
                     // This is a LAN login. If we don't allow it, then fail. Otherwise we'll continue.
-                    if (_sessionManager.get()._sessionParameters.enableLANMode) {
+                    if (_sessionManager.get()._sessionParameters.allowLANLogin) {
                         Log.d(LOG_TAG, "LAN login!");
                         Toast.makeText(MainActivity.getInstance(), R.string.lan_login_message, Toast.LENGTH_LONG).show();
                     } else {
