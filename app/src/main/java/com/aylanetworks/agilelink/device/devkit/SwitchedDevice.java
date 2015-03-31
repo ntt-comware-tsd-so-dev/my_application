@@ -41,7 +41,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     public void toggle() {
         AylaProperty prop = getProperty(PROPERTY_OUTLET);
-        if ( prop == null ) {
+        if (prop == null) {
             Log.e(LOG_TAG, "Could not find property " + PROPERTY_OUTLET);
             SessionManager.deviceManager().refreshDeviceStatus(this);
             return;
@@ -68,7 +68,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
-        if ( propertyName.equals(PROPERTY_OUTLET) ) {
+        if (propertyName.equals(PROPERTY_OUTLET)) {
             return MainActivity.getInstance().getString(R.string.property_outlet_friendly_name);
         }
         return MainActivity.getInstance().getString(R.string.unknown_property_name);
@@ -104,7 +104,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
-        SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder)holder;
+        SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
         h._deviceNameTextView.setText(getDevice().getProductName());
 
@@ -116,7 +116,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
         // Is this a shared device?
         int color = MainActivity.getInstance().getResources().getColor(R.color.card_text);
-        if ( !getDevice().amOwner() ) {
+        if (!getDevice().amOwner()) {
             // Yes, this device is shared.
             color = MainActivity.getInstance().getResources().getColor(R.color.card_shared_text);
         }
@@ -125,6 +125,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     static class CreateDatapointHandler extends Handler {
         private WeakReference<SwitchedDevice> _switchedDevice;
+
         public CreateDatapointHandler(SwitchedDevice switchedDevice) {
             _switchedDevice = new WeakReference<SwitchedDevice>(switchedDevice);
         }
@@ -137,16 +138,13 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
             if (AylaNetworks.succeeded(msg)) {
                 // Set the value of the property
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
-                for (int i = 0; i < _switchedDevice.get().getDevice().properties.length; i++) {
-                    AylaProperty p = _switchedDevice.get().getProperty(PROPERTY_OUTLET);
-                    if (p != null) {
-                        p.datapoint = dp;
-                        p.value = dp.value();
-                        Log.d("CDP", "Datapoint " + p.name + " set to " + p.value);
-                        break;
-                    } else {
-                        Log.e("CDP", "Could not find a property named " + PROPERTY_OUTLET);
-                    }
+                AylaProperty p = _switchedDevice.get().getProperty(PROPERTY_OUTLET);
+                if (p != null) {
+                    p.datapoint = dp;
+                    p.value = dp.value();
+                    Log.d("CDP", "Datapoint " + p.name + " set to " + p.value);
+                } else {
+                    Log.e("CDP", "Could not find a property named " + PROPERTY_OUTLET);
                 }
             }
 
@@ -164,7 +162,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         // Toggle the button state
-        ImageButton button = (ImageButton)v;
+        ImageButton button = (ImageButton) v;
         button.setImageDrawable(v.getResources().getDrawable(R.drawable.smartplug_button_pending));
         toggle();
     }
