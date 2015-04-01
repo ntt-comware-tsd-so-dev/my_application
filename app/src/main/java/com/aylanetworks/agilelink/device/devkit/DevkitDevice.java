@@ -62,65 +62,23 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         return false;
     }
 
-    static class CreateDatapointHandler extends Handler {
-        private WeakReference<DevkitDevice> _devkitDevice;
-        private String _propertyName;
-
-        public CreateDatapointHandler(DevkitDevice devkitDevice, String propertyName) {
-            _devkitDevice = new WeakReference<DevkitDevice>(devkitDevice);
-            _propertyName = propertyName;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Log.i("CDP", "Devkit: createDatapointHandler called: " + msg);
-            if (AylaNetworks.succeeded(msg)) {
-                // Set the value of the property
-                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
-                AylaProperty p = _devkitDevice.get().getProperty(_propertyName);
-                if (p != null) {
-                    p.datapoint = dp;
-                    p.value = dp.value();
-                    Log.d("CDP", "Datapoint " + p.name + " set to " + p.value);
-                } else {
-                    Log.e("CDP", "No property found called " + _propertyName);
-                }
-            }
-
-            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_devkitDevice.get()) {
-                @Override
-                public void lanModeResult(boolean isInLANMode) {
-                    SessionManager.deviceManager().notifyDeviceStatusChanged(_devkitDevice.get());
-                }
-            });
-        }
-    }
 
     public void setGreenLED(boolean on) {
-        AylaProperty greenLED = getProperty(PROPERTY_GREEN_LED);
-        if (greenLED == null) {
-            Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
-            SessionManager.deviceManager().refreshDeviceStatus(this);
-            return;
-        }
-
-        AylaDatapoint dp = new AylaDatapoint();
-        dp.nValue(on ? 1 : 0);
-        greenLED.createDatapoint(new CreateDatapointHandler(this, PROPERTY_GREEN_LED), dp);
+       setDatapoint(PROPERTY_GREEN_LED, on, new SetDatapointListener() {
+           @Override
+           public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+               Log.d(LOG_TAG, "setGreenLED: " + succeeded);
+           }
+       });
     }
 
     public void setBlueLED(boolean on) {
-        AylaProperty blueLED = getProperty(PROPERTY_BLUE_LED);
-        if (blueLED == null) {
-            Log.e(LOG_TAG, "Couldn't find property: " + PROPERTY_GREEN_LED);
-            SessionManager.deviceManager().refreshDeviceStatus(this);
-            return;
-        }
-
-        AylaDatapoint dp = new AylaDatapoint();
-        dp.nValue(on ? 1 : 0);
-        blueLED.createDatapoint(new CreateDatapointHandler(this, PROPERTY_BLUE_LED), dp);
+        setDatapoint(PROPERTY_BLUE_LED, on, new SetDatapointListener() {
+            @Override
+            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+                Log.d(LOG_TAG, "setGreenLED: " + succeeded);
+            }
+        });
     }
 
     public boolean isGreenLEDOn() {

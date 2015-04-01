@@ -47,9 +47,9 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
             return;
         }
 
-        AylaDatapoint dp = new AylaDatapoint();
-        dp.nValue(Integer.parseInt(prop.value) == 0 ? 1 : 0);
-        prop.createDatapoint(_createDatapointHandler, dp);
+        // Get the opposite boolean value and set it
+        Boolean newValue = "0".equals(prop.value);
+        setDatapoint(PROPERTY_OUTLET, newValue, null);
     }
 
     public boolean isOn() {
@@ -123,41 +123,6 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         h._deviceNameTextView.setTextColor(color);
     }
 
-    static class CreateDatapointHandler extends Handler {
-        private WeakReference<SwitchedDevice> _switchedDevice;
-
-        public CreateDatapointHandler(SwitchedDevice switchedDevice) {
-            _switchedDevice = new WeakReference<SwitchedDevice>(switchedDevice);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Log.i("CDP", "Switched: createDatapointHandler called: " + msg);
-
-            if (AylaNetworks.succeeded(msg)) {
-                // Set the value of the property
-                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
-                AylaProperty p = _switchedDevice.get().getProperty(PROPERTY_OUTLET);
-                if (p != null) {
-                    p.datapoint = dp;
-                    p.value = dp.value();
-                    Log.d("CDP", "Datapoint " + p.name + " set to " + p.value);
-                } else {
-                    Log.e("CDP", "Could not find a property named " + PROPERTY_OUTLET);
-                }
-            }
-
-            SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(_switchedDevice.get()) {
-                @Override
-                public void lanModeResult(boolean isInLANMode) {
-                    SessionManager.deviceManager().notifyDeviceStatusChanged(_switchedDevice.get());
-                }
-            });
-        }
-    }
-
-    private CreateDatapointHandler _createDatapointHandler = new CreateDatapointHandler(this);
 
     @Override
     public void onClick(View v) {

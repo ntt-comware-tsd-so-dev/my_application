@@ -9,9 +9,11 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
+import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.aaml.AylaScheduleAction;
 import com.aylanetworks.aaml.AylaSystemUtils;
@@ -40,27 +42,27 @@ import java.util.TimeZone;
  * The Device class represents a physical device connected to the Ayla network. This class is
  * designed to be overridden to provide device-specific functionality and user interface
  * components.
- *
+ * <p/>
  * Each Device class wraps an AylaDevice object, which is passed to the Device constructor. Devices
  * are created via the {@link DeviceCreator#deviceForAylaDevice(com.aylanetworks.aaml.AylaDevice)}
  * method of the {@link DeviceCreator} class, which parses information from the underlying
  * {@link AylaDevice} object to identify the correct Device-derived class to create with the object.
- *
+ * <p/>
  * When creating an Agile Link-derived application, implementers should create a Device-derived
  * class for each type of hardware device supported by the application. The AylaDevice objects
  * received from the server will be passed to the DeviceCreator's deviceForAylaDevice method in
  * order that the DeviceCreator can create the appropriate Device-derived object to contain it.
- *
+ * <p/>
  * Derived classes should override the following methods:
  * <ul>
- *     <li>{@link #getPropertyNames()}</li>
- *     <li>{@link #deviceTypeName()}</li>
- *     <li>{@link #getDeviceDrawable(android.content.Context)}</li>
- *     <li>{@link #registrationType()}</li>
- *     <li>{@link #getItemViewType()}</li>
- *     <li>{@link #bindViewHolder(android.support.v7.widget.RecyclerView.ViewHolder)}</li>
- *     <li>{@link #getSchedulablePropertyNames()}</li>
- *     <li>{@link #friendlyNameForPropertyName(String)}</li>
+ * <li>{@link #getPropertyNames()}</li>
+ * <li>{@link #deviceTypeName()}</li>
+ * <li>{@link #getDeviceDrawable(android.content.Context)}</li>
+ * <li>{@link #registrationType()}</li>
+ * <li>{@link #getItemViewType()}</li>
+ * <li>{@link #bindViewHolder(android.support.v7.widget.RecyclerView.ViewHolder)}</li>
+ * <li>{@link #getSchedulablePropertyNames()}</li>
+ * <li>{@link #friendlyNameForPropertyName(String)}</li>
  * </ul>
  */
 public class Device implements Comparable<Device> {
@@ -71,7 +73,8 @@ public class Device implements Comparable<Device> {
     public interface DeviceStatusListener {
         /**
          * Method called whenever the status of a device has changed
-         * @param device Device whose status has changed
+         *
+         * @param device  Device whose status has changed
          * @param changed true if the status changed, or false if an error occurred
          */
         void statusUpdated(Device device, boolean changed);
@@ -153,6 +156,7 @@ public class Device implements Comparable<Device> {
 
     /**
      * Returns the list of {@link Schedule} objects associated with this device.
+     *
      * @return A list of {@link Schedule} objects, or null if none exist or have not been
      * retrieved from the server.
      */
@@ -165,7 +169,7 @@ public class Device implements Comparable<Device> {
 
         List<Schedule> schedules = new ArrayList<>(getDevice().schedules.length);
         TimeZone tz = TimeZone.getTimeZone("UTC");
-        if ( getDevice().timezone.tzId != null ) {
+        if (getDevice().timezone.tzId != null) {
             tz = TimeZone.getTimeZone(getDevice().timezone.tzId);
         }
 
@@ -178,6 +182,7 @@ public class Device implements Comparable<Device> {
 
     /**
      * Returns the schedule for this device with the supplied name, or null if not found
+     *
      * @param scheduleName Name of the schedule to retrieve
      * @return The schedule with the supplied name, or null
      */
@@ -200,6 +205,7 @@ public class Device implements Comparable<Device> {
      * Fetches the schedules for this device from the server. On completion, the listener's
      * statusUpdated method will be called with the changed parameter set to true if the fetch
      * was successful, or false if the schedules could not be fetched.
+     *
      * @param listener Listener to be notified when the schedules have been fetched
      */
     public void fetchSchedules(final DeviceStatusListener listener) {
@@ -249,7 +255,7 @@ public class Device implements Comparable<Device> {
      * property in response to a schedule event.
      *
      * @param propertyName Name of the property
-     * @param setAction True if the action is to set, false if the action is to clear
+     * @param setAction    True if the action is to set, false if the action is to clear
      * @return a string indicating the action
      */
     public String scheduledActionNameForProperty(String propertyName, boolean setAction) {
@@ -263,7 +269,7 @@ public class Device implements Comparable<Device> {
      * an action.
      *
      * @param propertyName Name of the property
-     * @param activate True to return the value for activating a property, false for deactivate
+     * @param activate     True to return the value for activating a property, false for deactivate
      * @return The value the schedule action should be set to for the given property and activate
      * parameter
      */
@@ -438,7 +444,7 @@ public class Device implements Comparable<Device> {
                 // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
-                if ( dm.isLastLanModeDevice(_device.get()) ) {
+                if (dm.isLastLanModeDevice(_device.get())) {
                     Log.d(LOG_TAG, "Entering LAN mode (I was the last LAN mode device): " + _device.get());
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
@@ -451,7 +457,7 @@ public class Device implements Comparable<Device> {
 
             } else {
                 Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
-                if ( _listener != null ) {
+                if (_listener != null) {
                     _listener.statusUpdated(_device.get(), true);
                 }
             }
@@ -475,6 +481,77 @@ public class Device implements Comparable<Device> {
                 return prop;
         }
         return null;
+    }
+
+    public static class SetDatapointListener {
+        public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+        }
+    }
+
+    /**
+     * Sets the specified property to the specified value and calls the listener when complete.
+     *
+     * @param propertyName   Name of the property to set the datapoint on
+     * @param datapointValue Value to set the datapoint to
+     */
+    public void setDatapoint(String propertyName, Object datapointValue, SetDatapointListener listener) {
+        final AylaProperty property = getProperty(propertyName);
+        if (property == null) {
+            Log.e(LOG_TAG, "setProperty: Can't find property named " + propertyName);
+            if ( listener != null ) {
+                listener.setDatapointComplete(false, null);
+            }
+            return;
+        }
+
+        final AylaDatapoint datapoint = new AylaDatapoint();
+        if (String.class.isInstance(datapointValue)) {
+            datapoint.sValue((String) datapointValue);
+        } else if (Number.class.isInstance(datapointValue)) {
+            datapoint.nValue((Number) datapointValue);
+        } else if (Boolean.class.isInstance(datapointValue)) {
+            Boolean b = (Boolean)datapointValue;
+            datapoint.nValue(b ? 1 : 0);
+        } else {
+            Log.e(LOG_TAG, "setDatapoint: Unknown value type: " + datapointValue.getClass().toString());
+            datapoint.sValue(datapointValue.toString());
+        }
+
+        final CreateDatapointHandler handler = new CreateDatapointHandler(this, property, listener);
+        property.createDatapoint(handler, datapoint);
+    }
+
+    private static class CreateDatapointHandler extends Handler {
+        private WeakReference<Device> _device;
+        private AylaProperty _property;
+        private SetDatapointListener _listener;
+
+        public CreateDatapointHandler(Device device, AylaProperty property, SetDatapointListener listener) {
+            _device = new WeakReference<Device>(device);
+            _property = property;
+            _listener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (AylaNetworks.succeeded(msg)) {
+                // Set the value of the property
+                AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
+                _property.datapoint = dp;
+                _property.value = dp.value();
+                Log.d("CDP", "Datapoint " + _property.name + " set to " + _property.value);
+                if ( _listener != null ) {
+                    _listener.setDatapointComplete(true, dp);
+                }
+                SessionManager.deviceManager().statusUpdated(_device.get(), true);
+            } else {
+                Log.e(LOG_TAG, "createDatapoint failed: " + msg);
+                if ( _listener != null ) {
+                    _listener.setDatapointComplete(false, null);
+                    SessionManager.deviceManager().statusUpdated(_device.get(), false);
+                }
+            }
+        }
     }
 
     protected static class FetchSchedulesHandler extends Handler {
@@ -577,12 +654,12 @@ public class Device implements Comparable<Device> {
      * Returns an integer representing the item view type for this device. This method is called
      * when displaying a CardView representing this device. The item view type should be different
      * for each type of CardView displayed for a device.
-     *
+     * <p/>
      * The value returned from this method will be passed to the
      * {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType(android.view.ViewGroup, int)}
      * method of the {@link com.aylanetworks.agilelink.framework.DeviceCreator} object, which uses
      * it to determine the appropriate ViewHolder object to create for the Device.
-     *
+     * <p/>
      * Multiple device types may use the same item view type if the view displayed for these devices
      * are the same. Most devices will have their own unique views displayed.
      *
@@ -678,6 +755,7 @@ public class Device implements Comparable<Device> {
     /**
      * Sets the time zone for the device. This method also updates any schedules using local time
      * to use the new time zone.
+     *
      * @param timeZone Time zone identifier (e.g. "America/Los_Angeles")
      * @param listener Listener to be notified when the timezone has been updated. The changed
      *                 argument to statusUpdated() will be set to true if the time zone was updated,
@@ -696,7 +774,7 @@ public class Device implements Comparable<Device> {
      * @return The time zone of the device, or null if none found
      */
     public TimeZone getTimeZone() {
-        if ( _device.timezone.tzId == null ) {
+        if (_device.timezone.tzId == null) {
             return null;
         }
 
@@ -759,9 +837,9 @@ public class Device implements Comparable<Device> {
             Log.d(LOG_TAG, "Set timezone response: " + msg);
 
             MainActivity.getInstance().dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
+            if (AylaNetworks.succeeded(msg)) {
                 // Set the updated timezone on the device object
-                _device.get()._device.timezone = AylaSystemUtils.gson.fromJson((String)msg.obj,
+                _device.get()._device.timezone = AylaSystemUtils.gson.fromJson((String) msg.obj,
                         AylaTimezone.class);
 
                 _listener.statusUpdated(_device.get(), true);
@@ -783,8 +861,8 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            if ( AylaNetworks.succeeded(msg) ) {
-                _device.get().getDevice().timezone = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaTimezone.class);
+            if (AylaNetworks.succeeded(msg)) {
+                _device.get().getDevice().timezone = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaTimezone.class);
                 Log.d(LOG_TAG, "Timezone: " + _device.get().getDevice().timezone);
             }
             _listener.statusUpdated(_device.get(), AylaNetworks.succeeded(msg));

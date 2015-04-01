@@ -21,13 +21,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaGrant;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
@@ -434,20 +437,88 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            AylaProperty prop = getItem(position);
+            final AylaProperty prop = getItem(position);
             if ( convertView == null ) {
-                convertView = LayoutInflater.from(_context).inflate(R.layout.cardview_generic_device, parent, false);
+                convertView = LayoutInflater.from(_context).inflate(R.layout.list_item_property, parent, false);
             }
 
-            TextView propName = (TextView)convertView.findViewById(R.id.device_name);
-            TextView propValue = (TextView)convertView.findViewById(R.id.device_state);
-            ProgressBar progressBar = (ProgressBar)convertView.findViewById(R.id.spinner);
+            TextView propName = (TextView)convertView.findViewById(R.id.property_name);
+            TextView propValueText = (TextView)convertView.findViewById(R.id.property_value_textview);
+            final Switch propValueSwitch = (Switch)convertView.findViewById(R.id.property_value_switch);
+
+            Log.d(LOG_TAG, "Property: " + prop.name() + " Type: " + prop.baseType + " Value: " + prop.value);
 
             propName.setText(prop.name());
-            propValue.setText(prop.value);
-            progressBar.setVisibility(View.GONE);
+            propValueText.setOnClickListener(null);
+            if ( prop.direction().equals("output")) {
+                // This is a read-only property
+                propValueSwitch.setVisibility(View.GONE);
+                propValueText.setVisibility(View.VISIBLE);
+                propValueText.setText(prop.value);
+                propName.setTextColor(_context.getResources().getColor(R.color.disabled_text));
+            } else {
+                // This property can be set
+                propName.setTextColor(_context.getResources().getColor(R.color.card_text));
+
+                // Configure based on the base type of the property
+                switch ( prop.baseType ) {
+                    case "boolean":
+                        propValueSwitch.setVisibility(View.VISIBLE);
+                        propValueText.setVisibility(View.GONE);
+                        propValueSwitch.setOnCheckedChangeListener(null);
+                        propValueSwitch.setChecked("1".equals(prop.value));
+                        Log.d(LOG_TAG, "Checked: " + propValueSwitch.isChecked() + " prop.value: " + prop.value);
+                        propValueSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            boolean _setting = false;
+
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                if ( _setting ) {
+                                    return;
+                                }
+
+                                MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
+                                Boolean newValue = isChecked;
+                                _device.setDatapoint(prop.name(), newValue, new Device.SetDatapointListener() {
+                                    @Override
+                                    public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+                                        MainActivity.getInstance().dismissWaitDialog();
+                                        if (succeeded && newDatapoint != null) {
+                                            _setting = true;
+                                            propValueSwitch.setChecked("1".equals(newDatapoint.value()));
+                                            _setting = false;
+                                        } else {
+                                            Log.e(LOG_TAG, "Set property failed");
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        break;
+
+                    case "string":
+                    case "integer":
+                    case "decimal":
+                    default:
+                        propValueSwitch.setVisibility(View.GONE);
+                        propValueText.setVisibility(View.VISIBLE);
+                        propValueText.setText(prop.value);
+                        propValueText.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                editProperty(prop);
+                            }
+                        });
+                        break;
+                }
+            }
 
             return convertView;
         }
+    }
+
+    private void editProperty(AylaProperty property) {
+        Log.d(LOG_TAG, "Edit Property: " +  property);
+        Toast.makeText(getActivity(), "Edit " + property.baseType + " property: Coming soon!", Toast.LENGTH_LONG).show();
     }
 }

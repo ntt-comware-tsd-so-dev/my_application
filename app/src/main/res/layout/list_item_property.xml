@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:style="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/app_theme_window_background"
+              android:orientation="horizontal">
+
+    <TextView
+        style="@style/DeviceListItemTextView"
+        android:id="@+id/property_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:text="Property Name Here"
+        />
+
+    <FrameLayout
+        android:layout_weight="1"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="8dp"
+        android:layout_height="wrap_content">
+
+        <Switch
+            android:id="@+id/property_value_switch"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center_vertical|right"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/property_value_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|right"
+            style="@style/TextAppearance.AppCompat.Medium"
+            android:text="Property Value"/>
+
+    </FrameLayout>
+
+</LinearLayout>

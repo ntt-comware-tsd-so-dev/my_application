@@ -314,6 +314,9 @@
     <!-- Color for the text shown in an empty list -->
     <color name="empty_list_text">@color/app_theme_primary_medium_dark</color>
 
+    <!-- Text color indicating "disabled" -->
+    <color name="disabled_text">@color/grey_600</color>
+
 
     <!-- Default button background gradients -->
     <color name="button_start">@color/app_theme_primary_light</color>
