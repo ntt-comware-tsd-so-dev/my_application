@@ -45,7 +45,13 @@ android.applicationVariants.all { variant ->
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-        options.links("http://docs.oracle.com/javase/7/docs/api/");
-        options.links("http://d.android.com/reference/");
+        options.links("http://docs.oracle.com/javase/7/docs/api/")
+        options.links("http://d.android.com/reference/")
+        options.overview = "overview.html"
+        options.setWindowTitle("Agile Link Application Framework")
+        options.addStringOption("-stylesheetfile " + projectDir + "stylesheet.css")
+        options.stylesheetFile = new File(projectDir, "stylesheet.css");
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
 }
