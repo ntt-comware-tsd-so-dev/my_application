@@ -228,7 +228,11 @@ public class DeviceManager implements DeviceStatusListener {
     public void setLastLanModeDevice(Device device) {
         // Save the last LAN mode device in user settings so we can re-enable it next time
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
-        prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
+        if ( device != null ) {
+            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
+        } else {
+            prefs.edit().remove(PREF_LAST_LAN_MODE_DEVICE);
+        }
     }
 
     /**

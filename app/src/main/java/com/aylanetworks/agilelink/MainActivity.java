@@ -343,6 +343,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // No call for super(). Bug on API Level > 11.
+        // https://code.google.com/p/android/issues/detail?id=19917
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
 
