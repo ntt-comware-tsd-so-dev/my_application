@@ -25,10 +25,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -53,6 +57,7 @@ public class ShareDevicesFragment extends Fragment {
     private Calendar _shareStartDate;
     private Calendar _shareEndDate;
     private boolean _readOnly;
+    private Device _device;             // Only set if we're sharing exactly one device
 
     public interface ShareDevicesListener {
         /**
@@ -99,6 +104,7 @@ public class ShareDevicesFragment extends Fragment {
     public static ShareDevicesFragment newInstance(ShareDevicesListener listener, Device device) {
         ShareDevicesFragment frag = new ShareDevicesFragment();
         frag._listener = listener;
+        frag._device = device;
         return frag;
     }
 
@@ -113,6 +119,11 @@ public class ShareDevicesFragment extends Fragment {
     private Button _startButton;
     private Button _endButton;
     private Button _shareButton;
+
+    // Layout only shown if a device was passed in to newInstance()
+    private LinearLayout _deviceLayout;
+    private ImageView _deviceImageView;
+    private TextView _deviceTextView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -135,6 +146,9 @@ public class ShareDevicesFragment extends Fragment {
         _startButton = (Button)root.findViewById(R.id.button_starting_on);
         _endButton = (Button)root.findViewById(R.id.button_ending_on);
         _shareButton = (Button) root.findViewById(R.id.share_button);
+        _deviceImageView = (ImageView)root.findViewById(R.id.device_image);
+        _deviceLayout = (LinearLayout)root.findViewById(R.id.device_layout);
+        _deviceTextView = (TextView)root.findViewById(R.id.device_name);
 
         _startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,27 +164,37 @@ public class ShareDevicesFragment extends Fragment {
             }
         });
 
-        _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        List<Device> deviceList = SessionManager.deviceManager().deviceList();
-        // Remove devices that we don't own from this list
-        List<Device> filteredList = new ArrayList<Device>();
-        for (Device d : deviceList) {
-            if (d.getDevice().amOwner()) {
-                filteredList.add(d);
+        if ( _device != null ) {
+            // We have a specific device we're sharing. Don't show the list of devices- just show
+            // the device name / icon
+            _deviceList.setVisibility(View.GONE);
+            _deviceLayout.setVisibility(View.VISIBLE);
+            _deviceTextView.setText(_device.toString());
+            _deviceImageView.setImageDrawable(_device.getDeviceDrawable(MainActivity.getInstance()));
+        } else {
+            // Set up the list view with a set of devices that the owner can share
+            _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+            List<Device> deviceList = SessionManager.deviceManager().deviceList();
+            // Remove devices that we don't own from this list
+            List<Device> filteredList = new ArrayList<Device>();
+            for (Device d : deviceList) {
+                if (d.getDevice().amOwner()) {
+                    filteredList.add(d);
+                }
             }
-        }
 
-        if (filteredList.isEmpty()) {
-            Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
-            if (_listener != null) {
-                // Nothing to share.
-                _listener.shareDevices(null, null, null, false, null);
-                return root;
+            if (filteredList.isEmpty()) {
+                Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
+                if (_listener != null) {
+                    // Nothing to share.
+                    _listener.shareDevices(null, null, null, false, null);
+                    return root;
+                }
             }
-        }
 
-        Device devices[] = deviceList.toArray(new Device[deviceList.size()]);
-        _deviceList.setAdapter(new ArrayAdapter<Device>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
+            Device devices[] = deviceList.toArray(new Device[deviceList.size()]);
+            _deviceList.setAdapter(new ArrayAdapter<Device>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
+        }
 
         _shareButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -232,22 +256,29 @@ public class ShareDevicesFragment extends Fragment {
 
     private void shareDevices() {
         List<Device> devicesToAdd = new ArrayList<Device>();
-        SparseBooleanArray checkedItems = _deviceList.getCheckedItemPositions();
-        for (int i = 0; i < _deviceList.getAdapter().getCount(); i++) {
-            if (checkedItems.get(i)) {
-                Device device = (Device) _deviceList.getAdapter().getItem(i);
-                devicesToAdd.add(device);
-            }
-        }
-        String email = _email.getText().toString();
-        if (TextUtils.isEmpty(email)) {
-            Toast.makeText(getActivity(), R.string.share_email_address_required, Toast.LENGTH_LONG).show();
-            return;
-        }
 
-        if ( devicesToAdd.isEmpty() ) {
-            Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
-            return;
+        if ( _device != null ) {
+            // This is the only device we care about
+            devicesToAdd.add(_device);
+        } else {
+            // Get the selected devices from the listview
+            SparseBooleanArray checkedItems = _deviceList.getCheckedItemPositions();
+            for (int i = 0; i < _deviceList.getAdapter().getCount(); i++) {
+                if (checkedItems.get(i)) {
+                    Device device = (Device) _deviceList.getAdapter().getItem(i);
+                    devicesToAdd.add(device);
+                }
+            }
+            String email = _email.getText().toString();
+            if (TextUtils.isEmpty(email)) {
+                Toast.makeText(getActivity(), R.string.share_email_address_required, Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (devicesToAdd.isEmpty()) {
+                Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
         if ( _shareStartDate != null && _shareStartDate.getTimeInMillis() == 0 ) {

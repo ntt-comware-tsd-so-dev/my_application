@@ -45,8 +45,11 @@ import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -57,7 +60,7 @@ import java.util.TimeZone;
  * Created by Brian King on 1/15/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
-public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener {
+public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener {
     public final static String LOG_TAG = "DeviceDetailFragment";
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
@@ -152,6 +155,24 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             inflater.inflate(R.menu.menu_device_details, menu);
         }
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
+
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        AylaShare share = new AylaShare();
+        share.userEmail = email;
+        if ( startDate != null ) {
+            share.startDateAt = df.format(startDate.getTime());
+        }
+        if ( endDate != null ) {
+            share.endDateAt = df.format(endDate.getTime());
+        }
+        share.operation = readOnly ? "read" : "write";
+
+        MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
+        share.create(new CreateShareHandler(), _device.getDevice());
     }
 
     private static class DeleteShareHandler extends Handler {
@@ -288,38 +309,18 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void sharingClicked() {
-        final EditText editText = new EditText(getActivity());
-        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        editText.setHint(R.string.emailAddress);
-        String title = getResources().getString(R.string.add_device_share_title, _device.toString());
-        new AlertDialog.Builder(getActivity())
-                .setTitle(title)
-                .setMessage(R.string.add_device_share_message)
-                .setView(editText)
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Log.d(LOG_TAG, "Share device with " + editText.getText());
-                        shareWith(editText.getText().toString());
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .create().show();
-        editText.requestFocus();
-    }
-
-    private void shareWith(String email) {
-        AylaShare share = new AylaShare();
-        share.userEmail = email;
-        share.create(new CreateShareHandler(), _device.getDevice());
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _device);
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     private static class CreateShareHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "CreateShareHandler: " + msg);
+            MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 Toast.makeText(MainActivity.getInstance(), R.string.share_device_success, Toast.LENGTH_SHORT).show();
+                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
             } else {
                 String error = (String)msg.obj;
                 if (TextUtils.isEmpty(error)) {
@@ -473,7 +474,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
                             @Override
                             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                if ( _setting ) {
+                                if (_setting) {
                                     return;
                                 }
 
