@@ -100,8 +100,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
     private void addTapped() {
         Log.d(LOG_TAG, "Add button tapped");
-        ShareDevicesFragment dlg = ShareDevicesFragment.newInstance(this);
-        dlg.show(getFragmentManager(), "dlg");
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this);
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     @Override
@@ -145,6 +145,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
         // We got this call from the ShareDevicesFragment.
+        getFragmentManager().popBackStack();
         if ( devicesToShare != null && !devicesToShare.isEmpty() ) {
             AddSharesHandler handler = new AddSharesHandler(this, email, startDate, endDate, readOnly, devicesToShare);
             MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);

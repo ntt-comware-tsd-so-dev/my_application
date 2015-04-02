@@ -293,10 +293,13 @@
     <string name="share_read_only_message">Allow this user to:</string>
     <string name="share_read_only_button">View</string>
     <string name="share_read_write_button">Control</string>
-    <string name="share_instructions">Enter the email address of the Ayla account holder you would like to share with. You may limit the time the share is valid by setting the start or end dates for the share. You may also choose whether the user may control your device, or just view it.</string>
+    <string name="share_instructions">Enter the email address of the Ayla account holder you wish to share with</string>
     <string name="device_to_share">Devices to share:</string>
     <string name="now">Now</string>
     <string name="never">Never</string>
+    <string name="share_button_title">Create Share</string>
+    <string name="no_date">No Date</string>
+    <string name="share_email_address_required">Please enter the email address of the Ayla account holder you would like to share with</string>
 
 
 </resources>
