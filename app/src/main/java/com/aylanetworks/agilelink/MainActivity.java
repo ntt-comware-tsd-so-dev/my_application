@@ -326,6 +326,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     // We always want to show the "All Devices" page first
                     mViewPager.setCurrentItem(0);
 
+                    // Pop to the root of the backstack
+                    if ( getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
+                        FragmentManager.BackStackEntry firstEntry = getSupportFragmentManager().getBackStackEntryAt(0);
+                        getSupportFragmentManager().popBackStackImmediate(firstEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    }
+
                     SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                     String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
                     String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
@@ -436,7 +442,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 dismissWaitDialog();
                 Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
                 if (!loggedIn) {
-                    mViewPager.setCurrentItem(0);
                     if (_loginDialog == null) {
                         showLoginDialog();
                     }

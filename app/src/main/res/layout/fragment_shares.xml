@@ -31,6 +31,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/app_theme_primary_dark"
                 android:text="@string/devices_i_share"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
@@ -61,6 +62,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/app_theme_primary_dark"
                 android:text="@string/devices_shared_with_me"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 

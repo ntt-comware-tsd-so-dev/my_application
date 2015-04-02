@@ -34,6 +34,9 @@ import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 
@@ -97,8 +100,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
     private void addTapped() {
         Log.d(LOG_TAG, "Add button tapped");
-        ShareDevicesFragment dlg = ShareDevicesFragment.newInstance(this);
-        dlg.show(getFragmentManager(), "dlg");
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this);
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     @Override
@@ -139,15 +142,42 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 .create().show();
     }
 
+    @Override
+    public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
+        // We got this call from the ShareDevicesFragment.
+        getFragmentManager().popBackStack();
+        if ( devicesToShare != null && !devicesToShare.isEmpty() ) {
+            AddSharesHandler handler = new AddSharesHandler(this, email, startDate, endDate, readOnly, devicesToShare);
+            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
+            handler.addNextShare();
+        }
+    }
+
     private static class AddSharesHandler extends Handler {
         private WeakReference<SharesFragment> _frag;
         private List<Device> _devicesToAdd;
         private String _email;
+        private Calendar _startDate;
+        private Calendar _endDate;
+        private boolean _readOnly;
 
-        public AddSharesHandler(SharesFragment frag, String email, List<Device> devicesToAdd) {
+        private static final DateFormat _dateFormat;
+        static {
+            _dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        }
+
+        public AddSharesHandler(SharesFragment frag,
+                                String email,
+                                Calendar startDate,
+                                Calendar endDate,
+                                boolean readOnly,
+                                List<Device> devicesToAdd) {
             _frag = new WeakReference<SharesFragment>(frag);
             _email = email;
             _devicesToAdd = devicesToAdd;
+            _startDate = startDate;
+            _endDate = endDate;
+            _readOnly = readOnly;
         }
 
         public void addNextShare() {
@@ -160,6 +190,14 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             Device device = _devicesToAdd.remove(0);
             AylaShare share = new AylaShare();
             share.userEmail = _email;
+            if ( _startDate != null ) {
+                share.startDateAt = _dateFormat.format(_startDate.getTime());
+            }
+            if ( _endDate != null ) {
+                share.endDateAt = _dateFormat.format(_endDate.getTime());
+            }
+            share.operation = _readOnly ? "read" : "write";
+
             device.getDevice().createShare(this, share);
         }
 
@@ -176,16 +214,6 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 }
                 Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
             }
-        }
-    }
-
-    @Override
-    public void shareDevices(String email, List<Device> devices) {
-        // We got this call from the ShareDevicesFragment.
-        if ( !devices.isEmpty() ) {
-            AddSharesHandler handler = new AddSharesHandler(this, email, devices);
-            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
-            handler.addNextShare();
         }
     }
 
