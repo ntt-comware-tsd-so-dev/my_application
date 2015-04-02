@@ -1,21 +1,134 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:orientation="vertical"
-             tools:context="com.aylanetworks.agilelink.fragments.ShareDevicesFragment">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                xmlns:style="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="com.aylanetworks.agilelink.fragments.ShareDevicesFragment">
+
+    <TextView
+        android:id="@+id/instructions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:layout_alignParentTop="true"
+        android:text="@string/share_instructions"
+        />
 
     <EditText
         android:id="@+id/share_email"
-        android:hint="@string/emailAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/instructions"
         android:layout_margin="8dp"
+        android:hint="@string/emailAddress"
         android:inputType="textEmailAddress"/>
+
+    <TextView
+        android:id="@+id/device_to_share_text"
+        android:text="@string/device_to_share"
+        android:layout_margin="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/share_email"
+        />
+
+    <RelativeLayout
+        android:id="@+id/date_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/device_to_share_text">
+
+        <TextView
+            android:id="@+id/text_starting_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="@string/starting_on"/>
+
+        <Button
+            android:id="@+id/button_starting_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_centerVertical="true"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:layout_toRightOf="@id/text_starting_on"
+            style="@style/AgileLinkButton"
+            android:text="@string/now"
+            />
+
+
+        <TextView
+            android:id="@+id/text_ending_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/button_ending_on"
+            android:text="@string/ending_on"/>
+
+        <Button
+            android:id="@+id/button_ending_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginLeft="4dp"
+            android:layout_centerVertical="true"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            style="@style/AgileLinkButton"
+            android:text="@string/never"
+            />
+
+    </RelativeLayout>
 
     <ListView
         android:id="@+id/share_listview"
+        android:layout_below="@id/date_layout"
+        android:layout_above="@+id/textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:layout_above="@+id/read_only_radio_group"
+        android:text="@string/share_read_only_message"
+        />
+
+    <RadioGroup
+        android:id="@+id/read_only_radio_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+
+        <RadioButton
+            android:id="@+id/radio_read_only"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/share_read_only_button"
+            />
+
+        <RadioButton
+            android:id="@+id/radio_read_write"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/share_read_write_button"
+            />
+
+    </RadioGroup>
+
+
+</RelativeLayout>

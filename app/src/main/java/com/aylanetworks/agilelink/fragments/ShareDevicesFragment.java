@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -32,17 +33,68 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
+/**
+ * This class presents an interface to the user for sharing devices. The dialog can be configured
+ * to present a list of devices to share, or can be set with a specific device to share ahead of
+ * time. When the user has entered all of the necessary information for sharing, the listener
+ * is notified with the results.
+ *
+ * This class does not itself set up the sharing, but rather provides the UI for doing so.
+ */
 public class ShareDevicesFragment extends DialogFragment {
     private final static String LOG_TAG = "ShareDevicesFragment";
     private ShareDevicesListener _listener;
+    private Calendar _shareStartDate;
+    private Calendar _shareEndDate;
+    private boolean _readOnly;
 
     public interface ShareDevicesListener {
-        void shareDevices(String email, List<Device> devicesToShare);
+        /**
+         * When the ShareDevicesFragment is dismissed, this listener method will be called with
+         * information about the shares.
+         *
+         * @param email Email address of the user to share devices with, or null if canceled
+         * @param startDate Date the sharing begins, or null if none selected
+         * @param endDate Date the sharing ends, or null if none selected
+         * @param readOnly Set to true if the share can not be controlled by the recipient
+         * @param devicesToShare A list of devices to be shared, or null if the user canceled
+         */
+        void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare);
     }
 
+    /**
+     * Creates an instance of the ShareDevicesFragment. This fragment is a DialogFragment, and
+     * should be launched via the {@link #show(android.support.v4.app.FragmentManager, String)}
+     * method after creation.
+     *
+     * This version of this method should be used to present a list of devices to be shared.
+     *
+     * @param listener Listener to receive the sharing information
+     * @return the ShareDevicesFragment ready to be shown.
+     */
     public static ShareDevicesFragment newInstance(ShareDevicesListener listener) {
+        return newInstance(listener, null);
+    }
+
+    /**
+     * Creates an instance of the ShareDevicesFragment. This fragment is a DialogFragment, and
+     * should be launched via the {@link #show(android.support.v4.app.FragmentManager, String)}
+     * method after creation.
+     *
+     * This version of this method should be used when the device to be shared is known ahead of
+     * time (e.g. from the Device Details page). If the user should be presented with a list of
+     * devices to select from for sharing (e.g. from the Sharing page in Settings), then the
+     * device parameter should be null or {@link #newInstance(com.aylanetworks.agilelink.fragments.ShareDevicesFragment.ShareDevicesListener)}
+     * should be used instead of this method.
+     *
+     * @param listener Listener to receive the sharing information
+     * @param device Device to be shared, or null to present a list of devices in the dialog
+     * @return
+     */
+    public static ShareDevicesFragment newInstance(ShareDevicesListener listener, Device device) {
         ShareDevicesFragment frag = new ShareDevicesFragment();
         frag._listener = listener;
         return frag;
@@ -50,6 +102,7 @@ public class ShareDevicesFragment extends DialogFragment {
 
     private ListView _deviceList;
     private EditText _email;
+    private RadioGroup _radioGroup;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -58,6 +111,7 @@ public class ShareDevicesFragment extends DialogFragment {
 
         _deviceList = (ListView)root.findViewById(R.id.share_listview);
         _email = (EditText)root.findViewById(R.id.share_email);
+        _radioGroup = (RadioGroup)root.findViewById(R.id.read_only_radio_group);
 
         _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         List<Device> deviceList = SessionManager.deviceManager().deviceList();
@@ -97,10 +151,21 @@ public class ShareDevicesFragment extends DialogFragment {
                         }
 
                         Log.d(LOG_TAG, "Add Shares: " + devicesToAdd);
-                        _listener.shareDevices(_email.getText().toString(), devicesToAdd);
+                        _listener.shareDevices(
+                                _email.getText().toString(),
+                                _shareStartDate,
+                                _shareEndDate,
+                                _readOnly,
+                                devicesToAdd);
                     }
                 })
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(LOG_TAG, "User cancel");
+                        _listener.shareDevices(null, null, null, false, null);
+                    }
+                })
                 .create();
     }
 }
