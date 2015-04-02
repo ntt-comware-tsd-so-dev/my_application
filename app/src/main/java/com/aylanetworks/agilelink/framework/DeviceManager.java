@@ -144,6 +144,17 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Method to notify the device manager that a device has changed. The device manager will
+     * update listeners to let them know.
+     *
+     * @param device
+     */
+    public void deviceChanged(Device device) {
+        notifyDeviceStatusChanged(device);
+        notifyDeviceListChanged();
+    }
+
+    /**
      * Sets the comparator used for sorting the list of devices. The default comparator uses the
      * Device object's compareTo method.
      *

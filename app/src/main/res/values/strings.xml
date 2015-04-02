@@ -300,6 +300,8 @@
     <string name="share_button_title">Create Share</string>
     <string name="no_date">No Date</string>
     <string name="share_email_address_required">Please enter the email address of the Ayla account holder you would like to share with</string>
+    <string name="rename_device_text">Enter the name for your device below:</string>
+    <string name="change_name_fail">An error occurred while trying to change the name of your device. Please try again later.</string>
 
 
 </resources>

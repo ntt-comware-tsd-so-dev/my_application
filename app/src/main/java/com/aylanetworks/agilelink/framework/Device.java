@@ -105,7 +105,8 @@ public class Device implements Comparable<Device> {
      */
     public boolean isDeviceChanged(Device other) {
         return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
-                (!getDevice().dsn.equals(other.getDevice().dsn));
+                (!getDevice().dsn.equals(other.getDevice().dsn) ||
+                !toString().equals(other.toString()));
     }
 
     /**

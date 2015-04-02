@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -50,7 +51,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -118,12 +121,76 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         button = (Button)view.findViewById(R.id.sharing_button);
         button.setOnClickListener(this);
         if ( !_device.getDevice().amOwner() ) {
+            // This device was shared with us
             button.setVisibility(View.GONE);
+        } else {
+            // This device is ours. Allow the name to be changed.
+            _titleView.setTextColor(getResources().getColor(R.color.link));
+            _titleView.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+            _titleView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    titleClicked();
+                }
+            });
         }
 
         updateUI();
 
         return view;
+    }
+
+    private void titleClicked() {
+        // Let the user change the title
+        final EditText editText = new EditText(getActivity());
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        editText.setText(_device.toString());
+        editText.setSelectAllOnFocus(true);
+        editText.requestFocus();
+
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.rename_device_text)
+                .setView(editText)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        changeDeviceName(editText.getText().toString());
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create().show();
+        editText.requestFocus();
+    }
+
+    private static class ChangeNameHandler extends Handler {
+        private WeakReference<DeviceDetailFragment> _frag;
+        private String _newDeviceName;
+
+        public ChangeNameHandler(DeviceDetailFragment frag, String newDeviceName) {
+            _frag = new WeakReference<DeviceDetailFragment>(frag);
+            _newDeviceName = newDeviceName;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( AylaNetworks.succeeded(msg)) {
+                _frag.get()._device.getDevice().productName = _newDeviceName;
+                _frag.get().updateUI();
+
+                // Let the world know something is different
+                SessionManager.deviceManager().deviceChanged(_frag.get()._device);
+            } else {
+                Log.e(LOG_TAG, "Change name failed: " + msg);
+                Toast.makeText(_frag.get().getActivity(), R.string.change_name_fail, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void changeDeviceName(String newDeviceName) {
+        Map<String, String> params = new HashMap<>();
+        params.put("productName", newDeviceName);
+        _device.getDevice().update(new ChangeNameHandler(this, newDeviceName), params);
     }
 
     void updateUI() {
