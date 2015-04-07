@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.devkit;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -104,22 +105,28 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        Resources res = MainActivity.getInstance().getResources();
+
         SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
         h._deviceNameTextView.setText(getDevice().getProductName());
 
         int drawableId = isOn() ? R.drawable.smartplug_button_on : R.drawable.smartplug_button_off;
-        Drawable buttonDrawable = h._switchButton.getContext().getResources().getDrawable(drawableId);
+        Drawable buttonDrawable = res.getDrawable(drawableId);
 
         h._switchButton.setImageDrawable(buttonDrawable);
         h._switchButton.setOnClickListener(this);
 
         // Is this a shared device?
-        int color = MainActivity.getInstance().getResources().getColor(R.color.card_text);
+        int color = res.getColor(R.color.card_text);
         if (!getDevice().amOwner()) {
             // Yes, this device is shared.
-            color = MainActivity.getInstance().getResources().getColor(R.color.card_shared_text);
+            color = res.getColor(R.color.card_shared_text);
         }
+        if (!isOnline() ) {
+            color = res.getColor(R.color.disabled_text);
+        }
+
         h._deviceNameTextView.setTextColor(color);
     }
 

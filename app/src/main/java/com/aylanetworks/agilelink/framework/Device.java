@@ -82,6 +82,8 @@ public class Device implements Comparable<Device> {
 
     private static final String LOG_TAG = "Device";
 
+    private static final String STATUS_ONLINE = "Online";
+
     /**
      * Default comparator. Sorts alphabetically by DSN.
      *
@@ -645,6 +647,10 @@ public class Device implements Comparable<Device> {
      */
     public boolean isGateway() {
         return false;
+    }
+
+    public boolean isOnline() {
+        return STATUS_ONLINE.equals(getDevice().connectionStatus);
     }
 
     /**

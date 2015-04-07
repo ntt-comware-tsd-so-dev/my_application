@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device.devkit;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -160,29 +161,31 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         // Device name
         DevkitDeviceViewHolder h = (DevkitDeviceViewHolder) holder;
+        Resources res = MainActivity.getInstance().getResources();
+
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
 
         h._deviceNameTextView.setText(getDevice().getProductName());
 
         // Blue button state
         int imageId = isBlueButtonPressed() ? R.drawable.buttondown : R.drawable.buttonup;
-        h._buttonStateImageView.setImageDrawable(h._buttonStateImageView.getContext().getResources().getDrawable(imageId));
+        h._buttonStateImageView.setImageDrawable(res.getDrawable(imageId));
 
         // Green LED state + button
         int bulbId = isGreenLEDOn() ? R.drawable.dup : R.drawable.ddown;
-        h._greenButton.setImageDrawable(h._greenButton.getContext().getResources().getDrawable(bulbId));
+        h._greenButton.setImageDrawable(res.getDrawable(bulbId));
         h._greenButton.setOnClickListener(this);
 
         // Blue LED state + button
         bulbId = isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown;
-        h._blueButton.setImageDrawable(h._blueButton.getContext().getResources().getDrawable(bulbId));
+        h._blueButton.setImageDrawable(res.getDrawable(bulbId));
         h._blueButton.setOnClickListener(this);
 
         // Is this a shared device?
-        int color = MainActivity.getInstance().getResources().getColor(R.color.card_text);
+        int color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
         if (!getDevice().amOwner()) {
             // Yes, this device is shared.
-            color = MainActivity.getInstance().getResources().getColor(R.color.card_shared_text);
+            color = res.getColor(R.color.card_shared_text);
         }
         h._deviceNameTextView.setTextColor(color);
     }
