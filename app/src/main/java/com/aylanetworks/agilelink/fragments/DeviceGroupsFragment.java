@@ -79,7 +79,9 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     public void onPrepareOptionsMenu(Menu menu) {
         // Change the name of the "Add Device" menu item
         MenuItem addItem = menu.findItem(R.id.action_add_device);
-        addItem.setTitle(R.string.action_manage_devices_in_group);
+        if ( addItem != null ) {
+            addItem.setTitle(R.string.action_manage_devices_in_group);
+        }
 
         super.onPrepareOptionsMenu(menu);
     }
