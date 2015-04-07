@@ -3,8 +3,8 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             android:clickable="true"
              android:background="@color/app_theme_window_background"
+             android:clickable="true"
              tools:context="com.aylanetworks.agilelink.fragments.AllDevicesFragment">
 
     <LinearLayout
@@ -18,9 +18,9 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@color/title_bar"
+            android:focusable="true"
             android:orientation="horizontal"
-            android:visibility="gone"
-            android:focusable="true">
+            android:visibility="gone">
 
             <HorizontalScrollView
                 android:id="@+id/button_scroll_view"
@@ -30,11 +30,17 @@
 
         </LinearLayout>
 
-        <!-- Main recycler view -->
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent">
+
+            <!-- Main recycler view -->
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        </FrameLayout>
 
     </LinearLayout>
 
@@ -51,10 +57,18 @@
         android:src="@android:drawable/ic_input_add"
         android:tint="@android:color/white"/>
 
+    <!-- Empty text view -->
     <TextView
-        android:id="@android:id/empty"
+        android:id="@+id/empty"
+        style="@style/TextAppearance.AppCompat.Medium"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"/>
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center_vertical"
+        android:padding="8dp"
+        android:textStyle="bold"
+        android:text="@string/group_empty_text"
+        android:textColor="@color/empty_list_text"
+        android:visibility="gone"/>
 
 </FrameLayout>

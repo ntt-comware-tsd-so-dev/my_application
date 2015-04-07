@@ -38,6 +38,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
+        if ( _deviceList == null ) {
+            return 0;
+        }
         return _deviceList.size();
     }
 

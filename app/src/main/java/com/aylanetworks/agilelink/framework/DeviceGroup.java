@@ -293,6 +293,10 @@ public class DeviceGroup {
 
     @Override
     public boolean equals(Object o) {
+        if ( o == null ) {
+            return false;
+        }
+
         if (!o.getClass().isInstance(this)) {
             return false;
         }

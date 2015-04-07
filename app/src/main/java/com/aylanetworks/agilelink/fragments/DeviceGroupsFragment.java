@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.agilelink.R;
@@ -42,18 +43,13 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     private HorizontalScrollView _buttonScrollView;
     private DeviceGroup _selectedGroup;
-    private DeviceGroup _allDevicesGroup;
-    private List<Device> _selectedGroupDeviceList;
+    private TextView _emptyView;
 
     public static DeviceGroupsFragment newInstance() {
         return new DeviceGroupsFragment();
     }
 
     public DeviceGroupsFragment() {
-    }
-
-    private boolean isAllDevicesSelected() {
-        return _selectedGroup == _allDevicesGroup;
     }
 
     @Override
@@ -68,6 +64,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         LinearLayout l = (LinearLayout) root.findViewById(R.id.button_tray);
         l.setVisibility(View.VISIBLE);
         _buttonScrollView = (HorizontalScrollView) root.findViewById(R.id.button_scroll_view);
+        _emptyView = (TextView) root.findViewById(R.id.empty);
         createGroupButtonHeader();
         return root;
     }
@@ -80,26 +77,16 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        // Hide some menu items if "all devices" is the selected group.
-        // We can't add devices or delete the group here.
-        boolean visible = !isAllDevicesSelected();
-        MenuItem item = menu.findItem(R.id.action_delete_group);
-        if ( item != null ) {
-            item.setVisible(visible);
-        }
-
-        item = menu.findItem(R.id.action_add_device);
-        if ( item != null ) {
-            item.setTitle(R.string.action_manage_devices_in_group);
-            item.setVisible(visible);
-        }
+        // Change the name of the "Add Device" menu item
+        MenuItem addItem = menu.findItem(R.id.action_add_device);
+        addItem.setTitle(R.string.action_manage_devices_in_group);
 
         super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch ( item.getItemId() ) {
+        switch (item.getItemId()) {
             case R.id.action_add_group:
                 onAddGroup();
                 break;
@@ -121,9 +108,23 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     protected void updateDeviceList() {
         if (_selectedGroup != null) {
-            _selectedGroupDeviceList = _selectedGroup.getDevices();
-            _adapter = new DeviceListAdapter(_selectedGroupDeviceList, this);
+            List<Device> selectedGroupDeviceList = _selectedGroup.getDevices();
+            _adapter = new DeviceListAdapter(selectedGroupDeviceList, this);
             _recyclerView.setAdapter(_adapter);
+            if ( selectedGroupDeviceList.isEmpty() ) {
+                _emptyView.setText(R.string.no_devices_in_group);
+                _recyclerView.setVisibility(View.GONE);
+                _emptyView.setVisibility(View.VISIBLE);
+            } else {
+                _recyclerView.setVisibility(View.VISIBLE);
+                _emptyView.setVisibility(View.GONE);
+            }
+        } else {
+            _adapter = new DeviceListAdapter(null, this);
+            _recyclerView.setAdapter(_adapter);
+            _recyclerView.setVisibility(View.GONE);
+            _emptyView.setText(R.string.group_empty_text);
+            _emptyView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -140,13 +141,8 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
             groups = new ArrayList<>();
         }
 
-
-        // Add the "All Devices" group
-        _allDevicesGroup = DeviceGroup.allDevicesGroup();
-        groups.add(0, _allDevicesGroup);
-
-        if (_selectedGroup == null || !groups.contains(_selectedGroup)) {
-            _selectedGroup = _allDevicesGroup;
+        if (_selectedGroup == null && groups.size() > 0) {
+            _selectedGroup = groups.get(0);
         }
 
         // Make a linear layout to hold all of the buttons
@@ -166,8 +162,8 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
             layoutParams.gravity = Gravity.CENTER_VERTICAL;
             b.setLayoutParams(layoutParams);
 
-            b.setGravity(Gravity.CENTER_HORIZONTAL|Gravity.CENTER_VERTICAL);
-            b.setPadding(24,24,24,24);
+            b.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
+            b.setPadding(24, 24, 24, 24);
 
             b.setText(group.getGroupName());
             b.setTag(group);
@@ -212,28 +208,27 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.add_button) {
-            // Put up a menu to see if they want to add a device or a group.
-            // If we're currently on the "All Devices" group, we can't add a device, so we won't
-            // bother to ask.
-            if (isAllDevicesSelected()) {
+            if ( _selectedGroup == null ) {
+                // There is no group yet. We need to offer to add one.
                 onAddGroup();
-            } else {
-                // Put up a context menu with the choice
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle(R.string.add_device_or_group_title);
-                builder.setItems(R.array.device_or_group_items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            // Add a device to this group
-                            onAddDeviceToGroup();
-                        } else {
-                            onAddGroup();
-                        }
-                    }
-                });
-                builder.create().show();
+                return;
             }
+
+            // Put up a menu to see if they want to add a device or a group.
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(R.string.add_device_or_group_title);
+            builder.setItems(R.array.device_or_group_items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (which == 0) {
+                        // Add a device to this group
+                        onAddDeviceToGroup();
+                    } else {
+                        onAddGroup();
+                    }
+                }
+            });
+            builder.create().show();
         } else {
             super.onClick(v);
         }
@@ -251,7 +246,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         final String deviceNames[] = new String[allDevices.size()];
         final boolean isGroupMember[] = new boolean[allDevices.size()];
 
-        for ( int i = 0; i < allDevices.size(); i++ ) {
+        for (int i = 0; i < allDevices.size(); i++) {
             Device d = allDevices.get(i);
             deviceNames[i] = d.toString();
             isGroupMember[i] = (_selectedGroup.isDeviceInGroup(d));
@@ -265,23 +260,23 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                         isGroupMember[which] = isChecked;
                     }
                 })
-        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                List<Device> newGroupList = new ArrayList<>();
-                for ( int i = 0; i < allDevices.size(); i++ ) {
-                    Device d = allDevices.get(i);
-                    if ( isGroupMember[i] ) {
-                        newGroupList.add(d);
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        List<Device> newGroupList = new ArrayList<>();
+                        for (int i = 0; i < allDevices.size(); i++) {
+                            Device d = allDevices.get(i);
+                            if (isGroupMember[i]) {
+                                newGroupList.add(d);
+                            }
+                        }
+                        _selectedGroup.setDevices(newGroupList);
+                        _selectedGroup.pushToServer();
+                        updateDeviceList();
                     }
-                }
-                _selectedGroup.setDevices(newGroupList);
-                _selectedGroup.pushToServer();
-                updateDeviceList();
-            }
-        })
-        .setNegativeButton(android.R.string.cancel, null)
-        .create().show();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create().show();
     }
 
     protected void onAddGroup() {
@@ -304,6 +299,10 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                             gm.createGroup(et.getText().toString(), null);
                             gm.pushGroupList();
                             deviceListChanged();
+
+                            // Group is not useful with nothing in it! Bring up the UI to add
+                            // devices to the group
+                            onAddDeviceToGroup();
                         }
                     }
                 })
@@ -325,7 +324,11 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                         GroupManager gm = SessionManager.deviceManager().getGroupManager();
                         gm.removeGroup(_selectedGroup);
                         gm.pushGroupList();
-                        _selectedGroup = _allDevicesGroup;
+                        if ( gm.getGroups().isEmpty() ) {
+                            _selectedGroup = null;
+                        } else {
+                            _selectedGroup = gm.getGroups().get(0);
+                        }
                         deviceListChanged();
                     }
                 })

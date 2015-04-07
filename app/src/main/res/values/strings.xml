@@ -298,6 +298,8 @@
     <string name="sign_out">Sign Out</string>
     <string name="confirm_sign_out">Sign Out?</string>
     <string name="confirm_sign_out_message">Do you wish to sign out?</string>
+    <string name="group_empty_text">Tap the add button to create a new group</string>
+    <string name="no_devices_in_group">Tap the add button to add devices to this group</string>
 
 
 </resources>
