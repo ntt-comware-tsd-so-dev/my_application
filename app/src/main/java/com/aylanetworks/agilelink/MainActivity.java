@@ -20,6 +20,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -317,6 +318,16 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     private void showLoginDialog() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
+        final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
+
+        // If we've got the username / password, we have everything we need.
+        if ( !TextUtils.isEmpty(savedUsername) && !TextUtils.isEmpty(savedPassword)) {
+            signIn(savedUsername, savedPassword);
+            return;
+        }
+
         new Handler().post(new Runnable() {
             @Override
             public void run() {
@@ -332,9 +343,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                         getSupportFragmentManager().popBackStackImmediate(firstEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                     }
 
-                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                    String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
-                    String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
                     Bundle args = new Bundle();
                     args.putString(SignInDialog.ARG_USERNAME, savedUsername);
