@@ -166,17 +166,6 @@
         <item>Display</item>
     </string-array>
 
-    <!-- Settings menu items -->
-    <string-array name="settings_items">
-        <item>Registration</item>
-        <item>Contact List</item>
-        <item>WiFi Setup</item>
-        <item>Notifications</item>
-        <item>Edit Profile</item>
-        <item>Delete Account</item>
-        <item>Shares</item>
-    </string-array>
-
     <!-- Add device or group menu items -->
     <string-array name="device_or_group_items">
         <item>Manage devices in this group</item>
@@ -302,6 +291,13 @@
     <string name="share_email_address_required">Please enter the email address of the Ayla account holder you would like to share with</string>
     <string name="rename_device_text">Enter the name for your device below:</string>
     <string name="change_name_fail">An error occurred while trying to change the name of your device. Please try again later.</string>
+    <string name="registration">Registration</string>
+    <string name="contact_list">Contact List</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="confirm_sign_out">Sign Out?</string>
+    <string name="confirm_sign_out_message">Do you wish to sign out?</string>
 
 
 </resources>

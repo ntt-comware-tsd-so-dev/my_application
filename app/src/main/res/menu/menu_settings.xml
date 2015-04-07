@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_registration"
+          android:title="@string/registration"
+          android:orderInCategory="100"/>
+
+    <item android:id="@+id/action_contact_list"
+          android:title="@string/contact_list"
+          android:orderInCategory="101"/>
+
+    <item android:id="@+id/action_wifi_setup"
+          android:title="@string/wifi_setup"
+          android:orderInCategory="102"/>
+
+    <item android:id="@+id/action_notifications"
+          android:title="@string/notifications"
+          android:orderInCategory="103"/>
+
+    <item android:id="@+id/action_edit_profile"
+          android:title="@string/edit_profile"
+          android:orderInCategory="104"/>
+
+    <item android:id="@+id/action_delete_account"
+          android:title="@string/delete_account"
+          android:orderInCategory="105"/>
+
+    <item android:id="@+id/action_shares"
+          android:title="@string/shares"
+          android:orderInCategory="106"/>
+
+    <item android:id="@+id/action_sign_out"
+          android:title="@string/sign_out"
+          android:orderInCategory="107"/>
+
+</menu>

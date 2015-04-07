@@ -8,8 +8,12 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.internal.view.menu.MenuBuilder;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -28,6 +32,9 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /*
  * SettingsFragment.java
  * AgileLink Application Framework
@@ -39,15 +46,7 @@ import org.json.JSONObject;
 public class SettingsFragment extends Fragment implements AdapterView.OnItemClickListener {
     private final static String LOG_TAG = "SettingsFragment";
     private ListView _listView;
-
-    // List view indexes
-    private final int INDEX_REGISTRATION = 0;
-    private final int INDEX_CONTACTS = 1;
-    private final int INDEX_WIFI_SETUP = 2;
-    private final int INDEX_NOTIFICATIONS = 3;
-    private final int INDEX_PROFILE = 4;
-    private final int INDEX_DELETE_ACCOUNT = 5;
-    private final int INDEX_SHARES = 6;
+    private List<MenuItem> _menuItems;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
@@ -57,7 +56,19 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
         _listView = (ListView)view.findViewById(R.id.listView);
-        ArrayAdapter<CharSequence>adapter = ArrayAdapter.createFromResource(getActivity(), R.array.settings_items, android.R.layout.simple_list_item_1);
+
+        // Load the menu resource. We will be using the menu items in our listview.
+        Menu menu = new MenuBuilder(getActivity());
+        new MenuInflater(getActivity()).inflate(R.menu.menu_settings, menu);
+
+        _menuItems = new ArrayList<MenuItem>();
+        for ( int i = 0; i < menu.size(); i++ ) {
+            MenuItem item = menu.getItem(i);
+            Log.d(LOG_TAG, "Menu item " + i + ": " + item);
+            _menuItems.add(item);
+        }
+
+        ArrayAdapter<MenuItem>adapter = new ArrayAdapter<MenuItem>(getActivity(), android.R.layout.simple_list_item_1, _menuItems);
         _listView.setAdapter(adapter);
         _listView.setOnItemClickListener(this);
 
@@ -169,36 +180,56 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
         MainActivity.getInstance().pushFragment(frag);
     }
 
+    private void signOut() {
+        // Confirm
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.confirm_sign_out)
+                .setMessage(R.string.confirm_sign_out_message)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SessionManager.stopSession();
+                            }
+                        })
+                .setNegativeButton(android.R.string.no, null)
+                .create().show();
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(LOG_TAG, "onItemClick: " + position);
-        switch ( position ) {
-            case INDEX_REGISTRATION:
+        MenuItem item = _menuItems.get(position);
+        switch ( item.getItemId() ) {
+            case R.id.action_registration:
                 handleRegistration();
                 break;
 
-            case INDEX_CONTACTS:
+            case R.id.action_contact_list:
                 handleContacts();
                 break;
 
-            case INDEX_WIFI_SETUP:
+            case R.id.action_wifi_setup:
                 handleWiFiSetup();
                 break;
 
-            case INDEX_NOTIFICATIONS:
+            case R.id.action_notifications:
                 handleNotifications();
                 break;
 
-            case INDEX_PROFILE:
+            case R.id.action_edit_profile:
                 updateProfile();
                 break;
 
-            case INDEX_DELETE_ACCOUNT:
+            case R.id.action_delete_account:
                 deleteAccount();
                 break;
 
-            case INDEX_SHARES:
+            case R.id.action_shares:
                 handleShares();
+                break;
+
+            case R.id.action_sign_out:
+                signOut();
                 break;
 
             default:
