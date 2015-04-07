@@ -315,6 +315,7 @@
     <string name="unreachable">Not Reachable</string>
     <string name="unknown">Unknown</string>
     <string name="service_reachability">Service Reachability</string>
+    <string name="offline_no_functionality">Device is offline and cannot be modified</string>
 
 
 </resources>

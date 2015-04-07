@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
@@ -133,6 +134,10 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        if ( !isOnline() ) {
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality, Toast.LENGTH_LONG).show();
+            return;
+        }
         // Toggle the button state
         ImageButton button = (ImageButton) v;
         button.setImageDrawable(v.getResources().getDrawable(R.drawable.smartplug_button_pending));

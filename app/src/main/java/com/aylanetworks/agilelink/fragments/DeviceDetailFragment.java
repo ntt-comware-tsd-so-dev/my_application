@@ -532,6 +532,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 switch ( prop.baseType ) {
                     case "boolean":
                         propValueSwitch.setVisibility(View.VISIBLE);
+                        propValueSwitch.setEnabled(_device.isOnline());
                         propValueText.setVisibility(View.GONE);
                         propValueSwitch.setOnCheckedChangeListener(null);
                         propValueSwitch.setChecked("1".equals(prop.value));
