@@ -9,15 +9,21 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.internal.widget.AdapterViewCompat;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +73,9 @@ public class SignInDialog extends DialogFragment {
     private TextView _forgotPasswordTextView;
     private WebView _webView;
     private SignInDialogListener _listener;
+    private Spinner _serviceTypeSpinner;
+
+    private final static String _serviceTypes[] = {"Device", "Field", "Development", "Staging", "Demo"};
 
     public SignInDialog() {
     }
@@ -89,6 +98,33 @@ public class SignInDialog extends DialogFragment {
         _resendEmailTextView = (TextView)view.findViewById(R.id.resendConfirmationTextView);
         _forgotPasswordTextView = (TextView)view.findViewById(R.id.forgot_password);
         _webView = (WebView)view.findViewById(R.id.webview);
+        _serviceTypeSpinner = (Spinner)view.findViewById(R.id.service_type_spinner);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.spinner_large_text, _serviceTypes);
+        _serviceTypeSpinner.setAdapter(adapter);
+        _serviceTypeSpinner.setSelection(SessionManager.sessionParameters().serviceType);
+
+        _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                SessionManager.SessionParameters params = SessionManager.sessionParameters();
+                params.serviceType = position;
+                SessionManager.setParameters(params);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        final GestureDetector gd = new GestureDetector(getActivity(), new SwipeDetector());
+        view.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return gd.onTouchEvent(event);
+            }
+        });
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -298,4 +334,15 @@ public class SignInDialog extends DialogFragment {
     }
 
     private OauthHandler _oauthHandler = new OauthHandler(this);
+
+    private class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            Log.d(LOG_TAG, "onFling: " + velocityY);
+            if ( velocityY < 10000.0 ) {
+                _serviceTypeSpinner.setVisibility(View.VISIBLE);
+            }
+            return super.onFling(e1, e2, velocityX, velocityY);
+        }
+    }
 }
