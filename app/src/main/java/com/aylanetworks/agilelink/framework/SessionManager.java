@@ -609,6 +609,11 @@ public class SessionManager {
         if (_deviceManager != null) {
             _deviceManager.shutDown();
         }
+
+        // Clear the saved password
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        settings.edit().putString(PREFS_PASSWORD, "").apply();
+
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
         AylaUser.logout(params).execute();
