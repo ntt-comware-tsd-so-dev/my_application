@@ -504,6 +504,35 @@ public class SessionManager {
     }
 
     /**
+     * Returns a human-readable name for the service type the app is connected to
+     * @return The service type the app is connected to
+     */
+    public static String getServiceTypeString() {
+        Context c = MainActivity.getInstance();
+
+        int serviceType = getInstance()._sessionParameters.serviceType;
+        switch ( serviceType ) {
+            case AylaNetworks.AML_DEVICE_SERVICE:
+                return c.getString(R.string.device_service);
+
+            case AylaNetworks.AML_FIELD_SERVICE:
+                return c.getString(R.string.field_service);
+
+            case AylaNetworks.AML_DEVELOPMENT_SERVICE:
+                return c.getString(R.string.development_service);
+
+            case AylaNetworks.AML_STAGING_SERVICE:
+                return c.getString(R.string.staging_service);
+
+            case AylaNetworks.AML_DEMO_SERVICE:
+                return c.getString(R.string.demo_service);
+
+            default:
+                return c.getString(R.string.unknown_service, serviceType);
+        }
+    }
+
+    /**
      * Returns the device manager, or null if not logged in yet
      */
     public static DeviceManager deviceManager() {

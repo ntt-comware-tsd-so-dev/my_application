@@ -300,6 +300,21 @@
     <string name="confirm_sign_out_message">Do you wish to sign out?</string>
     <string name="group_empty_text">Tap the add button to create a new group</string>
     <string name="no_devices_in_group">Tap the add button to add devices to this group</string>
+    <string name="about_app" formatted="false">About %s</string>
+    <string name="about">About</string>
+    <string name="service_type">Service Type</string>
+    <string name="device_service">Device Service</string>
+    <string name="field_service">Field Service</string>
+    <string name="development_service">Development Service</string>
+    <string name="staging_service">Staging Service</string>
+    <string name="demo_service">Demo Service</string>
+    <string name="unknown_service">Unknown Service Type: %d</string>
+    <string name="app_version">Application Version</string>
+    <string name="library_version">Library Version</string>
+    <string name="reachable">Reachable</string>
+    <string name="unreachable">Not Reachable</string>
+    <string name="unknown">Unknown</string>
+    <string name="service_reachability">Service Reachability</string>
 
 
 </resources>

@@ -195,6 +195,11 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
                 .create().show();
     }
 
+    private void about() {
+        AboutFragment frag = new AboutFragment();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(LOG_TAG, "onItemClick: " + position);
@@ -230,6 +235,10 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
 
             case R.id.action_sign_out:
                 signOut();
+                break;
+
+            case R.id.action_about:
+                about();
                 break;
 
             default:
