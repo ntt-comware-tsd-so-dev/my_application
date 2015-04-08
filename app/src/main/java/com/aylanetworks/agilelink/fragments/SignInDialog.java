@@ -9,9 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.internal.widget.AdapterViewCompat;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,9 +26,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -115,14 +113,6 @@ public class SignInDialog extends DialogFragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
-            }
-        });
-
-        final GestureDetector gd = new GestureDetector(getActivity(), new SwipeDetector());
-        view.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return gd.onTouchEvent(event);
             }
         });
 
@@ -260,6 +250,15 @@ public class SignInDialog extends DialogFragment {
                 .setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        // Developer UI Enable check
+                        String email = emailEditText.getText().toString();
+                        if ("aylarocks".compareToIgnoreCase(email) == 0) {
+                            // Enable the dev UI
+                            _serviceTypeSpinner.setVisibility(View.VISIBLE);
+                            Toast.makeText(MainActivity.getInstance(), "Developer mode enabled", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        
                         SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
                         Map<String, String> params = new HashMap<>();
                         if (sessionParams.registrationEmailTemplateId == null) {
@@ -334,15 +333,4 @@ public class SignInDialog extends DialogFragment {
     }
 
     private OauthHandler _oauthHandler = new OauthHandler(this);
-
-    private class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            Log.d(LOG_TAG, "onFling: " + velocityY);
-            if ( velocityY < 10000.0 ) {
-                _serviceTypeSpinner.setVisibility(View.VISIBLE);
-            }
-            return super.onFling(e1, e2, velocityX, velocityY);
-        }
-    }
-}
+ }
