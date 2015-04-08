@@ -243,78 +243,67 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        // Set up the session manager
+        // Set up the session manager with our session parameters
+        SessionManager.setParameters(getAppParameters());
 
-        /**
-         * Parameters for nexTurn network
-         */
-        SessionManager.SessionParameters nexTurnParams = new SessionManager.SessionParameters(this);
-        nexTurnParams.appId = "iNextTurnKitDev-id";
-        nexTurnParams.appSecret = "iNextTurnKitDev-6124332";
-        nexTurnParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
-        nexTurnParams.deviceCreator = new NexTurnDeviceCreator();
-        nexTurnParams.appVersion = getAppVersion();
-        // We want to enable LAN mode in this application
-        nexTurnParams.enableLANMode = true;
-        // We want enhanced logging. Default is AML_LOGGING_LEVEL_INFO;
-        nexTurnParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
-
-        // Set the SessionManager's registration fields to our own values
-        nexTurnParams.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
-
-        // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
-        // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        nexTurnParams.registrationEmailTemplateId = "ayla_confirmation_template_01";
-
-        if (nexTurnParams.registrationEmailTemplateId == null) {
-            nexTurnParams.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
-        } else {
-            nexTurnParams.registrationEmailBodyHTML = null;
-        }
-
-        /**
-         * Parameters for Ayla devkit
-         */
-        final SessionManager.SessionParameters devkitParams = new SessionManager.SessionParameters(this);
-
-        // Swap these to go  between dev and production servers
-        devkitParams.appId = "AgileLinkDev-id";
-        devkitParams.appSecret = "AgileLinkDev-4780291";
-        devkitParams.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
-
-        //devkitParams.appId = "AgileLinkProd-id";
-        //devkitParams.appSecret = "AgileLinkProd-8249425";
-        //devkitParams.serviceType = AylaNetworks.AML_STAGING_SERVICE
-
-
-        devkitParams.deviceCreator = new AgileLinkDeviceCreator();
-        devkitParams.appVersion = getAppVersion();
-
-        devkitParams.enableLANMode = true;
-        devkitParams.allowLANLogin = true;
-        devkitParams.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
-
-        // Set the SessionManager's registration fields to our own values
-        devkitParams.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
-
-        // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
-        // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        devkitParams.registrationEmailTemplateId = "ayla_confirmation_template_01";
-
-        if (devkitParams.registrationEmailTemplateId == null) {
-            devkitParams.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
-        } else {
-            devkitParams.registrationEmailBodyHTML = null;
-        }
-
-        // SessionManager.setParameters(nexTurnParams);
-        SessionManager.setParameters(devkitParams);
+        // We want to know when
         SessionManager.addSessionListener(this);
 
         // Bring up the login dialog if we're not already logged in
         if (!SessionManager.isLoggedIn()) {
             showLoginDialog();
         }
+    }
+
+    /**
+     * Returns session parameters for the default Agile Link application. Implementers should
+     * modify this method to return a SessionParameters object initialized with values specific
+     * to the application being developed.
+     *
+     * @return the SessionParameters for this application
+     */
+    private SessionManager.SessionParameters getAppParameters() {
+        final SessionManager.SessionParameters parameters = new SessionManager.SessionParameters(this);
+
+        // Change this to false to connect to the production service
+        boolean useDevService = true;
+        if ( useDevService ) {
+            // Development values
+            parameters.appId = "AgileLinkDev-id";
+            parameters.appSecret = "AgileLinkDev-4780291";
+            parameters.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+        } else {
+            // Production values
+            parameters.appId = "AgileLinkProd-id";
+            parameters.appSecret = "AgileLinkProd-8249425";
+            parameters.serviceType = AylaNetworks.AML_STAGING_SERVICE;
+        }
+
+        parameters.deviceCreator = new AgileLinkDeviceCreator();
+        parameters.appVersion = getAppVersion();
+
+        // Will attempt to put devices into LAN mode whenever possible
+        parameters.enableLANMode = true;
+
+        // Allows login when the service is not reachable, using cached data or connecting directly
+        // with devices in LAN mode
+        parameters.allowLANLogin = true;
+
+        parameters.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+
+        parameters.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
+
+        // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
+        // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
+        parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+
+        if (parameters.registrationEmailTemplateId == null) {
+            parameters.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
+        } else {
+            parameters.registrationEmailBodyHTML = null;
+        }
+
+        return parameters;
     }
 
     private void showLoginDialog() {
