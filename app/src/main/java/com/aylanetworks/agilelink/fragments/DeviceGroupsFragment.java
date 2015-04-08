@@ -297,13 +297,14 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                         if (et.getText().toString().equals(allDevicesName)) {
                             Toast.makeText(getActivity(), R.string.invalid_group_name, Toast.LENGTH_LONG).show();
                         } else {
-                            // Add the group
-                            gm.createGroup(et.getText().toString(), null);
+                            // Add the group and select it
+                            DeviceGroup newGroup = gm.createGroup(et.getText().toString(), null);
+                            _selectedGroup = newGroup;
                             gm.pushGroupList();
-                            deviceListChanged();
 
                             // Group is not useful with nothing in it! Bring up the UI to add
                             // devices to the group
+                            deviceListChanged();
                             onAddDeviceToGroup();
                         }
                     }
