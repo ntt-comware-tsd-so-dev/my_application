@@ -45,8 +45,7 @@ public class AboutFragment extends Fragment {
 
         items.add(new AboutItem(getString(R.string.service_type), SessionManager.getServiceTypeString()));
         items.add(new AboutItem(getString(R.string.app_version), params.appVersion));
-        // TODO: Make the version string accessible from AylaNetworks class
-        items.add(new AboutItem(getString(R.string.library_version), "<unknown>"));
+        items.add(new AboutItem(getString(R.string.library_version), AylaNetworks.getAamlVersion()));
 
         String connectivity;
         switch (AylaReachability.getConnectivity()) {
