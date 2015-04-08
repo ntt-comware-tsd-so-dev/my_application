@@ -68,9 +68,10 @@ public class SessionManager {
 
 
     /**
-     * Interfaces
+     * Interface for notifications of changes in login state (log in / out), reachability or LAN
+     * mode. Generally only the main activity implements this interface and registers for notifications
+     * via {@link #addSessionListener(SessionManager.SessionListener)}
      */
-
     public interface SessionListener {
         public void loginStateChanged(boolean loggedIn, AylaUser aylaUser);
 
@@ -170,7 +171,8 @@ public class SessionManager {
     }
 
     /**
-     * Adds a listener who will be notified when the state of the session changes (log out, log in, etc.)
+     * Adds a listener who will be notified when the state of the session changes (log out,
+     * log in, reachabilty, LAN mode changes)
      *
      * @param listener Listener to be notified of session state changes
      */
