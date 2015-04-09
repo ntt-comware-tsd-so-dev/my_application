@@ -466,52 +466,45 @@ public class ScheduleFragment extends Fragment {
         now.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // First the timer picker
-        if (_timerTurnOnButton.isSelected()) {
-            pickerTime = _schedule.getTimerOnTime();
-            if (pickerTime != null) {
-                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
-                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
-            }
-        } else {
-            pickerTime = _schedule.getTimerOffTime();
-            if (pickerTime != null) {
-                pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
-                pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
-            }
-        }
-
-        if (pickerTime == null) {
-            pickerTime = Calendar.getInstance();
-            pickerTime.set(Calendar.HOUR_OF_DAY, 0);
-            pickerTime.set(Calendar.MINUTE, 0);
-        }
-
-        _timerTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
-        _timerTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
-
-        // Now the schedule picker
-        if (_scheduleOnTimeButton.isSelected()) {
-            // Add the schedule duration
-            pickerTime = _schedule.getTimerOnTime();
-        } else {
-            pickerTime = _schedule.getTimerOffTime();
-        }
-
-        if (pickerTime == null) {
-            // Set to the on or off time if set, or the current time if not set
-            if ( _scheduleOnTimeButton.isSelected() ) {
-                pickerTime = _schedule.getTimerOffTime();
-            } else {
+        if ( _schedule.isTimer() ) {
+            if (_timerTurnOnButton.isSelected()) {
                 pickerTime = _schedule.getTimerOnTime();
+                if (pickerTime != null) {
+                    pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
+                    pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
+                }
+            } else {
+                pickerTime = _schedule.getTimerOffTime();
+                if (pickerTime != null) {
+                    pickerTime.add(Calendar.HOUR_OF_DAY, -now.get(Calendar.HOUR_OF_DAY));
+                    pickerTime.add(Calendar.MINUTE, -now.get(Calendar.MINUTE));
+                }
             }
 
-            if ( pickerTime == null ) {
+            if (pickerTime == null) {
                 pickerTime = Calendar.getInstance();
+                pickerTime.set(Calendar.HOUR_OF_DAY, 0);
+                pickerTime.set(Calendar.MINUTE, 0);
             }
-        }
 
-        _scheduleTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
-        _scheduleTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
+            _timerTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
+            _timerTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
+        } else {
+            // Now the schedule picker
+                // Set to the on or off time if set, or the current time if not set
+                if (_scheduleOnTimeButton.isSelected()) {
+                    pickerTime = _schedule.getStartTimeEachDay();
+                } else {
+                    pickerTime = _schedule.getEndTimeEachDay();
+                }
+
+                if (pickerTime == null) {
+                    pickerTime = Calendar.getInstance();
+                }
+
+            _scheduleTimePicker.setCurrentHour(pickerTime.get(Calendar.HOUR_OF_DAY));
+            _scheduleTimePicker.setCurrentMinute(pickerTime.get(Calendar.MINUTE));
+        }
 
         _updatingUI = false;
     }
