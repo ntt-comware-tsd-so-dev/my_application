@@ -354,10 +354,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
     private void onDrawerOpened(View drawerView) {
         Log.d(LOG_TAG, "Drawer Opened");
+        supportInvalidateOptionsMenu();
     }
 
     private void onDrawerClosed(View drawerView) {
         Log.d(LOG_TAG, "Drawer Closed");
+        supportInvalidateOptionsMenu();
     }
 
     private void onDrawerItemClicked(int position) {
@@ -680,6 +682,14 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if ( _drawerLayout != null && _drawerLayout.isDrawerOpen(_drawerList)) {
+            menu.clear();
+        }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
