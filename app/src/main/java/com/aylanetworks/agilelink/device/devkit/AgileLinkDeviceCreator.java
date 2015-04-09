@@ -61,19 +61,22 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
         View v;
+        boolean isGrid = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.Grid;
+        int resId;
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_devkit_device, parent, false);
+                resId = isGrid ? R.layout.cardview_devkit_device_grid : R.layout.cardview_devkit_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new DevkitDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SMARTPLUG:
-                int resId = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
-                        R.layout.cardview_switched_device : R.layout.cardview_switched_device_grid;
+                resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_generic_device, parent, false);
+                resId = isGrid ? R.layout.cardview_generic_device_grid : R.layout.cardview_generic_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
         }
 

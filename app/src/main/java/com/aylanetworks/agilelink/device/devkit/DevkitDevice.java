@@ -198,6 +198,6 @@ public class DevkitDevice extends Device implements View.OnClickListener {
 
     @Override
     public int getGridViewSpan() {
-        return 2;
+        return 1;
     }
 }
