@@ -40,7 +40,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
         if (aylaDevice.oemModel.equals("ledevb")) {
             // This is the Ayla devkit.
-            return new DevkitDevice(aylaDevice);
+            return new AylaEVBDevice(aylaDevice);
         }
 
         if (aylaDevice.oemModel.equals("smartplug1")) {
@@ -65,9 +65,9 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         int resId;
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
-                resId = isGrid ? R.layout.cardview_devkit_device_grid : R.layout.cardview_devkit_device;
+                resId = isGrid ? R.layout.cardview_ayla_evb_device_grid : R.layout.cardview_ayla_evb_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
-                return new DevkitDeviceViewHolder(v);
+                return new AylaEVBDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SMARTPLUG:
                 resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
@@ -86,7 +86,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public List<Class<? extends Device>> getSupportedDeviceClasses() {
         List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
 
-        classList.add(DevkitDevice.class);
+        classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
         return classList;
     }

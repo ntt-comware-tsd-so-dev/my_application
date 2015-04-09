@@ -10,21 +10,21 @@ import android.widget.TextView;
 import com.aylanetworks.agilelink.R;
 
 /*
- * DevkitDeviceViewHolder.java
+ * AylaEVBDeviceViewHolder.java
  * AgileLink Application Framework
  *
  * Created by Brian King on 1/23/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class DevkitDeviceViewHolder extends RecyclerView.ViewHolder {
+public class AylaEVBDeviceViewHolder extends RecyclerView.ViewHolder {
     public TextView _deviceNameTextView;
     public ImageButton _greenButton;
     public ImageButton _blueButton;
     public ImageView _buttonStateImageView;
     public ProgressBar _spinner;
 
-    public DevkitDeviceViewHolder(View v) {
+    public AylaEVBDeviceViewHolder(View v) {
         super(v);
 
         _deviceNameTextView = (TextView)v.findViewById(R.id.device_name);
