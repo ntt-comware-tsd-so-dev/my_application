@@ -472,8 +472,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     _loginDialog = new SignInDialog();
 
                     // We always want to show the "All Devices" page first
-                    mViewPager.setCurrentItem(0);
-
+                    if ( mViewPager != null ) {
+                        mViewPager.setCurrentItem(0);
+                    }
                     popBackstackToRoot();
 
                     Bundle args = new Bundle();
