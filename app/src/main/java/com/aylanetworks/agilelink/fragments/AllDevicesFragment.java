@@ -113,6 +113,15 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
+    // This method is called when the fragment is paged in to view
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if ( menuVisible ) {
+            updateDeviceList();
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
