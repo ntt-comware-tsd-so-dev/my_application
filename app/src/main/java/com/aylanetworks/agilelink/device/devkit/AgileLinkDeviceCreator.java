@@ -58,7 +58,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
-        View v = null;
+        View v;
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
                 v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_devkit_device, parent, false);

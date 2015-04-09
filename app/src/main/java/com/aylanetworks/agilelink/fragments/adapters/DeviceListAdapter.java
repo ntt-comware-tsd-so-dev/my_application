@@ -44,6 +44,10 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return _deviceList.size();
     }
 
+    public Device getItem(int index) {
+        return _deviceList.get(index);
+    }
+
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return SessionManager.sessionParameters().deviceCreator.viewHolderForViewType(parent, viewType);
     }

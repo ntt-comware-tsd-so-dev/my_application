@@ -195,4 +195,9 @@ public class DevkitDevice extends Device implements View.OnClickListener {
         }
         h._deviceNameTextView.setTextColor(color);
     }
+
+    @Override
+    public int getGridViewSpan() {
+        return 2;
+    }
 }

@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
 import java.util.ArrayList;
@@ -59,7 +60,9 @@ public class DeviceCreator {
      * @return The ViewHolder appropriate for the viewType
      */
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_generic_device, parent, false);
+        int resId = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
+                R.layout.cardview_generic_device : R.layout.cardview_generic_device_grid;
+        View v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
         return new GenericDeviceViewHolder(v);
     }
 

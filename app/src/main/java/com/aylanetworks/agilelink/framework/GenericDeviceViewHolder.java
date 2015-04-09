@@ -4,6 +4,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
@@ -23,6 +25,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
     public Device _currentDevice;
     public TextView _deviceNameTextView;
     public TextView _deviceStatusTextView;
+    public ProgressBar _spinner;
 
     public GenericDeviceViewHolder(View itemView) {
         super(itemView);
@@ -30,5 +33,6 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
         _currentDevice = null;
         _deviceNameTextView = (TextView)itemView.findViewById(R.id.device_name);
         _deviceStatusTextView = (TextView)itemView.findViewById(R.id.device_state);
+        _spinner = (ProgressBar)itemView.findViewById(R.id.spinner);
     }
 }

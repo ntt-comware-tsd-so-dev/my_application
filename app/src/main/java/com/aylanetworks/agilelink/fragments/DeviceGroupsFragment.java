@@ -45,8 +45,12 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     private DeviceGroup _selectedGroup;
     private TextView _emptyView;
 
-    public static DeviceGroupsFragment newInstance() {
-        return new DeviceGroupsFragment();
+    public static DeviceGroupsFragment newInstance(int displayMode) {
+        DeviceGroupsFragment fragment = new DeviceGroupsFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_DISPLAY_MODE, displayMode);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     public DeviceGroupsFragment() {

@@ -23,7 +23,6 @@ import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -32,14 +31,15 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
-import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
+import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
 
 import java.util.HashMap;
@@ -78,6 +78,23 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
      */
     public static MainActivity getInstance() {
         return _theInstance;
+    }
+
+    private static UIConfig _uiConfig;
+    public static UIConfig getUIConfig() {
+        return _uiConfig;
+    }
+
+    /**
+     * Static initializer.
+     *
+     * Here we configure the global UIConfig instance. This object is used throughout the application
+     * to customize the look and feel of the application. Implementers should modify the UIConfig
+     * instance to customize the app appearance to taste.
+     */
+    static {
+        _uiConfig = new UIConfig();
+        _uiConfig._listStyle = UIConfig.ListStyle.Grid;
     }
 
     ProgressDialog _progressDialog;
@@ -280,6 +297,10 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
 
         parameters.deviceCreator = new AgileLinkDeviceCreator();
+
+        // TODO: REMOVE THIS TEST CODE
+        parameters.deviceCreator = new DeviceCreator();
+
         parameters.appVersion = getAppVersion();
 
         // Will attempt to put devices into LAN mode whenever possible
@@ -623,12 +644,15 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
+            int displayMode = getUIConfig()._listStyle == UIConfig.ListStyle.List ?
+                    AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
+
             switch (position) {
                 case 0:
-                    return AllDevicesFragment.newInstance(AllDevicesFragment.DISPLAY_MODE_ALL);
+                    return AllDevicesFragment.newInstance(displayMode);
 
                 case 1:
-                    return DeviceGroupsFragment.newInstance();
+                    return DeviceGroupsFragment.newInstance(displayMode);
 
                 case 2:
                     return SettingsFragment.newInstance();
