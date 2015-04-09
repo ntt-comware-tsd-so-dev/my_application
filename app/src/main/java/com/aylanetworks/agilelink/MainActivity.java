@@ -298,9 +298,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         parameters.deviceCreator = new AgileLinkDeviceCreator();
 
-        // TODO: REMOVE THIS TEST CODE
-        parameters.deviceCreator = new DeviceCreator();
-
         parameters.appVersion = getAppVersion();
 
         // Will attempt to put devices into LAN mode whenever possible

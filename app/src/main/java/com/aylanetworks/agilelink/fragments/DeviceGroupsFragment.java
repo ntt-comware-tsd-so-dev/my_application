@@ -70,6 +70,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         _buttonScrollView = (HorizontalScrollView) root.findViewById(R.id.button_scroll_view);
         _emptyView = (TextView) root.findViewById(R.id.empty);
         createGroupButtonHeader();
+        updateDeviceList();
         return root;
     }
 

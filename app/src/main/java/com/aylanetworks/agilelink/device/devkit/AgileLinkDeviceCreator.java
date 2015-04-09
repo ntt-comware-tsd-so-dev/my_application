@@ -7,10 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.UIConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +67,9 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 return new DevkitDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SMARTPLUG:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_switched_device, parent, false);
+                int resId = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
+                        R.layout.cardview_switched_device : R.layout.cardview_switched_device_grid;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
