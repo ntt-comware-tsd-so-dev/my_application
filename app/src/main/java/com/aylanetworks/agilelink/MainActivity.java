@@ -14,17 +14,23 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
@@ -32,7 +38,6 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
-import com.aylanetworks.agilelink.device.zigbee.NexTurnDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
@@ -40,6 +45,7 @@ import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
 
 import java.util.HashMap;
@@ -78,6 +84,24 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
      */
     public static MainActivity getInstance() {
         return _theInstance;
+    }
+
+    private static UIConfig _uiConfig;
+    public static UIConfig getUIConfig() {
+        return _uiConfig;
+    }
+
+    /**
+     * Static class initializer.
+     *
+     * Here we configure the global UIConfig instance. This object is used throughout the application
+     * to customize the look and feel of the application. Implementers should modify the UIConfig
+     * instance to customize the app appearance to taste.
+     */
+    static {
+        _uiConfig = new UIConfig();
+        _uiConfig._listStyle = UIConfig.ListStyle.Grid;
+        _uiConfig._navStyle = UIConfig.NavStyle.Drawer;
     }
 
     ProgressDialog _progressDialog;
@@ -231,17 +255,16 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         AylaNetworks.appContext = this;
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        final ActionBar actionBar = getActionBar();
+        switch ( getUIConfig()._navStyle ) {
+            case Pager:
+                initPager();
+                break;
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+            case Drawer:
+                initDrawer();
+                break;
+        }
 
         // Set up the session manager with our session parameters
         SessionManager.setParameters(getAppParameters());
@@ -253,6 +276,122 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         if (!SessionManager.isLoggedIn()) {
             showLoginDialog();
         }
+    }
+
+    private void initPager() {
+         setContentView(R.layout.activity_main_pager);
+
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+    }
+
+    private DrawerLayout _drawerLayout;
+    private ListView _drawerList;
+    private ActionBarDrawerToggle _drawerToggle;
+
+    private void initDrawer() {
+        Log.d(LOG_TAG, "initDrawer");
+
+        setContentView(R.layout.activity_main_drawer);
+
+        String drawerItems[] = getResources().getStringArray(R.array.drawer_items);
+        _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        _drawerList = (ListView)findViewById(R.id.left_drawer);
+        _drawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.navigation_drawer_item, R.id.nav_textview, drawerItems));
+        _drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                onDrawerItemClicked(position);
+            }
+        });
+
+        _drawerToggle = new ActionBarDrawerToggle(this,
+                _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                MainActivity.this.onDrawerOpened(drawerView);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                MainActivity.this.onDrawerClosed(drawerView);
+            }
+        };
+
+        _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        _drawerLayout.setDrawerListener(_drawerToggle);
+        onDrawerItemClicked(0);
+    }
+
+    public void openDrawer() {
+        if ( _drawerLayout != null ) {
+            _drawerLayout.openDrawer(_drawerList);
+        }
+    }
+
+    public void closeDrawer() {
+        if ( _drawerLayout != null ) {
+            _drawerLayout.closeDrawer(_drawerList);
+        }
+    }
+
+    public boolean isDrawerOpen() {
+        if ( _drawerLayout == null ) {
+            return false;
+        }
+
+        return _drawerLayout.isDrawerOpen(_drawerList);
+    }
+
+    private void onDrawerOpened(View drawerView) {
+        Log.d(LOG_TAG, "Drawer Opened");
+        supportInvalidateOptionsMenu();
+    }
+
+    private void onDrawerClosed(View drawerView) {
+        Log.d(LOG_TAG, "Drawer Closed");
+        supportInvalidateOptionsMenu();
+    }
+
+    private void onDrawerItemClicked(int position) {
+        Log.d(LOG_TAG, "Drawer item clicked: " + position);
+        int displayMode = getUIConfig()._listStyle == UIConfig.ListStyle.List ?
+                AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
+
+        Fragment frag;
+        switch ( position ) {
+            case 0:
+                // All Devices
+                frag = AllDevicesFragment.newInstance(displayMode);
+                break;
+
+            case 1:
+                // Device groups
+                frag = DeviceGroupsFragment.newInstance(displayMode);
+                break;
+
+            case 2:
+                // Settings
+                frag = SettingsFragment.newInstance();
+                break;
+
+            default:
+                Log.e(LOG_TAG, "Unknown drawer item position: " + position);
+                return;
+        }
+
+        popBackstackToRoot();
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, frag).commit();
+        closeDrawer();
     }
 
     /**
@@ -280,6 +419,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
 
         parameters.deviceCreator = new AgileLinkDeviceCreator();
+
         parameters.appVersion = getAppVersion();
 
         // Will attempt to put devices into LAN mode whenever possible
@@ -306,6 +446,26 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         return parameters;
     }
 
+    @Override
+    public void onBackPressed() {
+        // Open the nav drawer on back unless it's already open (or we don't have one)
+        if ( _drawerToggle != null &&
+                getSupportFragmentManager().getBackStackEntryCount() == 0 &&
+                !isDrawerOpen() ) {
+            openDrawer();
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    private void popBackstackToRoot() {
+        // Pop to the root of the backstack
+        if ( getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
+            FragmentManager.BackStackEntry firstEntry = getSupportFragmentManager().getBackStackEntryAt(0);
+            getSupportFragmentManager().popBackStackImmediate(firstEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
+
     private void showLoginDialog() {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
@@ -324,14 +484,10 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     _loginDialog = new SignInDialog();
 
                     // We always want to show the "All Devices" page first
-                    mViewPager.setCurrentItem(0);
-
-                    // Pop to the root of the backstack
-                    if ( getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
-                        FragmentManager.BackStackEntry firstEntry = getSupportFragmentManager().getBackStackEntryAt(0);
-                        getSupportFragmentManager().popBackStackImmediate(firstEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    if ( mViewPager != null ) {
+                        mViewPager.setCurrentItem(0);
                     }
-
+                    popBackstackToRoot();
 
                     Bundle args = new Bundle();
                     args.putString(SignInDialog.ARG_USERNAME, savedUsername);
@@ -541,6 +697,24 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         return true;
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if ( _drawerLayout != null && _drawerLayout.isDrawerOpen(_drawerList)) {
+            menu.clear();
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if ( _drawerToggle != null ) {
+            if ( _drawerToggle.onOptionsItemSelected(item) ) {
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     /**
      * Launches the sign-up dialog
      */
@@ -623,12 +797,15 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
+            int displayMode = getUIConfig()._listStyle == UIConfig.ListStyle.List ?
+                    AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
+
             switch (position) {
                 case 0:
-                    return AllDevicesFragment.newInstance(AllDevicesFragment.DISPLAY_MODE_ALL);
+                    return AllDevicesFragment.newInstance(displayMode);
 
                 case 1:
-                    return DeviceGroupsFragment.newInstance();
+                    return DeviceGroupsFragment.newInstance(displayMode);
 
                 case 2:
                     return SettingsFragment.newInstance();

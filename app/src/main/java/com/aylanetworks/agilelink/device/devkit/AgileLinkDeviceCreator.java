@@ -7,10 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.UIConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
         if (aylaDevice.oemModel.equals("ledevb")) {
             // This is the Ayla devkit.
-            return new DevkitDevice(aylaDevice);
+            return new AylaEVBDevice(aylaDevice);
         }
 
         if (aylaDevice.oemModel.equals("smartplug1")) {
@@ -58,18 +60,23 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
-        View v = null;
+        View v;
+        boolean isGrid = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.Grid;
+        int resId;
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_devkit_device, parent, false);
-                return new DevkitDeviceViewHolder(v);
+                resId = isGrid ? R.layout.cardview_ayla_evb_device_grid : R.layout.cardview_ayla_evb_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new AylaEVBDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SMARTPLUG:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_switched_device, parent, false);
+                resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_generic_device, parent, false);
+                resId = isGrid ? R.layout.cardview_generic_device_grid : R.layout.cardview_generic_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
         }
 
@@ -79,7 +86,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public List<Class<? extends Device>> getSupportedDeviceClasses() {
         List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
 
-        classList.add(DevkitDevice.class);
+        classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
         return classList;
     }

@@ -126,7 +126,7 @@
     <color name="teal_200">#80cbc4</color>
     <color name="teal_300">#4db6ac</color>
     <color name="teal_400">#26a69a</color>
-    <color name="teal_500">#9688</color>
+    <color name="teal_500">#009688</color>
     <color name="teal_600">#00897b</color>
     <color name="teal_700">#00796b</color>
     <color name="teal_800">#00695c</color>
@@ -288,14 +288,18 @@
 
     -->
 
-    <color name="app_theme_accent">@color/light_blue_A400</color>
-    <color name="app_theme_primary_light">@color/light_blue_200</color>
-    <color name="app_theme_primary_medium_light">@color/light_blue_400</color>
-    <color name="app_theme_primary">@color/light_blue_500</color>
-    <color name="app_theme_primary_medium_dark">@color/light_blue_800</color>
-    <color name="app_theme_primary_dark">@color/light_blue_900</color>
+    <color name="app_theme_accent">@color/teal_A400</color>
+    <color name="app_theme_primary_light">@color/teal_200</color>
+    <color name="app_theme_primary_medium_light">@color/teal_400</color>
+    <color name="app_theme_primary">@color/teal_500</color>
+    <color name="app_theme_primary_medium_dark">@color/teal_800</color>
+    <color name="app_theme_primary_dark">@color/teal_900</color>
 
     <color name="app_theme_window_background">@android:color/white</color>
+
+    <!-- Colors of the navigation drawer background and text -->
+    <color name="navigation_drawer">@color/app_theme_primary_dark</color>
+    <color name="navigation_drawer_text">@color/app_theme_primary_light</color>
 
     <!-- Button foreground (text) color. Background is @drawable/button_bg -->
     <color name="button_fg">@android:color/white</color>

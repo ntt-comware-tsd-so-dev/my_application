@@ -7,7 +7,9 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
@@ -389,7 +391,7 @@ public class Device implements Comparable<Device> {
         if (!hasChanged) {
             for (AylaProperty prop : newProperties) {
                 AylaProperty myProperty = getProperty(prop.name());
-                if ((myProperty == null) || (!myProperty.value.equals(prop.value))) {
+                if ((myProperty == null) || (!TextUtils.equals(myProperty.value, prop.value))) {
                     hasChanged = true;
                     Log.v(LOG_TAG, prop.name + " Changed!");
                     break;
@@ -688,7 +690,20 @@ public class Device implements Comparable<Device> {
         GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getDevice().getProductName());
         h._deviceStatusTextView.setText(getDeviceState());
+        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+
         h._currentDevice = this;
+    }
+
+    /**
+     * Returns the number of elements the device's view should span when displayed in a grid view.
+     * The default value is 1. Override this in your device if the device's grid view requires
+     * more room.
+     *
+     * @return The number of columns the device's view should span when displayed in a grid
+     */
+    public int getGridViewSpan() {
+        return 1;
     }
 
     /**

@@ -2,52 +2,38 @@ package com.aylanetworks.agilelink.device.devkit;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
-import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.SessionManager;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /*
- * DevkitDevice.java
+ * AylaEVBDevice.java
  * AgileLink Application Framework
  *
  * Created by Brian King on 1/14/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class DevkitDevice extends Device implements View.OnClickListener {
-    private static final String LOG_TAG = "DevkitDevice";
+public class AylaEVBDevice extends Device implements View.OnClickListener {
+    private static final String LOG_TAG = "AylaEVBDevice";
 
     private static final String PROPERTY_BLUE_LED = "Blue_LED";
     private static final String PROPERTY_GREEN_LED = "Green_LED";
     private static final String PROPERTY_BLUE_BUTTON = "Blue_button";
 
-    public DevkitDevice(AylaDevice device) {
+    public AylaEVBDevice(AylaDevice device) {
         super(device);
     }
 
@@ -166,7 +152,7 @@ public class DevkitDevice extends Device implements View.OnClickListener {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         // Device name
-        DevkitDeviceViewHolder h = (DevkitDeviceViewHolder) holder;
+        AylaEVBDeviceViewHolder h = (AylaEVBDeviceViewHolder) holder;
         Resources res = MainActivity.getInstance().getResources();
 
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
@@ -194,5 +180,10 @@ public class DevkitDevice extends Device implements View.OnClickListener {
             color = res.getColor(R.color.card_shared_text);
         }
         h._deviceNameTextView.setTextColor(color);
+    }
+
+    @Override
+    public int getGridViewSpan() {
+        return 1;
     }
 }

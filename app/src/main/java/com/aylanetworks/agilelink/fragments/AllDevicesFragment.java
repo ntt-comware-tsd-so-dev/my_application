@@ -3,7 +3,7 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -13,12 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.ListAdapter;
-import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
@@ -45,23 +40,23 @@ public class AllDevicesFragment extends Fragment
 
     private final static String LOG_TAG = "AllDevicesFragment";
 
-    public final static int DISPLAY_MODE_ALL = 0;
-    public final static int DISPLAY_MODE_FAVORITES = 1;
+    public final static int DISPLAY_MODE_LIST = 0;
+    public final static int DISPLAY_MODE_GRID = 1;
 
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_DISPLAY_MODE = "display_mode";
+    protected static final String ARG_DISPLAY_MODE = "display_mode";
 
     /**
      * Mode we should display
      */
-    protected int _displayMode = DISPLAY_MODE_ALL;
+    protected int _displayMode = DISPLAY_MODE_LIST;
 
     /**
      * The fragment's recycler view and helpers
      */
     protected RecyclerView _recyclerView;
     protected RecyclerView.LayoutManager _layoutManager;
-    protected RecyclerView.Adapter _adapter;
+    protected DeviceListAdapter _adapter;
 
     public static AllDevicesFragment newInstance(int displayMode) {
         AllDevicesFragment fragment = new AllDevicesFragment();
@@ -117,6 +112,15 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
+    // This method is called when the fragment is paged in to view
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if ( menuVisible ) {
+            updateDeviceList();
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -127,7 +131,20 @@ public class AllDevicesFragment extends Fragment
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
 
-        _layoutManager = new LinearLayoutManager(getActivity());
+        if ( _displayMode == DISPLAY_MODE_LIST ) {
+            _layoutManager = new LinearLayoutManager(getActivity());
+        } else {
+            GridLayoutManager gm = new GridLayoutManager(getActivity(), 2);
+            gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    Device device = _adapter.getItem(position);
+                    return device.getGridViewSpan();
+                }
+            });
+            _layoutManager = gm;
+        }
+
         _recyclerView.setLayoutManager(_layoutManager);
 
         ImageButton b = (ImageButton) view.findViewById(R.id.add_button);

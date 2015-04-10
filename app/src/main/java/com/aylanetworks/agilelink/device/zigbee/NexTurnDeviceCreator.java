@@ -3,11 +3,9 @@ package com.aylanetworks.agilelink.device.zigbee;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.agilelink.device.devkit.DevkitDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.Gateway;
-import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
