@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.framework;
 
-import android.accounts.Account;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;

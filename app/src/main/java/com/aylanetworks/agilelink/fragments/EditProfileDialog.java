@@ -20,6 +20,9 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -243,12 +246,27 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                     _editProfileDialog.get().dismiss();
                     Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
                 } else {
-                    ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
+                    String phoneCountryCode;
+                    String phoneNumber;
+
+                    PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+                    String phone = _editProfileDialog.get()._phoneNumber.getText().toString();
+                    try {
+                        Phonenumber.PhoneNumber num = phoneUtil.parse(phone, "US");
+                        phoneCountryCode = Integer.toString(num.getCountryCode());
+                        phoneNumber = Long.toString(num.getNationalNumber());
+                    } catch (NumberParseException e) {
+                        Log.e(LOG_TAG, "Phone number could not be parsed: " + phone);
+                        phoneCountryCode = "1";
+                        phoneNumber = phone;
+                    }
+
+                    ownerContact.phoneNumber = phoneNumber;
                     ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
                     ownerContact.lastname = _editProfileDialog.get()._lastName.getText().toString();
                     ownerContact.zipCode = _editProfileDialog.get()._zip.getText().toString();
                     ownerContact.country = _editProfileDialog.get()._country.getText().toString();
-                    ownerContact.phoneCountryCode = AylaUser.getCurrent().phoneCountryCode;
+                    ownerContact.phoneCountryCode = phoneCountryCode;
                     ownerContact.displayName = ownerContact.firstname + " " + ownerContact.lastname;
 
                     cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
