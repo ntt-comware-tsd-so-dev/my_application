@@ -41,7 +41,7 @@ import org.json.JSONObject;
  * drawer menu.
  */
 public class MenuHandler {
-    private static final String LOG_TAG = "MenuHandler";
+    public static final String LOG_TAG = "MenuHandler";
 
     /**
      * Handles the given menu item, or returns false if not handled
@@ -101,7 +101,7 @@ public class MenuHandler {
         return true;
     }
 
-    private static void handleAllDevices() {
+    public static void handleAllDevices() {
         int displayMode = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
                 AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
         Fragment frag = AllDevicesFragment.newInstance(displayMode);
@@ -110,7 +110,7 @@ public class MenuHandler {
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
     }
 
-    private static void handleDeviceGroups() {
+    public static void handleDeviceGroups() {
         int displayMode = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
                 AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
         Fragment frag = DeviceGroupsFragment.newInstance(displayMode);
@@ -119,36 +119,36 @@ public class MenuHandler {
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
     }
 
-    private static void handleRegistration() {
+    public static void handleRegistration() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private static void handleContacts() {
+    public static void handleContacts() {
         ContactListFragment frag = ContactListFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private static void handleWiFiSetup() {
+    public static void handleWiFiSetup() {
         WiFiSetupFragment frag = WiFiSetupFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private static void handleNotifications() {
+    public static void handleNotifications() {
         NotificationsFragment frag = new NotificationsFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private static void updateProfile() {
+    public static void updateProfile() {
         EditProfileDialog d = new EditProfileDialog(MainActivity.getInstance());
         d.show();
     }
 
 
-    private static AlertDialog _confirmDeleteDialog;
+    public static AlertDialog _confirmDeleteDialog;
 
-    private static void deleteAccount() {
+    public static void deleteAccount() {
         // First confirm
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
                 .setTitle(R.string.confirm_delete_account_title)
@@ -201,14 +201,14 @@ public class MenuHandler {
         }
     }
 
-    private static void handleShares() {
+    public static void handleShares() {
         Log.d(LOG_TAG, "handleShares()");
 
         SharesFragment frag = SharesFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private static void signOut() {
+    public static void signOut() {
         // Confirm
         new AlertDialog.Builder(MainActivity.getInstance())
                 .setTitle(R.string.confirm_sign_out)
@@ -223,7 +223,7 @@ public class MenuHandler {
                 .create().show();
     }
 
-    private static void about() {
+    public static void about() {
         AboutFragment frag = new AboutFragment();
         MainActivity.getInstance().pushFragment(frag);
     }

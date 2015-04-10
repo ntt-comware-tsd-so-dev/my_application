@@ -12,6 +12,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -29,6 +30,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ScanResultsAdapter;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -54,6 +56,20 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        if ( MainActivity.getInstance().isNoDevicesMode() ) {
+            menu.add(Menu.NONE, R.id.action_sign_out, Menu.NONE, R.string.log_out);
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_wifi_setup, container, false);
         _listView = (ListView)v.findViewById(R.id.listView);
@@ -64,6 +80,8 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
 
         Button b = (Button)v.findViewById(R.id.scan_button);
         b.setOnClickListener(this);
+        b = (Button)v.findViewById(R.id.register_button);
+        b.setOnClickListener(this);
 
         return v;
     }
@@ -72,8 +90,8 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        // Simulate a button click so we start the scan for devices right away
-        onClick(null);
+        // Start the scan for devices right away
+        doScan();
     }
 
     @Override
@@ -124,8 +142,21 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
 
     @Override
     public void onClick(View v) {
-        Log.i(LOG_TAG, "Scan clicked");
+        switch (v.getId() ) {
+            case R.id.scan_button:
+                doScan();
+                break;
 
+            case R.id.register_button:
+                MenuHandler.handleRegistration();
+                break;
+
+            default:
+                Log.e(LOG_TAG, "Unknown click from view: " + v);
+        }
+    }
+
+    private void doScan() {
         // Put up a progress dialog
         MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                 getString(R.string.scanning_for_devices_message));

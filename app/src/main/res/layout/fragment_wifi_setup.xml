@@ -17,31 +17,51 @@
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_margin="5dp"/>
+        android:layout_margin="5dp"
+        android:layout_weight="1"/>
 
     <TextView
         android:id="@id/android:empty"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold"
-        android:textColor="@color/empty_list_text"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_gravity="center"
+        android:layout_weight="1"
         android:gravity="center"
-        android:visibility="gone"
-        android:text="@string/wifi_initial_text"/>
+        android:text="@string/wifi_initial_text"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/empty_list_text"
+        android:textStyle="bold"
+        android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/scan_button"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_margin="10dp"
-        android:layout_weight="0"
-        android:text="@string/scan"
-        />
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="bottom">
 
+        <Button
+            android:id="@+id/register_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_weight="1"
+            android:text="@string/register"
+            />
+
+        <Button
+            android:id="@+id/scan_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:text="@string/scan"
+            />
+    </LinearLayout>
 </LinearLayout>

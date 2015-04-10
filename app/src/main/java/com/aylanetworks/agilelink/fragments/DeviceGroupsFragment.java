@@ -43,7 +43,6 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     private HorizontalScrollView _buttonScrollView;
     private DeviceGroup _selectedGroup;
-    private TextView _emptyView;
 
     public static DeviceGroupsFragment newInstance(int displayMode) {
         DeviceGroupsFragment fragment = new DeviceGroupsFragment();
@@ -68,7 +67,6 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         LinearLayout l = (LinearLayout) root.findViewById(R.id.button_tray);
         l.setVisibility(View.VISIBLE);
         _buttonScrollView = (HorizontalScrollView) root.findViewById(R.id.button_scroll_view);
-        _emptyView = (TextView) root.findViewById(R.id.empty);
         createGroupButtonHeader();
         updateDeviceList();
         return root;

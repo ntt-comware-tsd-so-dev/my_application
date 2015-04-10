@@ -12,7 +12,7 @@
     <string name="log_out">Log Out</string>
     <string name="login_register">Login / Register</string>
     <string name="please_log_in">Please log in</string>
-    <string name="no_devices_found">No Devices Found</string>
+    <string name="no_devices_found">No devices found.\n\n<i>Tap \"Scan for Devices\" to scan again, or tap \"Registration\" to find devices already connected to your WiFi network</i></string>
     <string name="open">OPEN</string>
     <string name="closed">CLOSED</string>
     <string name="on">Turn On</string>
@@ -318,5 +318,6 @@
     <string name="offline_no_functionality">Device is offline and cannot be modified</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
+    <string name="fetching_devices">Fetching devices from the cloud. Please wait...</string>
 
 </resources>
