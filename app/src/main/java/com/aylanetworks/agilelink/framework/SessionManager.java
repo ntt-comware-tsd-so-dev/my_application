@@ -9,7 +9,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaCache;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;

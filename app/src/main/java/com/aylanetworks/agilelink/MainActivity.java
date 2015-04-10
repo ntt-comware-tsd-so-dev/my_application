@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -32,11 +33,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
@@ -173,6 +177,16 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
 
         return info.versionName + "." + info.versionCode;
+    }
+
+    public void setCloudConnectivityIndicator(boolean cloudConnectivity) {
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        RelativeLayout layout = (RelativeLayout)getLayoutInflater().inflate(cloudConnectivity ?
+                R.layout.cloud_actionbar : R.layout.wifi_actionbar, null);
+        ImageView icon = (ImageView)layout.findViewById(R.id.icon);
+        icon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
+
+        getSupportActionBar().setCustomView(layout);
     }
 
     /**
@@ -605,13 +619,14 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                         _loginDialog = null;
                     }
                 }
+                setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
             }
         });
     }
 
     @Override
     public void reachabilityChanged(int reachabilityState) {
-
+        setCloudConnectivityIndicator(reachabilityState == AylaNetworks.AML_REACHABILITY_REACHABLE);
     }
 
     @Override
