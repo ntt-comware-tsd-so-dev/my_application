@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
@@ -58,6 +59,7 @@ public class AllDevicesFragment extends Fragment
     protected RecyclerView _recyclerView;
     protected RecyclerView.LayoutManager _layoutManager;
     protected DeviceListAdapter _adapter;
+    protected TextView _emptyView;
 
     public static AllDevicesFragment newInstance(int displayMode) {
         AllDevicesFragment fragment = new AllDevicesFragment();
@@ -126,11 +128,16 @@ public class AllDevicesFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
+        _emptyView = (TextView) view.findViewById(R.id.empty);
 
         // Set up the list view
 
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
+
+        _recyclerView.setVisibility(View.GONE);
+        _emptyView.setVisibility(View.VISIBLE);
+        _emptyView.setText(R.string.fetching_devices);
 
         if ( _displayMode == DISPLAY_MODE_LIST ) {
             _layoutManager = new LinearLayoutManager(getActivity());
@@ -186,6 +193,9 @@ public class AllDevicesFragment extends Fragment
                 MenuHandler.handleWiFiSetup();
                 return;
             }
+            _emptyView.setVisibility(View.GONE);
+            _recyclerView.setVisibility(View.VISIBLE);
+
             _adapter = new DeviceListAdapter(deviceList, this);
             _recyclerView.setAdapter(_adapter);
         }
