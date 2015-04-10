@@ -29,6 +29,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ScanResultsAdapter;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -64,6 +65,8 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
 
         Button b = (Button)v.findViewById(R.id.scan_button);
         b.setOnClickListener(this);
+        b = (Button)v.findViewById(R.id.register_button);
+        b.setOnClickListener(this);
 
         return v;
     }
@@ -72,8 +75,8 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        // Simulate a button click so we start the scan for devices right away
-        onClick(null);
+        // Start the scan for devices right away
+        doScan();
     }
 
     @Override
@@ -124,8 +127,21 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
 
     @Override
     public void onClick(View v) {
-        Log.i(LOG_TAG, "Scan clicked");
+        switch (v.getId() ) {
+            case R.id.scan_button:
+                doScan();
+                break;
 
+            case R.id.register_button:
+                MenuHandler.handleRegistration();
+                break;
+
+            default:
+                Log.e(LOG_TAG, "Unknown click from view: " + v);
+        }
+    }
+
+    private void doScan() {
         // Put up a progress dialog
         MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                 getString(R.string.scanning_for_devices_message));

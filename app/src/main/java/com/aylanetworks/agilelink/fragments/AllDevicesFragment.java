@@ -22,6 +22,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.List;
@@ -180,6 +181,11 @@ public class AllDevicesFragment extends Fragment
         }
 
         if ( deviceList != null ) {
+            if ( deviceList.isEmpty() ) {
+                // Bring up the wifi setup page
+                MenuHandler.handleWiFiSetup();
+                return;
+            }
             _adapter = new DeviceListAdapter(deviceList, this);
             _recyclerView.setAdapter(_adapter);
         }
