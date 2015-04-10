@@ -208,13 +208,13 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onPrepareOptionsMenu(Menu menu) {
         menu.clear();
         // TODO: BSK: If we start getting share IDs back in the Grant objects, we can remove a share here.
         if ( _device.getDevice().amOwner() ) {
-            inflater.inflate(R.menu.menu_device_details, menu);
+            MainActivity.getInstance().getMenuInflater().inflate(R.menu.menu_device_details, menu);
         }
-        super.onCreateOptionsMenu(menu, inflater);
+        super.onPrepareOptionsMenu(menu);
     }
 
     @Override

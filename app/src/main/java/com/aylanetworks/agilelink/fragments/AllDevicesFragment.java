@@ -193,6 +193,8 @@ public class AllDevicesFragment extends Fragment
                 MainActivity.getInstance().setNoDevicesMode(true);
                 return;
             }
+
+            MainActivity.getInstance().setNoDevicesMode(false);
             _emptyView.setVisibility(View.GONE);
             _recyclerView.setVisibility(View.VISIBLE);
 
