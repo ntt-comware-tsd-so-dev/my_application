@@ -446,6 +446,18 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         return parameters;
     }
 
+    @Override
+    public void onBackPressed() {
+        // Open the nav drawer on back unless it's already open (or we don't have one)
+        if ( _drawerToggle != null &&
+                getSupportFragmentManager().getBackStackEntryCount() == 0 &&
+                !isDrawerOpen() ) {
+            openDrawer();
+            return;
+        }
+        super.onBackPressed();
+    }
+
     private void popBackstackToRoot() {
         // Pop to the root of the backstack
         if ( getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
