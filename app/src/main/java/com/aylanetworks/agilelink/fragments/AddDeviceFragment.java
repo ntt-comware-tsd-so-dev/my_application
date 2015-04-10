@@ -52,10 +52,6 @@ import java.util.List;
 public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSelectedListener, View.OnClickListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 
-    private static final int PRODUCT_TYPE_EVB = 0;
-    private static final int PRODUCT_TYPE_SMART_PLUG = 1;
-    private static final int PRODUCT_TYPE_OTHER = 2;
-
     private static final int REG_TYPE_SAME_LAN = 0;
     private static final int REG_TYPE_BUTTON_PUSH = 1;
     private static final int REG_TYPE_DISPLAY = 2;
@@ -67,6 +63,18 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
 
     private TextView _descriptionTextView;
     private List<Device> _deviceList;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
