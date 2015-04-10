@@ -12,6 +12,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -52,6 +53,20 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
 
     public static WiFiSetupFragment newInstance() {
         return new WiFiSetupFragment();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        if ( MainActivity.getInstance().isNoDevicesMode() ) {
+            menu.add(Menu.NONE, R.id.action_sign_out, Menu.NONE, R.string.log_out);
+        }
     }
 
     @Override

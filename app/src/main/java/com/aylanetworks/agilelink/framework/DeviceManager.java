@@ -97,6 +97,10 @@ public class DeviceManager implements DeviceStatusListener {
      * @return The list of all devices
      */
     public List<Device> deviceList() {
+        if ( _deviceList == null ) {
+            return new ArrayList<Device>();
+        }
+
         return new ArrayList<>(_deviceList);
     }
 
@@ -657,7 +661,9 @@ public class DeviceManager implements DeviceStatusListener {
             // Update each device via the service. We need to do this one device at a time; the
             // library does not handle a series of requests all at once at this time.
             if ( _devicesToPoll == null ) {
-                _devicesToPoll = new ArrayList<Device>(_deviceList);
+                if ( _deviceList != null ) {
+                    _devicesToPoll = new ArrayList<Device>(_deviceList);
+                }
 
                 updateNextDeviceStatus();
             } else {

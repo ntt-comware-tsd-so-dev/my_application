@@ -189,8 +189,8 @@ public class AllDevicesFragment extends Fragment
 
         if ( deviceList != null ) {
             if ( deviceList.isEmpty() ) {
-                // Bring up the wifi setup page
-                MenuHandler.handleWiFiSetup();
+                // Enter no devices mode
+                MainActivity.getInstance().setNoDevicesMode(true);
                 return;
             }
             _emptyView.setVisibility(View.GONE);

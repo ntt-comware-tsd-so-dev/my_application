@@ -179,6 +179,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         return info.versionName + "." + info.versionCode;
     }
 
+    /**
+     * Sets the appropriate connectivity icon in the action bar. This will be a cloud if we have
+     * connectivity to the Ayla cloud service, or a WiFi icon if we do not.
+     *
+     * @param cloudConnectivity true if we can connect to the cloud, false otherwise
+     */
     public void setCloudConnectivityIndicator(boolean cloudConnectivity) {
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         RelativeLayout layout = (RelativeLayout)getLayoutInflater().inflate(cloudConnectivity ?
@@ -187,6 +193,34 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         icon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
 
         getSupportActionBar().setCustomView(layout);
+    }
+
+    private boolean _noDevicesMode = false;
+    /**
+     * Sets the application in a mode when no devices are present. The only available options to the
+     * user at this point are to scan for devices in wifi setup, or register devices.
+     * @param noDevices
+     */
+    public void setNoDevicesMode(boolean noDevices) {
+        if ( noDevices == _noDevicesMode ) {
+            return;
+        }
+
+        _noDevicesMode = noDevices;
+        popBackstackToRoot();
+        if ( _noDevicesMode ) {
+            setContentView(R.layout.activity_main_no_devices);
+        } else {
+            initUI();
+        }
+    }
+
+    /**
+     * Returns true if the app is in "no devices" mode where only the wifi setup page is visible
+     * @return true if the app is in "no devices" mode
+     */
+    public boolean isNoDevicesMode() {
+        return _noDevicesMode;
     }
 
     /**
@@ -280,6 +314,21 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         super.onCreate(savedInstanceState);
 
+        initUI();
+
+        // Set up the session manager with our session parameters
+        SessionManager.setParameters(getAppParameters());
+
+        // We want to know when the user logs in or out
+        SessionManager.addSessionListener(this);
+
+        // Bring up the login dialog if we're not already logged in
+        if (!SessionManager.isLoggedIn()) {
+            showLoginDialog();
+        }
+    }
+
+    private void initUI() {
         switch ( getUIConfig()._navStyle ) {
             case Pager:
                 initPager();
@@ -288,17 +337,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             case Drawer:
                 initDrawer();
                 break;
-        }
-
-        // Set up the session manager with our session parameters
-        SessionManager.setParameters(getAppParameters());
-
-        // We want to know when
-        SessionManager.addSessionListener(this);
-
-        // Bring up the login dialog if we're not already logged in
-        if (!SessionManager.isLoggedIn()) {
-            showLoginDialog();
         }
     }
 
@@ -465,6 +503,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     public void onBackPressed() {
         // Open the nav drawer on back unless it's already open (or we don't have one)
         if ( _drawerToggle != null &&
+                !_noDevicesMode &&
                 getSupportFragmentManager().getBackStackEntryCount() == 0 &&
                 !isDrawerOpen() ) {
             openDrawer();
@@ -520,6 +559,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     protected void onSaveInstanceState(Bundle outState) {
         // No call for super(). Bug on API Level > 11.
         // https://code.google.com/p/android/issues/detail?id=19917
+        Log.d(LOG_TAG, "onSaveInstanceState: " + outState);
     }
 
     @Override
@@ -610,6 +650,8 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 dismissWaitDialog();
                 Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
                 if (!loggedIn) {
+                    // User logged out.
+                    setNoDevicesMode(false);
                     if (_loginDialog == null) {
                         showLoginDialog();
                     }
