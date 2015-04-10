@@ -22,9 +22,11 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.internal.view.menu.MenuBuilder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -38,17 +40,25 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
+import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
+import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
+import com.aylanetworks.agilelink.fragments.EditProfileDialog;
+import com.aylanetworks.agilelink.fragments.NotificationsFragment;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
+import com.aylanetworks.agilelink.fragments.WiFiSetupFragment;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -293,16 +303,28 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     private DrawerLayout _drawerLayout;
     private ListView _drawerList;
     private ActionBarDrawerToggle _drawerToggle;
+    private List<MenuItem> _drawerMenuItems;
 
     private void initDrawer() {
         Log.d(LOG_TAG, "initDrawer");
 
         setContentView(R.layout.activity_main_drawer);
+        // Load the drawer menu resource. We will be using the menu items in our listview.
+        Menu menu = new MenuBuilder(this);
+        MenuInflater inflater = new MenuInflater(this);
+        inflater.inflate(R.menu.menu_drawer, menu);
+        inflater.inflate(R.menu.menu_settings, menu);
 
-        String drawerItems[] = getResources().getStringArray(R.array.drawer_items);
+        _drawerMenuItems = new ArrayList<MenuItem>();
+        for ( int i = 0; i < menu.size(); i++ ) {
+            MenuItem item = menu.getItem(i);
+            Log.d(LOG_TAG, "Menu item " + i + ": " + item);
+            _drawerMenuItems.add(item);
+        }
+
         _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         _drawerList = (ListView)findViewById(R.id.left_drawer);
-        _drawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.navigation_drawer_item, R.id.nav_textview, drawerItems));
+        _drawerList.setAdapter(new ArrayAdapter<MenuItem>(this, R.layout.navigation_drawer_item, R.id.nav_textview, _drawerMenuItems));
         _drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -361,37 +383,16 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         Log.d(LOG_TAG, "Drawer Closed");
         supportInvalidateOptionsMenu();
     }
+    public void settingsMenuItemClicked(MenuItem item) {
+        MenuHandler.handleMenuItem(item);
+    }
 
     private void onDrawerItemClicked(int position) {
-        Log.d(LOG_TAG, "Drawer item clicked: " + position);
-        int displayMode = getUIConfig()._listStyle == UIConfig.ListStyle.List ?
-                AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
-
-        Fragment frag;
-        switch ( position ) {
-            case 0:
-                // All Devices
-                frag = AllDevicesFragment.newInstance(displayMode);
-                break;
-
-            case 1:
-                // Device groups
-                frag = DeviceGroupsFragment.newInstance(displayMode);
-                break;
-
-            case 2:
-                // Settings
-                frag = SettingsFragment.newInstance();
-                break;
-
-            default:
-                Log.e(LOG_TAG, "Unknown drawer item position: " + position);
-                return;
-        }
-
+        MenuItem menuItem = _drawerMenuItems.get(position);
         popBackstackToRoot();
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, frag).commit();
-        closeDrawer();
+        if (MenuHandler.handleMenuItem(menuItem)) {
+            closeDrawer();
+        }
     }
 
     /**
@@ -458,7 +459,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         super.onBackPressed();
     }
 
-    private void popBackstackToRoot() {
+    public void popBackstackToRoot() {
         // Pop to the root of the backstack
         if ( getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
             FragmentManager.BackStackEntry firstEntry = getSupportFragmentManager().getBackStackEntryAt(0);
@@ -712,6 +713,11 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 return true;
             }
         }
+
+        if (MenuHandler.handleMenuItem(item)) {
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 

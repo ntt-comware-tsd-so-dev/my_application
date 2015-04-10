@@ -319,10 +319,4 @@
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
 
-    <string-array name="drawer_items">
-        <item>All Devices</item>
-        <item>Device Groups</item>
-        <item>Settings</item>
-    </string-array>
-
 </resources>
