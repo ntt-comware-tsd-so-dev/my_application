@@ -244,11 +244,13 @@ public class Device implements Comparable<Device> {
      * overrides this method to return "Switch" when refering to the "outlet1" property used to
      * control the switch.
      *
+     * The default behavior is to return the actual property name.
+     *
      * @param propertyName Property name to translate into something presentable to the user
      * @return The friendly name for the property
      */
     public String friendlyNameForPropertyName(String propertyName) {
-        return MainActivity.getInstance().getString(R.string.unknown_property_name);
+        return propertyName;
     }
 
     /**

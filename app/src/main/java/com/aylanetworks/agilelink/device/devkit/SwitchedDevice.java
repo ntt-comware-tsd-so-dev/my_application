@@ -73,7 +73,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         if (propertyName.equals(PROPERTY_OUTLET)) {
             return MainActivity.getInstance().getString(R.string.property_outlet_friendly_name);
         }
-        return MainActivity.getInstance().getString(R.string.unknown_property_name);
+        return super.friendlyNameForPropertyName(propertyName);
     }
 
     @Override

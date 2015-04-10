@@ -21,7 +21,7 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
-    <string name="device_properties">Device Properties</string>
+    <string name="device_properties">Properties</string>
     <string name="up"><u>Sign Up</u></string>
     <string name="forgot"><u>Forgot Password</u></string>
     <string name="resend_confirmation"><u>Re-send Email Confirmation</u></string>

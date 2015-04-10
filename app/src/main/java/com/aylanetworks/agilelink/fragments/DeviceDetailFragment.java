@@ -513,7 +513,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             Log.d(LOG_TAG, "Property: " + prop.name() + " Type: " + prop.baseType + " Value: " + prop.value);
 
-            propName.setText(prop.name());
+            propName.setText(_device.friendlyNameForPropertyName(prop.name()));
             propValueText.setOnClickListener(null);
             if ( prop.direction().equals("output")) {
                 // This is a read-only property

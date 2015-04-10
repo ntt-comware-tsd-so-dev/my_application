@@ -99,7 +99,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
             case PROPERTY_GREEN_LED:
                 return MainActivity.getInstance().getString(R.string.green_led);
         }
-        return MainActivity.getInstance().getString(R.string.unknown_property_name);
+        return super.friendlyNameForPropertyName(propertyName);
     }
 
     @Override
