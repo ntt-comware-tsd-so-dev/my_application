@@ -323,6 +323,9 @@ public class DeviceManager implements DeviceStatusListener {
                             if (error == AylaNetworks.AML_ERROR_OK) {
                                 // We're done with this device. On to the next!
                                 updateNextDevice();
+                            } else {
+                                // Something went wrong.
+                                _listener.notificationsUpdated(false, lastMessage);
                             }
                         }
                     });
