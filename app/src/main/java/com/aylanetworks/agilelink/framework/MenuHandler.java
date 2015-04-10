@@ -95,7 +95,6 @@ public class MenuHandler {
                 break;
 
             default:
-                Toast.makeText(MainActivity.getInstance(), "Coming soon!", Toast.LENGTH_SHORT).show();
                 return false;
         }
 

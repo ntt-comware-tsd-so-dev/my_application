@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/action_unregister_device"
-          android:title="@string/unregister_device"
-          android:orderInCategory="200"/>
+          android:title="@string/unregister_device"/>
+
+    <item android:id="@+id/action_timezone"
+          android:title="@string/timezone_button_text"/>
 </menu>

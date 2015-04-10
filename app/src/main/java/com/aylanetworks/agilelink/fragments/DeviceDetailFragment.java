@@ -26,7 +26,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,9 +35,6 @@ import com.aylanetworks.aaml.AylaGrant;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
-import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.aaml.AylaTimezone;
-import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
@@ -113,9 +109,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         button.setOnClickListener(this);
 
         button = (Button)view.findViewById(R.id.schedule_button);
-        button.setOnClickListener(this);
-
-        button = (Button)view.findViewById(R.id.timezone_button);
         button.setOnClickListener(this);
 
         button = (Button)view.findViewById(R.id.sharing_button);
@@ -261,16 +254,24 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_unregister_device) {
-            if ( _device.getDevice().amOwner() ) {
-                unregisterDevice();
-            } else {
-                removeShare();
-            }
-            return true;
+        switch (item.getItemId() ) {
+            case R.id.action_unregister_device:
+                if ( _device.getDevice().amOwner() ) {
+                    unregisterDevice();
+                } else {
+                    removeShare();
+                }
+                break;
+
+            case R.id.action_timezone:
+                updateTimezone();
+                break;
+
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @Override
@@ -398,7 +399,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         }
     }
 
-    private void timezoneClicked() {
+    private void updateTimezone() {
         // Fetch the timezone for the device
         MainActivity.getInstance().showWaitDialog(R.string.fetching_timezone_title, R.string.fetching_timezone_body);
         _device.fetchTimezone(new Device.DeviceStatusListener() {
@@ -470,10 +471,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.sharing_button:
                 sharingClicked();
-                break;
-
-            case R.id.timezone_button:
-                timezoneClicked();
                 break;
 
             default:
