@@ -11,8 +11,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaShare;
-import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
