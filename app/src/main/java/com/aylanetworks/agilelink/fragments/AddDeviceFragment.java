@@ -58,10 +58,24 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
 
     private static final String ARG_REG_TYPE = "registration_type";
 
+    /**
+     * Default instance creator class method
+     * @return A new AddDeviceFragment ready for user interaction
+     */
     public static AddDeviceFragment newInstance() {
         return newInstance(null);
     }
 
+    /**
+     * Instance creator class method with a registration type. This method should be called to
+     * create an instance of the AddDeviceFragment when the device's registration type is
+     * known ahead of time. This happens after wifi setup. When the fragment is created with
+     * this method, the fragment will automatically select the supplied registrationType
+     * in the UI and tap the button to register the device.
+     *
+     * @param registrationType Registration type string for the device to be set up
+     * @return The new AddDeviceFragment that will automatically register when displayed
+     */
     public static AddDeviceFragment newInstance(String registrationType) {
         AddDeviceFragment frag = new AddDeviceFragment();
         Bundle args = new Bundle();
