@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaHostScanResults;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
@@ -243,10 +244,12 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Connect to service handler: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
-            AylaSetup.exit();
             if ( AylaNetworks.succeeded(msg) ) {
                 Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_SHORT).show();
-                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
+                // Confirm service connection. We need to do this to get the device information
+                // to register it.
+                MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
+                AylaSetup.confirmNewDeviceToServiceConnection(new ConfirmNewDeviceHandler());
             } else {
                 // Check for invalid key present in the error message
                 String emsg = (String) msg.obj;
@@ -258,7 +261,27 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
                 }
             }
         }
-    };
+    }
+
+    static class ConfirmNewDeviceHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity.getInstance().dismissWaitDialog();
+            AylaSetup.exit();
+
+            if ( AylaNetworks.succeeded(msg) ) {
+                AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
+                Log.d(LOG_TAG, "New device: " + device);
+                // Launch the setup dialog with the new device's registration type
+                AddDeviceFragment frag = AddDeviceFragment.newInstance(device.registrationType);
+                MainActivity.getInstance().popBackstackToRoot();
+                MainActivity.getInstance().pushFragment(frag);
+            } else {
+                Log.e(LOG_TAG, "Confirm new device failed: " + msg);
+                Toast.makeText(MainActivity.getInstance(), (String)msg.obj, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 
     private void connectDeviceToService(String ssid, String security, String password) {
         AylaSetup.lanSsid = ssid;

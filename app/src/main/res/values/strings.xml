@@ -319,5 +319,7 @@
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
     <string name="fetching_devices">Fetching devices from the cloud. Please wait...</string>
+    <string name="confirm_new_device_title">Confirming connection</string>
+    <string name="confirm_new_device_body">Confirming connection to the cloud service. Please wait...</string>
 
 </resources>

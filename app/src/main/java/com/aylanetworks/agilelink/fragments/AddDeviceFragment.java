@@ -56,8 +56,19 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
     private static final int REG_TYPE_BUTTON_PUSH = 1;
     private static final int REG_TYPE_DISPLAY = 2;
 
+    private static final String ARG_REG_TYPE = "registration_type";
+
     public static AddDeviceFragment newInstance() {
+        return newInstance(null);
+    }
+
+    public static AddDeviceFragment newInstance(String registrationType) {
         AddDeviceFragment frag = new AddDeviceFragment();
+        Bundle args = new Bundle();
+        if ( registrationType != null ) {
+            args.putString(ARG_REG_TYPE, registrationType);
+        }
+        frag.setArguments(args);
         return frag;
     }
 
@@ -106,9 +117,39 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         s.setAdapter(adapter);
 
         // Hook up the "Register" button
-        Button b = (Button)view.findViewById(R.id.register_button);
+        final Button b = (Button)view.findViewById(R.id.register_button);
         b.setOnClickListener(this);
 
+        // If we were started with arguments, let's behave automatically.
+        String regType = getArguments().getString(ARG_REG_TYPE);
+        if ( regType != null ) {
+            switch (regType) {
+                case AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN:
+                    s.setSelection(REG_TYPE_SAME_LAN);
+                    break;
+
+                case AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH:
+                    s.setSelection(REG_TYPE_BUTTON_PUSH);
+                    break;
+
+                case AylaNetworks.AML_REGISTRATION_TYPE_DISPLAY:
+                    s.setSelection(REG_TYPE_DISPLAY);
+                    break;
+
+                default:
+                    Log.e(LOG_TAG, "Unsupported registration type: " + regType);
+                    return view;
+            }
+
+            // Do the click after a short delay. The system needs to finish setting up the views
+            // before this will work properly.
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    b.performClick();
+                }
+            }, 100);
+        }
         return view;
     }
 
