@@ -31,6 +31,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ScanResultsAdapter;
 import com.aylanetworks.agilelink.framework.MenuHandler;
+import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -90,6 +91,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
+        SessionManager.deviceManager().stopPolling();
         // Start the scan for devices right away
         doScan();
     }
@@ -97,6 +99,7 @@ public class WiFiSetupFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onDetach() {
         super.onDetach();
+        SessionManager.deviceManager().startPolling();
         AylaSetup.exit();
     }
 
