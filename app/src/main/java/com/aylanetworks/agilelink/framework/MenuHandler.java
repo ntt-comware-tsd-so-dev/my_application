@@ -22,7 +22,6 @@ import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileDialog;
 import com.aylanetworks.agilelink.fragments.NotificationsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
-import com.aylanetworks.agilelink.fragments.WiFiSetupFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,16 +57,12 @@ public class MenuHandler {
                 handleDeviceGroups();
                 break;
 
-            case R.id.action_registration:
-                handleRegistration();
+            case R.id.action_add_device:
+                handleAddDevice();
                 break;
 
             case R.id.action_contact_list:
                 handleContacts();
-                break;
-
-            case R.id.action_wifi_setup:
-                handleWiFiSetup();
                 break;
 
             case R.id.action_notifications:
@@ -119,7 +114,7 @@ public class MenuHandler {
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
     }
 
-    public static void handleRegistration() {
+    public static void handleAddDevice() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
@@ -127,11 +122,6 @@ public class MenuHandler {
 
     public static void handleContacts() {
         ContactListFragment frag = ContactListFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    public static void handleWiFiSetup() {
-        WiFiSetupFragment frag = WiFiSetupFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 

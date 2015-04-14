@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/action_registration"
-          android:title="@string/registration"/>
+    <item android:id="@+id/action_add_device"
+          android:title="@string/add_device"/>
 
     <item android:id="@+id/action_contact_list"
           android:title="@string/contact_list"/>
-
-    <item android:id="@+id/action_wifi_setup"
-          android:title="@string/wifi_setup"/>
 
     <item android:id="@+id/action_notifications"
           android:title="@string/notifications"/>

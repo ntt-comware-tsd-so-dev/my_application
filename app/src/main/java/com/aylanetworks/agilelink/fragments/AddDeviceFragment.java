@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -9,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,22 +17,23 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaHostScanResults;
+import com.aylanetworks.aaml.AylaModule;
+import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
+import com.aylanetworks.agilelink.fragments.adapters.ScanResultsAdapter;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -49,50 +50,42 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSelectedListener, View.OnClickListener {
+public class AddDeviceFragment extends Fragment
+        implements AdapterView.OnItemSelectedListener, View.OnClickListener,
+        ChooseAPDialog.ChooseAPResults {
     private static final String LOG_TAG = "AddDeviceFragment";
 
     private static final int REG_TYPE_SAME_LAN = 0;
     private static final int REG_TYPE_BUTTON_PUSH = 1;
     private static final int REG_TYPE_DISPLAY = 2;
 
-    private static final String ARG_REG_TYPE = "registration_type";
-
     /**
      * Default instance creator class method
+     *
      * @return A new AddDeviceFragment ready for user interaction
      */
     public static AddDeviceFragment newInstance() {
-        return newInstance(null);
-    }
-
-    /**
-     * Instance creator class method with a registration type. This method should be called to
-     * create an instance of the AddDeviceFragment when the device's registration type is
-     * known ahead of time. This happens after wifi setup. When the fragment is created with
-     * this method, the fragment will automatically select the supplied registrationType
-     * in the UI and tap the button to register the device.
-     *
-     * @param registrationType Registration type string for the device to be set up
-     * @return The new AddDeviceFragment that will automatically register when displayed
-     */
-    public static AddDeviceFragment newInstance(String registrationType) {
-        AddDeviceFragment frag = new AddDeviceFragment();
-        Bundle args = new Bundle();
-        if ( registrationType != null ) {
-            args.putString(ARG_REG_TYPE, registrationType);
-        }
-        frag.setArguments(args);
-        return frag;
+        return new AddDeviceFragment();
     }
 
     private TextView _descriptionTextView;
-    private List<Device> _deviceList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SessionManager.deviceManager().stopPolling();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        SessionManager.deviceManager().startPolling();
     }
 
     @Override
@@ -115,62 +108,40 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         });
 
         // Get our description text view
-        _descriptionTextView = (TextView)view.findViewById(R.id.registration_description);
+        _descriptionTextView = (TextView) view.findViewById(R.id.registration_description);
         _descriptionTextView.setText(getActivity().getResources().getString(R.string.registration_same_lan_instructions));
 
         // Populate the spinners for product type & registration type
-        Spinner s = (Spinner)view.findViewById(R.id.spinner_product_type);
+        Spinner s = (Spinner) view.findViewById(R.id.spinner_product_type);
         s.setOnItemSelectedListener(this);
         s.setAdapter(createProductTypeAdapter());
 
-        s = (Spinner)view.findViewById(R.id.spinner_registration_type);
+        s = (Spinner) view.findViewById(R.id.spinner_registration_type);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         s.setSelection(REG_TYPE_SAME_LAN);
         s.setOnItemSelectedListener(this);
         s.setAdapter(adapter);
 
+        final Button scanButton = (Button) view.findViewById(R.id.scan_button);
+        scanButton.setOnClickListener(this);
+
         // Hook up the "Register" button
-        final Button b = (Button)view.findViewById(R.id.register_button);
-        b.setOnClickListener(this);
+        Button registerButton = (Button) view.findViewById(R.id.register_button);
+        registerButton.setOnClickListener(this);
 
-        // If we were started with arguments, let's behave automatically.
-        String regType = getArguments().getString(ARG_REG_TYPE);
-        if ( regType != null ) {
-            switch (regType) {
-                case AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN:
-                    s.setSelection(REG_TYPE_SAME_LAN);
-                    break;
+        // Stop polling
+        SessionManager.deviceManager().stopPolling();
 
-                case AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH:
-                    s.setSelection(REG_TYPE_BUTTON_PUSH);
-                    break;
+        doScan();
 
-                case AylaNetworks.AML_REGISTRATION_TYPE_DISPLAY:
-                    s.setSelection(REG_TYPE_DISPLAY);
-                    break;
-
-                default:
-                    Log.e(LOG_TAG, "Unsupported registration type: " + regType);
-                    return view;
-            }
-
-            // Do the click after a short delay. The system needs to finish setting up the views
-            // before this will work properly.
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    b.performClick();
-                }
-            }, 100);
-        }
         return view;
     }
 
     ArrayAdapter<Device> createProductTypeAdapter() {
         List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
         ArrayList<Device> deviceList = new ArrayList<>();
-        for ( Class<? extends Device> c : deviceClasses ) {
+        for (Class<? extends Device> c : deviceClasses) {
             try {
                 AylaDevice fakeDevice = new AylaDevice();
                 Device d = c.getDeclaredConstructor(AylaDevice.class).newInstance(fakeDevice);
@@ -194,34 +165,34 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if ( parent.getId() == R.id.spinner_product_type ) {
+        if (parent.getId() == R.id.spinner_product_type) {
             // Update the product type. We will set the appropriate value on the registration
             // type when this is selected.
-            Spinner regTypeSpinner = (Spinner)getView().findViewById(R.id.spinner_registration_type);
+            Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
 
-            Device d = (Device)parent.getAdapter().getItem(position);
+            Device d = (Device) parent.getAdapter().getItem(position);
 
             // Find the index of the preferred registration type of the selected device
             Adapter adapter = regTypeSpinner.getAdapter();
             int i;
-            for ( i = 0; i < adapter.getCount(); i++ ) {
-                String type = (String)adapter.getItem(i);
-                if ( type.equals(d.registrationType()) )
+            for (i = 0; i < adapter.getCount(); i++) {
+                String type = (String) adapter.getItem(i);
+                if (type.equals(d.registrationType()))
                     break;
             }
 
             // Set the appropriate registration type
-            if ( i < (adapter.getCount())) {
+            if (i < (adapter.getCount())) {
                 regTypeSpinner.setSelection(i, true);
             } else {
                 Log.e(LOG_TAG, "Unknown registration type: " + d.registrationType());
                 regTypeSpinner.setSelection(REG_TYPE_SAME_LAN, true);
             }
 
-        } else if ( parent.getId() == R.id.spinner_registration_type ) {
+        } else if (parent.getId() == R.id.spinner_registration_type) {
             // Update the display text
             int textId;
-            switch ( position ) {
+            switch (position) {
                 case REG_TYPE_BUTTON_PUSH:
                 default:
                     textId = R.string.registration_button_push_instructions;
@@ -242,8 +213,8 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
     }
 
     private String getSelectedRegistrationType() {
-        Spinner regTypeSpinner = (Spinner)getView().findViewById(R.id.spinner_registration_type);
-        switch ( regTypeSpinner.getSelectedItemPosition() ) {
+        Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
+        switch (regTypeSpinner.getSelectedItemPosition()) {
             case REG_TYPE_SAME_LAN:
                 return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
             case REG_TYPE_BUTTON_PUSH:
@@ -259,8 +230,57 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         Log.i(LOG_TAG, "Nothing Selected");
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.register_button:
+                // Register button clicked
+                Log.i(LOG_TAG, "Register clicked");
+
+                MainActivity.getInstance().showWaitDialog(null, null);
+                AylaDevice newDevice = new AylaDevice();
+                newDevice.registrationType = getSelectedRegistrationType();
+                registerNewDevice(newDevice);
+                break;
+
+            case R.id.scan_button:
+                Log.i(LOG_TAG, "Scan clicked");
+                doScan();
+                break;
+        }
+    }
+
+    private void doScan() {
+        // Put up a progress dialog
+        MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
+                getString(R.string.scanning_for_devices_message));
+
+        AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
+    }
+
+    @Override
+    public void choseAccessPoint(String accessPoint, String security, String password) {
+        Log.d(LOG_TAG, "choseAccessPoint: " + accessPoint + "[" + security + "]");
+        if ( accessPoint == null ) {
+            AylaSetup.exit();
+        } else {
+            connectDeviceToService(accessPoint, security, password);
+        }
+    }
+
+    private void connectDeviceToService(String ssid, String security, String password) {
+        AylaSetup.lanSsid = ssid;
+        AylaSetup.lanPassword = password;
+        AylaSetup.lanSecurityType = security;
+
+        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this));
+        MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_network_title),
+                getString(R.string.connecting_to_network_body));
+    }
+
     static class RegisterHandler extends Handler {
         private WeakReference<AddDeviceFragment> _addDeviceFragment;
+
         public RegisterHandler(AddDeviceFragment addDeviceFragment) {
             _addDeviceFragment = new WeakReference<AddDeviceFragment>(addDeviceFragment);
         }
@@ -269,9 +289,9 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         public void handleMessage(Message msg) {
             Log.i(LOG_TAG, "Register handler called: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
-            if ( msg.arg1 >= 200 && msg.arg1 < 300 ) {
+            if (msg.arg1 >= 200 && msg.arg1 < 300) {
                 // Success!
-                AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
+                AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
                 Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(aylaDevice);
                 MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
                 // Now update the device notifications
@@ -296,16 +316,183 @@ public class AddDeviceFragment extends Fragment implements AdapterView.OnItemSel
         }
     }
 
-    private RegisterHandler _registerHandler = new RegisterHandler(this);
+    private AylaHostScanResults _hostScanResults[];
+    private void handleScanResults(final AylaHostScanResults[] scanResults) {
+        _hostScanResults = scanResults;
+        if ( scanResults == null || scanResults.length == 0 ) {
+            Toast.makeText(getActivity(), R.string.no_devices_found, Toast.LENGTH_LONG).show();
+        } else if ( scanResults.length == 1 ) {
+            // We have exactly one AP to set up. Let's just set it up now
+            connectToAP(scanResults[0]);
+        } else {
+            // Let the user choose which device to connect to
+            String apNames[] = new String[scanResults.length];
+            for ( int i = 0; i < scanResults.length; i++ ) {
+                apNames[i] = scanResults[i].ssid;
+            }
 
-    @Override
-    public void onClick(View v) {
-        // Register button clicked
-        Log.i(LOG_TAG, "Register clicked");
+            new AlertDialog.Builder(getActivity())
+                    .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            connectToAP(scanResults[which]);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create().show();
+        }
+    }
 
-        MainActivity.getInstance().showWaitDialog(null, null);
-        AylaDevice newDevice = new AylaDevice();
-        newDevice.registrationType = getSelectedRegistrationType();
-        newDevice.registerNewDevice(_registerHandler);
+    private void connectToAP(AylaHostScanResults scanResult) {
+        AylaSetup.newDevice.hostScanResults = scanResult;
+        AylaSetup.lanSsid = scanResult.ssid;
+        AylaSetup.lanSecurityType = scanResult.keyMgmt;
+
+        // Connect to the device
+        MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title),
+                getString(R.string.connecting_to_device_body));
+        AylaSetup.connectToNewDevice(new ConnectHandler(this));
+    }
+
+    private void registerNewDevice(AylaDevice device) {
+        MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+        device.registerNewDevice(new RegisterHandler(this));
+    }
+
+    /**
+     * Handler called with the results from {@link com.aylanetworks.aaml.AylaSetup#returnHostScanForNewDevices}.
+     * We will get a set of APs that match the SSID regex in the SessionParameters.
+     */
+    static class DeviceScanHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _frag;
+
+        public DeviceScanHandler(AddDeviceFragment frag) {
+            _frag = new WeakReference<AddDeviceFragment>(frag);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Got scan results: " + msg);
+            MainActivity.getInstance().dismissWaitDialog();
+
+            if ( AylaNetworks.succeeded(msg) ) {
+                String json = (String)msg.obj;
+                _frag.get().handleScanResults(AylaSystemUtils.gson.fromJson(json, AylaHostScanResults[].class));
+            } else {
+                String errMsg = (String)msg.obj;
+                if ( errMsg == null || errMsg.contains("DISABLED") ) {
+                    errMsg = _frag.get().getString(R.string.error_wifi_not_enabled);
+                }
+                Toast.makeText(_frag.get().getActivity(), errMsg, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * Handler called with the results for the AP scan (scan for devices)
+     */
+    static class ScanForAPsHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _fragment;
+
+        public ScanForAPsHandler(AddDeviceFragment fragment) {
+            _fragment = new WeakReference<AddDeviceFragment>(fragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity.getInstance().dismissWaitDialog();
+            Log.d(LOG_TAG, "Scan for APs handler: " + msg);
+            if ( AylaNetworks.succeeded(msg) ) {
+                String json = (String)msg.obj;
+                ChooseAPDialog d = ChooseAPDialog.newInstance(AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class));
+                d.setTargetFragment(_fragment.get(), 0);
+                d.show(MainActivity.getInstance().getSupportFragmentManager(), "ap");
+            }
+        }
+    }
+
+    /**
+     * Handler called when attempting to connect to the device's AP
+     */
+    static class ConnectHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _fragment;
+
+        public ConnectHandler(AddDeviceFragment frag) {
+            _fragment = new WeakReference<AddDeviceFragment>(frag);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Connect handler: " + msg);
+            MainActivity activity = MainActivity.getInstance();
+            activity.dismissWaitDialog();
+
+            if ( AylaNetworks.succeeded(msg) ) {
+                String json = (String)msg.obj;
+                AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
+                AylaSetup.getNewDeviceScanForAPs(new ScanForAPsHandler(_fragment.get()));
+                activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title),
+                        activity.getString(R.string.scanning_for_aps_body));
+            } else {
+                Log.e(LOG_TAG, "Connect handler error: " + msg);
+                Toast.makeText(activity, R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
+                AylaSetup.exit();
+            }
+        }
+    }
+
+    static class ConfirmNewDeviceHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _frag;
+
+        public ConfirmNewDeviceHandler(AddDeviceFragment frag) {
+            _frag = new WeakReference<AddDeviceFragment>(frag);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity.getInstance().dismissWaitDialog();
+            AylaSetup.exit();
+
+            if ( AylaNetworks.succeeded(msg) ) {
+                AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
+                Log.d(LOG_TAG, "New device: " + device);
+                // Set up the new device
+                _frag.get().registerNewDevice(device);
+            } else {
+                Log.e(LOG_TAG, "Confirm new device failed: " + msg);
+                Toast.makeText(MainActivity.getInstance(), (String)msg.obj, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    static class ConnectToServiceHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _frag;
+        public ConnectToServiceHandler(AddDeviceFragment frag) {
+            _frag = new WeakReference<AddDeviceFragment>(frag);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Connect to service handler: " + msg);
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( AylaNetworks.succeeded(msg) ) {
+                Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_SHORT).show();
+                // Confirm service connection. We need to do this to get the device information
+                // to register it.
+                MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
+                AylaSetup.confirmNewDeviceToServiceConnection(new ConfirmNewDeviceHandler(_frag.get()));
+            } else {
+                // Check for invalid key present in the error message
+                String emsg = (String) msg.obj;
+                if (emsg != null && emsg.contains("invalid key")) {
+                    Toast.makeText(MainActivity.getInstance(), R.string.bad_wifi_password, Toast.LENGTH_LONG).show();
+                } else {
+                    String anErrMsg = (String) msg.obj;
+                    if ( anErrMsg == null ) {
+                        anErrMsg = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
+                    }
+                    Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
+                }
+            }
+        }
     }
 }
