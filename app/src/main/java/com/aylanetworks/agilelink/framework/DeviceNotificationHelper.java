@@ -418,6 +418,7 @@ public class DeviceNotificationHelper {
         params.pushSound = "default";
         params.registrationId = PushNotification.registrationId;
 
+        Log.d(LOG_TAG, "createApp[" + notificationType + "] email: " + params.email + " countryCode: " + params.countryCode + " phoneNumber: " + params.phoneNumber);
         deviceNotification.createApp(new CreateAppHandler(_device, deviceNotification, listener), appNotification);
     }
 
