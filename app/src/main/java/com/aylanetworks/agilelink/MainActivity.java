@@ -44,17 +44,12 @@ import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
-import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
-import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
-import com.aylanetworks.agilelink.fragments.EditProfileDialog;
-import com.aylanetworks.agilelink.fragments.NotificationsFragment;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SignInDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
-import com.aylanetworks.agilelink.fragments.WiFiSetupFragment;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
@@ -685,7 +680,13 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
                 R.anim.abc_fade_in, R.anim.abc_fade_out);
-        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        if ( getUIConfig()._navStyle == UIConfig.NavStyle.Pager ) {
+            // For the pager navigation, we push the fragment
+            ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        } else {
+            // For the drawer navigation, we replace the fragment
+            ft.replace(R.id.content_frame, frag).addToBackStack(null).commit();
+        }
     }
 
     static class SignUpConfirmationHandler extends Handler {

@@ -18,8 +18,10 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /*
@@ -83,8 +85,11 @@ public class AccountSettings {
      * @param callback Callback called when the settings have been retrieved from the server
      */
     public static void fetchAccountSettings(AylaUser user, AccountSettingsCallback callback) {
-        // Get the datum
-        user.getDatumWithKey(new FetchDatumHandler(user, callback), getDatumName());
+        // Get the current user info first, then fetch the account settings and call the
+        // callback.
+        Map<String, String> callParams = new HashMap<>();
+        callParams.put("access_token", user.getAccessToken());
+        AylaUser.getInfo(new GetUserInfoHandler(user, callback), callParams);
     }
 
     /**
@@ -127,7 +132,12 @@ public class AccountSettings {
      * Callers should call the {@link #pushToServer(com.aylanetworks.agilelink.framework.AccountSettings.AccountSettingsCallback)}
      * method in order to persist changes to AccountSettings once all local updates have been made.
      *
-     * @param notificationMethod
+     * @param notificationMethod The notification method. One of:
+     *                           <ul>
+     *                           <li>{@link DeviceNotificationHelper#NOTIFICATION_METHOD_PUSH}</li>
+     *                           <li>{@link DeviceNotificationHelper#NOTIFICATION_METHOD_EMAIL}</li>
+     *                           <li>{@link DeviceNotificationHelper#NOTIFICATION_METHOD_SMS}</li>
+     *                           </ul>
      */
     public void addNotificationMethod(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
@@ -304,6 +314,33 @@ public class AccountSettings {
                     _callback.settingsUpdated(null, msg);
                 }
             }
+        }
+    }
+
+    protected static class GetUserInfoHandler extends Handler {
+        AylaUser _user;
+        AccountSettingsCallback _callback;
+
+        public GetUserInfoHandler(AylaUser user, AccountSettingsCallback callback) {
+            _user = user;
+            _callback = callback;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if ( AylaNetworks.succeeded(msg) ) {
+                AylaUser user = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
+                user.setauthHeaderValue(_user.getauthHeaderValue());
+                user.setAccessToken(_user.getAccessToken());
+                user.setRefreshToken(_user.getRefreshToken());
+                user.setExpiresIn(_user.getExpiresIn());
+                AylaUser.setCurrent(user);
+                Log.d(LOG_TAG, "Fetched current user details: " + user);
+                _user = user;
+            } else {
+                Log.e(LOG_TAG, "Failed to fetch current user details: " + msg);
+            }
+            _user.getDatumWithKey(new FetchDatumHandler(_user, _callback), getDatumName());
         }
     }
 }
