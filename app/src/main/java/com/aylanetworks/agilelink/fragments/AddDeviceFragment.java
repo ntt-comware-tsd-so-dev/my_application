@@ -303,9 +303,7 @@ public class AddDeviceFragment extends Fragment
                         mainActivity.dismissWaitDialog();
                         int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                        mainActivity.setNoDevicesMode(false);
                         SessionManager.deviceManager().refreshDeviceList();
-                        SessionManager.deviceManager().refreshDeviceStatus(null);
                     }
                 });
 

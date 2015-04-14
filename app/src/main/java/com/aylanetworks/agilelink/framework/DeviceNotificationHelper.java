@@ -409,10 +409,12 @@ public class DeviceNotificationHelper {
         params.countryCode = currentUser.phoneCountryCode;
         params.username = currentUser.firstname;
         params.message = _customMessage;
+        params.email = currentUser.email;
         params.emailSubject = sessionParameters.notificationEmailSubject;
         params.emailTemplateId = sessionParameters.notificationEmailTemplateId;
         params.emailBodyHtml = sessionParameters.notificationEmailBodyHTML;
         params.phoneNumber = currentUser.phone;
+        params.countryCode = currentUser.phoneCountryCode;
         params.pushSound = "default";
         params.registrationId = PushNotification.registrationId;
 
