@@ -680,7 +680,13 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
                 R.anim.abc_fade_in, R.anim.abc_fade_out);
-        ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        if ( getUIConfig()._navStyle == UIConfig.NavStyle.Pager ) {
+            // For the pager navigation, we push the fragment
+            ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+        } else {
+            // For the drawer navigation, we replace the fragment
+            ft.replace(R.id.content_frame, frag).addToBackStack(null).commit();
+        }
     }
 
     static class SignUpConfirmationHandler extends Handler {
