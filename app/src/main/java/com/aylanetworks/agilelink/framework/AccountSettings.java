@@ -333,6 +333,7 @@ public class AccountSettings {
                 user.setauthHeaderValue(_user.getauthHeaderValue());
                 user.setAccessToken(_user.getAccessToken());
                 user.setRefreshToken(_user.getRefreshToken());
+                user.setExpiresIn(_user.getExpiresIn());
                 AylaUser.setCurrent(user);
                 Log.d(LOG_TAG, "Fetched current user details: " + user);
                 _user = user;
