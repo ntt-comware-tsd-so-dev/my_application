@@ -203,6 +203,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         _noDevicesMode = noDevices;
         popBackstackToRoot();
+
+        // If we're logged out or logging out, don't enter no devices mode
+        if ( SessionManager.deviceManager() == null || SessionManager.deviceManager().isShuttingDown() ) {
+            _noDevicesMode = false;
+        }
+
         if ( _noDevicesMode ) {
             setContentView(R.layout.activity_main_no_devices);
         } else {

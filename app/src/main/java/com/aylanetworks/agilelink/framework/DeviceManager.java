@@ -330,8 +330,10 @@ public class DeviceManager implements DeviceStatusListener {
     /**
      * Clears the list of devices and stops polling.
      */
+    boolean _shuttingDown;
     public void shutDown() {
         Log.i(LOG_TAG, "Shut down");
+        _shuttingDown = true;
         // Clear out our list of devices, and then notify listeners that the list has changed.
         // This should cause all listeners to clear any devices they may be displaying
         _deviceList.clear();
@@ -343,6 +345,11 @@ public class DeviceManager implements DeviceStatusListener {
 
         // Stop polling!
         stopPolling();
+        _shuttingDown = false;
+    }
+
+    public boolean isShuttingDown() {
+        return _shuttingDown;
     }
 
     /**
