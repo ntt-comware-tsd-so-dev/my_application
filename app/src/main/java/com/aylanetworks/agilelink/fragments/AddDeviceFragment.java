@@ -453,8 +453,13 @@ public class AddDeviceFragment extends Fragment
             if ( AylaNetworks.succeeded(msg) ) {
                 AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
                 Log.d(LOG_TAG, "New device: " + device);
-                // Set up the new device
-                _frag.get().registerNewDevice(device);
+                // Set up the new device if it's not already registered
+                if ( SessionManager.deviceManager().deviceByDSN(device.dsn) == null ) {
+                    _frag.get().registerNewDevice(device);
+                } else {
+                    MainActivity.getInstance().popBackstackToRoot();
+                    Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_LONG).show();
+                }
             } else {
                 Log.e(LOG_TAG, "Confirm new device failed: " + msg);
                 Toast.makeText(MainActivity.getInstance(), (String)msg.obj, Toast.LENGTH_LONG).show();
@@ -472,7 +477,6 @@ public class AddDeviceFragment extends Fragment
             Log.d(LOG_TAG, "Connect to service handler: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
-                Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_SHORT).show();
                 // Confirm service connection. We need to do this to get the device information
                 // to register it.
                 MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
