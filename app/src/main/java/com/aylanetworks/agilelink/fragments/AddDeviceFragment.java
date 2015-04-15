@@ -319,9 +319,6 @@ public class AddDeviceFragment extends Fragment
         _hostScanResults = scanResults;
         if ( scanResults == null || scanResults.length == 0 ) {
             Toast.makeText(getActivity(), R.string.no_devices_found, Toast.LENGTH_LONG).show();
-        } else if ( scanResults.length == 1 ) {
-            // We have exactly one AP to set up. Let's just set it up now
-            connectToAP(scanResults[0]);
         } else {
             // Let the user choose which device to connect to
             String apNames[] = new String[scanResults.length];
@@ -330,10 +327,12 @@ public class AddDeviceFragment extends Fragment
             }
 
             new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             connectToAP(scanResults[which]);
+                            dialog.dismiss();
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
@@ -387,7 +386,7 @@ public class AddDeviceFragment extends Fragment
     }
 
     /**
-     * Handler called with the results for the AP scan (scan for devices)
+     * Handler called with the results for the AP scan (the device is scanning for APs)
      */
     static class ScanForAPsHandler extends Handler {
         private WeakReference<AddDeviceFragment> _fragment;
