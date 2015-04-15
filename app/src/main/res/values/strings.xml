@@ -325,5 +325,7 @@
     <string name="registering_device_title">Registering Device</string>
     <string name="registering_device_body">Registering the new device with your account. Please wait...</string>
     <string name="choose_new_device">Tap the device you would like to set up, or cancel</string>
+    <string name="exiting_setup_title">Exiting Setup</string>
+    <string name="exiting_setup_body">Exiting setup. Please wait...</string>
 
 </resources>

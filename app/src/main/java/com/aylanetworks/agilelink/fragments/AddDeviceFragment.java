@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -70,6 +71,8 @@ public class AddDeviceFragment extends Fragment
 
     private TextView _descriptionTextView;
 
+    private static boolean _needsExit;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +88,9 @@ public class AddDeviceFragment extends Fragment
     @Override
     public void onDetach() {
         super.onDetach();
+        if ( _needsExit ) {
+            exitSetup();
+        }
         SessionManager.deviceManager().startPolling();
     }
 
@@ -250,6 +256,23 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
+    private static void exitSetup() {
+        MainActivity.getInstance().showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                AylaSetup.exit();
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                _needsExit = false;
+                MainActivity.getInstance().dismissWaitDialog();
+            }
+        }.execute();
+    }
+
     private void doScan() {
         // Put up a progress dialog
         MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
@@ -262,7 +285,7 @@ public class AddDeviceFragment extends Fragment
     public void choseAccessPoint(String accessPoint, String security, String password) {
         Log.d(LOG_TAG, "choseAccessPoint: " + accessPoint + "[" + security + "]");
         if ( accessPoint == null ) {
-            AylaSetup.exit();
+            exitSetup();
         } else {
             connectDeviceToService(accessPoint, security, password);
         }
@@ -273,9 +296,10 @@ public class AddDeviceFragment extends Fragment
         AylaSetup.lanPassword = password;
         AylaSetup.lanSecurityType = security;
 
-        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this));
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_network_title),
                 getString(R.string.connecting_to_network_body));
+
+        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this));
     }
 
     static class RegisterHandler extends Handler {
@@ -310,6 +334,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 // Something went wrong
                 Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
+                exitSetup();
             }
         }
     }
@@ -381,6 +406,7 @@ public class AddDeviceFragment extends Fragment
                     errMsg = _frag.get().getString(R.string.error_wifi_not_enabled);
                 }
                 Toast.makeText(_frag.get().getActivity(), errMsg, Toast.LENGTH_SHORT).show();
+                exitSetup();
             }
         }
     }
@@ -426,6 +452,7 @@ public class AddDeviceFragment extends Fragment
 
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
+                _fragment.get()._needsExit = true;
                 AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
                 AylaSetup.getNewDeviceScanForAPs(new ScanForAPsHandler(_fragment.get()));
                 activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title),
@@ -433,7 +460,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 Log.e(LOG_TAG, "Connect handler error: " + msg);
                 Toast.makeText(activity, R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
-                AylaSetup.exit();
+                exitSetup();
             }
         }
     }
@@ -448,7 +475,7 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
-            AylaSetup.exit();
+            exitSetup();
 
             if ( AylaNetworks.succeeded(msg) ) {
                 AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
@@ -464,6 +491,8 @@ public class AddDeviceFragment extends Fragment
                 Log.e(LOG_TAG, "Confirm new device failed: " + msg);
                 Toast.makeText(MainActivity.getInstance(), (String)msg.obj, Toast.LENGTH_LONG).show();
             }
+
+            exitSetup();
         }
     }
     static class ConnectToServiceHandler extends Handler {
@@ -491,9 +520,11 @@ public class AddDeviceFragment extends Fragment
                     if ( anErrMsg == null ) {
                         anErrMsg = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
                     }
+                    Log.e(LOG_TAG, "Failed to connect to service. Calling exitSetup()");
                     Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
                 }
             }
+            exitSetup();
         }
     }
 }
