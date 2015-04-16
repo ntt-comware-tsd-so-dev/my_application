@@ -75,12 +75,14 @@ public class AddDeviceFragment extends Fragment
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
 
     @Override
     public void onResume() {
+        Log.v(LOG_TAG, "onResume");
         super.onResume();
         SessionManager.deviceManager().stopPolling();
     }
@@ -88,6 +90,7 @@ public class AddDeviceFragment extends Fragment
     @Override
     public void onDetach() {
         super.onDetach();
+        Log.v(LOG_TAG, "onDetach");
         if ( _needsExit ) {
             exitSetup();
         }
@@ -257,20 +260,24 @@ public class AddDeviceFragment extends Fragment
     }
 
     private static void exitSetup() {
-        MainActivity.getInstance().showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                AylaSetup.exit();
-                return null;
-            }
+        if ( _needsExit ) {
+            MainActivity.getInstance().showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    Log.v(LOG_TAG, "calling AylaSetup.exit()...");
+                    AylaSetup.exit();
+                    return null;
+                }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                _needsExit = false;
-                MainActivity.getInstance().dismissWaitDialog();
-            }
-        }.execute();
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    Log.v(LOG_TAG, "AylaSetup.exit() completed.");
+                    _needsExit = false;
+                    MainActivity.getInstance().dismissWaitDialog();
+                }
+            }.execute();
+        }
     }
 
     private void doScan() {
@@ -278,6 +285,7 @@ public class AddDeviceFragment extends Fragment
         MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                 getString(R.string.scanning_for_devices_message));
 
+        Log.v(LOG_TAG, "calling returnHostScanForNewDevices...");
         AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
     }
 
@@ -299,6 +307,7 @@ public class AddDeviceFragment extends Fragment
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_network_title),
                 getString(R.string.connecting_to_network_body));
 
+        Log.v(LOG_TAG, "calling connectNewDeviceToService: ssid = " + ssid + " security: " + security + "pass: " + password);
         AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this));
     }
 
@@ -373,11 +382,14 @@ public class AddDeviceFragment extends Fragment
         // Connect to the device
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title),
                 getString(R.string.connecting_to_device_body));
+        Log.v(LOG_TAG, "calling connectToNewDevice: ssid = " + scanResult.ssid + " key mgt: " + scanResult.keyMgmt);
         AylaSetup.connectToNewDevice(new ConnectHandler(this));
     }
 
     private void registerNewDevice(AylaDevice device) {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+
+        Log.v(LOG_TAG, "Calling registerNewDevice...");
         device.registerNewDevice(new RegisterHandler(this));
     }
 
@@ -394,7 +406,7 @@ public class AddDeviceFragment extends Fragment
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Got scan results: " + msg);
+            Log.d(LOG_TAG, "Response from returnHostScanForNewDevices: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
 
             if ( AylaNetworks.succeeded(msg) ) {
@@ -424,7 +436,7 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
-            Log.d(LOG_TAG, "Scan for APs handler: " + msg);
+            Log.d(LOG_TAG, "getNewDeviceScanForAPs results: " + msg);
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
                 ChooseAPDialog d = ChooseAPDialog.newInstance(AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class));
@@ -447,13 +459,19 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Connect handler: " + msg);
+
+            // We've mucked with our wifi access point. Make sure we go back to our original
+            // AP when we're done with setup, regardless of whether or not it succeeds.
+            _needsExit = true;
+
             MainActivity activity = MainActivity.getInstance();
             activity.dismissWaitDialog();
 
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
-                _fragment.get()._needsExit = true;
+
                 AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
+                Log.v(LOG_TAG, "calling getNewDeviceScanForAPs. newDevice = " + AylaSetup.newDevice);
                 AylaSetup.getNewDeviceScanForAPs(new ScanForAPsHandler(_fragment.get()));
                 activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title),
                         activity.getString(R.string.scanning_for_aps_body));
@@ -509,6 +527,7 @@ public class AddDeviceFragment extends Fragment
                 // Confirm service connection. We need to do this to get the device information
                 // to register it.
                 MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
+                Log.v(LOG_TAG, "calling confirmNewDeviceToServiceConnection...");
                 AylaSetup.confirmNewDeviceToServiceConnection(new ConfirmNewDeviceHandler(_frag.get()));
             } else {
                 // Check for invalid key present in the error message
@@ -523,8 +542,8 @@ public class AddDeviceFragment extends Fragment
                     Log.e(LOG_TAG, "Failed to connect to service. Calling exitSetup()");
                     Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
                 }
+                exitSetup();
             }
-            exitSetup();
         }
     }
 }
