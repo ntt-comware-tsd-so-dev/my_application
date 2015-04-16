@@ -736,6 +736,7 @@ public class SessionManager {
                 } else {
                     Toast.makeText(_sessionManager.get()._sessionParameters.context, R.string.unknown_error, Toast.LENGTH_LONG).show();
                 }
+                _sessionManager.get().stop();
             }
         }
     }
