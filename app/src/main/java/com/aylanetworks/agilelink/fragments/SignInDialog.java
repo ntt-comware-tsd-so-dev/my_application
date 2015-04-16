@@ -53,11 +53,13 @@ public class SignInDialog extends DialogFragment {
     public static final String OAUTH_GOOGLE = "google_provider";
     public static final String OAUTH_FACEBOOK = "facebook_provider";
 
-    private static final String LOG_TAG="SignInDialog";
+    private static final String LOG_TAG = "SignInDialog";
 
     public interface SignInDialogListener {
         void signIn(String username, String password);
+
         void signInOAuth(Message msg);
+
         void signUp();
     }
 
@@ -87,83 +89,130 @@ public class SignInDialog extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.login, container);
-        _username = (EditText)view.findViewById(R.id.userNameEditText);
-        _password = (EditText)view.findViewById(R.id.passwordEditText);
-        _loginButton = (Button)view.findViewById(R.id.buttonSignIn);
-        _facebookLoginButton = (ImageButton)view.findViewById(R.id.facebook_login);
-        _googleLoginButton = (ImageButton)view.findViewById(R.id.google_login);
-        _signUpTextView = (TextView)view.findViewById(R.id.signUpTextView);
-        _resendEmailTextView = (TextView)view.findViewById(R.id.resendConfirmationTextView);
-        _forgotPasswordTextView = (TextView)view.findViewById(R.id.forgot_password);
-        _webView = (WebView)view.findViewById(R.id.webview);
-        _serviceTypeSpinner = (Spinner)view.findViewById(R.id.service_type_spinner);
+        _username = (EditText) view.findViewById(R.id.userNameEditText);
+        _password = (EditText) view.findViewById(R.id.passwordEditText);
+        _loginButton = (Button) view.findViewById(R.id.buttonSignIn);
+        _facebookLoginButton = (ImageButton) view.findViewById(R.id.facebook_login);
+        _googleLoginButton = (ImageButton) view.findViewById(R.id.google_login);
+        _signUpTextView = (TextView) view.findViewById(R.id.signUpTextView);
+        _resendEmailTextView = (TextView) view.findViewById(R.id.resendConfirmationTextView);
+        _forgotPasswordTextView = (TextView) view.findViewById(R.id.forgot_password);
+        _webView = (WebView) view.findViewById(R.id.webview);
+        _serviceTypeSpinner = (Spinner) view.findViewById(R.id.service_type_spinner);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.spinner_large_text, _serviceTypes);
         _serviceTypeSpinner.setAdapter(adapter);
         _serviceTypeSpinner.setSelection(SessionManager.sessionParameters().serviceType);
 
-        _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                SessionManager.SessionParameters params = SessionManager.sessionParameters();
-                params.serviceType = position;
-                SessionManager.setParameters(params);
-            }
+        // We need to do this in a runnable so we don't get the first onItemSelected call from
+        // the above call to setSelection.
+        _serviceTypeSpinner.post(new Runnable() {
+                                     @Override
+                                     public void run() {
+                                         _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                             @Override
+                                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                                 switch (_serviceTypes[position]) {
+                                                     case "Development":
+                                                         SessionManager.getInstance().setServiceType(AylaNetworks.AML_DEVELOPMENT_SERVICE);
+                                                         Toast.makeText(MainActivity.getInstance(), "Development Service", Toast.LENGTH_LONG).show();
+                                                         break;
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+                                                     case "Staging":
+                                                         SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
+                                                         Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
+                                                         break;
 
-            }
-        });
+                                                     default:
+                                                         String message = "No app ID for " + _serviceTypes[position] +
+                                                                 " service, but I'll set the type anyway. You probably can't log in.";
+                                                         Log.e(LOG_TAG, message);
+                                                         Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
 
-        _loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                                                         // The positions in our array happen to coincide with the service types they represent.
+                                                         SessionManager.getInstance().setServiceType(position);
+                                                 }
+                                             }
+
+                                             @Override
+                                             public void onNothingSelected(AdapterView<?> parent) {
+                                             }
+                                         });
+                                     }
+                                 });
+
+            _loginButton.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
                 _listener.signIn(_username.getText().toString(), _password.getText().toString());
             }
-        });
+            }
 
-        _facebookLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            );
+
+            _facebookLoginButton.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
                 oAuthSignIn(OAUTH_FACEBOOK);
             }
-        });
+            }
 
-        _googleLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            );
+
+            _googleLoginButton.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
                 oAuthSignIn(OAUTH_GOOGLE);
             }
-        });
+            }
 
-        _signUpTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            );
+
+            _signUpTextView.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
                 _listener.signUp();
             }
-        });
-        _resendEmailTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            }
+
+            );
+            _resendEmailTextView.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
                 onResendEmail();
             }
-        });
-        _forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            }
+
+            );
+            _forgotPasswordTextView.setOnClickListener(new View.OnClickListener()
+
+            {
+                @Override
+                public void onClick (View v){
                 onForgotPassword();
             }
-        });
+            }
 
-        Bundle args = getArguments();
-        String username = args.getString(ARG_USERNAME);
-        String password = args.getString(ARG_PASSWORD);
-        _username.setText(username);
-        _password.setText(password);
+            );
 
-        return view;
-    }
+            Bundle args = getArguments();
+            String username = args.getString(ARG_USERNAME);
+            String password = args.getString(ARG_PASSWORD);
+            _username.setText(username);
+            _password.setText(password);
+
+            return view;
+        }
 
     public void setUsername(String username) {
         _username.setText(username);
@@ -188,7 +237,7 @@ public class SignInDialog extends DialogFragment {
         AylaUser.loginThroughOAuth(_oauthHandler, service, _webView, params.appId, params.appSecret);
     }
 
-    private void onResendEmail(){
+    private void onResendEmail() {
         final EditText emailEditText = new EditText(getActivity());
         Dialog dlg = new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.resend_confirmation)
@@ -258,7 +307,7 @@ public class SignInDialog extends DialogFragment {
                             Toast.makeText(MainActivity.getInstance(), "Developer mode enabled", Toast.LENGTH_LONG).show();
                             return;
                         }
-                        
+
                         SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
                         Map<String, String> params = new HashMap<>();
                         if (sessionParams.registrationEmailTemplateId == null) {
@@ -312,25 +361,27 @@ public class SignInDialog extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        _listener = (SignInDialogListener)activity;
+        _listener = (SignInDialogListener) activity;
     }
 
     static class OauthHandler extends Handler {
         private WeakReference<SignInDialog> _signInDialog;
+
         public OauthHandler(SignInDialog signInDialog) {
             _signInDialog = new WeakReference<SignInDialog>(signInDialog);
         }
+
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "OAUTH response: " + msg);
             _signInDialog.get()._webView.setVisibility(View.GONE);
             _signInDialog.get()._loginButton.setVisibility(View.VISIBLE);
 
-            if ( AylaNetworks.succeeded(msg) ) {
+            if (AylaNetworks.succeeded(msg)) {
                 _signInDialog.get()._listener.signInOAuth(msg);
             }
         }
     }
 
     private OauthHandler _oauthHandler = new OauthHandler(this);
- }
+}

@@ -68,6 +68,27 @@ public class SessionManager {
     public final static String PREFS_PASSWORD = "password";
     public final static String PREFS_USERNAME = "username";
 
+    public void setServiceType(int serviceType) {
+        switch ( serviceType ) {
+            case AylaNetworks.AML_DEVELOPMENT_SERVICE:
+                _sessionParameters.appId = "AgileLinkDev-id";
+                _sessionParameters.appSecret = "AgileLinkDev-4780291";
+                _sessionParameters.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+                Log.i(LOG_TAG, "Service set to DEVELOPMENT");
+                break;
+
+            case AylaNetworks.AML_STAGING_SERVICE:
+                _sessionParameters.appId = "AgileLinkProd-id";
+                _sessionParameters.appSecret = "AgileLinkProd-1530606";
+                _sessionParameters.serviceType = AylaNetworks.AML_STAGING_SERVICE;
+                Log.i(LOG_TAG, "Service set to STAGING");
+                break;
+
+            default:
+                Log.e(LOG_TAG, "I don't know how to set up service type " + serviceType);
+                _sessionParameters.serviceType = serviceType;
+        }
+    }
 
     /**
      * Interface for notifications of changes in login state (log in / out), reachability or LAN
