@@ -459,11 +459,11 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         final SessionManager.SessionParameters parameters = new SessionManager.SessionParameters(this);
 
         // Change this to false to connect to the production service
-        boolean useDevService = true;
+        boolean useDevService = false;
         if ( useDevService ) {
             // Development values
             parameters.appId = "AgileLinkDev-id";
-            parameters.appSecret = "AgileLinkDev-4780291";
+            parameters.appSecret = "AgileLinkDev-3432071";
             parameters.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
 //            parameters.appId = "aMCA-id";
 //            parameters.appSecret = "aMCA-9097620";
@@ -471,7 +471,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         } else {
             // Production values
             parameters.appId = "AgileLinkProd-id";
-            parameters.appSecret = "AgileLinkProd-8249425";
+            parameters.appSecret = "AgileLinkProd-1530606";
             parameters.serviceType = AylaNetworks.AML_STAGING_SERVICE;
         }
 
