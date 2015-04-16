@@ -60,6 +60,9 @@ public class AddDeviceFragment extends Fragment
     private static final int REG_TYPE_BUTTON_PUSH = 1;
     private static final int REG_TYPE_DISPLAY = 2;
 
+    /** Time to delay after completing wifi setup and trying to register the new device */
+    private static final int REGISTRATION_DELAY_MS = 2000;
+
     /**
      * Default instance creator class method
      *
@@ -496,11 +499,21 @@ public class AddDeviceFragment extends Fragment
             exitSetup();
 
             if ( AylaNetworks.succeeded(msg) ) {
-                AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
+                final AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
                 Log.d(LOG_TAG, "New device: " + device);
                 // Set up the new device if it's not already registered
                 if ( SessionManager.deviceManager().deviceByDSN(device.dsn) == null ) {
-                    _frag.get().registerNewDevice(device);
+                    // We need to wait a bit before attempting to register. The service needs some
+                    // time to get itself in order first.
+                    MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            _frag.get().registerNewDevice(device);
+                        }
+                    }, REGISTRATION_DELAY_MS);
+
                 } else {
                     MainActivity.getInstance().popBackstackToRoot();
                     Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_LONG).show();
