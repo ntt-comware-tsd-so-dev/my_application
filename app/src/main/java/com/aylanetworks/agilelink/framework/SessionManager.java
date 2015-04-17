@@ -74,24 +74,23 @@ public class SessionManager {
      * @param serviceType Service type to set for login. Will use for the next login session.
      */
     public void setServiceType(int serviceType) {
+        AylaSystemUtils.serviceType = serviceType;
+
         switch ( serviceType ) {
             case AylaNetworks.AML_PRODUCTION_SERVICE:
                 _sessionParameters.appId = "AgileLinkProd-id";
                 _sessionParameters.appSecret = "AgileLinkProd-8249425";
-                _sessionParameters.serviceType = AylaNetworks.AML_PRODUCTION_SERVICE;
                 Log.i(LOG_TAG, "Service set to DEVELOPMENT");
                 break;
 
             case AylaNetworks.AML_STAGING_SERVICE:
                 _sessionParameters.appId = "AgileLinkProd-id";
                 _sessionParameters.appSecret = "AgileLinkProd-1530606";
-                _sessionParameters.serviceType = AylaNetworks.AML_STAGING_SERVICE;
                 Log.i(LOG_TAG, "Service set to STAGING");
                 break;
 
             default:
-                Log.e(LOG_TAG, "I don't know how to set up service type " + serviceType);
-                _sessionParameters.serviceType = serviceType;
+                Log.i(LOG_TAG, "Service type set to " + serviceType);
         }
     }
 
@@ -315,18 +314,6 @@ public class SessionManager {
         public boolean allowLANLogin = false;
 
         /**
-         * Service type the Ayla library should connect to. Set to one of:
-         * <ul>
-         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEVICE_SERVICE}</li>
-         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_FIELD_SERVICE}</li>
-         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEVELOPMENT_SERVICE}</li>
-         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_STAGING_SERVICE}</li>
-         * <li>{@link com.aylanetworks.aaml.AylaNetworks#AML_DEMO_SERVICE}</li>
-         * </ul>
-         */
-        public int serviceType = AylaNetworks.AML_STAGING_SERVICE;
-
-        /**
          * Logging level for the Ayla library. Set to one of:
          * <p/>
          * <ul>
@@ -426,7 +413,6 @@ public class SessionManager {
             this.password = other.password;
             this.accessToken = other.accessToken;
             this.refreshToken = other.refreshToken;
-            this.serviceType = other.serviceType;
             this.loggingLevel = other.loggingLevel;
             this.enableLANMode = other.enableLANMode;
             this.allowLANLogin = other.allowLANLogin;
@@ -455,7 +441,6 @@ public class SessionManager {
                     "  password: " + password + "\n" +
                     "  accessToken: " + accessToken + "\n" +
                     "  refreshToken: " + refreshToken + "\n" +
-                    "  serviceType: " + serviceType + "\n" +
                     "  loggingLevel: " + loggingLevel + "\n" +
                     "  enableLANMode: " + enableLANMode +
                     "  allowLANLogin: " + allowLANLogin +
@@ -540,8 +525,7 @@ public class SessionManager {
     public static String getServiceTypeString() {
         Context c = MainActivity.getInstance();
 
-        int serviceType = getInstance()._sessionParameters.serviceType;
-        switch ( serviceType ) {
+        switch ( AylaSystemUtils.serviceType ) {
             case AylaNetworks.AML_DEVICE_SERVICE:
                 return c.getString(R.string.device_service);
 
@@ -558,7 +542,7 @@ public class SessionManager {
                 return c.getString(R.string.demo_service);
 
             default:
-                return c.getString(R.string.unknown_service, serviceType);
+                return c.getString(R.string.unknown_service, AylaSystemUtils.serviceType);
         }
     }
 
@@ -638,7 +622,6 @@ public class SessionManager {
 
         // Set up library logging
         AylaSystemUtils.loggingLevel = _sessionParameters.loggingLevel;
-        AylaSystemUtils.serviceType = _sessionParameters.serviceType;
         if (_sessionParameters.loggingLevel != AylaNetworks.AML_LOGGING_LEVEL_NONE) {
             AylaSystemUtils.loggingEnabled = AylaNetworks.YES;
             AylaSystemUtils.loggingInit();

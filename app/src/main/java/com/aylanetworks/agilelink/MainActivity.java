@@ -465,12 +465,10 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             // Development values
             parameters.appId = "AgileLinkProd-id";
             parameters.appSecret = "AgileLinkProd-8249425";
-            parameters.serviceType = AylaNetworks.AML_PRODUCTION_SERVICE;
         } else {
             // Production values
             parameters.appId = "AgileLinkProd-id";
             parameters.appSecret = "AgileLinkProd-1530606";
-            parameters.serviceType = AylaNetworks.AML_STAGING_SERVICE;
         }
 
         parameters.deviceCreator = new AgileLinkDeviceCreator();

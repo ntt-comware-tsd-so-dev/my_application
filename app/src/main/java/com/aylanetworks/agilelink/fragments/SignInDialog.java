@@ -104,7 +104,7 @@ public class SignInDialog extends DialogFragment {
         // "aylarocks" for the email address. This is a developer-only spinner.
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.spinner_large_text, _serviceTypes);
         _serviceTypeSpinner.setAdapter(adapter);
-        _serviceTypeSpinner.setSelection(SessionManager.sessionParameters().serviceType);
+        _serviceTypeSpinner.setSelection(AylaSystemUtils.serviceType);
 
         // We need to do this in a runnable so we don't get the first onItemSelected call from
         // the above call to setSelection.
