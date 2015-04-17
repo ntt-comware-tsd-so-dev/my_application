@@ -75,7 +75,7 @@ public class SignInDialog extends DialogFragment {
     private SignInDialogListener _listener;
     private Spinner _serviceTypeSpinner;
 
-    private final static String _serviceTypes[] = {"Device", "Field", "Development", "Staging", "Demo"};
+    private final static String _serviceTypes[] = {"Device", "Field", "Production", "Staging", "Demo"};
 
     public SignInDialog() {
     }
@@ -100,25 +100,27 @@ public class SignInDialog extends DialogFragment {
         _webView = (WebView) view.findViewById(R.id.webview);
         _serviceTypeSpinner = (Spinner) view.findViewById(R.id.service_type_spinner);
 
+        // The serviceTypeSpinner is only shown if the user taps "Forgot Password" and enters
+        // "aylarocks" for the email address. This is a developer-only spinner.
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.spinner_large_text, _serviceTypes);
         _serviceTypeSpinner.setAdapter(adapter);
         _serviceTypeSpinner.setSelection(SessionManager.sessionParameters().serviceType);
 
         // We need to do this in a runnable so we don't get the first onItemSelected call from
         // the above call to setSelection.
-        _serviceTypeSpinner.post(new Runnable() {
+        _serviceTypeSpinner.postDelayed(new Runnable() {
                                      @Override
                                      public void run() {
                                          _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                              @Override
                                              public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                                 switch (_serviceTypes[position]) {
-                                                     case "Development":
+                                                 switch (position) {
+                                                     case AylaNetworks.AML_PRODUCTION_SERVICE:
                                                          SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
                                                          Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
                                                          break;
 
-                                                     case "Staging":
+                                                     case AylaNetworks.AML_STAGING_SERVICE:
                                                          SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
                                                          Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
                                                          break;
@@ -139,7 +141,7 @@ public class SignInDialog extends DialogFragment {
                                              }
                                          });
                                      }
-                                 });
+                                 }, 500);
 
             _loginButton.setOnClickListener(new View.OnClickListener()
 
