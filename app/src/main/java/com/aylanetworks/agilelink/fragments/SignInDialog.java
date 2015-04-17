@@ -3,18 +3,21 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -109,39 +112,39 @@ public class SignInDialog extends DialogFragment {
         // We need to do this in a runnable so we don't get the first onItemSelected call from
         // the above call to setSelection.
         _serviceTypeSpinner.postDelayed(new Runnable() {
-                                     @Override
-                                     public void run() {
-                                         _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                             @Override
-                                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                                 switch (position) {
-                                                     case AylaNetworks.AML_PRODUCTION_SERVICE:
-                                                         SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
-                                                         Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
-                                                         break;
+            @Override
+            public void run() {
+                _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        switch (position) {
+                            case AylaNetworks.AML_PRODUCTION_SERVICE:
+                                SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
+                                Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
+                                break;
 
-                                                     case AylaNetworks.AML_STAGING_SERVICE:
-                                                         SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
-                                                         Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
-                                                         break;
+                            case AylaNetworks.AML_STAGING_SERVICE:
+                                SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
+                                Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
+                                break;
 
-                                                     default:
-                                                         String message = "No app ID for " + _serviceTypes[position] +
-                                                                 " service, but I'll set the type anyway. You probably can't log in.";
-                                                         Log.e(LOG_TAG, message);
-                                                         Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
+                            default:
+                                String message = "No app ID for " + _serviceTypes[position] +
+                                        " service, but I'll set the type anyway. You probably can't log in.";
+                                Log.e(LOG_TAG, message);
+                                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
 
-                                                         // The positions in our array happen to coincide with the service types they represent.
-                                                         SessionManager.getInstance().setServiceType(position);
-                                                 }
-                                             }
+                                // The positions in our array happen to coincide with the service types they represent.
+                                SessionManager.getInstance().setServiceType(position);
+                        }
+                    }
 
-                                             @Override
-                                             public void onNothingSelected(AdapterView<?> parent) {
-                                             }
-                                         });
-                                     }
-                                 }, 500);
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                });
+            }
+        }, 500);
 
             _loginButton.setOnClickListener(new View.OnClickListener()
 
@@ -241,6 +244,7 @@ public class SignInDialog extends DialogFragment {
 
     private void onResendEmail() {
         final EditText emailEditText = new EditText(getActivity());
+        emailEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         Dialog dlg = new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.resend_confirmation)
                 .setMessage(R.string.resend_confirmation_message)
@@ -248,6 +252,9 @@ public class SignInDialog extends DialogFragment {
                 .setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(emailEditText.getWindowToken(), 0);
+
                         SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
                         Map<String, String> params = new HashMap<>();
                         if (sessionParams.registrationEmailTemplateId == null) {
@@ -286,15 +293,26 @@ public class SignInDialog extends DialogFragment {
                         }, emailEditText.getText().toString(), sessionParams.appId, sessionParams.appSecret, params);
                     }
                 })
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(emailEditText.getWindowToken(), 0);
+                    }
+                })
                 .create();
-        dlg.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         dlg.show();
+
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        emailEditText.requestFocus();
     }
 
     private void onForgotPassword() {
         final EditText emailEditText = new EditText(getActivity());
-        Dialog dlg = new AlertDialog.Builder(getActivity())
+        emailEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+        final Dialog dlg = new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.forgot_password_title)
                 .setMessage(R.string.forgot_password_message)
                 .setView(emailEditText)
@@ -302,6 +320,9 @@ public class SignInDialog extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // Developer UI Enable check
+                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(emailEditText.getWindowToken(), 0);
+
                         String email = emailEditText.getText().toString();
                         if ("aylarocks".compareToIgnoreCase(email) == 0) {
                             // Enable the dev UI
@@ -348,10 +369,19 @@ public class SignInDialog extends DialogFragment {
                         }, emailEditText.getText().toString(), sessionParams.appId, sessionParams.appSecret, params);
                     }
                 })
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(emailEditText.getWindowToken(), 0);
+                    }
+                })
                 .create();
-        dlg.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         dlg.show();
+
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        emailEditText.requestFocus();
     }
 
     @Override
