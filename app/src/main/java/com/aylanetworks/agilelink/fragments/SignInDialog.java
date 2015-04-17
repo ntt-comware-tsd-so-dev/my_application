@@ -114,8 +114,8 @@ public class SignInDialog extends DialogFragment {
                                              public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                                  switch (_serviceTypes[position]) {
                                                      case "Development":
-                                                         SessionManager.getInstance().setServiceType(AylaNetworks.AML_DEVELOPMENT_SERVICE);
-                                                         Toast.makeText(MainActivity.getInstance(), "Development Service", Toast.LENGTH_LONG).show();
+                                                         SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
+                                                         Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
                                                          break;
 
                                                      case "Staging":

@@ -526,6 +526,7 @@ public class AddDeviceFragment extends Fragment
             exitSetup();
         }
     }
+
     static class ConnectToServiceHandler extends Handler {
         private WeakReference<AddDeviceFragment> _frag;
         public ConnectToServiceHandler(AddDeviceFragment frag) {

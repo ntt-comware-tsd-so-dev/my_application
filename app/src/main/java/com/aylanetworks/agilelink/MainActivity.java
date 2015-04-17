@@ -462,9 +462,9 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         boolean useDevService = true;
         if ( useDevService ) {
             // Development values
-            parameters.appId = "AgileLinkDev-id";
-            parameters.appSecret = "AgileLinkDev-4780291";
-            parameters.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+            parameters.appId = "AgileLinkProd-id";
+            parameters.appSecret = "AgileLinkProd-8249425";
+            parameters.serviceType = AylaNetworks.AML_PRODUCTION_SERVICE;
         } else {
             // Production values
             parameters.appId = "AgileLinkProd-id";

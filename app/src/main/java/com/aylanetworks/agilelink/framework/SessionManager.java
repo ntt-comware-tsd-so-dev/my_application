@@ -9,9 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaCache;
-import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
@@ -68,12 +66,19 @@ public class SessionManager {
     public final static String PREFS_PASSWORD = "password";
     public final static String PREFS_USERNAME = "username";
 
+    /**
+     * This is a debug-only method used to switch service types. Production applications should
+     * never call this method. This method currently is set up to use AgileLink app IDs and
+     * secrets, which most likely will not work with a new application.
+     *
+     * @param serviceType Service type to set for login. Will use for the next login session.
+     */
     public void setServiceType(int serviceType) {
         switch ( serviceType ) {
-            case AylaNetworks.AML_DEVELOPMENT_SERVICE:
-                _sessionParameters.appId = "AgileLinkDev-id";
-                _sessionParameters.appSecret = "AgileLinkDev-4780291";
-                _sessionParameters.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+            case AylaNetworks.AML_PRODUCTION_SERVICE:
+                _sessionParameters.appId = "AgileLinkProd-id";
+                _sessionParameters.appSecret = "AgileLinkProd-8249425";
+                _sessionParameters.serviceType = AylaNetworks.AML_PRODUCTION_SERVICE;
                 Log.i(LOG_TAG, "Service set to DEVELOPMENT");
                 break;
 
@@ -543,8 +548,8 @@ public class SessionManager {
             case AylaNetworks.AML_FIELD_SERVICE:
                 return c.getString(R.string.field_service);
 
-            case AylaNetworks.AML_DEVELOPMENT_SERVICE:
-                return c.getString(R.string.development_service);
+            case AylaNetworks.AML_PRODUCTION_SERVICE:
+                return c.getString(R.string.production_service);
 
             case AylaNetworks.AML_STAGING_SERVICE:
                 return c.getString(R.string.staging_service);
