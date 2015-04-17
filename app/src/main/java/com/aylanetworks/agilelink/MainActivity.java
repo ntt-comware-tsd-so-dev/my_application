@@ -210,6 +210,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
 
         if ( _noDevicesMode ) {
+            SessionManager.deviceManager().stopPolling();
             setContentView(R.layout.activity_main_no_devices);
         } else {
             initUI();

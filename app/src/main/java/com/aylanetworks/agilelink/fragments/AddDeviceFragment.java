@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -61,7 +62,7 @@ public class AddDeviceFragment extends Fragment
     private static final int REG_TYPE_DISPLAY = 2;
 
     /** Time to delay after completing wifi setup and trying to register the new device */
-    private static final int REGISTRATION_DELAY_MS = 2000;
+    private static final int REGISTRATION_DELAY_MS = 5000;
 
     /**
      * Default instance creator class method
@@ -496,7 +497,6 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             MainActivity.getInstance().dismissWaitDialog();
-            exitSetup();
 
             if ( AylaNetworks.succeeded(msg) ) {
                 final AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
@@ -520,10 +520,13 @@ public class AddDeviceFragment extends Fragment
                 }
             } else {
                 Log.e(LOG_TAG, "Confirm new device failed: " + msg);
-                Toast.makeText(MainActivity.getInstance(), (String)msg.obj, Toast.LENGTH_LONG).show();
+                String message = (String)msg.obj;
+                if (TextUtils.isEmpty(message)) {
+                    message = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
+                }
+                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
+                exitSetup();
             }
-
-            exitSetup();
         }
     }
 
