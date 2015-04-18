@@ -83,26 +83,27 @@
             </intent-filter>
         </receiver>
 
+
+
+        <!--
+             WakefulBroadcastReceiver that will receive intents from GCM
+             services and hand them to the custom IntentService.
+
+             The com.google.android.c2dm.permission.SEND permission is necessary
+             so only GCM services can send data messages for the app.
+           -->
+        <meta-data android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <receiver
+            android:name="com.aylanetworks.agileLink.MainActivity.server.GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <!-- Receives the actual messages. -->
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+                <category android:name="com.aylanetworks.agileLink.MainActivity" />
+            </intent-filter>
+        </receiver>
+
     </application>
-
-    <!--
-         WakefulBroadcastReceiver that will receive intents from GCM
-         services and hand them to the custom IntentService.
-
-         The com.google.android.c2dm.permission.SEND permission is necessary
-         so only GCM services can send data messages for the app.
-       -->
-    <meta-data android:name="com.google.android.gms.version"
-        android:value="@integer/google_play_services_version" />
-    <receiver
-        android:name="com.aylanetworks.agileLink.MainActivity.server.GcmBroadcastReceiver"
-        android:permission="com.google.android.c2dm.permission.SEND" >
-        <intent-filter>
-            <!-- Receives the actual messages. -->
-            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-            <category android:name="com.aylanetworks.agileLink.MainActivity" />
-        </intent-filter>
-    </receiver>
-
 </manifest>
