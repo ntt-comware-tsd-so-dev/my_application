@@ -264,7 +264,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         if (reqCode == REQ_PICK_CONTACT && _pickContactListener != null) {
             // Run on the UI thread
-            mViewPager.post(new Runnable() {
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (rc == RESULT_OK) {
