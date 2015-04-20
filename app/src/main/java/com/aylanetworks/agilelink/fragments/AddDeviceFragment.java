@@ -290,7 +290,6 @@ public class AddDeviceFragment extends Fragment
         MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                 getString(R.string.scanning_for_devices_message));
 
-        AylaSetup.init(getActivity(), SessionManager.sessionParameters().deviceSsidRegex, SessionManager.sessionParameters().appId);
         Log.v(LOG_TAG, "calling returnHostScanForNewDevices...");
         AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
     }
@@ -536,8 +535,8 @@ public class AddDeviceFragment extends Fragment
                 Log.e(LOG_TAG, "Confirm new device failed: " + msg);
                 if ( msg.arg1 == AylaNetworks.AML_ERROR_NOT_FOUND ) {
                     // The service did not find the new device. Check with the device to see why.
-                    AylaSetup.getNewDeviceWiFiStatus(new GetNewDeviceWiFiStatusHandler(_frag.get()));
                     MainActivity.getInstance().showWaitDialog(R.string.reconnecting_device_title, R.string.reconnecting_device_message);
+                    AylaSetup.getNewDeviceWiFiStatus(new GetNewDeviceWiFiStatusHandler(_frag.get()));
                 } else {
                     String message = (String) msg.obj;
                     if (TextUtils.isEmpty(message)) {
