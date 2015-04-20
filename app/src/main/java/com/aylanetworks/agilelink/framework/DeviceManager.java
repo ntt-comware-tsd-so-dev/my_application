@@ -98,7 +98,7 @@ public class DeviceManager implements DeviceStatusListener {
      */
     public List<Device> deviceList() {
         if ( _deviceList == null ) {
-            return new ArrayList<Device>();
+            return null;
         }
 
         return new ArrayList<>(_deviceList);
