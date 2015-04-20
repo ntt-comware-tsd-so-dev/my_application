@@ -51,6 +51,8 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(LOG_TAG, "onCreateView: " + savedInstanceState);
+
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
 
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
@@ -64,6 +66,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
         // Do a deep fetch of the contact list
         MainActivity.getInstance().showWaitDialog(R.string.fetching_contacts_title, R.string.fetching_contacts_body);
+
         ContactManager cm = SessionManager.getInstance().getContactManager();
         cm.fetchContacts(new ContactManager.ContactManagerListener() {
             @Override
@@ -83,7 +86,6 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch ( item.getItemId() ) {
@@ -102,7 +104,13 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
     public void onClick(View v) {
         Log.d(LOG_TAG, "Add button clicked");
         EditContactFragment frag = EditContactFragment.newInstance(null);
-        MainActivity.getInstance().pushFragment(frag);
+
+        // We want to handle our own navigation here
+        getFragmentManager().beginTransaction().
+                setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
+                        R.anim.abc_fade_in, R.anim.abc_fade_out)
+                .add(android.R.id.content, frag)
+                .addToBackStack(null).commit();
     }
 
     @Override
