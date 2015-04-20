@@ -531,28 +531,29 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             return;
         }
 
-        new Handler().post(new Runnable() {
-            @Override
-            public void run() {
-                if (_loginDialog == null) {
-                    _loginDialog = new SignInDialog();
+        if (_loginDialog == null) {
+            _loginDialog = new SignInDialog();
 
-                    // We always want to show the "All Devices" page first
-                    if ( mViewPager != null ) {
-                        mViewPager.setCurrentItem(0);
-                    }
-                    popBackstackToRoot();
-
-                    Bundle args = new Bundle();
-                    args.putString(SignInDialog.ARG_USERNAME, savedUsername);
-                    args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
-                    _loginDialog.setArguments(args);
-                    _loginDialog.show(getSupportFragmentManager(), "signin");
-                } else {
-                    Log.e(LOG_TAG, "Login dialog is already being shown!");
-                }
+            // We always want to show the "All Devices" page first
+            if ( mViewPager != null ) {
+                mViewPager.setCurrentItem(0);
             }
-        });
+            popBackstackToRoot();
+
+            Bundle args = new Bundle();
+            args.putString(SignInDialog.ARG_USERNAME, savedUsername);
+            args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
+            _loginDialog.setArguments(args);
+
+            // There are bugs with the Android support libraries and onSaveInstanceState.
+            // http://stackoverflow.com/questions/14262312/java-lang-illegalstateexception-can-not-perform-this-action-after-onsaveinstanc
+            getSupportFragmentManager().beginTransaction()
+                    .add(_loginDialog, "signin")
+                    .commitAllowingStateLoss();             // This should work around the bug.
+        } else {
+            Log.e(LOG_TAG, "Login dialog is already being shown!");
+        }
+
     }
 
     @Override
