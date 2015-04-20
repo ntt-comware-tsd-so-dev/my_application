@@ -62,7 +62,16 @@ public class ContactManager {
     public List<AylaContact>getContacts(boolean includeOwner) {
         List<AylaContact> contacts = new ArrayList<>(_aylaContactList);
         if ( !includeOwner ) {
-            contacts.remove(getOwnerContact());
+            AylaContact ownerContact = getOwnerContact();
+            if ( ownerContact != null ) {
+                for (AylaContact c : contacts) {
+                    if (c.id.equals(ownerContact.id) ) {
+                        Log.d(LOG_TAG, "Removing contact: " + c);
+                        contacts.remove(c);
+                        break;
+                    }
+                }
+            }
         }
 
         return contacts;
@@ -180,6 +189,22 @@ public class ContactManager {
         contact.create(new ContactHandler(ContactHandler.Command.ADD_OWNER, contact, this, new ContactManagerListener()), null);
     }
 
+    /**
+     * Removes a contact from our internal list. The removal is done by iterating and comparing the
+     * contact IDs, as the AylaContact class does not have an equals method.
+     * @param contact contact to remove from the list
+     * @return true if the contact was removed, false otherwise.
+     */
+    private boolean removeContact(AylaContact contact) {
+        for ( AylaContact c : _aylaContactList ) {
+            if ( contact.id.equals(c.id) ) {
+                _aylaContactList.remove(c);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private static class FetchContactsHandler extends Handler {
         private WeakReference<ContactManager> _contactManager;
@@ -242,6 +267,10 @@ public class ContactManager {
                         break;
                     }
                 }
+                AylaContact oldContact = _contactManager.get().getContactByID(updatedContact.id);
+                if ( oldContact != null ) {
+                    _contactManager.get().removeContact(oldContact);
+                }
                 _contactManager.get()._aylaContactList.add(updatedContact);
                 fetchNextContactDetails();
             }
@@ -270,7 +299,6 @@ public class ContactManager {
         public enum Command {
             ADD,
             ADD_OWNER,
-            REMOVE,
             UPDATE,
             DELETE
         }
@@ -292,13 +320,14 @@ public class ContactManager {
             _listener.lastMessage = msg;
             Log.d(LOG_TAG, "ContactHandler [" + _command.toString() + "] " + msg);
 
+            List<AylaContact> contactList = _contactManager.get()._aylaContactList;
             if ( AylaNetworks.succeeded(msg) ) {
                 Gson gson = AylaSystemUtils.gson;
                 switch (_command) {
                     case ADD:
                     case ADD_OWNER:{
                         AylaContact newContact = gson.fromJson((String) msg.obj, AylaContact.class);
-                        _contactManager.get()._aylaContactList.add(newContact);
+                        contactList.add(newContact);
 
                         if ( _command == Command.ADD_OWNER ) {
                             AccountSettings settings = SessionManager.getInstance().getAccountSettings();
@@ -314,24 +343,18 @@ public class ContactManager {
                     }
                     break;
 
-                    case REMOVE: {
-                        _contactManager.get()._aylaContactList.remove(_contact.get());
-                    }
-                    break;
-
-                    case UPDATE: {
+                     case UPDATE: {
                         AylaContact updatedContact = gson.fromJson((String) msg.obj, AylaContact.class);
                         AylaContact oldContact = _contactManager.get().getContactByID(updatedContact.id);
                         if ( oldContact != null ) {
-                            _contactManager.get()._aylaContactList.remove(oldContact);
+                            _contactManager.get().removeContact(oldContact);
                         }
-                        _contactManager.get()._aylaContactList.add(updatedContact);
+                        contactList.add(updatedContact);
                     }
                     break;
 
-                    case DELETE: {
-                        _contactManager.get()._aylaContactList.remove(_contact.get());
-                    }
+                    case DELETE:
+                        _contactManager.get().removeContact(_contact.get());
                     break;
                 }
             }
