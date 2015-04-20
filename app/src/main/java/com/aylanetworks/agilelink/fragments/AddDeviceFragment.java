@@ -290,6 +290,7 @@ public class AddDeviceFragment extends Fragment
         MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                 getString(R.string.scanning_for_devices_message));
 
+        AylaSetup.init(getActivity(), SessionManager.sessionParameters().deviceSsidRegex, SessionManager.sessionParameters().appId);
         Log.v(LOG_TAG, "calling returnHostScanForNewDevices...");
         AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
     }

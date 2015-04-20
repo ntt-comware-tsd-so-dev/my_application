@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.Editable;
@@ -79,7 +80,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View root = inflater.inflate(R.layout.dialog_choose_ap, container, false);
-        ListView listView = (ListView)root.findViewById(R.id.ap_list);
+        final ListView listView = (ListView)root.findViewById(R.id.ap_list);
 
         final ChooseAPResults listener = (ChooseAPResults)getTargetFragment();
 
@@ -118,9 +119,14 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         _ssidList = args.getStringArrayList(ARG_SSIDS);
         _securityList = args.getStringArrayList(ARG_SECURITY);
         String[] aps = _ssidList.toArray(new String[_ssidList.size()]);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, aps);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_activated_1, aps);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
+
+        // If there's only one SSID, select it (after a short delay)
+        if ( _ssidList.size() == 1 ) {
+            listView.performItemClick(adapter.getView(0, null, null), 0, adapter.getItemId(0));
+        }
 
         return root;
     }
