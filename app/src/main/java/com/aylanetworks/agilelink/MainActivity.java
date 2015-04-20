@@ -299,6 +299,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                                 PROJECTION, SELECTION, SELECTION_ARGS,
                                 SORT);
                         _pickContactListener.contactPicked(c);
+                        c.close();
 
                     } else {
                         _pickContactListener.contactPicked(null);
