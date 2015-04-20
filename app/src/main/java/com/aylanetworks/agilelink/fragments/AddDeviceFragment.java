@@ -31,6 +31,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.aaml.AylaWiFiStatus;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
@@ -397,6 +398,14 @@ public class AddDeviceFragment extends Fragment
         device.registerNewDevice(new RegisterHandler(this));
     }
 
+    private AylaModuleScanResults _savedScanResults[];
+    private void chooseAP(AylaModuleScanResults scanResults[]) {
+        _savedScanResults = scanResults;
+        ChooseAPDialog d = ChooseAPDialog.newInstance(scanResults);
+        d.setTargetFragment(this, 0);
+        d.show(getFragmentManager(), "ap");
+    }
+
     /**
      * Handler called with the results from {@link com.aylanetworks.aaml.AylaSetup#returnHostScanForNewDevices}.
      * We will get a set of APs that match the SSID regex in the SessionParameters.
@@ -412,6 +421,12 @@ public class AddDeviceFragment extends Fragment
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Response from returnHostScanForNewDevices: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
+
+            if ( _frag.get() == null ) {
+                // We've been dismissed.
+                Log.e(LOG_TAG, "I no longer exist. I won't show the list of devices from the AP scan.");
+                return;
+            }
 
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
@@ -443,9 +458,7 @@ public class AddDeviceFragment extends Fragment
             Log.d(LOG_TAG, "getNewDeviceScanForAPs results: " + msg);
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
-                ChooseAPDialog d = ChooseAPDialog.newInstance(AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class));
-                d.setTargetFragment(_fragment.get(), 0);
-                d.show(MainActivity.getInstance().getSupportFragmentManager(), "ap");
+                _fragment.get().chooseAP(AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class));
             }
         }
     }
@@ -520,13 +533,46 @@ public class AddDeviceFragment extends Fragment
                 }
             } else {
                 Log.e(LOG_TAG, "Confirm new device failed: " + msg);
-                String message = (String)msg.obj;
-                if (TextUtils.isEmpty(message)) {
-                    message = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
+                if ( msg.arg1 == AylaNetworks.AML_ERROR_NOT_FOUND ) {
+                    // The service did not find the new device. Check with the device to see why.
+                    AylaSetup.getNewDeviceWiFiStatus(new GetNewDeviceWiFiStatusHandler(_frag.get()));
+                    MainActivity.getInstance().showWaitDialog(R.string.reconnecting_device_title, R.string.reconnecting_device_message);
+                } else {
+                    String message = (String) msg.obj;
+                    if (TextUtils.isEmpty(message)) {
+                        message = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
+                    }
+                    Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
+                    exitSetup();
                 }
-                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-                exitSetup();
             }
+        }
+    }
+
+    static class GetNewDeviceWiFiStatusHandler extends Handler {
+        private WeakReference<AddDeviceFragment> _frag;
+        public GetNewDeviceWiFiStatusHandler(AddDeviceFragment fragment) {
+            _frag = new WeakReference<AddDeviceFragment>(fragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "GetNewDeviceWiFiStatusHandler: " + msg);
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( AylaNetworks.succeeded(msg) ) {
+                AylaWiFiStatus status = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaWiFiStatus.class);
+                Log.d(LOG_TAG, "Wifi status: " + status);
+                if ( status != null && status.connectHistory != null ) {
+                    String connectionMessage = AylaNetworks.AML_wifiErrorMsg[status.connectHistory[0].error];
+                    if ( !TextUtils.isEmpty(connectionMessage) ) {
+                        Toast.makeText(MainActivity.getInstance(), connectionMessage, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+            }
+
+            // Failed to connect for an unknown reason
+            Toast.makeText(MainActivity.getInstance(), R.string.device_connection_failed, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -551,6 +597,7 @@ public class AddDeviceFragment extends Fragment
                 String emsg = (String) msg.obj;
                 if (emsg != null && emsg.contains("invalid key")) {
                     Toast.makeText(MainActivity.getInstance(), R.string.bad_wifi_password, Toast.LENGTH_LONG).show();
+                    _frag.get().chooseAP(_frag.get()._savedScanResults);
                 } else {
                     String anErrMsg = (String) msg.obj;
                     if ( anErrMsg == null ) {
@@ -558,8 +605,8 @@ public class AddDeviceFragment extends Fragment
                     }
                     Log.e(LOG_TAG, "Failed to connect to service. Calling exitSetup()");
                     Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
+                    exitSetup();
                 }
-                exitSetup();
             }
         }
     }

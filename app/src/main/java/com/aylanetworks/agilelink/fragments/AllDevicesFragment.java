@@ -190,6 +190,8 @@ public class AllDevicesFragment extends Fragment
         if ( deviceList != null ) {
             if ( deviceList.isEmpty() ) {
                 // Enter no devices mode
+                Log.e(LOG_TAG, "Received an empty device list!");
+                Thread.dumpStack();
                 MainActivity.getInstance().setNoDevicesMode(true);
                 return;
             }
