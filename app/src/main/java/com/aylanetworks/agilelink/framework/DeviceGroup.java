@@ -16,16 +16,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /*
@@ -119,11 +115,11 @@ public class DeviceGroup {
     }
 
     static class FetchGroupMembersHandler extends Handler {
-        private WeakReference<DeviceGroup> _deviceGroup;
+        private DeviceGroup _deviceGroup;
         private DeviceGroupListener _listener;
 
         public FetchGroupMembersHandler(DeviceGroup deviceGroup, DeviceGroupListener listener) {
-            _deviceGroup = new WeakReference<DeviceGroup>(deviceGroup);
+            _deviceGroup = deviceGroup;
             _listener = listener;
         }
 
@@ -131,17 +127,17 @@ public class DeviceGroup {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "fetchGroupMembers: " + msg);
             if (AylaNetworks.succeeded(msg)) {
-                _deviceGroup.get()._isDirty = false;
-                _deviceGroup.get()._datumExistsOnServer = true;
+                _deviceGroup._isDirty = false;
+                _deviceGroup._datumExistsOnServer = true;
 
                 AylaDatum datum = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatum.class);
-                _deviceGroup.get().updateGroupListFromDatum(datum);
+                _deviceGroup.updateGroupListFromDatum(datum);
                 if (_listener != null) {
-                    _listener.groupUpdated(_deviceGroup.get());
+                    _listener.groupUpdated(_deviceGroup);
                 }
             } else {
                 Log.e(LOG_TAG, "fetchGroupMembers failed: " + msg);
-                _deviceGroup.get()._datumExistsOnServer = false;
+                _deviceGroup._datumExistsOnServer = false;
             }
         }
     }
@@ -326,14 +322,9 @@ public class DeviceGroup {
         Log.d(LOG_TAG, "JSON: " + datum.value + "\nDSNs: " + _deviceDSNs);
     }
 
-    private Handler _updateDatumHandler = new UpdateDatumHandler(this);
+    private Handler _updateDatumHandler = new UpdateDatumHandler();
 
     static class UpdateDatumHandler extends Handler {
-        private WeakReference<DeviceGroup> _deviceGroup;
-
-        public UpdateDatumHandler(DeviceGroup deviceGroup) {
-            _deviceGroup = new WeakReference<DeviceGroup>(deviceGroup);
-        }
 
         @Override
         public void handleMessage(Message msg) {
