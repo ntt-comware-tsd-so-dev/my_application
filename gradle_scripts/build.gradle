@@ -1,0 +1,15 @@
+task execTasks(type: Exec) {
+    doFirst {
+
+        if(System.getProperty('os.name').contains('Mac')){
+            // for mac
+            commandLine './aylaControl_build.sh'
+        }
+        else if(System.getProperty('os.name').contains('Windows')){
+            //add script for windows
+            commandLine './aylaControl_build.cmd'
+        }
+
+
+    }
+}
