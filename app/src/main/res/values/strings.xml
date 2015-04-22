@@ -331,5 +331,7 @@
     <string name="device_connection_failed">The device failed to connect with the service.</string>
     <string name="reconnecting_device_title">Reconnecting to device</string>
     <string name="reconnecting_device_message">Device failed to connect with the service. Attempting to reconnect to the device...</string>
+    <string name="fetching_account_info_title">Fetching account information</string>
+    <string name="fetching_account_info_body">Fetching account information from the server. Please wait...</string>
 
 </resources>

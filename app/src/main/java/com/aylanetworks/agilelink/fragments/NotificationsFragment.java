@@ -135,9 +135,11 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
         AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
         if ( accountSettings == null ) {
             // Fetch the account settings now
+            MainActivity.getInstance().showWaitDialog(R.string.fetching_account_info_title, R.string.fetching_account_info_body);
             SessionManager.getInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
                 @Override
                 public void settingsUpdated(AccountSettings settings, Message msg) {
+                    MainActivity.getInstance().dismissWaitDialog();
                     if ( settings != null ) {
                         enableNotification(notificationMethod, enable);
                     } else {
@@ -147,7 +149,6 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
             });
             return;
         }
-
 
         if ( enable ) {
             accountSettings.addNotificationMethod(notificationMethod);
