@@ -130,9 +130,24 @@ public class NotificationsFragment extends Fragment implements CompoundButton.On
         _pushCheckbox.setOnCheckedChangeListener(listener);
     }
 
-    private void enableNotification(String notificationMethod, boolean enable) {
+    private void enableNotification(final String notificationMethod, final boolean enable) {
         Log.d(LOG_TAG, "Email notifications: " + enable);
         AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+        if ( accountSettings == null ) {
+            // Fetch the account settings now
+            SessionManager.getInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
+                @Override
+                public void settingsUpdated(AccountSettings settings, Message msg) {
+                    if ( settings != null ) {
+                        enableNotification(notificationMethod, enable);
+                    } else {
+                        Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            return;
+        }
+
 
         if ( enable ) {
             accountSettings.addNotificationMethod(notificationMethod);

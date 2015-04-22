@@ -715,7 +715,7 @@ public class SessionManager {
                 editor.apply();
 
                 // Fetches the account settings and stores them
-                _sessionManager.get().fetchAccountSettings();
+                _sessionManager.get().fetchAccountSettings(null);
 
                 // Create the contacts manager. It will fetch the contact list once the account
                 // settings have been fetched (so it knows who the owner contact is)
@@ -792,7 +792,7 @@ public class SessionManager {
         return true;
     }
 
-    private void fetchAccountSettings() {
+    public void fetchAccountSettings(final AccountSettings.AccountSettingsCallback callback) {
         Log.d(LOG_TAG, "Fetching account settings...");
         AccountSettings.fetchAccountSettings(AylaUser.getCurrent(), new AccountSettings.AccountSettingsCallback() {
             @Override
@@ -802,6 +802,9 @@ public class SessionManager {
                     _accountSettings = settings;
                     // Now we can create our contact manager
                     _contactManager.fetchContacts(new ContactManager.ContactManagerListener(), false);
+                }
+                if ( callback != null ) {
+                    callback.settingsUpdated(settings, msg);
                 }
             }
         });

@@ -399,7 +399,6 @@ public class DeviceNotificationHelper {
 
         AylaAppNotification appNotification = new AylaAppNotification();
 
-        AylaUser currentUser = AylaUser.getCurrent();
         SessionManager.SessionParameters sessionParameters = SessionManager.sessionParameters();
         AylaAppNotificationParameters params = appNotification.notificationAppParameters;
 
