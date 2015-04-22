@@ -95,7 +95,7 @@
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
         <receiver
-            android:name="com.aylanetworks.agileLink.MainActivity.server.GcmBroadcastReceiver"
+            android:name="com.aylanetworks.agilelink.framework.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <!-- Receives the actual messages. -->
