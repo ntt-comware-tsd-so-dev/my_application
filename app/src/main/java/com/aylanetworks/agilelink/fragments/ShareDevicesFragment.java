@@ -269,16 +269,17 @@ public class ShareDevicesFragment extends Fragment {
                     devicesToAdd.add(device);
                 }
             }
-            String email = _email.getText().toString();
-            if (TextUtils.isEmpty(email)) {
-                Toast.makeText(getActivity(), R.string.share_email_address_required, Toast.LENGTH_LONG).show();
-                return;
-            }
+        }
 
-            if (devicesToAdd.isEmpty()) {
-                Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
-                return;
-            }
+        String email = _email.getText().toString();
+        if (TextUtils.isEmpty(email)) {
+            Toast.makeText(getActivity(), R.string.share_email_address_required, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (devicesToAdd.isEmpty()) {
+            Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
+            return;
         }
 
         if ( _shareStartDate != null && _shareStartDate.getTimeInMillis() == 0 ) {
