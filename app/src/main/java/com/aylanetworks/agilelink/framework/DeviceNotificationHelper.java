@@ -406,17 +406,10 @@ public class DeviceNotificationHelper {
         appNotification.appType = notificationType;
 
         params.applicationId = sessionParameters.appId;
-        params.countryCode = currentUser.phoneCountryCode;
-        params.username = currentUser.firstname;
         params.message = _customMessage;
-        params.email = currentUser.email;
-        params.emailSubject = sessionParameters.notificationEmailSubject;
-        params.emailTemplateId = sessionParameters.notificationEmailTemplateId;
-        params.emailBodyHtml = sessionParameters.notificationEmailBodyHTML;
-        params.phoneNumber = currentUser.phone;
-        params.countryCode = currentUser.phoneCountryCode;
         params.pushSound = "default";
         params.registrationId = PushNotification.registrationId;
+        params.contact_id = SessionManager.getInstance().getAccountSettings().getOwnerContactID().toString();
 
         Log.d(LOG_TAG, "createApp[" + notificationType + "] email: " + params.email + " countryCode: " + params.countryCode + " phoneNumber: " + params.phoneNumber);
         deviceNotification.createApp(new CreateAppHandler(_device, deviceNotification, listener), appNotification);
