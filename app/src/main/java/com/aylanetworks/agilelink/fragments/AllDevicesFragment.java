@@ -219,18 +219,6 @@ public class AllDevicesFragment extends Fragment
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        startListening();
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        stopListening();
-    }
-
-    @Override
     public void deviceListChanged() {
         Log.i(LOG_TAG, "Device list changed");
         updateDeviceList();
