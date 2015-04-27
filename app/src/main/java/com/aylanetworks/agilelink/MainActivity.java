@@ -318,7 +318,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
         if(getResources().getBoolean(R.bool.portrait_only)){
+            Log.e("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        } else {
+            Log.e("BOOL", "portrait_only: false");
         }
 
         _theInstance = this;
@@ -575,6 +578,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     protected void onPause() {
         super.onPause();
 
+        dismissWaitDialog();
+
         Log.d(LOG_TAG, "onPause");
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
@@ -598,6 +603,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().startPolling();
+            setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
         } else if ( !_loginScreenUp ) {
             showLoginDialog();
         }
