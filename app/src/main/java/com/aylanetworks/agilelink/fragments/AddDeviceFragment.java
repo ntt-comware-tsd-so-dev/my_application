@@ -12,6 +12,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -89,7 +90,9 @@ public class AddDeviceFragment extends Fragment
     public void onResume() {
         Log.v(LOG_TAG, "onResume");
         super.onResume();
-        SessionManager.deviceManager().stopPolling();
+        if ( SessionManager.deviceManager() != null ) {
+            SessionManager.deviceManager().stopPolling();
+        }
     }
 
     @Override
@@ -99,12 +102,18 @@ public class AddDeviceFragment extends Fragment
         if ( _needsExit ) {
             exitSetup();
         }
-        SessionManager.deviceManager().startPolling();
+        if ( SessionManager.deviceManager() != null ) {
+            SessionManager.deviceManager().startPolling();
+        }
     }
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         menu.clear();
+        if ( MainActivity.getInstance().isNoDevicesMode() ) {
+            getActivity().getMenuInflater().inflate(R.menu.menu_no_devices, menu);
+        }
+
         super.onPrepareOptionsMenu(menu);
     }
 
