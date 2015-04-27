@@ -607,7 +607,12 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 if (!loggedIn) {
                     // User logged out.
                     setNoDevicesMode(false);
-                    showLoginDialog();
+                    if ( !_loginScreenUp ) {
+                        showLoginDialog();
+                    } else {
+                        Log.e(LOG_TAG, "Login screen is already up:");
+                        Thread.dumpStack();
+                    }
                 } else {
                     // Finish  the login dialog
                     MainActivity.this.finishActivity(REQ_SIGN_IN);
