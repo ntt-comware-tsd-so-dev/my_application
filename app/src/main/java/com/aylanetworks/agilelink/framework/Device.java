@@ -501,7 +501,7 @@ public class Device implements Comparable<Device> {
      * @param propertyName   Name of the property to set the datapoint on
      * @param datapointValue Value to set the datapoint to
      */
-    public void setDatapoint(String propertyName, Object datapointValue, SetDatapointListener listener) {
+    public void setDatapoint(String propertyName, Object datapointValue, final SetDatapointListener listener) {
         final AylaProperty property = getProperty(propertyName);
         if (property == null) {
             Log.e(LOG_TAG, "setProperty: Can't find property named " + propertyName);
@@ -524,8 +524,14 @@ public class Device implements Comparable<Device> {
             datapoint.sValue(datapointValue.toString());
         }
 
-        final CreateDatapointHandler handler = new CreateDatapointHandler(this, property, listener);
-        property.createDatapoint(handler, datapoint);
+        // Put the device into LAN mode before setting the property
+        SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(this) {
+            @Override
+            public void lanModeResult(boolean isInLANMode) {
+                final CreateDatapointHandler handler = new CreateDatapointHandler(Device.this,property,listener);
+                property.createDatapoint(handler,datapoint);
+            }
+        });
     }
 
     private static class CreateDatapointHandler extends Handler {
