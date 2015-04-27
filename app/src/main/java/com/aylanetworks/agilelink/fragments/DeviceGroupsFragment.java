@@ -150,12 +150,17 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
             _selectedGroup = groups.get(0);
         }
 
+        int headerMargin = (int)getResources().getDimension(R.dimen.group_header_margin);
+        int buttonMargin = (int)getResources().getDimension(R.dimen.group_button_margin);
+        int buttonPadding = (int)getResources().getDimension(R.dimen.group_button_padding);
+        Log.d("DIMENS", "hm: " + headerMargin + " bm: " + buttonMargin + " bp: " + buttonPadding);
+
         // Make a linear layout to hold all of the buttons
         LinearLayout layout = new LinearLayout(getActivity());
         layout.setOrientation(LinearLayout.HORIZONTAL);
 
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.setMargins(5, 5, 5, 5);
+        layoutParams.setMargins(headerMargin, headerMargin, headerMargin, headerMargin);
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         layout.setLayoutParams(layoutParams);
 
@@ -163,12 +168,12 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
             Button b = new Button(getActivity());
 
             layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            layoutParams.setMargins(8, 0, 8, 0);
+            layoutParams.setMargins(buttonMargin, 0, buttonMargin, 0);
             layoutParams.gravity = Gravity.CENTER_VERTICAL;
             b.setLayoutParams(layoutParams);
 
             b.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
-            b.setPadding(24, 24, 24, 24);
+            b.setPadding(buttonPadding, buttonPadding, buttonPadding, buttonPadding);
 
             b.setText(group.getGroupName());
             b.setTag(group);
