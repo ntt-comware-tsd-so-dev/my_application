@@ -1,7 +1,5 @@
 package com.aylanetworks.agilelink;
 
-import android.app.ActionBar;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,7 +30,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -46,19 +43,14 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
-import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
-import com.aylanetworks.agilelink.fragments.SignInDialog;
-import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
  * MainActivity.java
@@ -68,9 +60,14 @@ import java.util.Map;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SignUpDialog.SignUpListener, SignInDialog.SignInDialogListener, SessionManager.SessionListener {
+public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener {
 
     private static final String LOG_TAG = "Main Activity";
+
+    // request IDs for intents we want results from
+    public static final int REQ_PICK_CONTACT = 1;
+    public static final int REQ_SIGN_IN = 2;
+
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -241,7 +238,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     }
 
     private PickContactListener _pickContactListener;
-    private static final int REQ_PICK_CONTACT = 1;
 
     /**
      * Launches the system's contact picker activity and calls the PickContactListener with
@@ -307,6 +303,13 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                     _pickContactListener = null;
                 }
             });
+        } else if ( reqCode == REQ_SIGN_IN ) {
+            Log.d(LOG_TAG, "Login screen finished");
+
+            if ( resultCode == RESULT_FIRST_USER ) {
+                Log.d(LOG_TAG, "Back pressed from login. Finishing.");
+                finish();
+            }
         }
     }
 
@@ -324,11 +327,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
 
         // We want to know when the user logs in or out
         SessionManager.addSessionListener(this);
-
-        // Bring up the login dialog if we're not already logged in
-        if (!SessionManager.isLoggedIn()) {
-            showLoginDialog();
-        }
     }
 
     private void initUI() {
@@ -516,12 +514,23 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
     public void popBackstackToRoot() {
         // Pop to the root of the backstack
         if ( getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
+            Log.d(LOG_TAG, "Popping backstack (" + getSupportFragmentManager().getBackStackEntryCount() + ")");
+
             FragmentManager.BackStackEntry firstEntry = getSupportFragmentManager().getBackStackEntryAt(0);
             getSupportFragmentManager().popBackStackImmediate(firstEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
         }
     }
 
+    private boolean _loginScreenUp;
     private void showLoginDialog() {
+        Log.d(LOG_TAG, "showLoginDialog:");
+        if ( _loginScreenUp ) {
+            Log.e(LOG_TAG, "showLoginDialog: Already shown");
+            return;
+        }
+
+        _loginScreenUp = true;
+
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
         final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
@@ -532,29 +541,19 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             return;
         }
 
-        if (_loginDialog == null) {
-            _loginDialog = new SignInDialog();
-
-            // We always want to show the "All Devices" page first
-            if ( mViewPager != null ) {
-                mViewPager.setCurrentItem(0);
-            }
-            popBackstackToRoot();
-
-            Bundle args = new Bundle();
-            args.putString(SignInDialog.ARG_USERNAME, savedUsername);
-            args.putString(SignInDialog.ARG_PASSWORD, savedPassword);
-            _loginDialog.setArguments(args);
-
-            // There are bugs with the Android support libraries and onSaveInstanceState.
-            // http://stackoverflow.com/questions/14262312/java-lang-illegalstateexception-can-not-perform-this-action-after-onsaveinstanc
-            getSupportFragmentManager().beginTransaction()
-                    .add(_loginDialog, "signin")
-                    .commitAllowingStateLoss();             // This should work around the bug.
-        } else {
-            Log.e(LOG_TAG, "Login dialog is already being shown!");
+        // We always want to show the "All Devices" page first
+        if ( mViewPager != null ) {
+            mViewPager.setCurrentItem(0);
         }
+        popBackstackToRoot();
 
+        Bundle args = new Bundle();
+        args.putString(SignInActivity.ARG_USERNAME, savedUsername);
+        args.putString(SignInActivity.ARG_PASSWORD, savedPassword);
+
+        Intent intent = new Intent(this, SignInActivity.class);
+        intent.putExtras(args);
+        startActivityForResult(intent, REQ_SIGN_IN);
     }
 
     @Override
@@ -587,58 +586,12 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
             uri = getIntent().getData();
         }
 
-        if (uri != null) {
-            Log.i(LOG_TAG, "onResume: URI is " + uri);
-            handleOpenURI(uri);
-            // Clear out the URI
-            AccountConfirmActivity.uri = null;
-        }
-
         AylaLanMode.resume();
 
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().startPolling();
-        }
-    }
-
-    private static final String SIGNUP_TOKEN = "user_sign_up_token";
-    private static final String RESET_PASSWORD_TOKEN = "user_reset_password_token";
-
-    private void handleOpenURI(Uri uri) {
-        // sign-up confirmation:
-        // aylacontrol://user_sign_up_token?token=pdsWFmcU
-
-        // Reset password confirmation:
-        // aylacontrol://user_reset_password_token?token=3DrjCTqs
-
-        String path = uri.getLastPathSegment();
-        if (path == null) {
-            // Some URIs are formatted without a path after the host. Just use the hostname in
-            // this case.
-            path = uri.getHost();
-        }
-        String query = uri.getEncodedQuery();
-        String parts[] = null;
-        if (query != null) {
-            parts = query.split("=");
-        }
-
-        if (path.equals(SIGNUP_TOKEN)) {
-            if (parts == null || parts.length != 2 || !parts[0].equals("token")) {
-                // Unknown query string
-                Toast.makeText(this, R.string.error_open_uri, Toast.LENGTH_SHORT).show();
-            } else {
-                handleUserSignupToken(parts[1]);
-            }
-        } else if (path.equals(RESET_PASSWORD_TOKEN)) {
-            if (parts == null || parts.length != 2 || !parts[0].equals("token")) {
-                // Unknown query string
-                Toast.makeText(this, R.string.error_open_uri, Toast.LENGTH_SHORT).show();
-            } else {
-                handleUserResetPasswordToken(parts[1]);
-            }
-        } else {
-            Log.e(LOG_TAG, "Unknown URI: " + uri);
+        } else if ( !_loginScreenUp ) {
+            showLoginDialog();
         }
     }
 
@@ -654,15 +607,19 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 if (!loggedIn) {
                     // User logged out.
                     setNoDevicesMode(false);
-                    if (_loginDialog == null) {
+                    if ( !_loginScreenUp ) {
                         showLoginDialog();
+                    } else {
+                        Log.e(LOG_TAG, "Login screen is already up:");
+                        Thread.dumpStack();
                     }
                 } else {
-                    if (_loginDialog != null) {
-                        _loginDialog.dismiss();
-                        _loginDialog = null;
-                    }
+                    // Finish  the login dialog
+                    MainActivity.this.finishActivity(REQ_SIGN_IN);
+                    _loginScreenUp = false;
+                    dismissWaitDialog();
                 }
+
                 setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
             }
         });
@@ -696,65 +653,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         }
     }
 
-    static class SignUpConfirmationHandler extends Handler {
-
-        public void handleMessage(android.os.Message msg) {
-            String jsonResults = (String) msg.obj;
-
-            // clear sign-up token
-            if (AylaNetworks.succeeded(msg)) {
-                // save auth info of current user
-                AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
-                AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
-
-                String toastMessage = MainActivity.getInstance().getString(R.string.welcome_new_account);
-                Toast.makeText(MainActivity.getInstance(), toastMessage, Toast.LENGTH_LONG).show();
-
-                MainActivity.getInstance()._loginDialog.setUsername(aylaUser.email);
-
-                // save existing user info
-                AylaSystemUtils.saveSetting("currentUser", jsonResults);    // Allow lib access for accessToken refresh
-            } else {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "userSignUpConfirmation", "Failed", "userSignUpConfirmation_handler");
-                int resID;
-                if (msg.arg1 == 422) {
-                    resID = R.string.error_invalid_token; // Invalid token
-                } else {
-                    resID = R.string.error_account_confirm_failed; // Unknown error occurred
-                }
-
-                AlertDialog.Builder ad = new AlertDialog.Builder(MainActivity.getInstance());
-                ad.setTitle(R.string.error_sign_up_title);
-                ad.setMessage(resID);
-                ad.setPositiveButton(android.R.string.ok, null);
-                ad.show();
-            }
-        }
-    }
-
-    private SignUpConfirmationHandler _signUpConfirmationHandler = new SignUpConfirmationHandler();
-
-    private void handleUserSignupToken(String token) {
-        Log.d(LOG_TAG, "handleUserSignupToken: " + token);
-
-        if (AylaUser.user.getauthHeaderValue().contains("none")) {
-            // authenticate the token
-            Map<String, String> callParams = new HashMap<String, String>();
-            callParams.put("confirmation_token", token); // required
-            AylaUser.signUpConfirmation(_signUpConfirmationHandler, callParams);
-        } else {
-            Toast.makeText(AylaNetworks.appContext, R.string.error_sign_out_first, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    void handleUserResetPasswordToken(String token) {
-        Log.i(LOG_TAG, "handleUserResetPasswordToken: " + token);
-        ResetPasswordDialog d = new ResetPasswordDialog();
-        d.setToken(token);
-        d.show(getSupportFragmentManager(), "reset_password");
-    }
-
-    private SignInDialog _loginDialog;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -786,32 +684,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Launches the sign-up dialog
-     */
-    private void launchSignUpDialog() {
-        Log.i(LOG_TAG, "Sign up");
-        SignUpDialog d = new SignUpDialog(this, this);
-        d.show();
-    }
-
-    @Override
-    public void signUpSucceeded(AylaUser newUser) {
-        Toast.makeText(this, R.string.sign_up_success, Toast.LENGTH_LONG).show();
-
-        // Update the username / password fields in our sign-in dialog and sign in the user
-        if (_loginDialog != null) {
-            EditText username = (EditText) _loginDialog.getView().findViewById(R.id.userNameEditText);
-            EditText password = (EditText) _loginDialog.getView().findViewById(R.id.passwordEditText);
-            username.setText(newUser.email);
-            password.setText(newUser.password);
-        }
-    }
-
-    //
-    // SignInDialogListener methods
-    //
-    @Override
     public void signIn(String username, String password) {
         showWaitDialog(R.string.signingIn, R.string.signingIn);
         SessionManager.startSession(username, password);
@@ -822,7 +694,7 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
         String error;
     }
 
-    @Override
+    //@Override
     public void signInOAuth(Message msg) {
         if (AylaNetworks.succeeded(msg)) {
             // Make sure we have an auth token. Sometimes we get back "OK" but there is
@@ -837,8 +709,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 }
                 Log.e(LOG_TAG, "OAuth: No access token returned! Message: " + msg);
             } else {
-                _loginDialog.dismiss();
-                _loginDialog = null;
                 SessionManager.startOAuthSession(msg);
             }
         } else {
@@ -848,11 +718,6 @@ public class MainActivity extends ActionBarActivity implements SignUpDialog.Sign
                 Toast.makeText(this, getString(R.string.unknown_error), Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    @Override
-    public void signUp() {
-        launchSignUpDialog();
     }
 
     /**

@@ -26,12 +26,12 @@ public class AccountConfirmActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //capture intent from link in confirmation email and send it to the main activity
+        //capture intent from link in confirmation email and send it to the login activity
 
         Intent intent = getIntent();
 
         if (intent.hasCategory(Intent.CATEGORY_BROWSABLE) && intent.getScheme().equals(URL_SCHEME)){
-            Intent startIntent = new Intent(AccountConfirmActivity.this, MainActivity.class);
+            Intent startIntent = new Intent(AccountConfirmActivity.this, SignInActivity.class);
             startIntent.putExtra(ARG_ACCOUNT_CONFIRM, true);
             startIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
