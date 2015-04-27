@@ -142,7 +142,9 @@ public class AllDevicesFragment extends Fragment
         if ( _displayMode == DISPLAY_MODE_LIST ) {
             _layoutManager = new LinearLayoutManager(getActivity());
         } else {
-            GridLayoutManager gm = new GridLayoutManager(getActivity(), 2);
+            int nColumns = getResources().getInteger(R.integer.grid_width);
+            Log.d("COLS", "Columns: " + nColumns);
+            GridLayoutManager gm = new GridLayoutManager(getActivity(), nColumns);
             gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
