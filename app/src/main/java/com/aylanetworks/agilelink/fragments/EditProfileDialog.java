@@ -95,6 +95,13 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
         MainActivity.getInstance().showWaitDialog(title, body);
     }
 
+    @Override
+    public void onBackPressed() {
+        // In case our handler wasn't called yet
+        MainActivity.getInstance().dismissWaitDialog();
+        super.onBackPressed();
+    }
+
     private void updateFields() {
         AylaUser currentUser = AylaUser.getCurrent();
 
