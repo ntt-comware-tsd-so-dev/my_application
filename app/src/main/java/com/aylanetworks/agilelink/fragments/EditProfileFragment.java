@@ -31,14 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /*
- * EditProfileDialog.java
+ * EditProfileFragment.java
  * AgileLink Application Framework
  *
  * Created by Brian King on 2/4.15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class EditProfileDialog extends Fragment implements View.OnClickListener {
+public class EditProfileFragment extends Fragment implements View.OnClickListener {
     private final static String LOG_TAG = "EditProfileDialog";
 
     private EditText _email;
@@ -51,8 +51,8 @@ public class EditProfileDialog extends Fragment implements View.OnClickListener 
     private EditText _phoneNumber;
     private EditText _evbNumber;
 
-    public static EditProfileDialog newInstance() {
-        return new EditProfileDialog();
+    public static EditProfileFragment newInstance() {
+        return new EditProfileFragment();
     }
 
     @Override
@@ -170,9 +170,9 @@ public class EditProfileDialog extends Fragment implements View.OnClickListener 
     }
 
     static class ChangePasswordHandler extends Handler {
-        private WeakReference<EditProfileDialog> _editProfileDialog;
-        public ChangePasswordHandler(EditProfileDialog editProfileDialog) {
-            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        private WeakReference<EditProfileFragment> _editProfileDialog;
+        public ChangePasswordHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
         }
 
         @Override
@@ -213,10 +213,10 @@ public class EditProfileDialog extends Fragment implements View.OnClickListener 
     private ChangePasswordHandler _changePasswordHandler = new ChangePasswordHandler(this);
 
     static class GetInfoHandler extends Handler {
-        private WeakReference<EditProfileDialog> _editProfileDialog;
+        private WeakReference<EditProfileFragment> _editProfileDialog;
 
-        public GetInfoHandler(EditProfileDialog editProfileDialog) {
-            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        public GetInfoHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
         }
 
         @Override
@@ -243,10 +243,10 @@ public class EditProfileDialog extends Fragment implements View.OnClickListener 
     private GetInfoHandler _getInfoHandler = new GetInfoHandler(this);
 
     static class UpdateProfileHandler extends Handler {
-        private WeakReference<EditProfileDialog> _editProfileDialog;
+        private WeakReference<EditProfileFragment> _editProfileDialog;
 
-        public UpdateProfileHandler(EditProfileDialog editProfileDialog) {
-            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        public UpdateProfileHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
         }
 
         @Override
