@@ -14,7 +14,9 @@ import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
@@ -200,6 +202,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         String password = args.getString(ARG_PASSWORD);
         _username.setText(username);
         _password.setText(password);
+        _password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ( actionId == EditorInfo.IME_ACTION_DONE ) {
+                    // Enter key pressed
+                    _loginButton.performClick();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         SessionManager.addSessionListener(this);
     }
