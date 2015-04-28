@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -315,6 +316,14 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Phones are portrait-only. Tablets support orientation changes.
+        if(getResources().getBoolean(R.bool.portrait_only)){
+            Log.e("BOOL", "portrait_only: true");
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        } else {
+            Log.e("BOOL", "portrait_only: false");
+        }
+
         _theInstance = this;
         AylaNetworks.appContext = this;
 
@@ -385,25 +394,27 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             }
         });
 
-        _drawerToggle = new ActionBarDrawerToggle(this,
-                _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                MainActivity.this.onDrawerOpened(drawerView);
-            }
+        if ( _drawerLayout != null ) {
+            _drawerToggle = new ActionBarDrawerToggle(this,
+                    _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    MainActivity.this.onDrawerOpened(drawerView);
+                }
 
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                MainActivity.this.onDrawerClosed(drawerView);
-            }
-        };
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    MainActivity.this.onDrawerClosed(drawerView);
+                }
+            };
 
-        _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+            _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
 
-        _drawerLayout.setDrawerListener(_drawerToggle);
+            _drawerLayout.setDrawerListener(_drawerToggle);
+        }
         onDrawerItemClicked(0);
     }
 
@@ -567,6 +578,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     protected void onPause() {
         super.onPause();
 
+        dismissWaitDialog();
+
         Log.d(LOG_TAG, "onPause");
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
@@ -590,6 +603,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().startPolling();
+            setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
         } else if ( !_loginScreenUp ) {
             showLoginDialog();
         }
