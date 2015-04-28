@@ -131,8 +131,8 @@ public class MenuHandler {
     }
 
     public static void updateProfile() {
-        EditProfileDialog d = new EditProfileDialog(MainActivity.getInstance());
-        d.show();
+        EditProfileDialog frag = EditProfileDialog.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
     }
 
 

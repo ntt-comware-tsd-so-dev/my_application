@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.ActionBar;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Resources;
@@ -12,8 +11,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
