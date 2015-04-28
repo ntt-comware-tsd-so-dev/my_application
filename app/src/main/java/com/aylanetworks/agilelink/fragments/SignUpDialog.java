@@ -38,7 +38,7 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
     private SignUpListener _signUpListener;
 
     public SignUpDialog(final Context context, SignUpListener listener) {
-        super(context, R.style.FullHeightDialog);
+        super(context, R.style.AppTheme);
         _signUpListener = listener;
     }
 
