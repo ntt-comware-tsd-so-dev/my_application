@@ -751,6 +751,7 @@ public class DeviceManager implements DeviceStatusListener {
                         _deviceManager.get().enterLANMode();
                     }
                 }
+                _deviceManager.get().refreshDeviceStatus(null);
             }
         }
     }
