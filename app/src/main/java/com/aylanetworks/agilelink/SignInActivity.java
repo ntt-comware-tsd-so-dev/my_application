@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,7 +14,9 @@ import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
@@ -87,6 +90,12 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Phones are portrait-only. Tablets support orientation changes.
+        if(getResources().getBoolean(R.bool.portrait_only)){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
         setContentView(R.layout.login);
 
         _username = (EditText) findViewById(R.id.userNameEditText);
@@ -193,6 +202,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         String password = args.getString(ARG_PASSWORD);
         _username.setText(username);
         _password.setText(password);
+        _password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ( actionId == EditorInfo.IME_ACTION_DONE ) {
+                    // Enter key pressed
+                    _loginButton.performClick();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         SessionManager.addSessionListener(this);
     }

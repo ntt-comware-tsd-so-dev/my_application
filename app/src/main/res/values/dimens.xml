@@ -8,4 +8,5 @@
     <dimen name="group_header_margin">2dp</dimen>
     <dimen name="group_button_margin">3dp</dimen>
     <dimen name="group_button_padding">8dp</dimen>
+    <dimen name="drawer_width">240dp</dimen>
 </resources>

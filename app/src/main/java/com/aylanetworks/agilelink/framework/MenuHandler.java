@@ -19,7 +19,7 @@ import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
-import com.aylanetworks.agilelink.fragments.EditProfileDialog;
+import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.NotificationsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 
@@ -131,8 +131,8 @@ public class MenuHandler {
     }
 
     public static void updateProfile() {
-        EditProfileDialog d = new EditProfileDialog(MainActivity.getInstance());
-        d.show();
+        EditProfileFragment frag = EditProfileFragment.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
     }
 
 

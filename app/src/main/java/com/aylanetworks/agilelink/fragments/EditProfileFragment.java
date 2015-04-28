@@ -1,13 +1,15 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Dialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -29,14 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /*
- * EditProfileDialog.java
+ * EditProfileFragment.java
  * AgileLink Application Framework
  *
  * Created by Brian King on 2/4.15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class EditProfileDialog extends Dialog implements View.OnClickListener {
+public class EditProfileFragment extends Fragment implements View.OnClickListener {
     private final static String LOG_TAG = "EditProfileDialog";
 
     private EditText _email;
@@ -49,35 +51,34 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
     private EditText _phoneNumber;
     private EditText _evbNumber;
 
-    public EditProfileDialog(final Context context) {
-        super(context, R.style.FullHeightDialog);
+    public static EditProfileFragment newInstance() {
+        return new EditProfileFragment();
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        getActivity().invalidateOptionsMenu();
+    }
 
-        setContentView(R.layout.sign_up);
-
-        // Make the dialog full-screen
-        WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.width = WindowManager.LayoutParams.MATCH_PARENT;
-        params.height = WindowManager.LayoutParams.MATCH_PARENT;
-        getWindow().setAttributes(params);
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.sign_up, container, false);
 
         // Set up a handler for our button
-        Button b = (Button) findViewById(R.id.btnSignUp);
+        Button b = (Button) root.findViewById(R.id.btnSignUp);
         b.setOnClickListener(this);
 
-        _email = (EditText) getWindow().findViewById(R.id.etEmail);
-        _password = (EditText) getWindow().findViewById(R.id.etPassword);
-        _confirmPassword = (EditText) getWindow().findViewById(R.id.etConfirmPassword);
-        _firstName = (EditText) getWindow().findViewById(R.id.etFirstName);
-        _lastName = (EditText) getWindow().findViewById(R.id.etLastName);
-        _country = (EditText) getWindow().findViewById(R.id.etCountry);
-        _zip = (EditText) getWindow().findViewById(R.id.etZipCode);
-        _phoneNumber = (EditText) getWindow().findViewById(R.id.etPhoneNumber);
-        _evbNumber = (EditText) getWindow().findViewById(R.id.etEvbNumber);
+        _email = (EditText) root.findViewById(R.id.etEmail);
+        _password = (EditText) root.findViewById(R.id.etPassword);
+        _confirmPassword = (EditText) root.findViewById(R.id.etConfirmPassword);
+        _firstName = (EditText) root.findViewById(R.id.etFirstName);
+        _lastName = (EditText) root.findViewById(R.id.etLastName);
+        _country = (EditText) root.findViewById(R.id.etCountry);
+        _zip = (EditText) root.findViewById(R.id.etZipCode);
+        _phoneNumber = (EditText) root.findViewById(R.id.etPhoneNumber);
+        _evbNumber = (EditText) root.findViewById(R.id.etEvbNumber);
 
         // Make some fields read-only
         _email.setEnabled(false);
@@ -86,13 +87,32 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
         // Change the name of the button to "Update Profile"
         b.setText(R.string.update_profile);
 
+        return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         // Update our current user's information
         Map<String, String> args = new HashMap<>();
         args.put("access_token", SessionManager.sessionParameters().accessToken);
-        AylaUser.getInfo(_getInfoHandler, args);
         String title = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_title);
         String body = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_body);
         MainActivity.getInstance().showWaitDialog(title, body);
+
+        AylaUser.getInfo(_getInfoHandler, args);
+    }
+
+    @Override
+    public void onPause() {
+        MainActivity.getInstance().dismissWaitDialog();
+        super.onPause();
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        super.onPrepareOptionsMenu(menu);
     }
 
     private void updateFields() {
@@ -150,9 +170,9 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
     }
 
     static class ChangePasswordHandler extends Handler {
-        private WeakReference<EditProfileDialog> _editProfileDialog;
-        public ChangePasswordHandler(EditProfileDialog editProfileDialog) {
-            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        private WeakReference<EditProfileFragment> _editProfileDialog;
+        public ChangePasswordHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
         }
 
         @Override
@@ -169,7 +189,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                 _editProfileDialog.get()._confirmPassword.setText("");
 
                 // Continue updating the rest of the information
-                _editProfileDialog.get().onClick(_editProfileDialog.get().getWindow().findViewById(R.id.btnSignUp));
+                _editProfileDialog.get().onClick(_editProfileDialog.get().getView().findViewById(R.id.btnSignUp));
             } else {
                 MainActivity.getInstance().dismissWaitDialog();
                 String errMsg = null;
@@ -193,10 +213,10 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
     private ChangePasswordHandler _changePasswordHandler = new ChangePasswordHandler(this);
 
     static class GetInfoHandler extends Handler {
-        private WeakReference<EditProfileDialog> _editProfileDialog;
+        private WeakReference<EditProfileFragment> _editProfileDialog;
 
-        public GetInfoHandler(EditProfileDialog editProfileDialog) {
-            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        public GetInfoHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
         }
 
         @Override
@@ -223,10 +243,10 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
     private GetInfoHandler _getInfoHandler = new GetInfoHandler(this);
 
     static class UpdateProfileHandler extends Handler {
-        private WeakReference<EditProfileDialog> _editProfileDialog;
+        private WeakReference<EditProfileFragment> _editProfileDialog;
 
-        public UpdateProfileHandler(EditProfileDialog editProfileDialog) {
-            _editProfileDialog = new WeakReference<EditProfileDialog>(editProfileDialog);
+        public UpdateProfileHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
         }
 
         @Override
@@ -243,7 +263,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                 if ( ownerContact == null ) {
                     Log.e(LOG_TAG, "No owner contact found! Creating...");
                     cm.createOwnerContact();
-                    _editProfileDialog.get().dismiss();
+                    _editProfileDialog.get().getFragmentManager().popBackStack();
                     Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
                 } else {
                     String phoneCountryCode;
@@ -272,7 +292,7 @@ public class EditProfileDialog extends Dialog implements View.OnClickListener {
                     cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
                         @Override
                         public void contactListUpdated(ContactManager manager, boolean succeeded) {
-                            _editProfileDialog.get().dismiss();
+                            _editProfileDialog.get().getFragmentManager().popBackStack();
                             Toast.makeText(MainActivity.getInstance(),
                                     succeeded ? R.string.profile_updated : R.string.error_changing_profile,
                                     Toast.LENGTH_LONG).show();
