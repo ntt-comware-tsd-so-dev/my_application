@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,14 +24,15 @@ import java.util.List;
  * Created by Brian King on 4/7/15.
  */
 public class AboutFragment extends Fragment {
-    private ListView _listView;
+    protected ListView _listView;
+    protected TextView _headerTextView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_about, container, false);
 
-        TextView header = (TextView)v.findViewById(R.id.page_header);
-        header.setText(getString(R.string.about_app, getString(R.string.app_name)));
+        _headerTextView = (TextView)v.findViewById(R.id.page_header);
+        _headerTextView.setText(getString(R.string.about_app, getString(R.string.app_name)));
 
         _listView = (ListView)v.findViewById(R.id.list_view);
 
@@ -39,7 +41,7 @@ public class AboutFragment extends Fragment {
         return v;
     }
 
-    private void populateList() {
+    protected void populateList() {
         List<AboutItem> items = new ArrayList<>();
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
 
@@ -66,7 +68,7 @@ public class AboutFragment extends Fragment {
         _listView.setAdapter(new AboutListAdapter(getActivity(), items.toArray(new AboutItem[items.size()])));
     }
 
-    private class AboutItem {
+    protected class AboutItem {
         public AboutItem(String name, String value) {
             this.name = name;
             this.value = value;
@@ -76,7 +78,7 @@ public class AboutFragment extends Fragment {
         public String value;
     }
 
-    private class AboutListAdapter extends ArrayAdapter<AboutItem> {
+    protected class AboutListAdapter extends ArrayAdapter<AboutItem> {
         public AboutListAdapter(Context context, AboutItem[] objects) {
             super(context, R.layout.about_list_item, objects);
         }

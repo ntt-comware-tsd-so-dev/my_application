@@ -5,4 +5,7 @@
 
     <item android:id="@+id/action_timezone"
           android:title="@string/timezone_button_text"/>
+
+    <item android:id="@+id/action_device_details"
+          android:title="@string/details"/>
 </menu>

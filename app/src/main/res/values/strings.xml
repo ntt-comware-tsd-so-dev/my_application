@@ -333,5 +333,7 @@
     <string name="reconnecting_device_message">Device failed to connect with the service. Attempting to reconnect to the device...</string>
     <string name="fetching_account_info_title">Fetching account information</string>
     <string name="fetching_account_info_body">Fetching account information from the server. Please wait...</string>
+    <string name="details">Details...</string>
+    <string name="device_detail_header_text" formatted="false">%s Details</string>
 
 </resources>
