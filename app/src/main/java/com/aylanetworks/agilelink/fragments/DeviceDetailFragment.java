@@ -210,10 +210,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         menu.clear();
-        // TODO: BSK: If we start getting share IDs back in the Grant objects, we can remove a share here.
-        if ( _device.getDevice().amOwner() ) {
-            MainActivity.getInstance().getMenuInflater().inflate(R.menu.menu_device_details, menu);
-        }
+        MainActivity.getInstance().getMenuInflater().inflate(R.menu.menu_device_details, menu);
         super.onPrepareOptionsMenu(menu);
     }
 
@@ -265,6 +262,10 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.action_timezone:
                 updateTimezone();
+                break;
+
+            case R.id.action_device_details:
+                showDetails();
                 break;
 
             default:
@@ -415,6 +416,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 }
             }
         });
+    }
+
+    private void showDetails() {
+        Log.d(LOG_TAG, "showDetails");
+        DeviceDetailListFragment frag = DeviceDetailListFragment.newInstance(_device);
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     private void chooseTimezone() {
