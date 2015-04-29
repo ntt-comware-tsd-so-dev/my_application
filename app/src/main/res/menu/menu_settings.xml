@@ -2,27 +2,30 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/action_add_device"
-          android:title="@string/add_device"/>
+        android:title="@string/add_device"/>
 
     <item android:id="@+id/action_contact_list"
-          android:title="@string/contact_list"/>
+        android:title="@string/contact_list"/>
 
     <item android:id="@+id/action_notifications"
-          android:title="@string/notifications"/>
+        android:title="@string/notifications"/>
 
-    <item android:id="@+id/action_edit_profile"
-          android:title="@string/edit_profile"/>
+    <!-- <item android:id="@+id/action_edit_profile"
+           android:title="@string/edit_profile"/>
 
-    <item android:id="@+id/action_delete_account"
-          android:title="@string/delete_account"/>
+     <item android:id="@+id/action_delete_account"
+           android:title="@string/delete_account"/>-->
 
     <item android:id="@+id/action_shares"
-          android:title="@string/shares"/>
+        android:title="@string/shares"/>
 
-    <item android:id="@+id/action_sign_out"
-          android:title="@string/sign_out"/>
+    <!-- <item android:id="@+id/action_sign_out"
+           android:title="@string/sign_out"/>-->
 
     <item android:id="@+id/action_about"
-          android:title="@string/about"/>
+        android:title="@string/about"/>
+
+    <item android:id="@+id/more_options"
+        android:title="@string/more_options"/>
 
 </menu>
