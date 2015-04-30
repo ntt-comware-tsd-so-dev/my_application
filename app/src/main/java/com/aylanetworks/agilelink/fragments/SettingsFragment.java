@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -27,6 +28,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import org.json.JSONException;
@@ -43,10 +45,10 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class SettingsFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class SettingsFragment extends Fragment implements ExpandableListView.OnGroupClickListener, ExpandableListView.OnChildClickListener {
     private final static String LOG_TAG = "SettingsFragment";
-    private ListView _listView;
-    private List<MenuItem> _menuItems;
+    private ExpandableListView _listView;
+    private Menu _menu;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
@@ -55,33 +57,38 @@ public class SettingsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
-        _listView = (ListView)view.findViewById(R.id.listView);
+        _listView = (ExpandableListView)view.findViewById(R.id.listView);
 
         // Load the menu resource. We will be using the menu items in our listview.
-        Menu menu = new MenuBuilder(getActivity());
-        new MenuInflater(getActivity()).inflate(R.menu.menu_settings, menu);
+        _menu = new MenuBuilder(getActivity());
+        new MenuInflater(getActivity()).inflate(R.menu.menu_settings, _menu);
 
-        _menuItems = new ArrayList<MenuItem>();
-        for ( int i = 0; i < menu.size(); i++ ) {
-            MenuItem item = menu.getItem(i);
-            Log.d(LOG_TAG, "Menu item " + i + ": " + item);
-            _menuItems.add(item);
-        }
-
-        ArrayAdapter<MenuItem>adapter = new ArrayAdapter<MenuItem>(getActivity(), android.R.layout.simple_list_item_1, _menuItems);
-        _listView.setAdapter(adapter);
-        _listView.setOnItemClickListener(this);
+        _listView.setAdapter(new NestedMenuAdapter(getActivity(), R.layout.navigation_drawer_item, R.id.nav_textview, _menu));
+        _listView.setOnGroupClickListener(this);
+        _listView.setOnChildClickListener(this);
 
         return view;
     }
 
-
+    @Override
+    public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        MenuItem item = _menu.getItem(groupPosition);
+        if ( item.hasSubMenu() ) {
+            if ( parent.isGroupExpanded(groupPosition)) {
+                parent.collapseGroup(groupPosition);
+            } else {
+                parent.expandGroup(groupPosition);
+            }
+        } else {
+            MainActivity.getInstance().settingsMenuItemClicked(item);
+        }
+        return true;
+    }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(LOG_TAG, "onItemClick: " + position);
-        MenuItem item = _menuItems.get(position);
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        MenuItem item = _menu.getItem(groupPosition).getSubMenu().getItem(childPosition);
         MainActivity.getInstance().settingsMenuItemClicked(item);
-
+        return true;
     }
 }
