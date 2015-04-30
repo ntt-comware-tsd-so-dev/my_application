@@ -434,6 +434,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void closeDrawer() {
         if ( _drawerLayout != null ) {
             _drawerLayout.closeDrawer(_drawerList);
+            for ( int i = 0; i < _drawerList.getAdapter().getCount(); i++ ) {
+                _drawerList.collapseGroup(i);
+            }
         }
     }
 
