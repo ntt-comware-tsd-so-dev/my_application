@@ -31,6 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -45,6 +46,7 @@ import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
+import com.aylanetworks.agilelink.fragments.adapters.NavigationDrawerAdapter;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
@@ -363,9 +365,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     private DrawerLayout _drawerLayout;
-    private ListView _drawerList;
+    private ExpandableListView _drawerList;
     private ActionBarDrawerToggle _drawerToggle;
     private List<MenuItem> _drawerMenuItems;
+    private List<MenuItem> _moreMenuItems;
+    private ArrayList<ArrayList<MenuItem>> _subMenuItems;
 
     private void initDrawer() {
         Log.d(LOG_TAG, "initDrawer");
@@ -383,39 +387,84 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             Log.d(LOG_TAG, "Menu item " + i + ": " + item);
             _drawerMenuItems.add(item);
         }
+        menu.clear();
+
+        inflater.inflate(R.menu.more_submenu, menu);
+        _moreMenuItems = new ArrayList<MenuItem>();
+        for ( int i = 0; i < menu.size(); i++ ) {
+            MenuItem item = menu.getItem(i);
+            Log.d(LOG_TAG, "Sub Menu item " + i + ": " + item.getTitle());
+            _moreMenuItems.add(item);
+        }
+
+
+        _subMenuItems = new ArrayList<ArrayList<MenuItem>>();
+        for(int i=0; i< _drawerMenuItems.size(); i++){
+            if(_drawerMenuItems.get(i).getItemId() == R.id.more_options){
+                _subMenuItems.add((ArrayList<MenuItem>) _moreMenuItems);
+            }
+            else{
+                _subMenuItems.add(null);
+            }
+        }
 
         _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-        _drawerList = (ListView)findViewById(R.id.left_drawer);
-        _drawerList.setAdapter(new ArrayAdapter<MenuItem>(this, R.layout.navigation_drawer_item, R.id.nav_textview, _drawerMenuItems));
-        _drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        _drawerList = (ExpandableListView)findViewById(R.id.left_drawer);
+
+        NavigationDrawerAdapter drawerAdapter = new NavigationDrawerAdapter(AylaNetworks.appContext, (ArrayList<MenuItem>) _drawerMenuItems, _subMenuItems, getLayoutInflater(), MainActivity.getInstance());
+        _drawerList.setAdapter(drawerAdapter);
+        //   SimpleExpandableListAdapter drawerAdapter = new SimpleExpandableListAdapter(this, _drawerMenuItems, R.layout.navigation_drawer_item, )
+
+        // _drawerList.setAdapter(new ArrayAdapter<MenuItem>(this, R.layout.navigation_drawer_item, R.id.nav_textview, _drawerMenuItems));
+
+        _drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+
+                if(_drawerMenuItems.get(groupPosition).getItemId() == R.id.more_options){
+                    return false;
+                }
+
+                onDrawerItemClicked(groupPosition, false);
+                return true;
+            }
+        });
+
+        _drawerList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                Log.d("MENU", "child position "+childPosition + " groupPosition "+groupPosition);
+                onDrawerItemClicked(childPosition, true);
+                return true;
+            }
+        });
+        /*_drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 onDrawerItemClicked(position);
             }
-        });
+        });*/
 
-        if ( _drawerLayout != null ) {
-            _drawerToggle = new ActionBarDrawerToggle(this,
-                    _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
-                @Override
-                public void onDrawerOpened(View drawerView) {
-                    MainActivity.this.onDrawerOpened(drawerView);
-                }
+        _drawerToggle = new ActionBarDrawerToggle(this,
+                _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                MainActivity.this.onDrawerOpened(drawerView);
+            }
 
-                @Override
-                public void onDrawerClosed(View drawerView) {
-                    MainActivity.this.onDrawerClosed(drawerView);
-                }
-            };
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                MainActivity.this.onDrawerClosed(drawerView);
+            }
+        };
 
-            _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
+        _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
-            _drawerLayout.setDrawerListener(_drawerToggle);
-        }
-        onDrawerItemClicked(0);
+        _drawerLayout.setDrawerListener(_drawerToggle);
+        onDrawerItemClicked(0, false);
     }
 
     public void openDrawer() {
@@ -451,12 +500,24 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         MenuHandler.handleMenuItem(item);
     }
 
-    private void onDrawerItemClicked(int position) {
-        MenuItem menuItem = _drawerMenuItems.get(position);
-        popBackstackToRoot();
-        if (MenuHandler.handleMenuItem(menuItem)) {
-            closeDrawer();
+    private void onDrawerItemClicked(int position, boolean isChild) {
+
+        if(isChild){
+            MenuItem menuItem = _moreMenuItems.get(position);
+            popBackstackToRoot();
+            if (MenuHandler.handleMenuItem(menuItem)) {
+                closeDrawer();
+            }
+
         }
+        else{
+            MenuItem menuItem = _drawerMenuItems.get(position);
+            popBackstackToRoot();
+            if (MenuHandler.handleMenuItem(menuItem)) {
+                closeDrawer();
+            }
+        }
+
     }
 
     /**

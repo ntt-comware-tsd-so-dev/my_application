@@ -293,15 +293,16 @@
     <string name="change_name_fail">An error occurred while trying to change the name of your device. Please try again later.</string>
     <string name="registration">Registration</string>
     <string name="contact_list">Contact List</string>
-    <string name="edit_profile">Edit Profile</string>
-    <string name="delete_account">Delete Account</string>
-    <string name="sign_out">Sign Out</string>
+    <string name="edit_profile">\t\t\tEdit Profile</string>
+    <string name="delete_account">\t\t\tDelete Account</string>
+    <string name="sign_out">\t\t\tSign Out</string>
     <string name="confirm_sign_out">Sign Out?</string>
     <string name="confirm_sign_out_message">Do you wish to sign out?</string>
     <string name="group_empty_text">Tap the add button to create a new group</string>
     <string name="no_devices_in_group">Tap the add button to add devices to this group</string>
     <string name="about_app" formatted="false">About %s</string>
     <string name="about">About</string>
+    <string name="more_options">More...</string>
     <string name="service_type">Service Type</string>
     <string name="device_service">Device Service</string>
     <string name="field_service">Field Service</string>

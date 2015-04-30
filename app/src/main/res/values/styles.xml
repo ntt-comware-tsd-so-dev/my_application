@@ -62,4 +62,15 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <!-- Style for submenu in navigation folder -->
+    <style name="Submenu_text" parent="@android:style/TextAppearance.Medium">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">10dp</item>
+        <item name="android:layout_margin">10dp</item>
+    </style>
+
+
 </resources>
