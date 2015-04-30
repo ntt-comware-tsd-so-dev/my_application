@@ -293,9 +293,9 @@
     <string name="change_name_fail">An error occurred while trying to change the name of your device. Please try again later.</string>
     <string name="registration">Registration</string>
     <string name="contact_list">Contact List</string>
-    <string name="edit_profile">\t\t\tEdit Profile</string>
-    <string name="delete_account">\t\t\tDelete Account</string>
-    <string name="sign_out">\t\t\tSign Out</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="sign_out">Sign Out</string>
     <string name="confirm_sign_out">Sign Out?</string>
     <string name="confirm_sign_out_message">Do you wish to sign out?</string>
     <string name="group_empty_text">Tap the add button to create a new group</string>

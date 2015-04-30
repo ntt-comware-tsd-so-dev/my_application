@@ -29,11 +29,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -46,14 +43,11 @@ import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
-import com.aylanetworks.agilelink.fragments.adapters.NavigationDrawerAdapter;
+import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /*
  * MainActivity.java
@@ -367,65 +361,36 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     private DrawerLayout _drawerLayout;
     private ExpandableListView _drawerList;
     private ActionBarDrawerToggle _drawerToggle;
-    private List<MenuItem> _drawerMenuItems;
-    private List<MenuItem> _moreMenuItems;
-    private ArrayList<ArrayList<MenuItem>> _subMenuItems;
+    private Menu _drawerMenu;
 
     private void initDrawer() {
         Log.d(LOG_TAG, "initDrawer");
 
         setContentView(R.layout.activity_main_drawer);
         // Load the drawer menu resource. We will be using the menu items in our listview.
-        Menu menu = new MenuBuilder(this);
+        _drawerMenu = new MenuBuilder(this);
         MenuInflater inflater = new MenuInflater(this);
-        inflater.inflate(R.menu.menu_drawer, menu);
-        inflater.inflate(R.menu.menu_settings, menu);
-
-        _drawerMenuItems = new ArrayList<MenuItem>();
-        for ( int i = 0; i < menu.size(); i++ ) {
-            MenuItem item = menu.getItem(i);
-            Log.d(LOG_TAG, "Menu item " + i + ": " + item);
-            _drawerMenuItems.add(item);
-        }
-        menu.clear();
-
-        inflater.inflate(R.menu.more_submenu, menu);
-        _moreMenuItems = new ArrayList<MenuItem>();
-        for ( int i = 0; i < menu.size(); i++ ) {
-            MenuItem item = menu.getItem(i);
-            Log.d(LOG_TAG, "Sub Menu item " + i + ": " + item.getTitle());
-            _moreMenuItems.add(item);
-        }
-
-
-        _subMenuItems = new ArrayList<ArrayList<MenuItem>>();
-        for(int i=0; i< _drawerMenuItems.size(); i++){
-            if(_drawerMenuItems.get(i).getItemId() == R.id.more_options){
-                _subMenuItems.add((ArrayList<MenuItem>) _moreMenuItems);
-            }
-            else{
-                _subMenuItems.add(null);
-            }
-        }
-
+        inflater.inflate(R.menu.menu_drawer, _drawerMenu);
+        inflater.inflate(R.menu.menu_settings, _drawerMenu);
         _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         _drawerList = (ExpandableListView)findViewById(R.id.left_drawer);
 
-        NavigationDrawerAdapter drawerAdapter = new NavigationDrawerAdapter(AylaNetworks.appContext, (ArrayList<MenuItem>) _drawerMenuItems, _subMenuItems, getLayoutInflater(), MainActivity.getInstance());
+        NestedMenuAdapter drawerAdapter = new NestedMenuAdapter(this, R.layout.navigation_drawer_item, R.id.nav_textview, _drawerMenu);
         _drawerList.setAdapter(drawerAdapter);
-        //   SimpleExpandableListAdapter drawerAdapter = new SimpleExpandableListAdapter(this, _drawerMenuItems, R.layout.navigation_drawer_item, )
-
-        // _drawerList.setAdapter(new ArrayAdapter<MenuItem>(this, R.layout.navigation_drawer_item, R.id.nav_textview, _drawerMenuItems));
-
         _drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-
-                if(_drawerMenuItems.get(groupPosition).getItemId() == R.id.more_options){
-                    return false;
+                MenuItem item = _drawerMenu.getItem(groupPosition);
+                if ( item.hasSubMenu() ) {
+                    // Toggle the group
+                    if ( _drawerList.isGroupExpanded(groupPosition) ) {
+                        _drawerList.collapseGroup(groupPosition);
+                    } else {
+                        _drawerList.expandGroup(groupPosition);
+                    }
+                } else {
+                    onDrawerItemClicked(item);
                 }
-
-                onDrawerItemClicked(groupPosition, false);
                 return true;
             }
         });
@@ -433,17 +398,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         _drawerList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                Log.d("MENU", "child position "+childPosition + " groupPosition "+groupPosition);
-                onDrawerItemClicked(childPosition, true);
+                onDrawerItemClicked(_drawerMenu.getItem(groupPosition).getSubMenu().getItem(childPosition));
                 return true;
             }
         });
-        /*_drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                onDrawerItemClicked(position);
-            }
-        });*/
 
         _drawerToggle = new ActionBarDrawerToggle(this,
                 _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
@@ -464,7 +422,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         getSupportActionBar().setHomeButtonEnabled(true);
 
         _drawerLayout.setDrawerListener(_drawerToggle);
-        onDrawerItemClicked(0, false);
+        onDrawerItemClicked(_drawerMenu.getItem(0));
     }
 
     public void openDrawer() {
@@ -500,24 +458,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         MenuHandler.handleMenuItem(item);
     }
 
-    private void onDrawerItemClicked(int position, boolean isChild) {
-
-        if(isChild){
-            MenuItem menuItem = _moreMenuItems.get(position);
-            popBackstackToRoot();
-            if (MenuHandler.handleMenuItem(menuItem)) {
-                closeDrawer();
-            }
-
+    private void onDrawerItemClicked(MenuItem menuItem) {
+        popBackstackToRoot();
+        if (MenuHandler.handleMenuItem(menuItem)) {
+            closeDrawer();
         }
-        else{
-            MenuItem menuItem = _drawerMenuItems.get(position);
-            popBackstackToRoot();
-            if (MenuHandler.handleMenuItem(menuItem)) {
-                closeDrawer();
-            }
-        }
-
     }
 
     /**
@@ -682,7 +627,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 if (!loggedIn) {
                     // User logged out.
                     setNoDevicesMode(false);
-                    if ( !_loginScreenUp ) {
+                    if (!_loginScreenUp) {
                         showLoginDialog();
                     } else {
                         Log.e(LOG_TAG, "Login screen is already up:");

@@ -9,4 +9,5 @@
     <dimen name="group_button_margin">3dp</dimen>
     <dimen name="group_button_padding">8dp</dimen>
     <dimen name="drawer_width">240dp</dimen>
+    <dimen name="submenu_margin">12dp</dimen>
 </resources>
