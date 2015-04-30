@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,18 +60,17 @@ public class DeviceDetailListFragment extends AboutFragment {
 
         AylaDevice d = _device.getDevice();
 
-        items.add(new AboutItem("productName", d.productName));
-        items.add(new AboutItem("deviceName", d.deviceName));
-        items.add(new AboutItem("DSN", d.dsn));
-        items.add(new AboutItem("productClass", d.productClass));
-        items.add(new AboutItem("model", d.model));
-        items.add(new AboutItem("oemModel", d.oemModel));
-        items.add(new AboutItem("connectionStatus", d.connectionStatus));
-        items.add(new AboutItem("MAC", formatMAC(d.mac)));
-        items.add(new AboutItem("connectedAt", d.connectedAt));
-        items.add(new AboutItem("IP", d.ip));
-        items.add(new AboutItem("LAN IP", d.lanIp));
-        items.add(new AboutItem("key", d.getKey().toString()));
+        if ( !TextUtils.isEmpty(d.productName)) items.add(new AboutItem("productName", d.productName));
+        if ( !TextUtils.isEmpty(d.deviceName)) items.add(new AboutItem("deviceName", d.deviceName));
+        if ( !TextUtils.isEmpty(d.dsn)) items.add(new AboutItem("DSN", d.dsn));
+        if ( !TextUtils.isEmpty(d.productClass)) items.add(new AboutItem("productClass", d.productClass));
+        if ( !TextUtils.isEmpty(d.model)) items.add(new AboutItem("model", d.model));
+        if ( !TextUtils.isEmpty(d.oemModel)) items.add(new AboutItem("oemModel", d.oemModel));
+        if ( !TextUtils.isEmpty(d.connectionStatus)) items.add(new AboutItem("connectionStatus", d.connectionStatus));
+        if ( !TextUtils.isEmpty(d.mac)) items.add(new AboutItem("MAC", formatMAC(d.mac)));
+        if ( !TextUtils.isEmpty(d.connectedAt)) items.add(new AboutItem("connectedAt", d.connectedAt));
+        if ( !TextUtils.isEmpty(d.ip)) items.add(new AboutItem("IP", d.ip));
+        if ( !TextUtils.isEmpty(d.lanIp)) items.add(new AboutItem("LAN IP", d.lanIp));
 
         _listView.setAdapter(new AboutListAdapter(getActivity(), items.toArray(new AboutItem[items.size()])));
     }
