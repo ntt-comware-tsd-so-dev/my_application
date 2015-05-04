@@ -19,8 +19,8 @@ import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
+import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
-import com.aylanetworks.agilelink.fragments.NotificationsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 
 import org.json.JSONException;
@@ -126,7 +126,7 @@ public class MenuHandler {
     }
 
     public static void handleNotifications() {
-        NotificationsFragment frag = new NotificationsFragment();
+        DeviceNotificationsFragment frag = new DeviceNotificationsFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 

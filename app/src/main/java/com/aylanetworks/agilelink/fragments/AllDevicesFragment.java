@@ -267,7 +267,7 @@ public class AllDevicesFragment extends Fragment
             addDevice();
         } else {
             // This is a click from an item in the list.
-            Device d = (Device) v.getTag();
+            final Device d = (Device) v.getTag();
             if (d != null) {
                 // Put the device into LAN mode before pushing the detail fragment
                 MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
@@ -276,7 +276,7 @@ public class AllDevicesFragment extends Fragment
                     public void lanModeResult(boolean isInLANMode) {
                         MainActivity.getInstance().dismissWaitDialog();
                         Log.d(LOG_TAG, "Pushing details page, lanModeResult for " + getDevice() + ": " + isInLANMode);
-                        DeviceDetailFragment frag = DeviceDetailFragment.newInstance(getDevice());
+                        Fragment frag = d.getDetailsFragment();
                         MainActivity.getInstance().pushFragment(frag);
                     }
                 });

@@ -23,6 +23,8 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
+import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
+import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -234,6 +236,15 @@ public class Device implements Comparable<Device> {
      * @return An array of property names that can be set in a schedule
      */
     public String[] getSchedulablePropertyNames() {
+        return new String[0];
+    }
+
+    /**
+     * Returns an array of property names that can be used in notifications. The defatlt implementation
+     * returns an empty array, as we know nothing about the notifications of an unknown device.
+     * @return An array of property names that can be used to set a notification
+     */
+    public String[] getNotifiablePropertyNames() {
         return new String[0];
     }
 
@@ -489,6 +500,27 @@ public class Device implements Comparable<Device> {
         return null;
     }
 
+    /**
+     * Listener class used to receive the list of property notifications. When notifications
+     * have been fetched, the notificationsFetched method will be called. The device object will
+     * have its notifiable properties (as returned from getNotifiablePropertyNames) and their
+     * associated triggers filled out.
+     *
+     * If an error occurred, the succeeded parameter will be set to false.
+     *
+     * The last message received from the service, whether success or failure, will be set in the
+     * _lastMessage field of the listener when it calls notificationsFetched.
+     */
+    public static abstract class FetchNotificationsListener {
+        public Message _lastMessage;
+        public abstract void notificationsFetched(Device device, boolean succeeded);
+    }
+
+    public void fetchNotifications(FetchNotificationsListener listener) {
+        PropertyNotificationHelper helper = new PropertyNotificationHelper(this);
+        helper.fetchNotifications(listener);
+    }
+
     public static class SetDatapointListener {
         public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
         }
@@ -737,11 +769,28 @@ public class Device implements Comparable<Device> {
      * Returns a fragment used to display details about the device. This fragment is pushed onto
      * the back stack when the user selects an item from the device list.
      *
-     * @param c Context to access resources
      * @return a fragment showing device details
      */
-    public Fragment getDetailsFragment(Context c) {
-        return new DeviceDetailFragment();
+    public Fragment getDetailsFragment() {
+        return DeviceDetailFragment.newInstance(this);
+    }
+
+    /**
+     * Returns a fragment used to set up a schedule for this device. This fragment is pushed onto
+     * the back stack when the user taps the Schedules button from the device details page
+     * @return a Fragment used to configure schedules for this device
+     */
+    public Fragment getScheduleFragment() {
+        return ScheduleContainerFragment.newInstance(this);
+    }
+
+    /**
+     * Returns a fragment used to set up notifications for this device. The default implementation
+     * returns a generic PropertyNotificationFragment.
+     * @return a Fragment used to configure property notifications for this device
+     */
+    public Fragment getNotificationsFragment() {
+        return PropertyNotificationFragment.newInstance(this);
     }
 
     @Override

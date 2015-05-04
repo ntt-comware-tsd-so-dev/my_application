@@ -511,10 +511,8 @@ public class DeviceManager implements DeviceStatusListener {
                     // Notify our listeners, if any, and clear our list
                     for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                         LANModeListener listener = iter.next();
-                        if ( listener.getDevice().getDevice().dsn.equals(dsn)) {
-                            listener.lanModeResult(false);
-                            iter.remove();
-                        }
+                        listener.lanModeResult(false);
+                        iter.remove();
                     }
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
@@ -698,6 +696,11 @@ public class DeviceManager implements DeviceStatusListener {
 
     private void updateNextDeviceStatus() {
         Log.v(LOG_TAG, "updateNextDeviceStatus");
+        if ( _startingLANMode ) {
+            Log.d(LOG_TAG, "Clearing list of devices to poll, as we're entering LAN mode");
+            _devicesToPoll.clear();
+        }
+
         if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
             // We're done.
             _devicesToPoll = null;

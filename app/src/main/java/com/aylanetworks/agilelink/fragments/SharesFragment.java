@@ -38,6 +38,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 
 public class SharesFragment extends Fragment implements AdapterView.OnItemClickListener, ShareDevicesFragment.ShareDevicesListener {
@@ -163,7 +164,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
         private static final DateFormat _dateFormat;
         static {
-            _dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            _dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         }
 
         public AddSharesHandler(SharesFragment frag,

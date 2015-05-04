@@ -91,6 +91,11 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
     }
 
     @Override
+    public String[] getNotifiablePropertyNames() {
+        return new String[]{PROPERTY_BLUE_BUTTON, PROPERTY_BLUE_LED, PROPERTY_GREEN_LED};
+    }
+
+    @Override
     public String friendlyNameForPropertyName(String propertyName) {
         switch (propertyName) {
             case PROPERTY_BLUE_LED:
@@ -98,6 +103,9 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
 
             case PROPERTY_GREEN_LED:
                 return MainActivity.getInstance().getString(R.string.green_led);
+
+            case PROPERTY_BLUE_BUTTON:
+                return MainActivity.getInstance().getString(R.string.blue_button);
         }
         return super.friendlyNameForPropertyName(propertyName);
     }
