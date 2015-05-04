@@ -566,7 +566,7 @@ public class Schedule implements  Cloneable {
         Calendar scheduleStartTime = Calendar.getInstance();
 
         boolean onAtStart = true;
-        int duration = Math.abs(onMinutes - offMinutes) * 1000;
+        int duration = Math.abs(onMinutes - offMinutes) * 60;
 
         if ( onMinutes > offMinutes ) {
             // We turn off first. That will be the schedule start.
@@ -581,7 +581,7 @@ public class Schedule implements  Cloneable {
         _schedule.startTimeEachDay = _dateFormatHMSUTC.format(scheduleStartTime.getTime());
         _schedule.duration = duration;
 
-        scheduleStartTime.add(Calendar.MILLISECOND, duration);
+        scheduleStartTime.add(Calendar.SECOND, duration);
         _schedule.endDate = _dateFormatYMD.format(scheduleStartTime.getTime());
 
         AylaScheduleAction action1 = _schedule.scheduleActions[0];
