@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
@@ -35,6 +36,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -55,6 +57,7 @@ public class ScheduleFragment extends Fragment {
 
     private Device _device;
     private Schedule _schedule;
+    private int _scheduleIndex;
 
     private EditText _scheduleTitleEditText;
     private Switch _scheduleEnabledSwitch;
@@ -104,14 +107,25 @@ public class ScheduleFragment extends Fragment {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Get our device argument
         _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DEVICE_DSN));
-        int scheduleIndex = getArguments().getInt(ARG_SCHEDULE_INDEX);
-        _schedule = _device.getSchedules().get(scheduleIndex);
+        _scheduleIndex = getArguments().getInt(ARG_SCHEDULE_INDEX);
+
+        // Make a copy to work with.
+        try {
+            List<Schedule> schedules = _device.getSchedules();
+            if ( schedules != null ) {
+                _schedule = schedules.get(_scheduleIndex).clone();
+            }
+        } catch (CloneNotSupportedException | NullPointerException e) {
+            e.printStackTrace();
+            MainActivity.getInstance().popBackstackToRoot();
+            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+            return new View(getActivity());
+        }
 
         Log.d(LOG_TAG, "onCreateView(" + _schedule.getName() + ")");
 
@@ -156,6 +170,7 @@ public class ScheduleFragment extends Fragment {
                 if ( _updatingUI ) {
                     return;
                 }
+                _schedule.clearSchedule();
                 _schedule.setIsTimer(checkedId == R.id.radio_timer);
                 updateUI();
             }
@@ -357,7 +372,12 @@ public class ScheduleFragment extends Fragment {
         Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
         Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().endDate);
 
-        _device.updateSchedule(_schedule, new Device.DeviceStatusListener() {
+        // Copy our local schedule copy over to the device's schedule object
+        Schedule s = _device.getSchedules().get(_scheduleIndex);
+        _schedule.cloneTo(s);
+
+        // Save the updated schedule
+        _device.updateSchedule(s, new Device.DeviceStatusListener() {
             @Override
             public void statusUpdated(Device device, boolean changed) {
                 MainActivity.getInstance().dismissWaitDialog();

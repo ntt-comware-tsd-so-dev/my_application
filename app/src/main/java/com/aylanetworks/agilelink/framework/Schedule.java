@@ -32,7 +32,7 @@ import java.util.TimeZone;
  * This class supports two schedule "types", a recurring schedule and a timer. The recurring
  * schedule does not expire, and
  */
-public class Schedule {
+public class Schedule implements  Cloneable {
     private static String LOG_TAG = "Schedule";
 
     // The internal AylaSchedule object
@@ -157,6 +157,69 @@ public class Schedule {
     }
 
     /**
+     * Clears the schedule by setting the start date to null and setting fields to default values
+     */
+    public void clearSchedule() {
+        _schedule.startDate = null;
+        _schedule.endDate = null;
+        _schedule.daysOfWeek = new int[]{1, 2, 3, 4, 5, 6, 7};
+        _schedule.startTimeEachDay = null;
+        _schedule.endTimeEachDay = null;
+        _schedule.duration = 0;
+    }
+
+    /**
+     * Returns true if the schedule is clear. This means that the schedule has not been configured
+     * by the user, but rather is set to default values.
+     * @return true if the schedule is clear, false if the schedule has been configured
+     */
+    public boolean isScheduleClear() {
+        return _schedule.startDate == null;
+    }
+
+    /** Returns a copy of this schedule object. This copy is a deep copy.
+     *
+     * @return A deep copy of this object
+     */
+    @Override
+    public Schedule clone() throws CloneNotSupportedException {
+        super.clone();
+        Schedule other = new Schedule(_schedule, _timeZone);
+        return cloneTo(other);
+    }
+
+    /**
+     * Copies this schedule object to another existing schedule object.
+     * @param other Schedule object to copy this object onto
+     * @return The other schedule object with its values copied from ours
+     */
+    public Schedule cloneTo(Schedule other) {
+        other._schedule.startDate = _schedule.startDate;
+        other._schedule.direction = _schedule.direction;
+        other._schedule.name = _schedule.name;
+        other._schedule.displayName = _schedule.displayName;
+        other._schedule.active = _schedule.active;
+        other._schedule.utc = _schedule.utc;
+        other._schedule.endDate = _schedule.endDate;
+        other._schedule.startTimeEachDay = _schedule.startTimeEachDay;
+        other._schedule.endTimeEachDay = _schedule.endTimeEachDay;
+        if ( _schedule.daysOfWeek != null )
+            other._schedule.daysOfWeek = _schedule.daysOfWeek.clone();
+        if ( _schedule.daysOfMonth != null )
+            other._schedule.daysOfMonth = _schedule.daysOfMonth.clone();
+        if ( _schedule.monthsOfYear != null )
+            other._schedule.monthsOfYear = _schedule.monthsOfYear.clone();
+        if ( _schedule.dayOccurOfMonth != null )
+            other._schedule.dayOccurOfMonth = _schedule.dayOccurOfMonth.clone();
+        other._schedule.duration = _schedule.duration;
+        other._schedule.interval = _schedule.interval;
+        if ( _schedule.scheduleActions != null )
+            other._schedule.scheduleActions = _schedule.scheduleActions.clone();
+
+        return other;
+    }
+
+    /**
      * Updates the time zone used for this schedule. Will update the start / end times to reflect
      * the new time zone.
      * @param timeZone Time zone to use for this schedule. Pass null to use UTC time.
@@ -205,7 +268,7 @@ public class Schedule {
         Date date = null;
         try {
             date = _dateFormatHMS.parse(_schedule.startTimeEachDay);
-        } catch (ParseException e) {
+        } catch (ParseException | NullPointerException e) {
             Log.d(LOG_TAG, "Invalid date string (startTimeEachDay): " + _schedule.startTimeEachDay);
         }
 
@@ -232,7 +295,7 @@ public class Schedule {
         Date date = null;
         try {
             date = _dateFormatHMS.parse(_schedule.endTimeEachDay);
-        } catch (ParseException e) {
+        } catch (ParseException | NullPointerException e) {
             Log.d(LOG_TAG, "Invalid date string (endTimeEachDay): " + _schedule.endTimeEachDay);
         }
 
@@ -258,7 +321,7 @@ public class Schedule {
         Date date = null;
         try {
             date = _dateFormatYMD.parse(_schedule.startDate);
-        } catch (ParseException e) {
+        } catch (ParseException | NullPointerException e) {
             Log.d(LOG_TAG, "Invalid date string (startDate): " + _schedule.startDate);
         }
 
@@ -438,7 +501,7 @@ public class Schedule {
         Date date = null;
         try {
             date = _dateFormatHMSUTC.parse(_schedule.startTimeEachDay);
-        } catch (ParseException e) {
+        } catch (ParseException | NullPointerException e) {
             Log.e(LOG_TAG, "Failed to parse date: " + _schedule.startTimeEachDay);
             e.printStackTrace();
             return null;
@@ -472,7 +535,7 @@ public class Schedule {
         Date date;
         try {
             date = _dateFormatHMSUTC.parse(_schedule.startTimeEachDay);
-        } catch (ParseException e) {
+        } catch (ParseException | NullPointerException e) {
             Log.e(LOG_TAG, "Failed to parse date: " + _schedule.startTimeEachDay);
             e.printStackTrace();
             return null;
