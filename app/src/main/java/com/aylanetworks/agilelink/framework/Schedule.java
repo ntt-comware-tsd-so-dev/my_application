@@ -550,187 +550,54 @@ public class Schedule implements  Cloneable {
         return calendar;
     }
 
-    /**
-     * Helper method to set the on time for a timer. This method will set the appropriate
-     * schedule actions for the event, taking the offTime into consideration if necessary
-     *
-     * @param onTime time to turn the device on
-     */
-    public void setTimerOnTime(Calendar onTime) {
-        // Timers always use UTC and a duration rather than an end time, and are valid every day
-        setAllDaysOfWeek();
-        _schedule.utc = true;
-        _schedule.endTimeEachDay = "";
-
-        Calendar offTime = getTimerOffTime();
-        if (onTime == null) {
-            // If we have an off time set, make sure we have exactly one action set to
-            // turn off the device at the startTime.
-            if (offTime == null) {
-                // Deactivate all actions
-                for (AylaScheduleAction action : _schedule.scheduleActions) {
-                    action.active = false;
-                }
-            } else {
-                // Set the off time as the schedule start time, and have one action to turn
-                // the device off
-                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime);
-                _schedule.duration = 0;
-                for ( String propertyName : _actionProperties ) {
-                    List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
-                    AylaScheduleAction action = actions.get(0);
-                    action.atStart = true;
-                    action.atEnd = false;
-                    action.value = "0";
-                    action.active = true;
-                }
-            }
-        } else {
-            if (offTime != null) {
-                for ( String propertyName : _actionProperties ) {
-                    List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
-                    if ( actions.size() != 2 ) {
-                        Log.e(LOG_TAG, "Invalid number of actions (" + actions.size() +
-                                ") for property " + propertyName);
-                        continue;
-                    }
-
-                    AylaScheduleAction action1 = actions.get(0);
-                    AylaScheduleAction action2 = actions.get(1);
-
-                    // See who comes first
-                    if (onTime.compareTo(offTime) < 0) {
-                        // onTime comes before offTime
-                        _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
-                        _schedule.duration = (int)((offTime.getTimeInMillis() - onTime.getTimeInMillis()) / 1000);
-                        action1.value = "1";
-                        action1.atStart = true;
-                        action1.atEnd = false;
-                        action1.active = true;
-
-                        action2.value = "0";
-                        action2.atStart = false;
-                        action2.atEnd = true;
-                        action2.active = true;
-                    } else {
-                        // onTime comes after offTime
-                        _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
-                        _schedule.duration = (int)((onTime.getTimeInMillis() - offTime.getTimeInMillis()) / 1000);
-                        action1.value = "0";
-                        action1.atStart = true;
-                        action1.atEnd = false;
-                        action1.active = true;
-
-                        action2.value = "1";
-                        action2.atStart = false;
-                        action2.atEnd = true;
-                        action2.active = true;
-                    }
-                }
-            } else {
-                // No off time set. We have one action only
-                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
-                _schedule.duration = 0;
-                for ( String propertyName : _actionProperties ) {
-                    List<AylaScheduleAction> actions = getActionsForProperty(propertyName);
-                    if ( actions.size() != 2 ) {
-                        Log.e(LOG_TAG, "Invalid number of actions (" + actions.size() +
-                                ") for property " + propertyName);
-                        continue;
-                    }
-
-                    AylaScheduleAction action1 = actions.get(0);
-                    AylaScheduleAction action2 = actions.get(1);
-                    action1.value = "1";
-                    action1.atStart = true;
-                    action1.atEnd = false;
-                    action1.active = true;
-
-                    action2.active = false;
-                }
-            }
-        }
-    }
 
     /**
-     * Helper method to set the off time for a schedule. This method will set the appropriate
-     * schedule actions for the event, taking the onTime into consideration if necessary
+     * Helper method to set the times for a schedule. This method will set the appropriate
+     * schedule actions for the event.
      *
-     * @param offTime time to turn the device off
+     * @param onMinutes Number of minutes from now to turn on the device
+     * @param offMinutes Number of minutes from now to turn off the device
      */
-    public void setTimerOffTime(Calendar offTime) {
-        Calendar onTime = getTimerOnTime();
+    public void setTimer(int onMinutes, int offMinutes) {
         _schedule.utc = true;
         _schedule.endTimeEachDay = "";
         setAllDaysOfWeek();
 
-        if (offTime == null) {
-            // If we have an on time set, make sure we have exactly one action set to
-            // turn off the device at the startTime.
-            if (onTime == null) {
-                // Remove all actions
-                for (AylaScheduleAction action : _schedule.scheduleActions) {
-                    action.active = false;
-                }
-            } else {
-                // Set the on time as the schedule start time, and have one action to turn
-                // the device on
-                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
-                _schedule.duration = 0;
-                AylaScheduleAction action = _schedule.scheduleActions[0];
-                action.atStart = true;
-                action.atEnd = false;
-                action.value = "1";
-                action.active = true;
-                _schedule.scheduleActions[1].active = false;
-            }
+        Calendar scheduleStartTime = Calendar.getInstance();
+
+        boolean onAtStart = true;
+        int duration = Math.abs(onMinutes - offMinutes) * 1000;
+
+        if ( onMinutes > offMinutes ) {
+            // We turn off first. That will be the schedule start.
+            scheduleStartTime.add(Calendar.MINUTE, offMinutes);
+            onAtStart = false;
         } else {
-            if (onTime != null) {
-                // There is an on time as well. Set up the actions appropriately
-                AylaScheduleAction action1 = _schedule.scheduleActions[0];
-                AylaScheduleAction action2 = _schedule.scheduleActions[1];
-
-                // See who comes first
-                if (offTime.compareTo(onTime) < 0) {
-                    // offTime comes before onTime
-                    _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
-                    _schedule.duration = (int)((onTime.getTimeInMillis() - offTime.getTimeInMillis()) / 1000);
-                    action1.value = "0";
-                    action1.atStart = true;
-                    action1.atEnd = false;
-                    action1.active = true;
-
-                    action2.value = "1";
-                    action2.atStart = false;
-                    action2.atEnd = true;
-                    action2.active = true;
-                } else {
-                    // offTime comes after onTime
-                    _schedule.startTimeEachDay = _dateFormatHMSUTC.format(onTime.getTime());
-                    _schedule.duration = (int)((offTime.getTimeInMillis() - onTime.getTimeInMillis()) / 1000);
-
-                    action1.value = "1";
-                    action1.atStart = true;
-                    action1.atEnd = false;
-                    action1.active = true;
-
-                    action2.value = "0";
-                    action2.atStart = false;
-                    action2.atEnd = true;
-                    action2.active = true;
-                }
-            } else {
-                // No on time set. We have one action only
-                _schedule.startTimeEachDay = _dateFormatHMSUTC.format(offTime.getTime());
-                _schedule.duration = 0;
-                _schedule.scheduleActions[0].value = "0";
-                _schedule.scheduleActions[0].atStart = true;
-                _schedule.scheduleActions[0].atEnd = false;
-                _schedule.scheduleActions[0].active = true;
-
-                _schedule.scheduleActions[1].active = false;
-            }
+            // We turn on first. That will be the schedule start.
+            scheduleStartTime.add(Calendar.MINUTE, onMinutes);
         }
+
+        _schedule.startDate = _dateFormatYMD.format(scheduleStartTime.getTime());
+        _schedule.startTimeEachDay = _dateFormatHMSUTC.format(scheduleStartTime.getTime());
+        _schedule.duration = duration;
+
+        scheduleStartTime.add(Calendar.MILLISECOND, duration);
+        _schedule.endDate = _dateFormatYMD.format(scheduleStartTime.getTime());
+
+        AylaScheduleAction action1 = _schedule.scheduleActions[0];
+        AylaScheduleAction action2 = _schedule.scheduleActions[1];
+
+        // Turn off action
+        action1.value = "0";
+        action1.atStart = !onAtStart;
+        action1.atEnd = onAtStart;
+        action1.active = (offMinutes != 0);
+
+        // Turn on action
+        action2.value = "1";
+        action2.atStart = onAtStart;
+        action2.atEnd = !onAtStart;
+        action2.active = (onMinutes != 0);
     }
 
     public void setIsTimer(boolean isTimer) {
