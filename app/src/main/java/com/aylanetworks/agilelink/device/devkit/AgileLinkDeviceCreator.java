@@ -11,6 +11,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
+import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.UIConfig;
 
@@ -30,6 +31,9 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SMARTPLUG = 2;
+    public final static int ITEM_VIEW_TYPE_SMARTBULB = 3;
+    public final static int ITEM_VIEW_TYPE_ZIGBEE_SMARTPLUG = 4;
+    public final static int ITEM_VIEW_TYPE_ZIGBEE_SMARTBULB = 5;
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
@@ -53,6 +57,28 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             return new SwitchedDevice(aylaDevice);
         }
 
+        // Zigbee devices
+        if (aylaDevice.oemModel.equals("zigbee1")) {
+
+            if (aylaDevice.model.equals("AY001MRT1")) {
+                // This is an Ayla nexTurn gateway.
+                return new Gateway(aylaDevice);
+            }
+
+            if (aylaDevice.model.equals("Smart_Plug")) {
+                // This is an Ayla nexTurn smart plug.
+                return new ZigbeeSwitchedDevice(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Smart_Bulb_Converter")) {
+                // This is an Ayla nexTurn smart bulb.
+                return new ZigbeeLightDevice(aylaDevice);
+            }
+            if (aylaDevice.model.equals("ZHA-DimmableLight")) {
+                // This is an Ayla nexTurn dimmable light.
+                return new ZigbeeLightDevice(aylaDevice);
+            }
+        }
+
         //  We don't know what this is. Create a generic device.
         Log.e(LOG_TAG, "Could not identify this device: " + aylaDevice);
         return new Device(aylaDevice);
@@ -70,9 +96,15 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 return new AylaEVBDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SMARTPLUG:
+            case ITEM_VIEW_TYPE_ZIGBEE_SMARTPLUG:
                 resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_ZIGBEE_SMARTBULB:
+                resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new LightDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
                 resId = isGrid ? R.layout.cardview_generic_device_grid : R.layout.cardview_generic_device;
