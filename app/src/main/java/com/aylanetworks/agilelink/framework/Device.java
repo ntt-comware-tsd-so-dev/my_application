@@ -15,7 +15,6 @@ import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
-import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.aaml.AylaScheduleAction;
 import com.aylanetworks.aaml.AylaSystemUtils;
@@ -656,6 +655,16 @@ public class Device implements Comparable<Device> {
      * @return True if this device is a gateway device, or false otherwise.
      */
     public boolean isGateway() {
+        return false;
+    }
+
+    /**
+     * Returns true if this device is a gateway device node. Derived classes should override this
+     * method if the device is a gateway device node.
+     *
+     * @return True if this device is a gateway device node, or false otherwise.
+     */
+    public boolean isDeviceNode() {
         return false;
     }
 

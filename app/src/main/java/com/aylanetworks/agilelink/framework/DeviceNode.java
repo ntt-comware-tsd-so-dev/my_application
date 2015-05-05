@@ -3,28 +3,26 @@ package com.aylanetworks.agilelink.framework;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaDeviceGateway;
+import com.aylanetworks.aaml.AylaDeviceNode;
 import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 
 /*
- * Gateway.java
+ * DeviceNode.java
  * AgileLink Application Framework
  *
- * Created by Brian King on 12/22/14.
+ * Created by David Junod on 5/5/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class Gateway extends Device {
-    private final String LOG_TAG = "Gateway";
+public class DeviceNode extends Device {
+    private final String LOG_TAG = "DeviceNode";
 
-    public Gateway(AylaDevice aylaDevice) {
-        super(aylaDevice);
-    }
+    public DeviceNode(AylaDevice aylaDevice) { super(aylaDevice); }
 
-    public AylaDeviceGateway getGatewayDevice() {
-        return (AylaDeviceGateway)getDevice();
+    public AylaDeviceNode getDeviceNode() {
+        return (AylaDeviceNode)getDevice();
     }
 
     @Override
@@ -36,14 +34,12 @@ public class Gateway extends Device {
         propertyNames.add("attr_set_cmd");
         propertyNames.add("attr_set_result");
         propertyNames.add("attr_read_data");
-        propertyNames.add("join_enable");
-        propertyNames.add("join_status");
 
         return propertyNames;
     }
 
     @Override
-    public boolean isGateway() {
+    public boolean isDeviceNode() {
         return true;
     }
 
