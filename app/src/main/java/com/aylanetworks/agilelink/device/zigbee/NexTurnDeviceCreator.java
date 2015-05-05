@@ -27,6 +27,7 @@ public class NexTurnDeviceCreator extends DeviceCreator {
     public final static String MODEL_SMART_BULB = "Smart_Bulb_Converter";
     public final static String MODEL_MOTION_SENSOR = "Motion_Sensor";
     public final static String MODEL_DOOR_SENSOR = "Door_Sensor";
+    public final static String MODEL_DIMMABLE_LIGHT = "ZHA-DimmableLight";
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
@@ -51,6 +52,8 @@ public class NexTurnDeviceCreator extends DeviceCreator {
             device = new SmartBulb(aylaDevice);
         else if ( deviceType.equals(MODEL_MOTION_SENSOR) )
             device = new MotionSensor(aylaDevice);
+        else if ( deviceType.equals(MODEL_DIMMABLE_LIGHT) )
+            device = new DimmableLight(aylaDevice);
 
         if ( device == null ) {
             Log.e(LOG_TAG, "Unknown device type: " + deviceType);
@@ -69,6 +72,7 @@ public class NexTurnDeviceCreator extends DeviceCreator {
         classList.add(SmartBulb.class);
         classList.add(RemoteSwitch.class);
         classList.add(MotionSensor.class);
+        classList.add(DimmableLight.class);
 
         return classList;
     }
