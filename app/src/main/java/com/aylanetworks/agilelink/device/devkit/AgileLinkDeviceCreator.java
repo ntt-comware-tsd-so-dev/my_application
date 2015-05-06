@@ -32,8 +32,6 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SMARTPLUG = 2;
     public final static int ITEM_VIEW_TYPE_SMARTBULB = 3;
-    public final static int ITEM_VIEW_TYPE_ZIGBEE_SMARTPLUG = 4;
-    public final static int ITEM_VIEW_TYPE_ZIGBEE_SMARTBULB = 5;
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
@@ -96,12 +94,11 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 return new AylaEVBDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SMARTPLUG:
-            case ITEM_VIEW_TYPE_ZIGBEE_SMARTPLUG:
                 resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
-            case ITEM_VIEW_TYPE_ZIGBEE_SMARTBULB:
+            case ITEM_VIEW_TYPE_SMARTBULB:
                 resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new LightDeviceViewHolder(v);

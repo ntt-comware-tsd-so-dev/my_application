@@ -3,26 +3,20 @@ package com.aylanetworks.agilelink.device.devkit;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
-import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /*
@@ -112,7 +106,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
         h._deviceNameTextView.setText(getDevice().getProductName());
 
-        int drawableId = isOn() ? R.drawable.smartplug_button_on : R.drawable.smartplug_button_off;
+        int drawableId = isOn() ? R.drawable.ic_power_on : R.drawable.ic_power_off;
         Drawable buttonDrawable = res.getDrawable(drawableId);
 
         h._switchButton.setImageDrawable(buttonDrawable);
@@ -140,7 +134,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         }
         // Toggle the button state
         ImageButton button = (ImageButton) v;
-        button.setImageDrawable(v.getResources().getDrawable(R.drawable.smartplug_button_pending));
+        button.setImageDrawable(v.getResources().getDrawable(R.drawable.ic_power_pending));
         toggle();
     }
 }

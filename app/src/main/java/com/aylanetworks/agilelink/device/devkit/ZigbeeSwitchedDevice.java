@@ -96,7 +96,7 @@ public class ZigbeeSwitchedDevice extends DeviceNode implements View.OnClickList
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_ZIGBEE_SMARTPLUG;
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SMARTPLUG;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ZigbeeSwitchedDevice extends DeviceNode implements View.OnClickList
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
         h._deviceNameTextView.setText(getDevice().getProductName());
 
-        int drawableId = isOn() ? R.drawable.smartplug_button_on : R.drawable.smartplug_button_off;
+        int drawableId = isOn() ? R.drawable.ic_power_on : R.drawable.ic_power_off;
         Drawable buttonDrawable = res.getDrawable(drawableId);
 
         h._switchButton.setImageDrawable(buttonDrawable);
@@ -135,7 +135,7 @@ public class ZigbeeSwitchedDevice extends DeviceNode implements View.OnClickList
         }
         // Toggle the button state
         ImageButton button = (ImageButton) v;
-        button.setImageDrawable(v.getResources().getDrawable(R.drawable.smartplug_button_pending));
+        button.setImageDrawable(v.getResources().getDrawable(R.drawable.ic_power_pending));
         toggle();
     }
 }
