@@ -334,6 +334,14 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         SessionManager.addSessionListener(this);
     }
 
+    @Override
+    public void onDestroy()
+    {
+        _theInstance = null;
+        SessionManager.removeSessionListener(this);
+        super.onDestroy();
+    }
+
     private void initUI() {
         switch ( getUIConfig()._navStyle ) {
             case Pager:
