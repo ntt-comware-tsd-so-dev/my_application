@@ -21,12 +21,14 @@ public class ZigbeeLightDevice extends SwitchedDevice implements View.OnClickLis
 
     private final static String LOG_TAG = "ZigbeeLightDevice";
 
+    private final static String PROPERTY_NAME = "1_in_0x0006_0x0000";
+
     public ZigbeeLightDevice(AylaDevice device) {
         super(device);
     }
 
     @Override
-    public String getObservablePropertyName() { return "1_in_0x0006_0x0000";  }
+    public String getObservablePropertyName() { return PROPERTY_NAME;  }
 
     @Override
     public boolean isDeviceNode() {
@@ -35,7 +37,7 @@ public class ZigbeeLightDevice extends SwitchedDevice implements View.OnClickLis
 
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
-        if (propertyName.equals(getObservablePropertyName())) {
+        if (propertyName.equals(PROPERTY_NAME)) {
             return MainActivity.getInstance().getString(R.string.property_light_friendly_name);
         }
         return super.friendlyNameForPropertyName(propertyName);
