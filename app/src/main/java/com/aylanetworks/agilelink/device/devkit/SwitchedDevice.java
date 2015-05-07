@@ -74,7 +74,6 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     protected ArrayList<String> getPropertyNames() {
         ArrayList<String> list = super.getPropertyNames();
         list.add(getObservablePropertyName());
-
         return list;
     }
 
