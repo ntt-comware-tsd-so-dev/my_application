@@ -59,20 +59,20 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if (aylaDevice.oemModel.equals("zigbee1")) {
 
             if (aylaDevice.model.equals("AY001MRT1")) {
-                // This is an Ayla nexTurn gateway.
+                // This is an Ayla Zigbee gateway.
                 return new Gateway(aylaDevice);
             }
 
             if (aylaDevice.model.equals("Smart_Plug")) {
-                // This is an Ayla nexTurn smart plug.
+                // This is an Ayla Zigbee smart plug.
                 return new ZigbeeSwitchedDevice(aylaDevice);
             }
             if (aylaDevice.model.equals("Smart_Bulb_Converter")) {
-                // This is an Ayla nexTurn smart bulb.
+                // This is an Ayla Zigbee smart bulb.
                 return new ZigbeeLightDevice(aylaDevice);
             }
             if (aylaDevice.model.equals("ZHA-DimmableLight")) {
-                // This is an Ayla nexTurn dimmable light.
+                // This is an Ayla Zigbee dimmable light.
                 return new ZigbeeLightDevice(aylaDevice);
             }
         }
