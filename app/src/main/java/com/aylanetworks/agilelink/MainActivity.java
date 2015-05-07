@@ -211,12 +211,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        SessionManager.removeSessionListener(this);
-        super.onDestroy();
-    }
-
     /**
      * Returns true if the app is in "no devices" mode where only the wifi setup page is visible
      * @return true if the app is in "no devices" mode
