@@ -30,8 +30,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     private final static String LOG_TAG = "AgileLinkDeviceCreator";
 
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
-    public final static int ITEM_VIEW_TYPE_SMARTPLUG = 2;
-    public final static int ITEM_VIEW_TYPE_SMARTBULB = 3;
+    public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
 
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
@@ -58,6 +57,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         // Zigbee devices
         if (aylaDevice.oemModel.equals("zigbee1")) {
 
+            // todo: fix this name per the email
             if (aylaDevice.model.equals("AY001MRT1")) {
                 // This is an Ayla Zigbee gateway.
                 return new Gateway(aylaDevice);
@@ -93,15 +93,10 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new AylaEVBDeviceViewHolder(v);
 
-            case ITEM_VIEW_TYPE_SMARTPLUG:
+            case ITEM_VIEW_TYPE_SWITCHED:
                 resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
-
-            case ITEM_VIEW_TYPE_SMARTBULB:
-                resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
-                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
-                return new LightDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
                 resId = isGrid ? R.layout.cardview_generic_device_grid : R.layout.cardview_generic_device;
