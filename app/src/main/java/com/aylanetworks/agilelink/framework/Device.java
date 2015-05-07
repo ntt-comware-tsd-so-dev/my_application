@@ -821,6 +821,14 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Returns the observable property name for this device.
+     * @return The observable property name of the device, or null if none.
+     */
+    public String getObservablePropertyName() {
+        return null;
+    }
+
+    /**
      * Returns the arguments for the call to getProperties(). Derived classes should override this
      * to return the correct array of properties to be fetched in updateStatus().
      *

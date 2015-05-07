@@ -217,6 +217,7 @@
     <string name="no_schedules_found">No Schedules Found</string>
     <string name="unknown_property_name">Unknown</string>
     <string name="property_outlet_friendly_name">Switch</string>
+    <string name="property_light_friendly_name">Light</string>
     <string name="turn_on">Turn on</string>
     <string name="turn_off">Turn off</string>
     <string name="blue_led">Blue LED</string>

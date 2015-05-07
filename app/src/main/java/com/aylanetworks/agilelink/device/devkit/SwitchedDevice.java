@@ -28,28 +28,28 @@ import java.util.ArrayList;
  */
 
 public class SwitchedDevice extends Device implements View.OnClickListener {
+
     private final static String LOG_TAG = "SwitchedDevice";
-    public final static String PROPERTY_OUTLET = "outlet1";
 
     public SwitchedDevice(AylaDevice device) {
         super(device);
     }
 
     public void toggle() {
-        AylaProperty prop = getProperty(PROPERTY_OUTLET);
+        AylaProperty prop = getProperty(getObservablePropertyName());
         if (prop == null) {
-            Log.e(LOG_TAG, "Could not find property " + PROPERTY_OUTLET);
+            Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
             SessionManager.deviceManager().refreshDeviceStatus(this);
             return;
         }
 
         // Get the opposite boolean value and set it
         Boolean newValue = "0".equals(prop.value);
-        setDatapoint(PROPERTY_OUTLET, newValue, null);
+        setDatapoint(getObservablePropertyName(), newValue, null);
     }
 
     public boolean isOn() {
-        AylaProperty prop = getProperty(PROPERTY_OUTLET);
+        AylaProperty prop = getProperty(getObservablePropertyName());
         if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
             return true;
         }
@@ -59,12 +59,12 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public String[] getSchedulablePropertyNames() {
-        return new String[]{PROPERTY_OUTLET};
+        return new String[]{getObservablePropertyName()};
     }
 
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
-        if (propertyName.equals(PROPERTY_OUTLET)) {
+        if (propertyName.equals(getObservablePropertyName())) {
             return MainActivity.getInstance().getString(R.string.property_outlet_friendly_name);
         }
         return super.friendlyNameForPropertyName(propertyName);
@@ -73,10 +73,13 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     @Override
     protected ArrayList<String> getPropertyNames() {
         ArrayList<String> list = super.getPropertyNames();
-        list.add(PROPERTY_OUTLET);
+        list.add(getObservablePropertyName());
 
         return list;
     }
+
+    @Override
+    public String getObservablePropertyName() { return "outlet1";  }
 
     @Override
     public String deviceTypeName() {
@@ -88,6 +91,14 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         return c.getResources().getDrawable(R.drawable.smart_plug);
     }
 
+    public Drawable getSwitchedDrawable(Resources res) {
+        return res.getDrawable(isOn() ? R.drawable.ic_power_on : R.drawable.ic_power_off);
+    }
+
+    public Drawable getSwitchedPendingDrawable(Resources res) {
+        return res.getDrawable(R.drawable.ic_power_pending);
+    }
+
     @Override
     public String registrationType() {
         return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
@@ -95,7 +106,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SMARTPLUG;
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override
@@ -106,8 +117,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
         h._deviceNameTextView.setText(getDevice().getProductName());
 
-        int drawableId = isOn() ? R.drawable.ic_power_on : R.drawable.ic_power_off;
-        Drawable buttonDrawable = res.getDrawable(drawableId);
+        Drawable buttonDrawable = getSwitchedDrawable(res);
 
         h._switchButton.setImageDrawable(buttonDrawable);
         h._switchButton.setOnClickListener(this);
@@ -134,7 +144,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         }
         // Toggle the button state
         ImageButton button = (ImageButton) v;
-        button.setImageDrawable(v.getResources().getDrawable(R.drawable.ic_power_pending));
+        button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
         toggle();
     }
 }
