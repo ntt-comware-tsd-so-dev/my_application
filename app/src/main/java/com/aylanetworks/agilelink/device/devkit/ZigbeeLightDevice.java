@@ -17,27 +17,17 @@ import com.aylanetworks.agilelink.R;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class ZigbeeLightDevice extends SwitchedDevice implements View.OnClickListener {
+public class ZigbeeLightDevice extends ZigbeeSwitchedDevice implements View.OnClickListener {
 
     private final static String LOG_TAG = "ZigbeeLightDevice";
-
-    private final static String PROPERTY_NAME = "1_in_0x0006_0x0000";
 
     public ZigbeeLightDevice(AylaDevice device) {
         super(device);
     }
 
     @Override
-    public String getObservablePropertyName() { return PROPERTY_NAME;  }
-
-    @Override
-    public boolean isDeviceNode() {
-        return true;
-    }
-
-    @Override
     public String friendlyNameForPropertyName(String propertyName) {
-        if (propertyName.equals(PROPERTY_NAME)) {
+        if (propertyName.equals(ZigbeeSwitchedDevice.PROPERTY_ZB_INPUT)) {
             return MainActivity.getInstance().getString(R.string.property_light_friendly_name);
         }
         return super.friendlyNameForPropertyName(propertyName);
