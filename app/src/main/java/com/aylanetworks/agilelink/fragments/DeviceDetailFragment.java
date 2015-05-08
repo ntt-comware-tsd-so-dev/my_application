@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -217,7 +218,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
 
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         AylaShare share = new AylaShare();
         share.userEmail = email;
         if ( startDate != null ) {
@@ -369,11 +370,11 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void notificationsClicked() {
-        Toast.makeText(getActivity(), "Notifications: Coming soon!", Toast.LENGTH_SHORT).show();
+        MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(_device));
     }
 
     private void scheduleClicked() {
-        ScheduleContainerFragment frag = ScheduleContainerFragment.newInstance(_device);
+        Fragment frag = _device.getScheduleFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 

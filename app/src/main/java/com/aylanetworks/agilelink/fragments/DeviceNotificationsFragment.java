@@ -22,21 +22,21 @@ import com.aylanetworks.agilelink.framework.PushNotification;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 /*
- * NotificationsFragment.java
+ * DeviceNotificationsFragment.java
  * AgileLink Application Framework
  *
  * Created by Brian King on 2/17/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class NotificationsFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
-    private static final String LOG_TAG = "NotificationsFragment";
+public class DeviceNotificationsFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
+    private static final String LOG_TAG = "DeviceNotificationsFragment";
 
     private CheckBox _emailCheckbox;
     private CheckBox _smsCheckbox;
     private CheckBox _pushCheckbox;
 
-    public NotificationsFragment() {
+    public DeviceNotificationsFragment() {
         // Required empty public constructor
     }
 

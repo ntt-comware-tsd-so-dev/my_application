@@ -14,6 +14,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -51,7 +52,7 @@ public class Schedule implements  Cloneable {
 
     static DateFormat _dateFormatHMSUTC;
     static {
-        _dateFormatHMSUTC = new SimpleDateFormat("HH:mm:ss");
+        _dateFormatHMSUTC = new SimpleDateFormat("HH:mm:ss", Locale.US);
         _dateFormatHMSUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 

@@ -337,5 +337,32 @@
     <string name="fetching_account_info_body">Fetching account information from the server. Please wait...</string>
     <string name="details">Details...</string>
     <string name="device_detail_header_text" formatted="false">%s Details</string>
+    <string name="blue_button">Blue Button</string>
+    <string name="property_notifications">Notification</string>
+    <string name="is_turned_on">is turned on</string>
+    <string name="is_turned_off">is turned off</string>
+    <string name="notify_me_via">Notify me via:</string>
+    <string name="notify_contacts">Notify these contacts:</string>
+    <string name="send_notifications_when">Send notifications when:</string>
+    <string name="loading_contacts">Loading Contacts...</string>
+    <string name="contact_phone_required">This contact cannot receive SMS messages</string>
+    <string name="contact_email_required">This contact cannot receive email notifications</string>
+    <string name="save_notifications">Save Notifications</string>
+    <string name="on_or_off">is turned on or off</string>
+    <string name="add_property_notification" formatted="false">New Notification for %s</string>
+    <string name="becomes_greater_than">becomes greater than</string>
+    <string name="becomes_less_than">becomes less than</string>
+    <string name="changes">changes</string>
+    <string name="notifcations_not_enabled">Property notifications are not available on this device</string>
+    <string name="fetching_notifications">Fetching notifications for this device. Please wait...</string>
+    <string name="unknown_trigger_name">Trigger %d</string>
+    <string name="no_triggers_found">No notifications exist for this device. Tap the add button to create one.</string>
+    <string name="no_contacts_selected">Please select at least one contact to be notified via email or SMS</string>
+    <string name="no_value_chosen">Please choose a value to compare with</string>
+    <string name="notification_name">Notification name</string>
+    <string name="choose_name">Please choose a name for your notification</string>
+    <string name="notification_created">The notification was created successfully</string>
+    <string name="delete_notification_title">Delete Notification?</string>
+    <string name="delete_notification_message">Do you want to remove the notification \"%s\"?</string>
 
 </resources>

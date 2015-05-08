@@ -5,7 +5,7 @@
               android:orientation="vertical"
               android:background="@color/device_details_background"
               android:clickable="true"
-              tools:context="com.aylanetworks.agilelink.fragments.NotificationsFragment">
+              tools:context="com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment">
 
     <TextView
         android:id="@+id/textView"

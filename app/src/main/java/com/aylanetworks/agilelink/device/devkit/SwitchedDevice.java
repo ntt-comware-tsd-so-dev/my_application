@@ -30,6 +30,7 @@ import java.util.ArrayList;
 public class SwitchedDevice extends Device implements View.OnClickListener {
 
     private final static String LOG_TAG = "SwitchedDevice";
+    private final static String PROPERTY_OUTLET = "outlet1";
 
     public SwitchedDevice(AylaDevice device) {
         super(device);
@@ -63,6 +64,11 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     }
 
     @Override
+    public String[] getNotifiablePropertyNames() {
+        return new String[]{PROPERTY_OUTLET};
+    }
+
+    @Override
     public String friendlyNameForPropertyName(String propertyName) {
         if (propertyName.equals(getObservablePropertyName())) {
             return MainActivity.getInstance().getString(R.string.property_outlet_friendly_name);
@@ -78,7 +84,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     }
 
     @Override
-    public String getObservablePropertyName() { return "outlet1";  }
+    public String getObservablePropertyName() { return PROPERTY_OUTLET;  }
 
     @Override
     public String deviceTypeName() {
