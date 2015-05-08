@@ -173,7 +173,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
             MainActivity.getInstance().dismissWaitDialog();
             if (AylaNetworks.succeeded(msg)) {
                 _frag.get()._propertyTriggers.remove(_index);
-                _frag.get()._recyclerView.getAdapter().notifyItemRemoved(_index);
+                _frag.get().updateTriggerList();
             } else {
                 Toast.makeText(_frag.get().getActivity(), (String)msg.obj, Toast.LENGTH_LONG).show();
             }
