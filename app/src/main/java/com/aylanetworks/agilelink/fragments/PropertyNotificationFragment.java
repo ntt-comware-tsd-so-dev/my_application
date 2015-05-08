@@ -431,13 +431,14 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                     Toast.makeText(getActivity(), R.string.notification_created, Toast.LENGTH_LONG).show();
 
                     // Delete the old notification. We won't wait for the response.
-                    _originalTrigger.destroyTrigger(new Handler() {
-                        @Override
-                        public void handleMessage(Message msg) {
-                            Log.d(LOG_TAG, "Old trigger deletion: " + msg);
-                        }
-                    });
-
+                    if ( _originalTrigger != null ) {
+                        _originalTrigger.destroyTrigger(new Handler() {
+                            @Override
+                            public void handleMessage(Message msg) {
+                                Log.d(LOG_TAG, "Old trigger deletion: " + msg);
+                            }
+                        });
+                    }
                     getFragmentManager().popBackStack();
                 } else {
                     Log.e(LOG_TAG, "Failed to set notifications");
