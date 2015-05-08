@@ -51,6 +51,10 @@ import java.util.Set;
 public class DeviceManager implements DeviceStatusListener {
     private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
 
+    /** Number of times we will hit the status poll timer without finishing polling for devices
+     * before we start over.
+     */
+    private static final int DEVICE_STATUS_POLL_RETRY_PENDING = 3;
     /** Interfaces */
     public interface DeviceListListener {
         /**
@@ -652,6 +656,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     private ArrayList<Device> _devicesToPoll;
 
+    private int _retryPendingCount = 0;
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
@@ -669,19 +674,21 @@ public class DeviceManager implements DeviceStatusListener {
                 if ( _deviceList != null ) {
                     _devicesToPoll = new ArrayList<Device>(_deviceList);
                 }
-
+                _retryPendingCount = DEVICE_STATUS_POLL_RETRY_PENDING;
                 updateNextDeviceStatus();
             } else {
-                Log.d(LOG_TAG, "Already polling device status. Not doing it again so soon.");
+                Log.d(LOG_TAG, "Still not done polling from the last timer event. Pending count is " + _retryPendingCount);
                 Log.v(LOG_TAG, "Waiting for responses from:");
                 for ( Device d : _devicesToPoll ) {
                     Log.v(LOG_TAG, d.getDevice().getProductName());
                 }
 
-                // TODO: BSK: Should we really be trying again here?
-                Log.w(LOG_TAG, "Canceling pending list!");
-                _devicesToPoll = new ArrayList<Device>(_deviceList);
-                updateNextDeviceStatus();
+                if ( --_retryPendingCount == 0 ) {
+                    Log.w(LOG_TAG, "Canceling pending list!");
+                    _retryPendingCount = DEVICE_STATUS_POLL_RETRY_PENDING;
+                    _devicesToPoll = new ArrayList<Device>(_deviceList);
+                    updateNextDeviceStatus();
+                }
             }
 
             // Only continue polling if we're not in LAN mode and somebody is listening
