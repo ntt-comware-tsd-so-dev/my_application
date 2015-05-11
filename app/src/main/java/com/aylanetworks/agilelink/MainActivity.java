@@ -195,7 +195,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     /**
      * Sets the application in a mode when no devices are present. The only available options to the
      * user at this point are to scan for devices in wifi setup, or register devices.
-     * @param noDevices
+     * @param noDevices true to set No Devices Mode, false to enter normal mode
      */
     public void setNoDevicesMode(boolean noDevices) {
         if ( noDevices == _noDevicesMode ) {

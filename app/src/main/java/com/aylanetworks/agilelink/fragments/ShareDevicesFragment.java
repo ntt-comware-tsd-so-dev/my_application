@@ -48,8 +48,9 @@ import java.util.List;
  * to present a list of devices to share, or can be set with a specific device to share ahead of
  * time. When the user has entered all of the necessary information for sharing, the listener
  * is notified with the results.
- * <p/>
+ * <p>
  * This class does not itself set up the sharing, but rather provides the UI for doing so.
+ * </p>
  */
 public class ShareDevicesFragment extends Fragment {
     private final static String LOG_TAG = "ShareDevicesFragment";
@@ -76,30 +77,28 @@ public class ShareDevicesFragment extends Fragment {
 
     /**
      * Creates an instance of the ShareDevicesFragment.
-     * <p/>
+     * <p>
      * This version of this method should be used to present a list of devices to be shared.
-     *
+     *</p>
      * @param listener Listener to receive the sharing information
-     * @return the ShareDevicesFragment ready to be shown.
+     * @return the ShareDevicesFragment
      */
     public static ShareDevicesFragment newInstance(ShareDevicesListener listener) {
         return newInstance(listener, null);
     }
 
     /**
-     * Creates an instance of the ShareDevicesFragment. This fragment is a DialogFragment, and
-     * should be launched via the {@link #show(android.support.v4.app.FragmentManager, String)}
-     * method after creation.
-     * <p/>
+     * Creates an instance of the ShareDevicesFragment.
+     * <p>
      * This version of this method should be used when the device to be shared is known ahead of
      * time (e.g. from the Device Details page). If the user should be presented with a list of
      * devices to select from for sharing (e.g. from the Sharing page in Settings), then the
      * device parameter should be null or {@link #newInstance(com.aylanetworks.agilelink.fragments.ShareDevicesFragment.ShareDevicesListener)}
      * should be used instead of this method.
-     *
+     * </p>
      * @param listener Listener to receive the sharing information
      * @param device   Device to be shared, or null to present a list of devices in the dialog
-     * @return
+     * @return the new ShareDevicesFragment
      */
     public static ShareDevicesFragment newInstance(ShareDevicesListener listener, Device device) {
         ShareDevicesFragment frag = new ShareDevicesFragment();
