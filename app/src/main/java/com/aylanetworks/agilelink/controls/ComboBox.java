@@ -73,16 +73,16 @@ public class ComboBox extends LinearLayout {
      * Sets the source for DDLB suggestions.
      * Cursor MUST be managed by supplier!!
      *
+     * @param <T> Adapter class
      * @param adapter Source of suggestions.
      */
     public <T extends ListAdapter & Filterable> void setAdapter(T adapter) {
         if ( adapter != null && adapter.getCount() > 0 ) {
             _button.setVisibility(View.VISIBLE);
-            _text.setText((String)adapter.getItem(0));
+            _text.setText((String) adapter.getItem(0));
         } else {
             _button.setVisibility(View.GONE);
         }
-
         _text.setAdapter(adapter);
     }
 
@@ -97,6 +97,7 @@ public class ComboBox extends LinearLayout {
 
     /**
      * Sets the text in combo box.
+     * @param text text to set
      */
     public void setText(String text) {
         _text.setText(text);

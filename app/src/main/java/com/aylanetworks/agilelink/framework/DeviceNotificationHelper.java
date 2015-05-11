@@ -166,7 +166,9 @@ public class DeviceNotificationHelper {
     /**
      * Creates the appropriate notifications for a new device. This method will check the
      * AccountSettings to see what notifications should be set on the device, and sets them. The
-     * caller will be notified via the listener interface with a call to
+     * caller will be notified via the listener interface with a call to {@link com.aylanetworks.agilelink.framework.DeviceNotificationHelper.DeviceNotificationHelperListener#newDeviceUpdated(Device, int)}
+     *
+     * @param listener Listener to receive results when the operation is complete
      */
     public void initializeNewDeviceNotifications(final DeviceNotificationHelperListener listener) {
         // Here we can assume that there are no device notifications, as this is a new device.

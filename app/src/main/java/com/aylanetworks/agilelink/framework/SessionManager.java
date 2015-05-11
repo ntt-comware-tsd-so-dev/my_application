@@ -224,7 +224,7 @@ public class SessionManager {
     /**
      * Returns true if LAN mode is permitted during this session. This returns the value set in
      * {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#enableLANMode}.
-     * @return
+     * @return true if LAN mode is permitted, false otherwise
      */
     public boolean lanModePermitted() {
         return _sessionParameters.enableLANMode;
@@ -316,7 +316,6 @@ public class SessionManager {
 
         /**
          * Logging level for the Ayla library. Set to one of:
-         * <p>
          * <ul>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_NONE}</li>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ERROR}</li>
@@ -324,7 +323,6 @@ public class SessionManager {
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_INFO}</li>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ALL}</li>
          * </ul>
-         * <p>
          */
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
 
@@ -402,6 +400,7 @@ public class SessionManager {
 
         /**
          * Copy constructor
+         * @param other Session parameters to copy
          */
         public SessionParameters(SessionParameters other) {
             this.context = other.context;
@@ -475,6 +474,10 @@ public class SessionManager {
      * </p>
      * If the user wishes to log out, the application should call {@link #stopSession()} to shut
      * down the library and clean up.
+     *
+     * @param username Username for the session
+     * @param password Password for the session
+     * @return true if the session was started, false if an error occurred
      */
     public static boolean startSession(String username, String password) {
         if (getInstance()._sessionParameters == null) {
@@ -504,13 +507,13 @@ public class SessionManager {
     /**
      * Closes network connections and logs out the user.
      */
-    public static boolean stopSession() {
+    public static void stopSession() {
         getInstance().stop();
-        return true;
     }
 
     /**
      * Returns a copy of the current session parameters
+     * @return a copy of the current session parameters
      */
     public static SessionParameters sessionParameters() {
         if (getInstance()._sessionParameters == null) {
@@ -549,7 +552,8 @@ public class SessionManager {
     }
 
     /**
-     * Returns the device manager, or null if not logged in yet
+     * Returns the current device manager, or null if it does not exist.
+     * @return the device manager, or null if not logged in yet
      */
     public static DeviceManager deviceManager() {
         return getInstance()._deviceManager;

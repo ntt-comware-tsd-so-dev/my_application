@@ -84,6 +84,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     /**
      * Returns the one and only instance of this activity
+     * @return the MainActivity singleton object
      */
     public static MainActivity getInstance() {
         return _theInstance;

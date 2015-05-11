@@ -60,6 +60,7 @@ public class Schedule implements  Cloneable {
      * Creates a Schedule object initialized with the given AylaSchedule object
      *
      * @param schedule AylaSchedule used to initialize this Schedule object
+     * @param timeZone Time zone for this schedule. Specify null for UTC.
      */
     public Schedule(AylaSchedule schedule, TimeZone timeZone) {
         _schedule = schedule;

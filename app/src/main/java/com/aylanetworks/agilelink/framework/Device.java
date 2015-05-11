@@ -107,6 +107,7 @@ public class Device implements Comparable<Device> {
      * something has changed.
      *
      * @param other Device to compare with
+     * @return true if the device has changed compared with other
      */
     public boolean isDeviceChanged(Device other) {
         return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
@@ -130,6 +131,7 @@ public class Device implements Comparable<Device> {
 
     /**
      * Constructor using the AylaDevice parameter
+     * @param aylaDevice AylaDevice object this device represents
      */
     public Device(AylaDevice aylaDevice) {
         _device = aylaDevice;
@@ -302,6 +304,7 @@ public class Device implements Comparable<Device> {
      * Updates the schedule on the server
      *
      * @param schedule Schedule to update on the server
+     * @param listener listener to receive the results of the operation
      */
     public void updateSchedule(Schedule schedule, DeviceStatusListener listener) {
         getDevice().updateSchedule(new UpdateScheduleHandler(this, listener),
@@ -530,6 +533,7 @@ public class Device implements Comparable<Device> {
      *
      * @param propertyName   Name of the property to set the datapoint on
      * @param datapointValue Value to set the datapoint to
+     * @param listener Listener to receive the results of the operation
      */
     public void setDatapoint(String propertyName, Object datapointValue, final SetDatapointListener listener) {
         final AylaProperty property = getProperty(propertyName);
