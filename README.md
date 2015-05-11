@@ -14,3 +14,11 @@ Add your local Android_AylaZigbeeLibrary repo path to ZIGBEE_PATH in 'aylaContro
 gradle -q execTasks                                                                                                  
 Open Android Studio -> Import Project -> Select build.gradle file in project folder(nexTurn_Android)                
 To build the project in Android Studio, click 'Build' and select 'Make Project'
+
+Generating Documentation
+========================
+
+gradle generateDebugJavadoc
+(ignore errors)
+Open app/build/docs/javadoc/index.html in your favorite browser
+
