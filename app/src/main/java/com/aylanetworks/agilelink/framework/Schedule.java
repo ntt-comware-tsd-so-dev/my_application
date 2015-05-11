@@ -29,7 +29,7 @@ import java.util.TimeZone;
 /**
  * Class representing a Schedule for a device. This class wraps the AylaSchedule object and provides
  * convenience methods to manipulate, save and fetch schedule information for a device.
- * <p/>
+ * <p>
  * This class supports two schedule "types", a recurring schedule and a timer. The recurring
  * schedule does not expire, and
  */
@@ -60,6 +60,7 @@ public class Schedule implements  Cloneable {
      * Creates a Schedule object initialized with the given AylaSchedule object
      *
      * @param schedule AylaSchedule used to initialize this Schedule object
+     * @param timeZone Time zone for this schedule. Specify null for UTC.
      */
     public Schedule(AylaSchedule schedule, TimeZone timeZone) {
         _schedule = schedule;

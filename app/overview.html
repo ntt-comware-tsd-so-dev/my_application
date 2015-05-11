@@ -1,0 +1,68 @@
+<html>
+<body>
+<h1>Agile Link Application Framework</h1>
+<h2>Overview</h2>
+The Agile Link SDK is a software development kit created by Ayla Networks to aid in the development
+of mobile applications utilizing the Ayla service network.
+<p></p>
+The goal of the Agile Link SDK is to make it as easy as possible to create iOS and Android
+applications that use the Ayla network of connected devices. The app can be easily customized for
+look and feel as well as supporting custom devices with minimal effort.
+
+<h2>Architecture Goals</h2>
+The primary goal of producing this SDK is to provide a starting point for developers to produce iOS
+and Android applications with minimal effort. While the types and capabilities of devices connected
+to an Ayla network can vary widely, there are many tasks that need to be performed on all of them. The
+AgileLink framework handles the tasks common to all Ayla applications, leaving the developer free to take
+care of details specific to the devices and network under development.
+<p></p>
+
+<h3>Getting Started</h3>
+This section outlines steps a developer should take when implementing a new AgileLink application.
+<h4>Session Parameters</h4>
+The first step towards creating an Agile Link application is to define the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters}.
+Session Parameters are used to configure the Ayla library for your application. Modify {@link com.aylanetworks.agilelink.MainActivity#getAppParameters} 
+to return a SessionParameters object configured with your application's settings.
+<br>
+Each application will have its own unique app ID and app secret. These need to be set correctly in the SessionParameters structure.
+<br>
+Each device that supports wifi setup (creates an access point) will have a string created for the access point's SSID. Make sure that the 
+{@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceSsidRegex} value will pass through all possible SSIDs that 
+your devices may create.
+<br>
+
+<h4>Devices</h4>
+Once the session parameters have been configured, the next step is to create new Device objects that represent your application's supported devices.
+Example Device-derived objects can be found in the {@link com.aylanetworks.agilelink.device.SwitchedDevice} or {@link com.aylanetworks.agilelink.device.AylaEVBDevice} classes.
+
+Your new device class will need to be instantiated whenever a matching device is found. This is done in the
+{@link com.aylanetworks.agilelink.framework.DeviceCreator} class. Create a new object derived from
+{@link com.aylanetworks.agilelink.framework.DeviceCreator} that creates your own Device-derived objects from 
+an AylaDevice object. See {@link com.aylanetworks.agilelink.device.AgileLinkDeviceCreator} for an example of
+a DeviceCreator object configured to return specific devices from an AylaDevice object. Once this class has been
+created, an instance of it should be assigned to the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceCreator}
+member of the session parameters.
+
+<h4>UI Customization</h4>
+The AgileLink UI can be easily customized. Currently the app theme colors, navigation style and list style can be easily
+configured within the application.
+<br>
+The app navigation and list styles are handled by the {@link com.aylanetworks.agilelink.framework.UIConfig} class. The
+MainActivity has a {@link com.aylanetworks.agilelink.MainActivity#getUIConfig()} method that should be modified to return the
+UIConfig desired for the application.
+<br>
+Additionally, the colors.xml file contains a set of app theme colors that begin with "app_theme". These colors are referenced 
+throughout the application. Modifying the initial 6 colors will change the color scheme of the entire application. Additional
+customization can be achieved through modifying the remaining colors individually. Those colors default to references to one of 
+the 6 app_theme colors.
+
+<h3>Useful Links</h3>
+<ul>
+    <li>{@link com.aylanetworks.agilelink.framework.SessionManager} handles sign in / sign out and creates the DeviceManager</li>
+    <li>{@link com.aylanetworks.agilelink.framework.DeviceManager} polls the list of devices and the status of each device
+    <li>{@link com.aylanetworks.agilelink.framework.ContactManager} takes care of contacts for notifications</li>
+    <li>{@link com.aylanetworks.agilelink.framework.MenuHandler} provides a centralized location for handling menu events</li>
+</ul>
+</body>
+</html>
+

@@ -142,7 +142,7 @@ public class DeviceManager implements DeviceStatusListener {
      * Method to notify the device manager that a device has changed. The device manager will
      * update listeners to let them know.
      *
-     * @param device
+     * @param device device that changed
      */
     public void deviceChanged(Device device) {
         notifyDeviceStatusChanged(device);
@@ -153,7 +153,7 @@ public class DeviceManager implements DeviceStatusListener {
      * Sets the comparator used for sorting the list of devices. The default comparator uses the
      * Device object's compareTo method.
      *
-     * @param comparator
+     * @param comparator Comparator used to sort the list of devices
      */
     public void setDeviceComparator(Comparator<Device> comparator) {
         _deviceComparator = comparator;

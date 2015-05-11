@@ -35,19 +35,19 @@ import java.util.Set;
 /**
  * The SessionManager class is used to manage the login session with the Ayla service, as well as
  * polling the list of devices.
- * <p/>
+ * <p>
  * The SessionManager is used as a singleton object. Users of this class should use the
  * {@link #getInstance()} static method to obtain the single instance of the SessionManager.
- * <p/>
- * <p/>
+ * </p>
+ * <p>
  * The manager is configured using the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters}
  * class. Implementers should create an instance of SessionParameters and pass this to the SessionManager
  * via {@link #setParameters(com.aylanetworks.agilelink.framework.SessionManager.SessionParameters)}.
  * Once the parameters have been set, the user can be logged in via a call to
  * {@link #startSession(String, String)} to log in normally, or can log in via OAuth using
  * {@link #startOAuthSession(android.os.Message)}.
- * <p/>
- * <p/>
+ * </p>
+ * <p>
  * Once the session has been started, the SessionManager creates the following objects:
  * <ul>
  * <li>{@link com.aylanetworks.agilelink.framework.AccountSettings} to store account-specific information</li>
@@ -55,6 +55,7 @@ import java.util.Set;
  * <li>{@link com.aylanetworks.agilelink.framework.ContactManager} for adding, removing, updating contacts</li>
  * <li>{@link com.aylanetworks.agilelink.framework.GroupManager} for managing groups of devices</li>
  * </ul>
+ *
  * These objects are used throughout the application.
  */
 public class SessionManager {
@@ -223,7 +224,7 @@ public class SessionManager {
     /**
      * Returns true if LAN mode is permitted during this session. This returns the value set in
      * {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#enableLANMode}.
-     * @return
+     * @return true if LAN mode is permitted, false otherwise
      */
     public boolean lanModePermitted() {
         return _sessionParameters.enableLANMode;
@@ -242,11 +243,11 @@ public class SessionManager {
 
         /**
          * Regular expression string for SSID scans.
-         * <p/>
+         * <p>
          * This string is used to filter the list of SSIDs returned from a WiFi network scan.
          * The default value returns SSIDs that begin with "Ayla", "T-Stat" or "Plug", followed
          * by a dash and a string of 12 hexadecimal characters.
-         * <p/>
+         * </p>
          * If your device broadcasts a different SSID for WiFi setup, set this parameter to a
          * regular expression that matches any supported devices' SSID.
          */
@@ -315,7 +316,6 @@ public class SessionManager {
 
         /**
          * Logging level for the Ayla library. Set to one of:
-         * <p/>
          * <ul>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_NONE}</li>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ERROR}</li>
@@ -400,6 +400,7 @@ public class SessionManager {
 
         /**
          * Copy constructor
+         * @param other Session parameters to copy
          */
         public SessionParameters(SessionParameters other) {
             this.context = other.context;
@@ -462,17 +463,21 @@ public class SessionManager {
 
     /**
      * Initializes and starts a new session, stopping any existing sessions first.
-     * <p/>
+     * <p>
      * This method logs the user in, and if successful creates a {@link com.aylanetworks.agilelink.framework.DeviceManager},
      * fetches the current {@link com.aylanetworks.agilelink.framework.AccountSettings} from the
      * server and notifies any {@link com.aylanetworks.agilelink.framework.SessionManager.SessionListener}
      * listeners that have registered that the session has been started.
-     * <p/>
+     * </p><p>
      * At this point the DeviceManager will fetch the list of devices from the server and begin
      * polling them for updates.
-     * <p/>
+     * </p>
      * If the user wishes to log out, the application should call {@link #stopSession()} to shut
      * down the library and clean up.
+     *
+     * @param username Username for the session
+     * @param password Password for the session
+     * @return true if the session was started, false if an error occurred
      */
     public static boolean startSession(String username, String password) {
         if (getInstance()._sessionParameters == null) {
@@ -502,13 +507,13 @@ public class SessionManager {
     /**
      * Closes network connections and logs out the user.
      */
-    public static boolean stopSession() {
+    public static void stopSession() {
         getInstance().stop();
-        return true;
     }
 
     /**
      * Returns a copy of the current session parameters
+     * @return a copy of the current session parameters
      */
     public static SessionParameters sessionParameters() {
         if (getInstance()._sessionParameters == null) {
@@ -547,7 +552,8 @@ public class SessionManager {
     }
 
     /**
-     * Returns the device manager, or null if not logged in yet
+     * Returns the current device manager, or null if it does not exist.
+     * @return the device manager, or null if not logged in yet
      */
     public static DeviceManager deviceManager() {
         return getInstance()._deviceManager;

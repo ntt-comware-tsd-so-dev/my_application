@@ -8,6 +8,11 @@ package com.aylanetworks.agilelink.framework;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
+/**
+ * The UIConfig class is used to configure the look and feel of the application. Currently
+ * the ListStyle can be set to a List or Grid view for device lists, and the NavStyle
+ * can be set to Pager for a 3-pane paged view, or Drawer for a navigation drawer style app.
+ */
 public class UIConfig {
     /** Enumeration of styles the list views can be shown in (all devices / device groups) */
     public enum ListStyle { List, Grid }
