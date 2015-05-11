@@ -10,4 +10,5 @@
 *.iml
 *.apk
 *.ap_
+gradle_scripts/aylaControl_build.sh
 
