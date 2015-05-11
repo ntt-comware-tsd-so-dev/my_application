@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device.devkit;
+package com.aylanetworks.agilelink.device;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;

@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device.devkit;
+package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
 import android.content.res.Resources;

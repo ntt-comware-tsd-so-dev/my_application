@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device.devkit;
+package com.aylanetworks.agilelink.device;
 
 import android.view.View;
 
