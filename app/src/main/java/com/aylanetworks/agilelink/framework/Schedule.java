@@ -29,7 +29,7 @@ import java.util.TimeZone;
 /**
  * Class representing a Schedule for a device. This class wraps the AylaSchedule object and provides
  * convenience methods to manipulate, save and fetch schedule information for a device.
- * <p/>
+ * <p>
  * This class supports two schedule "types", a recurring schedule and a timer. The recurring
  * schedule does not expire, and
  */

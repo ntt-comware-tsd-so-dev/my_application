@@ -55,7 +55,7 @@ import java.util.Set;
  * <li>{@link com.aylanetworks.agilelink.framework.ContactManager} for adding, removing, updating contacts</li>
  * <li>{@link com.aylanetworks.agilelink.framework.GroupManager} for managing groups of devices</li>
  * </ul>
- * </p>
+ *
  * These objects are used throughout the application.
  */
 public class SessionManager {
@@ -324,7 +324,7 @@ public class SessionManager {
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_INFO}</li>
          * <li>{@link AylaNetworks#AML_LOGGING_LEVEL_ALL}</li>
          * </ul>
-         * </p>
+         * <p>
          */
         public int loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_ERROR;
 
