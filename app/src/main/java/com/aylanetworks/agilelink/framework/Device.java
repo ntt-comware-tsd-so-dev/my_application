@@ -723,6 +723,10 @@ public class Device implements Comparable<Device> {
      * <p>
      * Multiple device types may use the same item view type if the view displayed for these devices
      * are the same. Most devices will have their own unique views displayed.
+     * <p>
+     * View types should be unique, and are generally defined as static members of the
+     * {@link DeviceCreator} class. This keeps them all in the same place and makes it easy to
+     * ensure that each identifier is unique.
      *
      * @return An integer representing the type of view for this item.
      */
