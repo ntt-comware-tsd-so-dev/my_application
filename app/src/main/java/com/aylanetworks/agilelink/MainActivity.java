@@ -491,7 +491,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      *
      * @return the SessionParameters for this application
      */
-    private SessionManager.SessionParameters getAppParameters() {
+    public SessionManager.SessionParameters getAppParameters() {
         final SessionManager.SessionParameters parameters = new SessionManager.SessionParameters(this);
 
         // Change this to false to connect to the production service

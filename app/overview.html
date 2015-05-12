@@ -15,11 +15,40 @@ and Android applications with minimal effort. While the types and capabilities o
 to an Ayla network can vary widely, there are many tasks that need to be performed on all of them. The
 AgileLink framework handles the tasks common to all Ayla applications, leaving the developer free to take
 care of details specific to the devices and network under development.
-<p></p>
 
-<h3>Getting Started</h3>
-This section outlines steps a developer should take when implementing a new AgileLink application.
-<h4>Session Parameters</h4>
+<h2>Framework Components</h2>
+The Agile Link Framework consists of a set of classes designed to take care of connecting to and interacting
+with the Ayla Cloud Service and the devices residing on it. Application developers can use these classes, found
+in the {@link com.aylanetworks.agilelink.framework} package, to take care of standard tasks in the Ayla system.
+<br>
+The framework also consists of a set of user interface elements that can be used, customized or extended to meet
+the needs of the application under development. The UI elements in Agile Link support a degree of customization, and
+leverage abstraction of Device components to allow device-specific customizations. The UI portion of the Agile Link 
+application can be found in the {@link com.aylanetworks.agilelink.fragments} package.
+
+<h2>Getting Started</h2>
+This section outlines steps a developer should take when implementing a new AgileLink application. The basic steps 
+toward getting an Agile Link application running quickly are:
+<br>
+<ul>
+    <li>Modify the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters} object created in 
+        {@link com.aylanetworks.agilelink.MainActivity#getAppParameters()} with your application's app ID, app secret
+        and any other settings you would like your app to use.</li>
+    <li>Create classes derived from {@link com.aylanetworks.agilelink.framework.Device} for each hardware device you
+        wish to support. These classes can provide a custom UI for list views, detail fragments and other elements, or
+        can default to using the generic behavior provided by the {@link com.aylanetworks.agilelink.framework.Device}
+        class.</li>
+    <li>Create a {@link com.aylanetworks.agilelink.framework.DeviceCreator}-derived class that creates your Device-based
+        objects from an AylaDevice from the cloud service. This class will examine each AylaDevice returned for the account
+        and create the appropriate Device-derived object for the particular device. Generally devices are identified by the
+        oemModel field of the AylaDevice object. See {@link com.aylanetworks.agilelink.device.AgileLinkDeviceCreator} for an
+        example of a DeviceCreator implementation.</li>
+    <li>Create an instance of your DeviceCreator class and assign it to the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceCreator} member of the SessionParameters.</li>
+</ul>
+
+The Agile Link framework should take care of the rest.
+
+<h3>Session Parameters</h3>
 The first step towards creating an Agile Link application is to define the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters}.
 Session Parameters are used to configure the Ayla library for your application. Modify {@link com.aylanetworks.agilelink.MainActivity#getAppParameters} 
 to return a SessionParameters object configured with your application's settings.
@@ -31,9 +60,33 @@ Each device that supports wifi setup (creates an access point) will have a strin
 your devices may create.
 <br>
 
-<h4>Devices</h4>
+<h3>Devices</h3>
 Once the session parameters have been configured, the next step is to create new Device objects that represent your application's supported devices.
 Example Device-derived objects can be found in the {@link com.aylanetworks.agilelink.device.SwitchedDevice} or {@link com.aylanetworks.agilelink.device.AylaEVBDevice} classes.
+<br>
+Device classes can override these methods to provide additional functionality:
+<ul>
+    <li>{@link com.aylanetworks.agilelink.framework.Device#deviceTypeName()} should be overridden to return a friendly name for the device,
+        such as &quot;Smart Plug&quot; or &quot;Wall Switch&quot;. This name is presented to the user in a drop-down list when the user
+        navigates to the Add Device screen, and when selected, chooses the appropriate registration type for the device.</li>
+    <li>{@link com.aylanetworks.agilelink.framework.Device#registrationType()} should be overridden to return the appropriate registration type
+        for the device.</li>
+    <li>{@link com.aylanetworks.agilelink.framework.Device#getPropertyNames()} should be overridden to return an array of property names
+        that should be regularly polled. The DeviceManager will poll these properties to determine if the state of the device has changed.
+        If polling properties is not the appropriate way to update the device status, the class may instead override
+        {@link com.aylanetworks.agilelink.framework.Device#updateStatus}, which will be called each poll interval. This method is responsible
+        for performing whatever operations are necessary to update the status of the device.</li>f
+    <li>{@link com.aylanetworks.agilelink.framework.Device#getSchedulablePropertyNames} and {@link com.aylanetworks.agilelink.framework.Device#getNotifiablePropertyNames} should return arrays of property names that can be used in schedules or property notifications.
+    <li>{@link com.aylanetworks.agilelink.framework.Device#friendlyNameForPropertyName} should be overridden to return a friendly, localized
+        string for a given property. This is used when presenting properties to the user, such as in a schedule or notification screen.</li>
+    <li>{@link com.aylanetworks.agilelink.framework.Device#getDeviceDrawable} should be overridden to return a drawable representing the device.</li>
+    <li>{@link com.aylanetworks.agilelink.framework.Device#getItemViewType()} and {@link com.aylanetworks.agilelink.framework.Device#bindViewHolder}
+        can be modified along with {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType} to create custom views for 
+        devices when shown in list or grid views.</li>
+    <li>{@link com.aylanetworks.agilelink.framework.Device#getDetailsFragment()} may be overridden to return a custom fragment showing details about
+        the device.</li>
+</ul>
+
 
 Your new device class will need to be instantiated whenever a matching device is found. This is done in the
 {@link com.aylanetworks.agilelink.framework.DeviceCreator} class. Create a new object derived from
@@ -43,7 +96,7 @@ a DeviceCreator object configured to return specific devices from an AylaDevice 
 created, an instance of it should be assigned to the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceCreator}
 member of the session parameters.
 
-<h4>UI Customization</h4>
+<h3>UI Customization</h3>
 The AgileLink UI can be easily customized. Currently the app theme colors, navigation style and list style can be easily
 configured within the application.
 <br>
@@ -56,7 +109,7 @@ throughout the application. Modifying the initial 6 colors will change the color
 customization can be achieved through modifying the remaining colors individually. Those colors default to references to one of 
 the 6 app_theme colors.
 
-<h3>Useful Links</h3>
+<h2>Useful Links</h2>
 <ul>
     <li>{@link com.aylanetworks.agilelink.framework.SessionManager} handles sign in / sign out and creates the DeviceManager</li>
     <li>{@link com.aylanetworks.agilelink.framework.DeviceManager} polls the list of devices and the status of each device
