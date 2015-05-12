@@ -109,6 +109,7 @@ public class DeviceGroup {
 
     /**
      * Connects to the server to fetch the list of devices that are members of this group
+     * @param listener Listener to receive the results of the operation
      */
     public void fetchGroupMembers(final DeviceGroupListener listener) {
         AylaUser.getCurrent().getDatumWithKey(new FetchGroupMembersHandler(this, listener), _groupID);

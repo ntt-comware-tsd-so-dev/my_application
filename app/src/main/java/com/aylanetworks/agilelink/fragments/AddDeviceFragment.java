@@ -169,21 +169,12 @@ public class AddDeviceFragment extends Fragment
                 AylaDevice fakeDevice = new AylaDevice();
                 Device d = c.getDeclaredConstructor(AylaDevice.class).newInstance(fakeDevice);
                 deviceList.add(d);
-            } catch (java.lang.InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
+            } catch (java.lang.InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
 
-        ArrayAdapter<Device> adapter = new DeviceTypeAdapter(getActivity(),
-                deviceList.toArray(new Device[deviceList.size()]));
-
-        return adapter;
+        return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new Device[deviceList.size()]));
     }
 
     @Override

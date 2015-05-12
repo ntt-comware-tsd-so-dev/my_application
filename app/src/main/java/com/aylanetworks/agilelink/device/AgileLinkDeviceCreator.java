@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.device.devkit;
+package com.aylanetworks.agilelink.device;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -60,7 +60,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         }
 
         // Zigbee devices
-        if (aylaDevice.oemModel.equals("zigbee1")) {
+        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
 
             // todo: take this out after everybody has converted.
             if (aylaDevice.model.equals("AY001MRT1")) {

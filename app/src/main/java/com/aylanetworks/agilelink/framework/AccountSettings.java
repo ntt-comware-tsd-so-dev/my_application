@@ -157,7 +157,7 @@ public class AccountSettings {
      * Callers should call the {@link #pushToServer(com.aylanetworks.agilelink.framework.AccountSettings.AccountSettingsCallback)}
      * method in order to persist changes to AccountSettings once all local updates have been made.
      *
-     * @param notificationMethod
+     * @param notificationMethod Notification method to set (PUSH | EMAIL | SMS)
      */
     public void removeNotificationMethod(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {

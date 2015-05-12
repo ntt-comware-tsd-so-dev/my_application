@@ -45,17 +45,17 @@ import java.util.TimeZone;
  * The Device class represents a physical device connected to the Ayla network. This class is
  * designed to be overridden to provide device-specific functionality and user interface
  * components.
- * <p/>
+ * <p>
  * Each Device class wraps an AylaDevice object, which is passed to the Device constructor. Devices
  * are created via the {@link DeviceCreator#deviceForAylaDevice(com.aylanetworks.aaml.AylaDevice)}
  * method of the {@link DeviceCreator} class, which parses information from the underlying
  * {@link AylaDevice} object to identify the correct Device-derived class to create with the object.
- * <p/>
+ * <p>
  * When creating an Agile Link-derived application, implementers should create a Device-derived
  * class for each type of hardware device supported by the application. The AylaDevice objects
  * received from the server will be passed to the DeviceCreator's deviceForAylaDevice method in
  * order that the DeviceCreator can create the appropriate Device-derived object to contain it.
- * <p/>
+ * <p>
  * Derived classes should override the following methods:
  * <ul>
  * <li>{@link #getPropertyNames()}</li>
@@ -107,6 +107,7 @@ public class Device implements Comparable<Device> {
      * something has changed.
      *
      * @param other Device to compare with
+     * @return true if the device has changed compared with other
      */
     public boolean isDeviceChanged(Device other) {
         return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
@@ -130,6 +131,7 @@ public class Device implements Comparable<Device> {
 
     /**
      * Constructor using the AylaDevice parameter
+     * @param aylaDevice AylaDevice object this device represents
      */
     public Device(AylaDevice aylaDevice) {
         _device = aylaDevice;
@@ -302,6 +304,7 @@ public class Device implements Comparable<Device> {
      * Updates the schedule on the server
      *
      * @param schedule Schedule to update on the server
+     * @param listener listener to receive the results of the operation
      */
     public void updateSchedule(Schedule schedule, DeviceStatusListener listener) {
         getDevice().updateSchedule(new UpdateScheduleHandler(this, listener),
@@ -366,6 +369,11 @@ public class Device implements Comparable<Device> {
         }
     }
 
+    private final static String[] _notificationTypes = {
+            DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_LOST,
+            DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_RESTORE
+    };
+
     /**
      * Returns an array of notification types that should be set when creating a new notification.
      * The DeviceNotificationHelper class calls this method to determine which notification types
@@ -374,12 +382,6 @@ public class Device implements Comparable<Device> {
      *
      * @return An array of notification types
      */
-
-    private final static String[] _notificationTypes = {
-            DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_LOST,
-            DeviceNotificationHelper.NOTIFICATION_TYPE_ON_CONNECTION_RESTORE
-    };
-
     public String[] getNotificationTypes() {
         return _notificationTypes;
     }
@@ -388,13 +390,13 @@ public class Device implements Comparable<Device> {
      * Called when the framework fetches properties from the service for this device. The method
      * should return true if something has changed, or false if the properties are the same. This
      * allows the framework to notify listeners only if the device's properties are different.
-     * <p/>
+     * <p>
      * The device's property array should also be replaced with newProperties, unless nothing has changed.
      *
      * @param newProperties An array of properties just fetched from the library
      * @return true if the device has changed as a result of these new properites, or false if
      * the device has not changed.
-     * <p/>
+     * <p>
      * Derived classes may override this method to customize which properties are evaluated to
      * determine if a device change event should be sent.
      */
@@ -531,6 +533,7 @@ public class Device implements Comparable<Device> {
      *
      * @param propertyName   Name of the property to set the datapoint on
      * @param datapointValue Value to set the datapoint to
+     * @param listener Listener to receive the results of the operation
      */
     public void setDatapoint(String propertyName, Object datapointValue, final SetDatapointListener listener) {
         final AylaProperty property = getProperty(propertyName);
@@ -712,12 +715,12 @@ public class Device implements Comparable<Device> {
      * Returns an integer representing the item view type for this device. This method is called
      * when displaying a CardView representing this device. The item view type should be different
      * for each type of CardView displayed for a device.
-     * <p/>
+     * <p>
      * The value returned from this method will be passed to the
      * {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType(android.view.ViewGroup, int)}
      * method of the {@link com.aylanetworks.agilelink.framework.DeviceCreator} object, which uses
      * it to determine the appropriate ViewHolder object to create for the Device.
-     * <p/>
+     * <p>
      * Multiple device types may use the same item view type if the view displayed for these devices
      * are the same. Most devices will have their own unique views displayed.
      *
@@ -729,7 +732,7 @@ public class Device implements Comparable<Device> {
 
     /**
      * Updates the views in the ViewHolder with information from the Device object.
-     * <p/>
+     * <p>
      * Derived classes should override this method to set up a ViewHolder for display in
      * RecyclerViews.
      *

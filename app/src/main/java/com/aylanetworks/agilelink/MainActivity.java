@@ -39,7 +39,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.device.devkit.AgileLinkDeviceCreator;
+import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
@@ -84,6 +84,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     /**
      * Returns the one and only instance of this activity
+     * @return the MainActivity singleton object
      */
     public static MainActivity getInstance() {
         return _theInstance;
@@ -109,6 +110,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     ProgressDialog _progressDialog;
 
+    private int _preWaitDialogOrientation;
     /**
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
      * The caller should call dismissWaitDialog() when finished.
@@ -121,6 +123,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             dismissWaitDialog();
         }
 
+        // Don't allow rotation while the wait dialog is up. We're doing something that shouldn't
+        // be interrupted.
+        _preWaitDialogOrientation = getRequestedOrientation();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         if (title == null) {
             title = getResources().getString(R.string.please_wait);
         }
@@ -145,6 +151,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      * Dismisses the wait dialog shown with showWaitDialog()
      */
     public void dismissWaitDialog() {
+        // Put the orientation back to what it was before we messed with it
+        setRequestedOrientation(_preWaitDialogOrientation);
         if (_progressDialog != null) {
             _progressDialog.dismiss();
             _progressDialog = null;
@@ -188,7 +196,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     /**
      * Sets the application in a mode when no devices are present. The only available options to the
      * user at this point are to scan for devices in wifi setup, or register devices.
-     * @param noDevices
+     * @param noDevices true to set No Devices Mode, false to enter normal mode
      */
     public void setNoDevicesMode(boolean noDevices) {
         if ( noDevices == _noDevicesMode ) {
@@ -483,7 +491,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      *
      * @return the SessionParameters for this application
      */
-    private SessionManager.SessionParameters getAppParameters() {
+    public SessionManager.SessionParameters getAppParameters() {
         final SessionManager.SessionParameters parameters = new SessionManager.SessionParameters(this);
 
         // Change this to false to connect to the production service
