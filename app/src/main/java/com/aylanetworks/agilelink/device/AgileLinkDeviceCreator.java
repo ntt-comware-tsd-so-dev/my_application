@@ -117,6 +117,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
+        classList.add(Gateway.class);
         return classList;
     }
 }
