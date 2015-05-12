@@ -25,6 +25,17 @@ The framework also consists of a set of user interface elements that can be used
 the needs of the application under development. The UI elements in Agile Link support a degree of customization, and
 leverage abstraction of Device components to allow device-specific customizations. The UI portion of the Agile Link 
 application can be found in the {@link com.aylanetworks.agilelink.fragments} package.
+<br><br>
+Code residing within the {@link com.aylanetworks.agilelink.framework} package generally should not be modified. It was 
+designed to work with a wide range of devices with various needs. Application customization should be done via the 
+Device object classes, which can return custom Fragments for details via {@link com.aylanetworks.agilelink.framework.Device#getDetailsFragment},
+custom CardViews when displayed in a RecyclerView as a list or grid item via {@link com.aylanetworks.agilelink.framework.Device#bindViewHolder},
+{@link com.aylanetworks.agilelink.framework.Device#getItemViewType} and {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType}. Additional UI customization can be performed via updating the {@link com.aylanetworks.agilelink.framework.UIConfig} parameters returned from
+{@link com.aylanetworks.agilelink.MainActivity#getUIConfig} or changing the app_theme colors in colors.xml.
+<br><br>
+While the fragment classes found in {@link com.aylanetworks.agilelink.fragments} are designed to work well with customized Device objects, 
+further customization may be desired. Implementers may use the default UI screens provided in this package, or may provide custom
+interfaces if desired.
 
 <h2>Getting Started</h2>
 This section outlines steps a developer should take when implementing a new AgileLink application. The basic steps 
@@ -63,7 +74,7 @@ your devices may create.
 <h3>Devices</h3>
 Once the session parameters have been configured, the next step is to create new Device objects that represent your application's supported devices.
 Example Device-derived objects can be found in the {@link com.aylanetworks.agilelink.device.SwitchedDevice} or {@link com.aylanetworks.agilelink.device.AylaEVBDevice} classes.
-<br>
+<br><br>
 Device classes can override these methods to provide additional functionality:
 <ul>
     <li>{@link com.aylanetworks.agilelink.framework.Device#deviceTypeName()} should be overridden to return a friendly name for the device,
@@ -95,6 +106,10 @@ an AylaDevice object. See {@link com.aylanetworks.agilelink.device.AgileLinkDevi
 a DeviceCreator object configured to return specific devices from an AylaDevice object. Once this class has been
 created, an instance of it should be assigned to the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceCreator}
 member of the session parameters.
+<br><br>
+In order for your device to appear in the drop-down list when adding a new device, make sure the device class is returned from
+{@link com.aylanetworks.agilelink.framework.DeviceCreator#getSupportedDeviceClasses}. The devices returned from this method
+are used to populate the list of devices available to register.
 
 <h3>UI Customization</h3>
 The AgileLink UI can be easily customized. Currently the app theme colors, navigation style and list style can be easily
@@ -108,6 +123,22 @@ Additionally, the colors.xml file contains a set of app theme colors that begin 
 throughout the application. Modifying the initial 6 colors will change the color scheme of the entire application. Additional
 customization can be achieved through modifying the remaining colors individually. Those colors default to references to one of 
 the 6 app_theme colors.
+
+<h2>Application Flow</h2>
+<ul>
+    <li>Application is launched</li>
+    <li>{If the user has previously logged in, the MainActivity will sign in the user via a call to {@link com.aylanetworks.agilelink.framework.SessionManager#startSession}. Otherwise, the {@link com.aylanetworks.agilelink.SignInActivity} is launched presenting the sign-in UI to the user.</li>
+    <li>The {@link com.aylanetworks.agilelink.MainActivity}, who has registered with the SessionManager as a SessionListener, is notified when sign-in 
+        completes and displays the list of devices. The {@link com.aylanetworks.agilelink.framework.DeviceManager} is created by the SessionManager and 
+        fetches the list of devices from the server. The {@link com.aylanetworks.agilelink.fragments.AllDevicesFragment} registers as a 
+        {@link com.aylanetworks.agilelink.framework.DeviceManager.DeviceListListener}, and receives notificaitons whenever the list of devices changes.</li>
+    <li>The {@link com.aylanetworks.agilelink.framework.DeviceManager} provides notifications to any registered listener for changes to the device status
+        via the {@link com.aylanetworks.agilelink.framework.Device.DeviceStatusListener} interface. Various fragments throughout the application register
+        themselves as listeners to receive updates whenever the device status changes.</li>
+    <li>The {@link com.aylanetworks.agilelink.framework.DeviceManager} polls the status of each device by calling its {@link com.aylanetworks.agilelink.framework.Device.updateStatus} method, which by default fetches the set of properties returned from {@link com.aylanetworks.agilelink.framework.Device#getPropertyNames} and comparing an updated device with the original device via {@link com.aylanetworks.agilelink.framework.Device#isDeviceChanged}.</li>
+    <li>Menu navigation is generally handled via the static {@link com.aylanetworks.agilelink.framework.MenuHandler} class, which can be tailored to handle 
+        additional menu items that may be required by the application.</li>
+</ul>
 
 <h2>Useful Links</h2>
 <ul>
