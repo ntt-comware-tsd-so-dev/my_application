@@ -618,12 +618,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onResume();
 
         Log.d(LOG_TAG, "onResume");
-        // Check to see if we're resuming due to the user tapping on the confirmation email link
-        Uri uri = AccountConfirmActivity.uri;
-        if (uri == null) {
-            uri = getIntent().getData();
-        }
-
         AylaLanMode.resume();
 
         if (SessionManager.deviceManager() != null) {
