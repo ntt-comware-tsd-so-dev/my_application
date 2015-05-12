@@ -1,9 +1,13 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceGateway;
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.agilelink.R;
 import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
@@ -43,8 +47,23 @@ public class Gateway extends Device {
     }
 
     @Override
+    public String registrationType() {
+        return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
+    }
+
+    @Override
     public boolean isGateway() {
         return true;
+    }
+
+    @Override
+    public String deviceTypeName() {
+        return "Zigbee Gateway";
+    }
+
+    @Override
+    public Drawable getDeviceDrawable(Context c) {
+        return c.getResources().getDrawable(R.drawable.ic_zigbee);
     }
 
     public void configureWithJsonElement(JsonElement json) {
