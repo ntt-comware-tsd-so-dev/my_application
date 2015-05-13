@@ -319,7 +319,7 @@ public class AddDeviceFragment extends Fragment
                 getString(R.string.connecting_to_network_body));
 
         //adding location details
-        Context context = this.getActivity().getApplicationContext();
+        Context context = this.getActivity();
         Map<String, Object> callParams = new HashMap<String, Object>();
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
