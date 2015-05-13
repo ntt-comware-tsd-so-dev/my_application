@@ -1,7 +1,11 @@
 package com.aylanetworks.agilelink.fragments;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,7 +48,9 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /*
  * AddDeviceFragment.java
@@ -312,8 +318,29 @@ public class AddDeviceFragment extends Fragment
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_network_title),
                 getString(R.string.connecting_to_network_body));
 
+        //adding location details
+        Context context = this.getActivity();
+        Map<String, Object> callParams = new HashMap<String, Object>();
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean netEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if(gpsEnabled || netEnabled){
+            String locationProvider = locationManager.getBestProvider(criteria, false);
+            Location location = locationManager.getLastKnownLocation(locationProvider);
+            if(location != null){
+                callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
+                callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
+            }
+
+        }
+        else{
+            Toast.makeText(context, R.string.warning_location_accuracy, Toast.LENGTH_SHORT).show();
+        }
+
         Log.v(LOG_TAG, "calling connectNewDeviceToService: ssid = " + ssid + " security: " + security + "pass: " + password);
-        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this));
+        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this), callParams);
     }
 
     static class RegisterHandler extends Handler {

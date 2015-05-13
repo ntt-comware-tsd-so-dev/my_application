@@ -364,5 +364,6 @@
     <string name="notification_created">The notification was created successfully</string>
     <string name="delete_notification_title">Delete Notification?</string>
     <string name="delete_notification_message">Do you want to remove the notification \"%s\"?</string>
+    <string name="warning_location_accuracy">Enable GPS in Android Settings to improve device location accuracy</string>
 
 </resources>
