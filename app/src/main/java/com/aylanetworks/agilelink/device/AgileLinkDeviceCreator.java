@@ -54,11 +54,6 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             return new SwitchedDevice(aylaDevice);
         }
 
-        if (aylaDevice.oemModel.equals("linuxex1")) {
-            // This is a Zigbee gateway.
-            return new Gateway(aylaDevice);
-        }
-
         // Zigbee devices
         if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
 
@@ -118,6 +113,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
         classList.add(Gateway.class);
+        classList.add(ZigbeeNodeDevice.class);
         return classList;
     }
 }
