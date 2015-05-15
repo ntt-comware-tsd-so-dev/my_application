@@ -178,6 +178,7 @@ public class DeviceManager implements DeviceStatusListener {
     public void startPolling() {
         Log.v(LOG_TAG, "startPolling");
         stopPolling();
+        _pollingStopped = false;
         _deviceListTimerRunnable.run();
         _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, _deviceStatusPollInterval);
     }
@@ -185,7 +186,9 @@ public class DeviceManager implements DeviceStatusListener {
     /**
      * Stops polling for device list and status changes
      */
+    private boolean _pollingStopped;
     public void stopPolling() {
+        _pollingStopped = true;
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
     }
@@ -645,7 +648,7 @@ public class DeviceManager implements DeviceStatusListener {
             getGroupManager().fetchDeviceGroups();
 
             // Only continue polling if somebody is listening
-            if (_deviceListListeners.size() > 0) {
+            if (!_pollingStopped && _deviceListListeners.size() > 0) {
                 _deviceListTimerHandler.removeCallbacksAndMessages(null);
                 _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
             } else {
@@ -661,6 +664,11 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void run() {
             Log.v(LOG_TAG, "Device Status Timer");
+
+            if ( _pollingStopped ) {
+                Log.d(LOG_TAG, "Polling manually stopped- not polling");
+                return;
+            }
 
             // If we're in the process of entering LAN mode, don't query devices yet.
             if ( _startingLANMode ) {
