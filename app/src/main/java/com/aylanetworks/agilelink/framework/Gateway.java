@@ -42,27 +42,29 @@ public class Gateway extends Device {
 
         /**
          * Notify that the request to open the join window has completed.
-         * @param gateway
-         * @param what
-         * @param arg1
+         * @param gateway Gateway to open the join window
+         * @param what Results AML_ERROR_OK if no error
+         * @param arg1 Extra error information if what is error
          */
         void gatewayOpenJoinWindowComplete(Gateway gateway, int what, int arg1);
 
         /**
-         * Notify when get registration candidates completes.
-         * @param gateway
-         * @param list
-         * @param what
-         * @param arg1
-         */
+         * Notify completion of registration candidates.
+         * @param gateway Gateway to get registration candidates from.
+         * @param list List of AylaDeviceNode registration candidates
+         * @param what Results AML_ERROR_OK if no error
+         * @param arg1 Extra error information if what is error
+         *             412 - join_status is 0, retry open join window
+         *             404 - no candidates found, try again after a small delay.
+         * */
         void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, int what, int arg1);
 
         /**
          * Notify when register candidate completes.
-         * @param gateway
-         * @param node
-         * @param what
-         * @param arg1
+         * @param gateway Gateway to register candidate with
+         * @param node Registered device node
+         * @param what Results AML_ERROR_OK if no error
+         * @param arg1 Extra error information if what is error
          */
         void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, int what, int arg1);
 
@@ -146,7 +148,7 @@ public class Gateway extends Device {
         @Override
         public void handleMessage(Message msg) {
             String jsonResults = (String) msg.obj; // success = 204
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "openRegistrationJoinWindow", "results", jsonResults, "openJoinWindow");
                 // HACK: per Dan (on nexTurn project) wait for the command to succeed on the gateway
                 // We've opened the Join Window, but it can take a while for everybody to think so
@@ -194,7 +196,7 @@ public class Gateway extends Device {
         public void handleMessage(Message msg) {
             List<AylaDeviceNode> list = new ArrayList<AylaDeviceNode>();
             String jsonResults = (String) msg.obj; // success = 204
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "getRegistrationCandidates", "results", jsonResults, "getRegistrationCandidates");
                 AylaDeviceNode[] nodes = AylaSystemUtils.gson.fromJson(jsonResults, AylaDeviceNode[].class);
                 String amOwnerStr = "";
@@ -238,7 +240,7 @@ public class Gateway extends Device {
             List<AylaDeviceNode> list = new ArrayList<AylaDeviceNode>();
             String jsonResults = (String) msg.obj; // success = 204
             AylaDeviceNode node = null;
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            if (AylaNetworks.succeeded(msg)) {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "registerCandidate", "results", jsonResults, "registerCandidate");
                 node = AylaSystemUtils.gson.fromJson(jsonResults, AylaDeviceNode.class);
                 // No way that it could get registered unless it was Online.

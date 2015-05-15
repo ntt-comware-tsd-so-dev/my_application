@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -231,10 +232,10 @@ public class AddDeviceFragment extends Fragment
                     break;
 
                 case REG_TYPE_NODE:
-                    textId = R.string.registration_display_instructions;
+                    textId = R.string.gateway_find_devices;
                     break;
             }
-            _descriptionTextView.setText(getActivity().getResources().getString(textId));
+            _descriptionTextView.setText(Html.fromHtml(getActivity().getResources().getString(textId)));
         }
 
         Log.i(LOG_TAG, "Selected " + position);

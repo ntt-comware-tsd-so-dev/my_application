@@ -76,7 +76,7 @@
    <string name="registration_button_push_instructions">Please make sure that the orange LED on the device is on.
         \n\nThen push the registration button on your device, and tap the REGISTER button below within 2 minutes.</string>
 
-   <string name="gateway_find_devices"><![CDATA[Plug in your device or add batteries and tap \"Find Devices\" below.\nThen hold the magnetic wand against the pairing icon on your device until the light stops flashing.\nYour device should appear in the list below momentarily. Once it does, select it, and tap on \"Register\".]]></string>
+   <string name="gateway_find_devices"><![CDATA[Plug in your device or add batteries and tap \"Scan Devices\" below.\nThen hold the magnetic wand against the pairing icon on your device until the light stops flashing.\nYour device should appear in the list below momentarily. Once it does, select it, and tap on \"Register\".]]></string>
 
     <string name="registration_display_instructions">Please make sure that the orange LED on the device is on.</string>
     <string name="please_wait">Please wait...</string>
