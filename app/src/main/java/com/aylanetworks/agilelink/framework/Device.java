@@ -503,6 +503,37 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Returns a boolean value for the AylaProperty of the given name,
+     * or false if no property was found.
+     *
+     * @param propertyName
+     * @return Boolean value of property
+     */
+    public boolean getPropertyBoolean(String propertyName) {
+        AylaProperty prop = getProperty(propertyName);
+        if (prop == null) {
+            return false;
+        }
+        String value = prop.value;
+        if (TextUtils.isEmpty(value)) {
+            if (prop.datapoint == null) {
+                return false;
+            }
+            if (prop.datapoint.nValue() == null) {
+                return false;
+            }
+            return (prop.datapoint.nValue().intValue() != 0);
+        } else {
+            try {
+                return (Integer.parseInt(value) != 0);
+            } catch (Exception ex) {
+
+            }
+        }
+        return false;
+    }
+
+    /**
      * Listener class used to receive the list of property notifications. When notifications
      * have been fetched, the notificationsFetched method will be called. The device object will
      * have its notifiable properties (as returned from getNotifiablePropertyNames) and their
