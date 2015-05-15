@@ -372,6 +372,21 @@ public class DeviceManager implements DeviceStatusListener {
         return null;
     }
 
+    /**
+     * Returns a list of available gateway devices.
+     * @return List of gateway devices.
+     */
+    public List<Gateway> getGatewayDevices() {
+        List<Gateway> list = new ArrayList<Gateway>();
+        for ( Device gateway : _deviceList ) {
+            if (gateway.isGateway()) {
+                Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                list.add((Gateway)gateway);
+            }
+        }
+        return list;
+    }
+
     // Poll interval methods
 
     /**
