@@ -55,13 +55,21 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/spinner_registration_type_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:layout_gravity="left|center_vertical"
-            android:text="Registration Type"
+            android:text="@string/registration_type"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+        <Spinner
+            android:id="@+id/spinner_gateway_selection"
+            android:layout_weight="0.5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:visibility="gone"/>
 
         <Spinner
             android:id="@+id/spinner_registration_type"
