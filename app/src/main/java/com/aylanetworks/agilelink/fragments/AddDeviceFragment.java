@@ -232,6 +232,7 @@ public class AddDeviceFragment extends Fragment
 
         } else if (parent.getId() == R.id.spinner_registration_type) {
             // Update the display text
+            int spinnerVisible = View.VISIBLE;
             boolean showGateways = false;
             int textId;
             switch (position) {
@@ -248,17 +249,22 @@ public class AddDeviceFragment extends Fragment
                     textId = R.string.registration_display_instructions;
                     break;
 
-                case REG_TYPE_NODE:
+                case REG_TYPE_NODE: {
                     textId = R.string.gateway_find_devices;
                     showGateways = true;
+                    List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+                    if ((gateways == null) || (gateways.size() == 0)) {
+                        textId = R.string.error_no_gateway_instructions;
+                        spinnerVisible = View.GONE;
+                    }
+                }
                     break;
             }
             _descriptionTextView.setText(Html.fromHtml(getActivity().getResources().getString(textId)));
             _spinnerRegistrationTypeLabel.setText(getString(showGateways ? R.string.select_gateway : R.string.registration_type));
-
+            _spinnerRegistrationTypeLabel.setVisibility(spinnerVisible);
             _spinnerRegistrationType.setVisibility(showGateways ? View.GONE : View.VISIBLE);
-            _spinnerGatewaySelection.setVisibility(showGateways ? View.VISIBLE : View.GONE);
-
+            _spinnerGatewaySelection.setVisibility(showGateways ? spinnerVisible : View.GONE);
         } else if (parent.getId() == R.id.spinner_gateway_selection) {
             Gateway gateway = (Gateway) parent.getAdapter().getItem(position);
             if (gateway != null) {

@@ -378,5 +378,6 @@
     <string name="gateway_registered_device_node">Registered gateway device node</string>
     <string name="error_gateway_register_device_node">Could not register gateway device node</string>
     <string name="error_gateway_register_no_device">Scan for Devices first</string>
+    <string name="error_no_gateway_instructions">No Gateways located. Register a gateway first.</string>
 
 </resources>
