@@ -70,13 +70,15 @@
     <string name="unregister_success">The device has been unregistered</string>
 
     <string name="register">Register</string>
+    <string name="registration_type">Registration Type</string>
     <string name="registration_same_lan_instructions">Please make sure that the orange LED on the device is on.
         \n\nAlso make sure your device and phone use the same wireless connection to connect to the Internet.</string>
 
-   <string name="registration_button_push_instructions">Please make sure that the orange LED on the device is on.
+    <string name="registration_button_push_instructions">Please make sure that the orange LED on the device is on.
         \n\nThen push the registration button on your device, and tap the REGISTER button below within 2 minutes.</string>
 
-   <string name="gateway_find_devices"><![CDATA[Plug in your device or add batteries and tap \"Scan Devices\" below.\nThen hold the magnetic wand against the pairing icon on your device until the light stops flashing.\nYour device should appear in the list below momentarily. Once it does, select it, and tap on \"Register\".]]></string>
+    <string name="select_gateway">Gateway</string>
+    <string name="gateway_find_devices"><![CDATA[Plug in your device or add batteries and tap \"Scan Devices\" below.\nThen hold the magnetic wand against the pairing icon on your device until the light stops flashing.\nYour device should appear in the list below momentarily. Once it does, select it, and tap on \"Register\".]]></string>
 
     <string name="registration_display_instructions">Please make sure that the orange LED on the device is on.</string>
     <string name="please_wait">Please wait...</string>
@@ -375,5 +377,6 @@
     <string name="error_gateway_registration_candidates">Could not get gateway registration candidates</string>
     <string name="gateway_registered_device_node">Registered gateway device node</string>
     <string name="error_gateway_register_device_node">Could not register gateway device node</string>
+    <string name="error_gateway_register_no_device">Scan for Devices first</string>
 
 </resources>
