@@ -364,9 +364,11 @@ public class DeviceManager implements DeviceStatusListener {
      * @return The gateway device, or null if one is not found
      */
     public Gateway getGatewayDevice() {
-        for ( Device gateway : _deviceList ) {
-            if ( gateway.isGateway() ) {
-                return (Gateway)gateway;
+        if ((_deviceList != null) && (_deviceList.size() > 0)) {
+            for (Device gateway : _deviceList) {
+                if (gateway.isGateway()) {
+                    return (Gateway) gateway;
+                }
             }
         }
         return null;
@@ -378,10 +380,12 @@ public class DeviceManager implements DeviceStatusListener {
      */
     public List<Gateway> getGatewayDevices() {
         List<Gateway> list = new ArrayList<Gateway>();
-        for ( Device gateway : _deviceList ) {
-            if (gateway.isGateway()) {
-                Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
-                list.add((Gateway)gateway);
+        if ((_deviceList != null) && (_deviceList.size() > 0)) {
+            for (Device gateway : _deviceList) {
+                if (gateway.isGateway()) {
+                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                    list.add((Gateway) gateway);
+                }
             }
         }
         return list;
