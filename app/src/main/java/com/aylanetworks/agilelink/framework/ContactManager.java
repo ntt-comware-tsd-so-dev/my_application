@@ -178,6 +178,12 @@ public class ContactManager {
         normalizePhoneNumber(contact);
     }
 
+    /**
+     * This method takes the phone number from an AylaContact and sets the correct country
+     * code based on the parsed number.
+     *
+     * @param contact Contact containing the phone number and country code to update
+     */
     public static void normalizePhoneNumber(AylaContact contact) {
         String phoneCountryCode;
         String phoneNumber;
