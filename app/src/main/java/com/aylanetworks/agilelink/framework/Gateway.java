@@ -43,30 +43,31 @@ public class Gateway extends Device {
         /**
          * Notify that the request to open the join window has completed.
          * @param gateway Gateway to open the join window
-         * @param what Results AML_ERROR_OK if no error
-         * @param arg1 Extra error information if what is error
+         * @param msg Message returned from the server in response to
+         *            opening the join window.
          */
-        void gatewayOpenJoinWindowComplete(Gateway gateway, int what, int arg1);
+        void gatewayOpenJoinWindowComplete(Gateway gateway, Message msg);
 
         /**
          * Notify completion of registration candidates.
          * @param gateway Gateway to get registration candidates from.
          * @param list List of AylaDeviceNode registration candidates
-         * @param what Results AML_ERROR_OK if no error
-         * @param arg1 Extra error information if what is error
+         * @param msg Message returned from the server in response
+         *            to getting registration candidates.  On
+         *            failure, check arg1 for:
          *             412 - join_status is 0, retry open join window
          *             404 - no candidates found, try again after a small delay.
          * */
-        void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, int what, int arg1);
+        void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, Message msg);
 
         /**
          * Notify when register candidate completes.
          * @param gateway Gateway to register candidate with
          * @param node Registered device node
-         * @param what Results AML_ERROR_OK if no error
-         * @param arg1 Extra error information if what is error
+         * @param msg Message returned from the server in response to
+         *            register candidate.
          */
-        void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, int what, int arg1);
+        void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, Message msg);
 
     }
 
@@ -160,7 +161,7 @@ public class Gateway extends Device {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s:%d, %s", "E", "openRegistrationJoinWindow", "results", jsonResults, msg.arg1, "openJoinWindow");
             }
             if (_listener != null) {
-                _listener.gatewayOpenJoinWindowComplete(_gateway.get(), msg.what, msg.arg1);
+                _listener.gatewayOpenJoinWindowComplete(_gateway.get(), msg);
             }
         }
     }
@@ -214,7 +215,7 @@ public class Gateway extends Device {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s:%d, %s", "E", "getRegistrationCandidates", "results", jsonResults, msg.arg1, "getRegistrationCandidates");
             }
             if (_listener != null) {
-                _listener.gatewayGetRegistrationCandidatesComplete(_gateway.get(), list, msg.what, msg.arg1);
+                _listener.gatewayGetRegistrationCandidatesComplete(_gateway.get(), list, msg);
             }
         }
     }
@@ -250,7 +251,7 @@ public class Gateway extends Device {
                 AylaSystemUtils.saveToLog("%s, %s, %s:%s:%d, %s", "E", "registerCandidate", "results", jsonResults, msg.arg1, "registerCandidate");
             }
             if (_listener != null) {
-                _listener.gatewayRegisterCandidateComplete(_gateway.get(), node, msg.what, msg.arg1);
+                _listener.gatewayRegisterCandidateComplete(_gateway.get(), node, msg);
             }
         }
     }

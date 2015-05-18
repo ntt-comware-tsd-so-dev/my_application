@@ -266,28 +266,13 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     _editProfileDialog.get().getFragmentManager().popBackStack();
                     Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
                 } else {
-                    String phoneCountryCode;
-                    String phoneNumber;
-
-                    PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
-                    String phone = _editProfileDialog.get()._phoneNumber.getText().toString();
-                    try {
-                        Phonenumber.PhoneNumber num = phoneUtil.parse(phone, "US");
-                        phoneCountryCode = Integer.toString(num.getCountryCode());
-                        phoneNumber = Long.toString(num.getNationalNumber());
-                    } catch (NumberParseException e) {
-                        Log.e(LOG_TAG, "Phone number could not be parsed: " + phone);
-                        phoneCountryCode = "1";
-                        phoneNumber = phone;
-                    }
-
-                    ownerContact.phoneNumber = phoneNumber;
+                    ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
                     ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
                     ownerContact.lastname = _editProfileDialog.get()._lastName.getText().toString();
                     ownerContact.zipCode = _editProfileDialog.get()._zip.getText().toString();
                     ownerContact.country = _editProfileDialog.get()._country.getText().toString();
-                    ownerContact.phoneCountryCode = phoneCountryCode;
                     ownerContact.displayName = ownerContact.firstname + " " + ownerContact.lastname;
+                    ContactManager.normalizePhoneNumber(ownerContact);
 
                     cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
                         @Override
