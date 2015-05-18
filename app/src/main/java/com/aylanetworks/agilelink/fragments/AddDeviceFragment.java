@@ -321,25 +321,25 @@ public class AddDeviceFragment extends Fragment
     private Gateway mNodeRegistrationGateway;
     private List<AylaDeviceNode> mNodeRegistrationCandidates;
 
-    public void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, int what, int arg1) {
-        Log.i(LOG_TAG, "rn: gatewayRegisterCandidateComplete " + what + ":" + arg1);
+    public void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, Message msg) {
+        Log.i(LOG_TAG, "rn: gatewayRegisterCandidateComplete " + msg.what + ":" + msg.arg1);
         MainActivity.getInstance().dismissWaitDialog();
-        if (what == AylaNetworks.AML_ERROR_OK) {
+        if (AylaNetworks.succeeded(msg)) {
             Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
             // TODO: do we need to add it to some list?
             Log.i(LOG_TAG, "rn: registered node [" + node.dsn + "]:[" + node.model + "]");
             // TODO: rename it
             // now we need to rename it...
         } else {
-            Log.e(LOG_TAG, "rn: failed to register node. error=" + what + ":" + arg1);
+            Log.e(LOG_TAG, "rn: failed to register node. error=" + msg.what + ":" + msg.arg1);
             Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_device_node, Toast.LENGTH_LONG).show();
         }
         ensureJoinWindowClosed();
     }
 
-    public void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, int what, int arg1) {
-        Log.i(LOG_TAG, "rn: gatewayGetRegistrationCandidatesComplete " + what + ":" + arg1);
-        if (what == AylaNetworks.AML_ERROR_OK) {
+    public void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, Message msg) {
+        Log.i(LOG_TAG, "rn: gatewayGetRegistrationCandidatesComplete " + msg.what + ":" + msg.arg1);
+        if (AylaNetworks.succeeded(msg)) {
             // we have a list of candidates...
             mNodeRegistrationCandidates = list;
 
@@ -351,11 +351,11 @@ public class AddDeviceFragment extends Fragment
                 }
             });
         } else {
-            if (arg1 == 412) {
+            if (msg.arg1 == 412) {
                 // invoke it again manually (412: retry open join window)
                 mNodeRegistrationState = NodeRegistrationFindState.Started;
                 nextNodeRegistrationStep();
-            } else if (arg1 == 404) {
+            } else if (msg.arg1 == 404) {
                 // invoke it again manually (404: retry get candidates)
                 Log.i(LOG_TAG, "rn: Register node GRC postDelayed 404");
                 final Handler handler = new Handler();
@@ -381,9 +381,9 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    public void gatewayOpenJoinWindowComplete(Gateway gateway, final int what, final int arg1) {
-        Log.i(LOG_TAG, "rn: gatewayOpenJoinWindowComplete " + what + ":" + arg1);
-        if (what == AylaNetworks.AML_ERROR_OK) {
+    public void gatewayOpenJoinWindowComplete(Gateway gateway, final Message msg) {
+        Log.i(LOG_TAG, "rn: gatewayOpenJoinWindowComplete " + msg.what + ":" + msg.arg1);
+        if (AylaNetworks.succeeded(msg)) {
             nextNodeRegistrationStep();
         } else {
             mNodeRegistrationState = NodeRegistrationFindState.NotStarted;
