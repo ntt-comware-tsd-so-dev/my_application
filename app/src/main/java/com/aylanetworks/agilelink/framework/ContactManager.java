@@ -10,6 +10,9 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.google.gson.Gson;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -171,6 +174,28 @@ public class ContactManager {
         contact.phoneCountryCode = user.phoneCountryCode;
         contact.phoneNumber = user.phone;
         contact.streetAddress = user.street;
+
+        normalizePhoneNumber(contact);
+    }
+
+    public static void normalizePhoneNumber(AylaContact contact) {
+        String phoneCountryCode;
+        String phoneNumber;
+
+        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+        String phone = contact.phoneNumber;
+        try {
+            Phonenumber.PhoneNumber num = phoneUtil.parse(phone, "US");
+            phoneCountryCode = Integer.toString(num.getCountryCode());
+            phoneNumber = Long.toString(num.getNationalNumber());
+        } catch (NumberParseException e) {
+            Log.e(LOG_TAG, "Phone number could not be parsed: " + phone);
+            phoneCountryCode = "1";
+            phoneNumber = phone;
+        }
+
+        contact.phoneCountryCode = phoneCountryCode;
+        contact.phoneNumber = phoneNumber;
     }
 
     private List<AylaContact> _aylaContactList;
@@ -184,7 +209,7 @@ public class ContactManager {
         AylaContact contact = new AylaContact();
 
         updateContactFromUser(contact, user);
-
+        ContactManager.normalizePhoneNumber(contact);
         Log.d(LOG_TAG, "Adding owner contact: " + contact);
         contact.create(new ContactHandler(ContactHandler.Command.ADD_OWNER, contact, this, new ContactManagerListener()), null);
     }
