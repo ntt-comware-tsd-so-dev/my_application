@@ -70,11 +70,15 @@
     <string name="unregister_success">The device has been unregistered</string>
 
     <string name="register">Register</string>
+    <string name="registration_type">Registration Type</string>
     <string name="registration_same_lan_instructions">Please make sure that the orange LED on the device is on.
         \n\nAlso make sure your device and phone use the same wireless connection to connect to the Internet.</string>
 
-   <string name="registration_button_push_instructions">Please make sure that the orange LED on the device is on.
+    <string name="registration_button_push_instructions">Please make sure that the orange LED on the device is on.
         \n\nThen push the registration button on your device, and tap the REGISTER button below within 2 minutes.</string>
+
+    <string name="select_gateway">Gateway</string>
+    <string name="gateway_find_devices"><![CDATA[Plug in your device or add batteries and tap \"Scan Devices\" below.\nThen hold the magnetic wand against the pairing icon on your device until the light stops flashing.\nYour device should appear in the list below momentarily. Once it does, select it, and tap on \"Register\".]]></string>
 
     <string name="registration_display_instructions">Please make sure that the orange LED on the device is on.</string>
     <string name="please_wait">Please wait...</string>
@@ -164,6 +168,7 @@
         <item>Same-LAN</item>
         <item>Button-Push</item>
         <item>Display</item>
+        <item>Node</item>
     </string-array>
 
     <!-- Add device or group menu items -->
@@ -216,6 +221,8 @@
     <string name="schedule_update_failed">An error occurred while trying to update the schedule for this device. Please try again later.</string>
     <string name="no_schedules_found">No Schedules Found</string>
     <string name="unknown_property_name">Unknown</string>
+    <string name="property_zigbee_input_friendly_name">Input</string>
+    <string name="property_zigbee_output_friendly_name">Output</string>
     <string name="property_outlet_friendly_name">Switch</string>
     <string name="property_light_friendly_name">Light</string>
     <string name="turn_on">Turn on</string>
@@ -364,5 +371,13 @@
     <string name="notification_created">The notification was created successfully</string>
     <string name="delete_notification_title">Delete Notification?</string>
     <string name="delete_notification_message">Do you want to remove the notification \"%s\"?</string>
+    <string name="warning_location_accuracy">Enable GPS in Android Settings to improve device location accuracy</string>
+    <string name="error_gateway_join_window">Could not open gateway join window</string>
+    <string name="error_no_gateway">No Gateway</string>
+    <string name="error_gateway_registration_candidates">Could not get gateway registration candidates</string>
+    <string name="gateway_registered_device_node">Registered gateway device node</string>
+    <string name="error_gateway_register_device_node">Could not register gateway device node</string>
+    <string name="error_gateway_register_no_device">Scan for Devices first</string>
+    <string name="error_no_gateway_instructions">No Gateways located. Register a gateway first.</string>
 
 </resources>

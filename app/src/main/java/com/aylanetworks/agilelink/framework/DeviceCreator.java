@@ -21,9 +21,11 @@ import java.util.List;
  */
 
 /**
- * The DeviceCreator object is responsible for turning {@link com.aylanetworks.aaml.AylaDevice}
+ * The DeviceCreator object is responsible for providing the framework with a set of devices that
+ * the system understands. This set of devices is used by the framework to provide a list of
+ * devices that can be registered, as well as turning {@link com.aylanetworks.aaml.AylaDevice}
  * objects into {@link com.aylanetworks.agilelink.framework.Device} objects. The Agile Link
- * framework wraps each AylaDevice object with a Device object to provide additionial functionality
+ * framework wraps each AylaDevice object with a Device object to provide additional functionality
  * within the Agile Link framework.
  *
  * Agile Link application implementers should always override the DeviceCreator object and assign
@@ -34,6 +36,9 @@ import java.util.List;
  * When the list of devices is fetched from the server, the framework will call the
  * {@link #deviceForAylaDevice(com.aylanetworks.aaml.AylaDevice)} method for each AylaDevice received.
  * The DeviceCreator should return exactly one Device-derived object for each AylaDevice supplied.
+ *
+ * If an unknown device is encountered, the DeviceCreator may return null to indicate that the device
+ * should not be presented to the user, or it may return a generic Device object
  */
 public class DeviceCreator {
     public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;

@@ -274,7 +274,8 @@ public class AccountSettings {
                     _callback.settingsUpdated(settings, msg);
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    _callback.settingsUpdated(null, msg);
+                    settings._ownerContactID = null;
+                    _callback.settingsUpdated(settings, msg);
                 }
             } else {
                 // Error from the server.

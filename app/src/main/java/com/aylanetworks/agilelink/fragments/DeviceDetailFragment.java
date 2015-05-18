@@ -70,6 +70,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private PropertyListAdapter _adapter;
     private TextView _titleView;
     private ImageView _imageView;
+    private Button _scheduleButton;
+    private Button _notificationsButton;
+
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -106,17 +109,17 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _titleView = (TextView)view.findViewById(R.id.device_name);
         _imageView = (ImageView)view.findViewById(R.id.device_image);
 
-        Button button = (Button)view.findViewById(R.id.notifications_button);
-        button.setOnClickListener(this);
+        _notificationsButton = (Button)view.findViewById(R.id.notifications_button);
+        _notificationsButton.setOnClickListener(this);
 
-        button = (Button)view.findViewById(R.id.schedule_button);
-        button.setOnClickListener(this);
+        _scheduleButton = (Button)view.findViewById(R.id.schedule_button);
+        _scheduleButton.setOnClickListener(this);
 
-        button = (Button)view.findViewById(R.id.sharing_button);
-        button.setOnClickListener(this);
+        Button sharingButton = (Button)view.findViewById(R.id.sharing_button);
+        sharingButton.setOnClickListener(this);
         if ( !_device.getDevice().amOwner() ) {
             // This device was shared with us
-            button.setVisibility(View.GONE);
+            sharingButton.setVisibility(View.GONE);
         } else {
             // This device is ours. Allow the name to be changed.
             _titleView.setTextColor(getResources().getColor(R.color.link));
@@ -190,6 +193,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     void updateUI() {
         if ( _device == null ) {
             Log.e(LOG_TAG, "Unable to find device!");
+            getFragmentManager().popBackStack();
+            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
         } else {
             // Get the property list and set up our adapter
             AylaProperty[] props = _device.getDevice().properties;
@@ -200,6 +205,10 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 Log.e(LOG_TAG, "No properties found for device " + _device);
                 _adapter = new PropertyListAdapter(getActivity(), new ArrayList<AylaProperty>());
             }
+
+            // Can this device set schedules or property notifications?
+            _scheduleButton.setVisibility(_device.getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+            _notificationsButton.setVisibility(_device.getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
 
             // Set the device title and image
             _titleView.setText(_device.toString());

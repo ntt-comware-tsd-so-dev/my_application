@@ -10,9 +10,8 @@ Building in Android Studio
 
 git clone https://github.com/AylaNetworks/Agile_Link_Android.git                                                    
 cd Agile_Link_Android/gradle_scripts                                                                                
-Add your local Android_AylaZigbeeLibrary repo path to ZIGBEE_PATH in 'aylaControl_build.sh' file                    
 gradle -q execTasks                                                                                                  
-Open Android Studio -> Import Project -> Select build.gradle file in project folder(nexTurn_Android)                
+Open Android Studio -> Import Project -> Select build.gradle file in project folder(Agile_Link_Android)                
 To build the project in Android Studio, click 'Build' and select 'Make Project'
 
 Generating Documentation
