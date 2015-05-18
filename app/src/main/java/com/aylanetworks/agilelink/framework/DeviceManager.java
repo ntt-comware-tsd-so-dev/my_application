@@ -524,7 +524,7 @@ public class DeviceManager implements DeviceStatusListener {
             if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_SESSION) == 0) {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
-                    Log.e(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
+                    Log.i(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
                     _deviceManager.get().notifyLANModeChange();
 
                     // Nobody is in LAN mode now.
