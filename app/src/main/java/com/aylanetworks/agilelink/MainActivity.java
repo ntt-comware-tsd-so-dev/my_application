@@ -110,7 +110,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     ProgressDialog _progressDialog;
 
-    private int _preWaitDialogOrientation;
     /**
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
      * The caller should call dismissWaitDialog() when finished.
@@ -123,10 +122,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             dismissWaitDialog();
         }
 
-        // Don't allow rotation while the wait dialog is up. We're doing something that shouldn't
-        // be interrupted.
-        _preWaitDialogOrientation = getRequestedOrientation();
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         if (title == null) {
             title = getResources().getString(R.string.please_wait);
         }
@@ -153,7 +148,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void dismissWaitDialog() {
         // Put the orientation back to what it was before we messed with it
         if (_progressDialog != null) {
-            setRequestedOrientation(_preWaitDialogOrientation);
             _progressDialog.dismiss();
             _progressDialog = null;
         }
@@ -435,13 +429,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 }
             };
 
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
+
             _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
             _drawerLayout.setDrawerListener(_drawerToggle);
         }
-
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
 
         onDrawerItemClicked(_drawerMenu.getItem(0));
     }
