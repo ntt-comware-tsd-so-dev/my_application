@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceGateway;
@@ -30,7 +29,7 @@ import java.util.Map;
 
 public class Gateway extends Device {
 
-    private final String LOG_TAG = "Gateway";
+    private final static String LOG_TAG = "Gateway";
 
     private final static String PROPERTY_JOIN_ENABLE = "join_enable";
     private final static String PROPERTY_JOIN_STATUS = "join_status";
@@ -115,7 +114,7 @@ public class Gateway extends Device {
     }
 
     public void configureWithJsonElement(JsonElement json) {
-        Log.e(LOG_TAG, "Configure with: " + json.toString());
+        Logger.logError(LOG_TAG, "Configure with: " + json.toString());
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,16 +148,14 @@ public class Gateway extends Device {
         @Override
         public void handleMessage(Message msg) {
             String jsonResults = (String) msg.obj; // success = 204
+            Logger.logMessage(LOG_TAG, "openRegistrationJoinWindow", msg);
             if (AylaNetworks.succeeded(msg)) {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "openRegistrationJoinWindow", "results", jsonResults, "openJoinWindow");
                 // HACK: per Dan (on nexTurn project) wait for the command to succeed on the gateway
                 // We've opened the Join Window, but it can take a while for everybody to think so
                 try {
                     Thread.sleep(5000);
                 } catch (Exception ex) {
                 }
-            } else {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s:%d, %s", "E", "openRegistrationJoinWindow", "results", jsonResults, msg.arg1, "openJoinWindow");
             }
             if (_listener != null) {
                 _listener.gatewayOpenJoinWindowComplete(_gateway.get(), msg);
@@ -197,8 +194,8 @@ public class Gateway extends Device {
         public void handleMessage(Message msg) {
             List<AylaDeviceNode> list = new ArrayList<AylaDeviceNode>();
             String jsonResults = (String) msg.obj; // success = 204
+            Logger.logMessage(LOG_TAG, "getRegistrationCandidates", msg);
             if (AylaNetworks.succeeded(msg)) {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "getRegistrationCandidates", "results", jsonResults, "getRegistrationCandidates");
                 AylaDeviceNode[] nodes = AylaSystemUtils.gson.fromJson(jsonResults, AylaDeviceNode[].class);
                 String amOwnerStr = "";
                 for (AylaDeviceNode node : nodes) {
@@ -207,12 +204,9 @@ public class Gateway extends Device {
                     } else {
                         amOwnerStr = "false";
                     }
-                    Log.v("Gateway", "rn: candidate [" + node.dsn + "] amOwner=" + amOwnerStr);
-                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s:%s, %s", "I", "getRegistrationCandidates", "DSN", node.dsn, "amOwner", amOwnerStr, "getRegistrationCandidates");
+                    Logger.logInfo(LOG_TAG, "getRegistrationCandidates DSN:%s amOwner:%s", node.dsn, amOwnerStr);
                     list.add(node);
                 }
-            } else {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s:%d, %s", "E", "getRegistrationCandidates", "results", jsonResults, msg.arg1, "getRegistrationCandidates");
             }
             if (_listener != null) {
                 _listener.gatewayGetRegistrationCandidatesComplete(_gateway.get(), list, msg);
@@ -241,14 +235,12 @@ public class Gateway extends Device {
             List<AylaDeviceNode> list = new ArrayList<AylaDeviceNode>();
             String jsonResults = (String) msg.obj; // success = 204
             AylaDeviceNode node = null;
+            Logger.logMessage(LOG_TAG, "registerCandidate", msg);
             if (AylaNetworks.succeeded(msg)) {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "I", "registerCandidate", "results", jsonResults, "registerCandidate");
                 node = AylaSystemUtils.gson.fromJson(jsonResults, AylaDeviceNode.class);
                 // No way that it could get registered unless it was Online.
                 node.connectionStatus = "Online";
-                Log.v("Gateway", "rn: registered [" + node.dsn + "]");
-            } else {
-                AylaSystemUtils.saveToLog("%s, %s, %s:%s:%d, %s", "E", "registerCandidate", "results", jsonResults, msg.arg1, "registerCandidate");
+                Logger.logVerbose(LOG_TAG, "rn: registered [" + node.dsn + "]");
             }
             if (_listener != null) {
                 _listener.gatewayRegisterCandidateComplete(_gateway.get(), node, msg);
