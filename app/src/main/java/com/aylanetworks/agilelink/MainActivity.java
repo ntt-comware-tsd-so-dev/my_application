@@ -152,8 +152,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      */
     public void dismissWaitDialog() {
         // Put the orientation back to what it was before we messed with it
-        setRequestedOrientation(_preWaitDialogOrientation);
         if (_progressDialog != null) {
+            setRequestedOrientation(_preWaitDialogOrientation);
             _progressDialog.dismiss();
             _progressDialog = null;
         }
@@ -388,7 +388,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         MenuInflater inflater = new MenuInflater(this);
         inflater.inflate(R.menu.menu_drawer, _drawerMenu);
         inflater.inflate(R.menu.menu_settings, _drawerMenu);
-        _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        _drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         Log.d(LOG_TAG, "_drawerLayout: " + _drawerLayout);
 
         _drawerList = (ExpandableListView)findViewById(R.id.left_drawer);
@@ -399,9 +399,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
                 MenuItem item = _drawerMenu.getItem(groupPosition);
-                if ( item.hasSubMenu() ) {
+                if (item.hasSubMenu()) {
                     // Toggle the group
-                    if ( _drawerList.isGroupExpanded(groupPosition) ) {
+                    if (_drawerList.isGroupExpanded(groupPosition)) {
                         _drawerList.collapseGroup(groupPosition);
                     } else {
                         _drawerList.expandGroup(groupPosition);
@@ -421,25 +421,28 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             }
         });
 
-        _drawerToggle = new ActionBarDrawerToggle(this,
-                _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                MainActivity.this.onDrawerOpened(drawerView);
-            }
+        if ( _drawerLayout != null ) {
+            _drawerToggle = new ActionBarDrawerToggle(this,
+                    _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    MainActivity.this.onDrawerOpened(drawerView);
+                }
 
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                MainActivity.this.onDrawerClosed(drawerView);
-            }
-        };
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    MainActivity.this.onDrawerClosed(drawerView);
+                }
+            };
 
-        _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
+            _drawerToggle.setHomeAsUpIndicator(R.drawable.ic_launcher);
+            _drawerLayout.setDrawerListener(_drawerToggle);
+        }
+
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_launcher);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        _drawerLayout.setDrawerListener(_drawerToggle);
         onDrawerItemClicked(_drawerMenu.getItem(0));
     }
 
