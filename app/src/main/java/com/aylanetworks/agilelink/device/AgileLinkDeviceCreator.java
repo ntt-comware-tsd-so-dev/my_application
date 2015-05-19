@@ -1,7 +1,6 @@
 package com.aylanetworks.agilelink.device;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +12,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceCreator;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
         if (aylaDevice.oemModel == null) {
-            Log.e(LOG_TAG, "No oemModel set on device: " + aylaDevice);
+            Logger.logError(LOG_TAG, "No oemModel set on device: " + aylaDevice);
             return new Device(aylaDevice);
         }
 
@@ -78,7 +78,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         }
 
         //  We don't know what this is. Create a generic device.
-        Log.e(LOG_TAG, "Could not identify this device: " + aylaDevice);
+        Logger.logError(LOG_TAG, "Could not identify this device: " + aylaDevice);
         return new Device(aylaDevice);
     }
 

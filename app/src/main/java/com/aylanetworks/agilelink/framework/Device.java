@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 
 import com.aylanetworks.aaml.AylaDatapoint;
@@ -323,12 +322,12 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "updateSchedule results: " + msg);
+            Logger.logDebug(LOG_TAG, "updateSchedule results: " + msg);
 
             if (AylaNetworks.succeeded(msg)) {
                 _listener.statusUpdated(_device.get(), true);
             } else {
-                Log.e(LOG_TAG, "updateSchedule failed!");
+                Logger.logError(LOG_TAG, "updateSchedule failed!");
                 _listener.statusUpdated(_device.get(), false);
             }
         }
@@ -407,7 +406,7 @@ public class Device implements Comparable<Device> {
                 AylaProperty myProperty = getProperty(prop.name());
                 if ((myProperty == null) || (!TextUtils.equals(myProperty.value, prop.value))) {
                     hasChanged = true;
-                    Log.v(LOG_TAG, prop.name + " Changed!");
+                    Logger.logVerbose(LOG_TAG, prop.name + " Changed!");
                     break;
                 }
             }
@@ -434,14 +433,14 @@ public class Device implements Comparable<Device> {
         public void handleMessage(Message msg) {
 
             if (_device.get() == null) {
-                Log.e(LOG_TAG, "Device _device.get() is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
+                Logger.logError(LOG_TAG, "Device _device.get() is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
                 return;
             }
 
             AylaDevice d = _device.get().getDevice();
 
             if (d == null) {
-                Log.e(LOG_TAG, "AylaDevice d is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
+                Logger.logError(LOG_TAG, "AylaDevice d is null in GetPropertiesHandler.handleMessage: error " + msg.toString());
                 return;
             }
 
@@ -450,13 +449,13 @@ public class Device implements Comparable<Device> {
                 AylaProperty[] properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
                         AylaProperty[].class);
 
-                Log.v(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
-                Log.v(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
+                Logger.logVerbose(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
+                Logger.logVerbose(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
                 if (properties.length == 0) {
-                    Log.e(LOG_TAG, "No properties found!! Message: " + msg);
+                    Logger.logError(LOG_TAG, "No properties found!! Message: " + msg);
                 }
                 for (AylaProperty prop : properties) {
-                    Log.v(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
+                    Logger.logVerbose(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
                 }
 
                 // At this point, enable ourselves in LAN mode if we were the last device
@@ -464,7 +463,7 @@ public class Device implements Comparable<Device> {
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
                 if ( dm != null && dm.isLastLanModeDevice(_device.get())) {
-                    Log.d(LOG_TAG, "Entering LAN mode (I was the last LAN mode device): " + _device.get());
+                    Logger.logDebug(LOG_TAG, "Entering LAN mode (I was the last LAN mode device): " + _device.get());
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
 
@@ -475,7 +474,7 @@ public class Device implements Comparable<Device> {
                 }
 
             } else {
-                Log.e(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
+                Logger.logError(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + msg.what);
                 if (_listener != null) {
                     _listener.statusUpdated(_device.get(), true);
                 }
@@ -569,7 +568,7 @@ public class Device implements Comparable<Device> {
     public void setDatapoint(String propertyName, Object datapointValue, final SetDatapointListener listener) {
         final AylaProperty property = getProperty(propertyName);
         if (property == null) {
-            Log.e(LOG_TAG, "setProperty: Can't find property named " + propertyName);
+            Logger.logError(LOG_TAG, "setProperty: Can't find property named " + propertyName);
             if ( listener != null ) {
                 listener.setDatapointComplete(false, null);
             }
@@ -585,7 +584,7 @@ public class Device implements Comparable<Device> {
             Boolean b = (Boolean)datapointValue;
             datapoint.nValue(b ? 1 : 0);
         } else {
-            Log.e(LOG_TAG, "setDatapoint: Unknown value type: " + datapointValue.getClass().toString());
+            Logger.logError(LOG_TAG, "setDatapoint: Unknown value type: " + datapointValue.getClass().toString());
             datapoint.sValue(datapointValue.toString());
         }
 
@@ -617,13 +616,13 @@ public class Device implements Comparable<Device> {
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
                 _property.datapoint = dp;
                 _property.value = dp.value();
-                Log.d("CDP", "Datapoint " + _property.name + " set to " + _property.value);
+                Logger.logDebug("CDP", "Datapoint " + _property.name + " set to " + _property.value);
                 if ( _listener != null ) {
                     _listener.setDatapointComplete(true, dp);
                 }
                 SessionManager.deviceManager().statusUpdated(_device.get(), true);
             } else {
-                Log.e(LOG_TAG, "createDatapoint failed: " + msg);
+                Logger.logError(LOG_TAG, "createDatapoint failed: " + msg);
                 if ( _listener != null ) {
                     _listener.setDatapointComplete(false, null);
                     SessionManager.deviceManager().statusUpdated(_device.get(), false);
@@ -643,7 +642,7 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "fetchSchedules: " + msg);
+            Logger.logDebug(LOG_TAG, "fetchSchedules: " + msg);
 
             if (AylaNetworks.succeeded(msg)) {
                 AylaSchedule[] schedules =
@@ -669,7 +668,7 @@ public class Device implements Comparable<Device> {
                     handler.fetchNextAction();
                 }
             } else {
-                Log.e(LOG_TAG, "fetchSchedules failed! " + msg);
+                Logger.logError(LOG_TAG, "fetchSchedules failed! " + msg);
                 _listener.statusUpdated(_device.get(), false);
             }
         }
@@ -692,7 +691,7 @@ public class Device implements Comparable<Device> {
         public void fetchNextAction() {
             if (_schedulesToUpdate.isEmpty()) {
                 // We're done.
-                Log.d(LOG_TAG, "All schedule actions updated for " + _device);
+                Logger.logDebug(LOG_TAG, "All schedule actions updated for " + _device);
                 _listener.statusUpdated(_device, true);
                 return;
             }
@@ -708,7 +707,7 @@ public class Device implements Comparable<Device> {
                         AylaSystemUtils.gson.fromJson((String) msg.obj, AylaScheduleAction[].class);
                 fetchNextAction();
             } else {
-                Log.e(LOG_TAG, "Failed to fetch schedule actions for " + _currentSchedule);
+                Logger.logError(LOG_TAG, "Failed to fetch schedule actions for " + _currentSchedule);
                 _listener.statusUpdated(_device, false);
             }
         }
@@ -968,7 +967,7 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Set timezone response: " + msg);
+            Logger.logDebug(LOG_TAG, "Set timezone response: " + msg);
 
             MainActivity.getInstance().dismissWaitDialog();
             if (AylaNetworks.succeeded(msg)) {
@@ -997,7 +996,7 @@ public class Device implements Comparable<Device> {
         public void handleMessage(Message msg) {
             if (AylaNetworks.succeeded(msg)) {
                 _device.get().getDevice().timezone = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaTimezone.class);
-                Log.d(LOG_TAG, "Timezone: " + _device.get().getDevice().timezone);
+                Logger.logDebug(LOG_TAG, "Timezone: " + _device.get().getDevice().timezone);
             }
             _listener.statusUpdated(_device.get(), AylaNetworks.succeeded(msg));
         }
