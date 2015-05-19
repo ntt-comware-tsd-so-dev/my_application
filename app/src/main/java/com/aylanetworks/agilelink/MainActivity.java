@@ -318,6 +318,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if(getResources().getBoolean(R.bool.portrait_only)){
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            _preWaitDialogOrientation = getRequestedOrientation();
         } else {
             Log.i("BOOL", "portrait_only: false");
         }
