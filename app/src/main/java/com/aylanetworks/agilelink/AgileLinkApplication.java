@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import android.os.StrictMode;
 
+import com.aylanetworks.agilelink.framework.Logger;
+
 /*
  * AgileLinkApplication.java
  * AgileLink Application Framework
@@ -32,6 +34,8 @@ public class AgileLinkApplication extends Application {
 
         super.onCreate();
         AgileLinkApplication.context = getApplicationContext();
+
+        Logger.getInstance().initialize();
     }
 
     public static Context getAppContext() {
