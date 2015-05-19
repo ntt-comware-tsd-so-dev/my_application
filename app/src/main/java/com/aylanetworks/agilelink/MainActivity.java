@@ -322,10 +322,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
         if(getResources().getBoolean(R.bool.portrait_only)){
-            Log.e("BOOL", "portrait_only: true");
+            Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         } else {
-            Log.e("BOOL", "portrait_only: false");
+            Log.i("BOOL", "portrait_only: false");
         }
 
         _theInstance = this;
@@ -389,6 +389,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         inflater.inflate(R.menu.menu_drawer, _drawerMenu);
         inflater.inflate(R.menu.menu_settings, _drawerMenu);
         _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        Log.d(LOG_TAG, "_drawerLayout: " + _drawerLayout);
+
         _drawerList = (ExpandableListView)findViewById(R.id.left_drawer);
 
         NestedMenuAdapter drawerAdapter = new NestedMenuAdapter(this, R.layout.navigation_drawer_item, R.id.nav_textview, _drawerMenu);
