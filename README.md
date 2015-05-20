@@ -8,6 +8,7 @@ Application designed to support multiple devices, themes, with strong separation
 Building in Android Studio
 =========================
 
+Requires gradle version 2.1.+
 git clone https://github.com/AylaNetworks/Agile_Link_Android.git                                                    
 cd Agile_Link_Android/gradle_scripts                                                                                
 gradle -q execTasks                                                                                                  
