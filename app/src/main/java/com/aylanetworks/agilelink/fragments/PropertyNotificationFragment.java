@@ -366,7 +366,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             numberValue = null;
         }
 
-        if ( "integer".equals(prop.baseType) || "decimal".equals(prop.baseType)) {
+        if ( ("integer".equals(prop.baseType) || "decimal".equals(prop.baseType)) &&
+                _numberRadioGroup.getCheckedRadioButtonId() != R.id.radio_integer_changes) {
             if ( numberValue == null ) {
                 _numberEditText.requestFocus();
                 Toast.makeText(getActivity(), R.string.no_value_chosen, Toast.LENGTH_LONG).show();
