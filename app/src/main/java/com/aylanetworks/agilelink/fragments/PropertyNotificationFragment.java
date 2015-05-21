@@ -230,7 +230,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             case "integer":
             case "decimal":
                 _numberEditText.setText(_originalTrigger.value);
-                if ( _originalTrigger.triggerType.equals(TRIGGER_COMPARE_ABSOLUTE)) {
+                if ( _originalTrigger.triggerType.equals(TRIGGER_COMPARE_ABSOLUTE) && _originalTrigger.value != null ) {
                     _numberRadioGroup.check(_originalTrigger.value.equals("<") ? R.id.radio_integer_less_than : R.id.radio_integer_greater_than);
                 } else {
                     _numberRadioGroup.check(R.id.radio_integer_changes);
