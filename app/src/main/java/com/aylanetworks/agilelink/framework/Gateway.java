@@ -120,6 +120,19 @@ public class Gateway extends Device {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
+    public void returnHostScanForNewDevices(GatewayStatusListener listener) {
+        /*
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                } catch (Exception e) {
+                }
+            }
+        });
+        thread.start();
+        */
+    }
+
     public boolean getPropertyBooleanJoinStatus() {
         return getPropertyBoolean(PROPERTY_JOIN_STATUS);
     }

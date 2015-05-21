@@ -856,6 +856,8 @@ public class Device implements Comparable<Device> {
         return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
     }
 
+    public void postRegistration() { }
+
     /**
      * Returns a string representing the state of the device (on, off, open, closed, etc.)
      * The default implementation returns nothing.
