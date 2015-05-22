@@ -392,13 +392,50 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    public void registrationComplete(Message msg, int messageResourceId) {
+    private void showMessage(int resourceId){
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+        alertDialog.setTitle("Attention");
+        alertDialog.setMessage(getString(resourceId));
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+    }
+
+    public void registrationComplete(Device device, Message msg, int messageResourceId) {
         dismissWaitDialog();
         if (messageResourceId != 0) {
             Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
         }
         if (AylaNetworks.succeeded(msg)) {
             Logger.logInfo(LOG_TAG, "rn: registrationComplete %d:%s", msg.arg1, msg.obj);
+
+            int resourceId = device.hasPostRegistrationProcessingResourceId();
+            if (resourceId > 0) {
+                showMessage(resourceId);
+            }
+
+            // HELP: do we want to do this here?
+            /*
+            MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+            // Now update the device notifications
+            DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
+            helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                @Override
+                public void newDeviceUpdated(Device device, int error) {
+                    MainActivity mainActivity = MainActivity.getInstance();
+                    mainActivity.dismissWaitDialog();
+                    int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                    Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                    SessionManager.deviceManager().refreshDeviceList();
+                }
+            });
+            */
+
+
         } else {
             Logger.logError(LOG_TAG, "rn: registrationComplete %d:%d:%s", msg.what, msg.arg1, msg.obj);
         }

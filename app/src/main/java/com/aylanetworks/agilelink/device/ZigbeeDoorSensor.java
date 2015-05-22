@@ -44,4 +44,7 @@ public class ZigbeeDoorSensor extends Device {
         return true;
     }
 
+    @Override
+    public int hasPostRegistrationProcessingResourceId() { return R.string.add_device_sensor_warning; }
+
 }

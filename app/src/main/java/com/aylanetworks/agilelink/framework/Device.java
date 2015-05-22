@@ -858,6 +858,8 @@ public class Device implements Comparable<Device> {
 
     public void postRegistration() { }
 
+    public int hasPostRegistrationProcessingResourceId() { return 0; }
+
     /**
      * Returns a string representing the state of the device (on, off, open, closed, etc.)
      * The default implementation returns nothing.
