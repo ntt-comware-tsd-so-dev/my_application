@@ -28,7 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
@@ -63,7 +62,7 @@ import java.util.Map;
 
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, Gateway.GatewayStatusListener {
+        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 
     private static final int REG_TYPE_SAME_LAN = 0;
@@ -115,7 +114,9 @@ public class AddDeviceFragment extends Fragment
             exitSetup();
         }
 
-        ensureJoinWindowClosed();
+        if (_nodeRegistrationGateway != null) {
+            _nodeRegistrationGateway.cleanupRegistrationScan();
+        }
 
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().startPolling();
@@ -325,121 +326,7 @@ public class AddDeviceFragment extends Fragment
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
-    enum NodeRegistrationFindState {
-        NotStarted,
-        Started,
-        OpenJoinWindow,
-        FindDevices,
-    }
-
-    private NodeRegistrationFindState _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
     private Gateway _nodeRegistrationGateway;
-    private List<AylaDeviceNode> _nodeRegistrationCandidates;
-
-    private void ensureJoinWindowClosed() {
-        if (_nodeRegistrationGateway != null) {
-            // We need to do this any time the join window is left open
-            Logger.logInfo(LOG_TAG, "rn: Register node close join window");
-            _nodeRegistrationGateway.closeJoinWindow(AddDeviceFragment.this);        // close the join window
-        }
-    }
-
-    public void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, Message msg) {
-        Logger.logInfo(LOG_TAG, "rn: gatewayRegisterCandidateComplete " + msg.what + ":" + msg.arg1);
-        dismissWaitDialog();
-        if (AylaNetworks.succeeded(msg)) {
-            Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-            // TODO: do we need to add it to some list?
-            Logger.logInfo(LOG_TAG, "rn: registered node [%s]:[%s]", node.dsn, node.model);
-            Logger.logDebug(LOG_TAG, "rn: registered node [%s]", node);
-            // TODO: rename it
-            // now we need to rename it...
-        } else {
-            Logger.logError(LOG_TAG, "rn: failed to register node. error=" + msg.what + ":" + msg.arg1);
-            Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_device_node, Toast.LENGTH_LONG).show();
-        }
-        ensureJoinWindowClosed();
-    }
-
-    public void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, Message msg) {
-        Logger.logInfo(LOG_TAG, "rn: gatewayGetRegistrationCandidatesComplete " + msg.what + ":" + msg.arg1);
-        if (AylaNetworks.succeeded(msg)) {
-            // we have a list of candidates...
-            _nodeRegistrationCandidates = list;
-
-            // TODO: Bring up a dialog showing which ones to register.
-
-            // for now, we are just going to register the first one...
-            final AylaDeviceNode node = list.get(0);
-            MainActivity.getInstance().runOnUiThread(new Runnable() {
-                public void run() {
-                    _nodeRegistrationGateway.registerCandidate(node, AddDeviceFragment.this);
-                }
-            });
-        } else {
-            if (msg.arg1 == 412) {
-                // invoke it again manually (412: retry open join window)
-                _nodeRegistrationState = NodeRegistrationFindState.Started;
-                nextNodeRegistrationStep();
-            } else if (msg.arg1 == 404) {
-                // invoke it again manually (404: retry get candidates)
-                Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed 404");
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {		// don't flood with retries
-                    @Override
-                    public void run() {
-                        Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed run");
-                        if (_nodeRegistrationGateway.getPropertyBooleanJoinStatus()) {
-                            Logger.logInfo(LOG_TAG, "rn: Register node GRC FindDevices");
-                            _nodeRegistrationGateway.getRegistrationCandidates(AddDeviceFragment.this);
-                        } else {
-                            dismissWaitDialog();
-                            _nodeRegistrationState = NodeRegistrationFindState.NotStarted;                        }
-                    }
-                }, 5000);									// Delay 5 seconds
-
-            } else {
-                // error message (restart)
-                _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-                dismissWaitDialog();
-                Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_registration_candidates, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    public void gatewayOpenJoinWindowComplete(Gateway gateway, final Message msg) {
-        Logger.logInfo(LOG_TAG, "rn: gatewayOpenJoinWindowComplete " + msg.what + ":" + msg.arg1);
-        if (AylaNetworks.succeeded(msg)) {
-            nextNodeRegistrationStep();
-        } else {
-            _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-            dismissWaitDialog();
-            Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_join_window, Toast.LENGTH_LONG).show();
-        }
-    }
-
-
-    private void nextNodeRegistrationStep() {
-        Logger.logInfo(LOG_TAG, "rn: Register node state=" + _nodeRegistrationState);
-        if (_nodeRegistrationState == NodeRegistrationFindState.Started) {
-            Logger.logInfo(LOG_TAG, "rn: Register node get property join_status");
-            if (_nodeRegistrationGateway.getPropertyBooleanJoinStatus()) {
-                Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=true)");
-                Logger.logInfo(LOG_TAG, "rn: Register node FindDevices");
-                _nodeRegistrationState = NodeRegistrationFindState.FindDevices;
-                _nodeRegistrationGateway.getRegistrationCandidates(this);
-            } else {
-                Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=false)");
-                Logger.logInfo(LOG_TAG, "rn: Register node OpenJoinWindow");
-                _nodeRegistrationState = NodeRegistrationFindState.OpenJoinWindow;
-                _nodeRegistrationGateway.openJoinWindow(this);
-            }
-        } else if (_nodeRegistrationState == NodeRegistrationFindState.OpenJoinWindow) {
-            Logger.logInfo(LOG_TAG, "rn: Register node FindDevices");
-            _nodeRegistrationState = NodeRegistrationFindState.FindDevices;
-            _nodeRegistrationGateway.getRegistrationCandidates(this);
-        }
-    }
 
     private void registerButtonClick() {
         // Register button clicked
@@ -492,9 +379,33 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
+    public void registrationScanNextStep(Message msg, int messageResourceId) {
+        if (AylaNetworks.succeeded(msg)) {
+            Logger.logInfo(LOG_TAG, "rn: registrationScanNextStep %d:%s", msg.arg1, msg.obj);
+            _nodeRegistrationGateway.processRegistrationScan(this);
+        } else {
+            Logger.logError(LOG_TAG, "rn: registrationScanNextStep %d:%d:%s", msg.what, msg.arg1, msg.obj);
+            dismissWaitDialog();
+            if (messageResourceId != 0) {
+                Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public void registrationComplete(Message msg, int messageResourceId) {
+        dismissWaitDialog();
+        if (messageResourceId != 0) {
+            Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
+        }
+        if (AylaNetworks.succeeded(msg)) {
+            Logger.logInfo(LOG_TAG, "rn: registrationComplete %d:%s", msg.arg1, msg.obj);
+        } else {
+            Logger.logError(LOG_TAG, "rn: registrationComplete %d:%d:%s", msg.what, msg.arg1, msg.obj);
+        }
+    }
+
     private void doScan() {
         if (_registrationType==REG_TYPE_NODE) {
-            // TODO: move all this to Gateway and use a simple DeviceScanHandler here???
             if (_nodeRegistrationGateway == null) {
                 Logger.logError(LOG_TAG, "rn: Register node has no gateway!");
                 Toast.makeText(MainActivity.getInstance(), R.string.error_no_gateway, Toast.LENGTH_LONG).show();
@@ -503,9 +414,8 @@ public class AddDeviceFragment extends Fragment
                 MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                         getString(R.string.scanning_for_devices_message));
 
-                Logger.logInfo(LOG_TAG, "rn: Register node for gateway [" + _nodeRegistrationGateway.getDevice().dsn + "]");
-                _nodeRegistrationState = NodeRegistrationFindState.Started;
-                nextNodeRegistrationStep();
+                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
+                _nodeRegistrationGateway.startRegistrationScan(this);
             }
         } else {
             // Put up a progress dialog
