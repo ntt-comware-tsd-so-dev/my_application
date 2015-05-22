@@ -179,8 +179,10 @@ public class Gateway extends Device {
      * Open the device node registration join window.
      * @param listener
      */
-    // TODO: Dan said to do the open join window using the property like the iOS version does,
-    // TODO: as this way of doing it was only done with the nexTurn gateway.
+    // Dan said to do the open join window using the property like the iOS version does,
+    // as this way of doing it was only done with the nexTurn gateway.
+    // 2015/5/22 When I looked at the iOS code, it too calls an Ayla library method that
+    // invokes registration_window.json with a duration.
     void openJoinWindow(GatewayNodeRegistrationListener listener) {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         final String joinWindowOpenTime = "240"; // optional window open duration, defaults to 200 seconds
