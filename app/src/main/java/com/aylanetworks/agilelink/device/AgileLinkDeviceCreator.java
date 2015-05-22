@@ -75,6 +75,18 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 // This is a Zigbee dimmable light.
                 return new ZigbeeDimmableLightDevice(aylaDevice);
             }
+            if (aylaDevice.model.equals("Wireless_Switch")) {
+                // This is a Zigbee remote switch.
+                return new ZigbeeWirelessSwitch(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Motion_Sensor") || aylaDevice.model.equals("Motion_Sens")) {
+                // This is a Zigbee motion sensor.
+                return new ZigbeeMotionSensor(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Door_Sensor")) {
+                // This is a Zigbee door sensor.
+                return new ZigbeeDoorSensor(aylaDevice);
+            }
         }
 
         //  We don't know what this is. Create a generic device.
