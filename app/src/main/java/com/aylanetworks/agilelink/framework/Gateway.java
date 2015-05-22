@@ -36,47 +36,31 @@ public class Gateway extends Device {
     private final static String PROPERTY_JOIN_ENABLE = "join_enable";
     private final static String PROPERTY_JOIN_STATUS = "join_status";
 
+    /**
+     * Interface used when scanning for and registering a gateway's device nodes
+     */
     public interface GatewayNodeRegistrationListener {
 
+        /**
+         * Notify that another step in the process of scanning and registering a gateway's
+         * device nodes has occurred.  Provides the application with a way to update
+         * the user interface accordingly.
+         *
+         * @param msg The current Message.
+         * @param messageResourceId String resource id to use to display a toast
+         *                          or dialog.
+         */
         public void registrationScanNextStep(Message msg, int messageResourceId);
 
+        /**
+         * Notify that the the processs of scanning and registering a gateway's
+         * device nodes has completed.
+         *
+         * @param device The device that has been registered.
+         * @param msg The final Message.
+         * @param messageResourceId String resource id to display a toast to the user.
+         */
         public void registrationComplete(Device device, Message msg, int messageResourceId);
-
-    }
-
-    /**
-     * Interface called whenever the status of a gateway changes.
-     */
-    public interface GatewayStatusListener {
-
-        /**
-         * Notify that the request to open the join window has completed.
-         * @param gateway Gateway to open the join window
-         * @param msg Message returned from the server in response to
-         *            opening the join window.
-         */
-        void gatewayOpenJoinWindowComplete(Gateway gateway, Message msg);
-
-        /**
-         * Notify completion of registration candidates.
-         * @param gateway Gateway to get registration candidates from.
-         * @param list List of AylaDeviceNode registration candidates
-         * @param msg Message returned from the server in response
-         *            to getting registration candidates.  On
-         *            failure, check arg1 for:
-         *             412 - join_status is 0, retry open join window
-         *             404 - no candidates found, try again after a small delay.
-         * */
-        void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, Message msg);
-
-        /**
-         * Notify when register candidate completes.
-         * @param gateway Gateway to register candidate with
-         * @param node Registered device node
-         * @param msg Message returned from the server in response to
-         *            register candidate.
-         */
-        void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, Message msg);
 
     }
 
@@ -130,6 +114,21 @@ public class Gateway extends Device {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
+    public void cleanupRegistrationScan() {
+        ensureJoinWindowClosed();
+    }
+
+    public void processRegistrationScan(GatewayNodeRegistrationListener listener) {
+        nextNodeRegistrationStep(listener);
+    }
+
+    public void startRegistrationScan(GatewayNodeRegistrationListener listener) {
+        _nodeRegistrationState = NodeRegistrationFindState.Started;
+        nextNodeRegistrationStep(listener);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     enum NodeRegistrationFindState {
         NotStarted,
         Started,
@@ -137,16 +136,16 @@ public class Gateway extends Device {
         FindDevices,
     }
 
-    private NodeRegistrationFindState _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-    private List<AylaDeviceNode> _nodeRegistrationCandidates;
+    NodeRegistrationFindState _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
+    List<AylaDeviceNode> _nodeRegistrationCandidates;
 
-    private void ensureJoinWindowClosed() {
+    void ensureJoinWindowClosed() {
         // We need to do this any time the join window is left open
         Logger.logInfo(LOG_TAG, "rn: Register node close join window");
         closeJoinWindow();        // close the join window
     }
 
-    private void nextNodeRegistrationStep(GatewayNodeRegistrationListener listener) {
+    void nextNodeRegistrationStep(GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: Register node state=" + _nodeRegistrationState);
         if (_nodeRegistrationState == NodeRegistrationFindState.Started) {
             Logger.logInfo(LOG_TAG, "rn: Register node get property join_status");
@@ -172,26 +171,7 @@ public class Gateway extends Device {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void cleanupRegistrationScan() {
-        ensureJoinWindowClosed();
-    }
-
-    public void processRegistrationScan(GatewayNodeRegistrationListener listener) {
-        nextNodeRegistrationStep(listener);
-    }
-
-    public void startRegistrationScan(GatewayNodeRegistrationListener listener) {
-        _nodeRegistrationState = NodeRegistrationFindState.Started;
-        nextNodeRegistrationStep(listener);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // TODO: we can simplify this even more... collapse the handlers.
-
-    public boolean getPropertyBooleanJoinStatus() {
+    boolean getPropertyBooleanJoinStatus() {
         return getPropertyBoolean(PROPERTY_JOIN_STATUS);
     }
 
@@ -201,7 +181,7 @@ public class Gateway extends Device {
      */
     // TODO: Dan said to do the open join window using the property like the iOS version does,
     // TODO: as this way of doing it was only done with the nexTurn gateway.
-    public void openJoinWindow(GatewayNodeRegistrationListener listener) {
+    void openJoinWindow(GatewayNodeRegistrationListener listener) {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         final String joinWindowOpenTime = "240"; // optional window open duration, defaults to 200 seconds
         Map<String, String> callParams = new HashMap<String, String>();
@@ -209,7 +189,7 @@ public class Gateway extends Device {
         device.openRegistrationJoinWindow(new GetOpenJoinWindowHandler(this, listener), callParams);
     }
 
-    public void gatewayOpenJoinWindowComplete(final Message msg, GatewayNodeRegistrationListener listener) {
+    void gatewayOpenJoinWindowComplete(final Message msg, GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: gatewayOpenJoinWindowComplete " + msg.what + ":" + msg.arg1);
         if (AylaNetworks.succeeded(msg)) {
             if (listener != null) {
@@ -223,11 +203,11 @@ public class Gateway extends Device {
         }
     }
 
-    protected static class GetOpenJoinWindowHandler extends Handler {
+    static class GetOpenJoinWindowHandler extends Handler {
         private WeakReference<Gateway> _gateway;
         private GatewayNodeRegistrationListener _listener;
 
-        public GetOpenJoinWindowHandler(Gateway gateway, GatewayNodeRegistrationListener listener) {
+        GetOpenJoinWindowHandler(Gateway gateway, GatewayNodeRegistrationListener listener) {
             _gateway = new WeakReference<Gateway>(gateway);
             _listener = listener;
         }
@@ -248,10 +228,7 @@ public class Gateway extends Device {
         }
     }
 
-    /**
-     * Close the device node registration join window.
-     */
-    public void closeJoinWindow() {
+    void closeJoinWindow() {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         device.closeRegistrationJoinWindow(new Handler() {
             public void handleMessage(Message msg) {
@@ -260,7 +237,7 @@ public class Gateway extends Device {
         }, null);
     }
 
-    public void getRegistrationCandidates(GatewayNodeRegistrationListener listener) {
+    void getRegistrationCandidates(GatewayNodeRegistrationListener listener) {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         Map<String, String> callParams = new HashMap<String, String>();
         device.getRegistrationCandidates(new GetRegistrationCandidatesHandler(this, listener), callParams);
@@ -272,7 +249,7 @@ public class Gateway extends Device {
         return msg;
     }
 
-    public void gatewayGetRegistrationCandidatesComplete(final List<AylaDeviceNode> list, final Message msg, final GatewayNodeRegistrationListener listener) {
+    void gatewayGetRegistrationCandidatesComplete(final List<AylaDeviceNode> list, final Message msg, final GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: gatewayGetRegistrationCandidatesComplete " + msg.what + ":" + msg.arg1);
         if (AylaNetworks.succeeded(msg)) {
             // we have a list of candidates...
@@ -324,11 +301,11 @@ public class Gateway extends Device {
         }
     }
 
-    protected static class GetRegistrationCandidatesHandler extends Handler {
+    static class GetRegistrationCandidatesHandler extends Handler {
         private WeakReference<Gateway> _gateway;
         private GatewayNodeRegistrationListener _listener;
 
-        public GetRegistrationCandidatesHandler(Gateway gateway, GatewayNodeRegistrationListener listener) {
+        GetRegistrationCandidatesHandler(Gateway gateway, GatewayNodeRegistrationListener listener) {
             _gateway = new WeakReference<Gateway>(gateway);
             _listener = listener;
         }
@@ -355,17 +332,17 @@ public class Gateway extends Device {
         }
     }
 
-    public void registerCandidate(AylaDeviceNode node, GatewayNodeRegistrationListener listener) {
+    void registerCandidate(AylaDeviceNode node, GatewayNodeRegistrationListener listener) {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         device.registerCandidate(new RegisterCandidateHandler(this, node, listener), node);
     }
 
-    private static class RegisterCandidateHandler extends Handler {
+    static class RegisterCandidateHandler extends Handler {
         private WeakReference<Gateway> _gateway;
         private WeakReference<AylaDeviceNode> _node;
         private GatewayNodeRegistrationListener _listener;
 
-        public RegisterCandidateHandler(Gateway gateway, AylaDeviceNode node, GatewayNodeRegistrationListener listener) {
+        RegisterCandidateHandler(Gateway gateway, AylaDeviceNode node, GatewayNodeRegistrationListener listener) {
             _gateway = new WeakReference<Gateway>(gateway);
             _node = new WeakReference<AylaDeviceNode>(node);
             _listener = listener;
@@ -420,13 +397,13 @@ public class Gateway extends Device {
         }
     }
 
-    private static class ChangeNameHandler extends Handler {
+    static class ChangeNameHandler extends Handler {
         private WeakReference<Gateway> _gateway;
         private WeakReference<Device> _device;
         private String _newDeviceName;
         private GatewayNodeRegistrationListener _listener;
 
-        public ChangeNameHandler(Gateway gateway, Device device, String newDeviceName, GatewayNodeRegistrationListener listener) {
+        ChangeNameHandler(Gateway gateway, Device device, String newDeviceName, GatewayNodeRegistrationListener listener) {
             _gateway = new WeakReference<Gateway>(gateway);
             _device = new WeakReference<Device>(device);
             _newDeviceName = newDeviceName;
