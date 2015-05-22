@@ -380,7 +380,7 @@ public class AddDeviceFragment extends Fragment
     }
 
     public void registrationScanNextStep(Message msg, int messageResourceId) {
-        if (AylaNetworks.succeeded(msg)) {
+        if (msg.what == AylaNetworks.AML_ERROR_OK) {
             Logger.logInfo(LOG_TAG, "rn: registrationScanNextStep %d:%s", msg.arg1, msg.obj);
             _nodeRegistrationGateway.processRegistrationScan(this);
         } else {
