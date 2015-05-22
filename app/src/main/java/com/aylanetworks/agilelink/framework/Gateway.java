@@ -114,17 +114,30 @@ public class Gateway extends Device {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
-    public void cleanupRegistrationScan() {
-        ensureJoinWindowClosed();
+    /**
+     * Start the Gateway device scan & registration process
+     * @param listener Listener used to indicate progress through the process.
+     */
+    public void startRegistrationScan(GatewayNodeRegistrationListener listener) {
+        _nodeRegistrationState = NodeRegistrationFindState.Started;
+        nextNodeRegistrationStep(listener);
     }
 
+    /**
+     * Incremental progress through the Gateway scan & registration process.  Must be called
+     * by the GatewayNodeRegistrationListener that invoked startRegistrationScan
+     * @param listener Listener used to indicate progress through the process.
+     */
     public void processRegistrationScan(GatewayNodeRegistrationListener listener) {
         nextNodeRegistrationStep(listener);
     }
 
-    public void startRegistrationScan(GatewayNodeRegistrationListener listener) {
-        _nodeRegistrationState = NodeRegistrationFindState.Started;
-        nextNodeRegistrationStep(listener);
+    /**
+     * Must be called when the application UI that invoked startRegistrationScan has
+     * completed.
+     */
+    public void cleanupRegistrationScan() {
+        closeJoinWindow();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,12 +151,6 @@ public class Gateway extends Device {
 
     NodeRegistrationFindState _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
     List<AylaDeviceNode> _nodeRegistrationCandidates;
-
-    void ensureJoinWindowClosed() {
-        // We need to do this any time the join window is left open
-        Logger.logInfo(LOG_TAG, "rn: Register node close join window");
-        closeJoinWindow();        // close the join window
-    }
 
     void nextNodeRegistrationStep(GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: Register node state=" + _nodeRegistrationState);
@@ -175,10 +182,6 @@ public class Gateway extends Device {
         return getPropertyBoolean(PROPERTY_JOIN_STATUS);
     }
 
-    /**
-     * Open the device node registration join window.
-     * @param listener
-     */
     // Dan said to do the open join window using the property like the iOS version does,
     // as this way of doing it was only done with the nexTurn gateway.
     // 2015/5/22 When I looked at the iOS code, it too calls an Ayla library method that
@@ -194,14 +197,10 @@ public class Gateway extends Device {
     void gatewayOpenJoinWindowComplete(final Message msg, GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: gatewayOpenJoinWindowComplete " + msg.what + ":" + msg.arg1);
         if (AylaNetworks.succeeded(msg)) {
-            if (listener != null) {
-                listener.registrationScanNextStep(msg, 0);
-            }
+            listener.registrationScanNextStep(msg, 0);
         } else {
             _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-            if (listener != null) {
-                listener.registrationScanNextStep(msg, R.string.error_gateway_join_window);
-            }
+            listener.registrationScanNextStep(msg, R.string.error_gateway_join_window);
         }
     }
 
@@ -231,6 +230,8 @@ public class Gateway extends Device {
     }
 
     void closeJoinWindow() {
+        // We need to do this any time the join window is left open
+        Logger.logInfo(LOG_TAG, "rn: Register node close join window");
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         device.closeRegistrationJoinWindow(new Handler() {
             public void handleMessage(Message msg) {
@@ -270,9 +271,7 @@ public class Gateway extends Device {
             if (msg.arg1 == 412) {
                 // invoke it again manually (412: retry open join window)
                 _nodeRegistrationState = NodeRegistrationFindState.Started;
-                if (listener != null) {
-                    listener.registrationScanNextStep(getSucceededMessage(), 0);
-                }
+                listener.registrationScanNextStep(getSucceededMessage(), 0);
             } else if (msg.arg1 == 404) {
                 // invoke it again manually (404: retry get candidates)
                 Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed 404");
@@ -286,9 +285,7 @@ public class Gateway extends Device {
                             getRegistrationCandidates(listener);
                         } else {
                             _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-                            if (listener != null) {
-                                listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
-                            }
+                            listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
                         }
                     }
                 }, 5000);									// Delay 5 seconds
@@ -296,9 +293,7 @@ public class Gateway extends Device {
             } else {
                 // error message (restart)
                 _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-                if (listener != null) {
-                    listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
-                }
+                listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
             }
         }
     }
@@ -391,10 +386,8 @@ public class Gateway extends Device {
                 params.put("productName", name);
                 device.getDevice().update(new ChangeNameHandler(_gateway.get(), device, name, _listener), params);
             } else {
-                _gateway.get().ensureJoinWindowClosed();
-                if (_listener != null) {
-                    _listener.registrationComplete(device, msg, R.string.error_gateway_register_device_node);
-                }
+                _gateway.get().closeJoinWindow();
+                _listener.registrationComplete(device, msg, R.string.error_gateway_register_device_node);
            }
         }
     }
@@ -420,15 +413,12 @@ public class Gateway extends Device {
                 // Let the world know something is different
                 SessionManager.deviceManager().deviceChanged(_device.get());
             }
-            _gateway.get().ensureJoinWindowClosed();
+            _gateway.get().closeJoinWindow();
 
             // Here we will create our groups & bindings
             _device.get().postRegistration();
 
-            if (_listener != null) {
-                _listener.registrationComplete(_device.get(), msg, R.string.gateway_registered_device_node);
-            }
+            _listener.registrationComplete(_device.get(), msg, R.string.gateway_registered_device_node);
         }
     }
-
 }
