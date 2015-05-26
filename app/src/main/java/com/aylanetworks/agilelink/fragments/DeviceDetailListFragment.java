@@ -70,6 +70,8 @@ public class DeviceDetailListFragment extends AboutFragment {
         if ( !TextUtils.isEmpty(d.mac)) items.add(new AboutItem("MAC", formatMAC(d.mac)));
         if ( !TextUtils.isEmpty(d.connectedAt)) items.add(new AboutItem("connectedAt", d.connectedAt));
         if ( !TextUtils.isEmpty(d.ip)) items.add(new AboutItem("IP", d.ip));
+        if ( !TextUtils.isEmpty(d.swVersion)) items.add(new AboutItem("SW Version", d.swVersion));
+
         if ( !TextUtils.isEmpty(d.lanIp)) items.add(new AboutItem("LAN IP", d.lanIp));
 
         _listView.setAdapter(new AboutListAdapter(getActivity(), items.toArray(new AboutItem[items.size()])));
@@ -78,7 +80,7 @@ public class DeviceDetailListFragment extends AboutFragment {
     private String formatMAC(String mac) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (int i = 0; i < mac.length() - 2; i++ ) {
+        for (int i = 0; i < mac.length() - 2; i+=2 ) {
             if ( !first ) {
                 sb.append(":");
             } else {
