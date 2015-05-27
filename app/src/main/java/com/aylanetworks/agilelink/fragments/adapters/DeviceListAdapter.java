@@ -25,6 +25,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private List<Device> _deviceList;
     private View.OnClickListener _onClickListener;
+
     public DeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
         _onClickListener = listener;
         _deviceList = deviceList;
@@ -56,10 +57,10 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         Device d = _deviceList.get(position);
 
-        // Set the onClickListener for this view and set the device as the tag so we can
+        // Set the onClickListener for this view and set the index as the tag so we can
         // retrieve it later
         holder.itemView.setOnClickListener(_onClickListener);
-        holder.itemView.setTag(d);
+        holder.itemView.setTag(position);
         d.bindViewHolder(holder);
     }
 }

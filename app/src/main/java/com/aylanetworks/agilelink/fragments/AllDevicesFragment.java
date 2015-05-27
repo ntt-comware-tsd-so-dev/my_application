@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -23,10 +22,10 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.MenuHandler;
+import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.SessionManager;
-import com.aylanetworks.agilelink.framework.UIConfig;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -50,6 +49,8 @@ public class AllDevicesFragment extends Fragment
     protected RecyclerView.LayoutManager _layoutManager;
     protected DeviceListAdapter _adapter;
     protected TextView _emptyView;
+
+    protected List<String> _expandedDevices;
 
     public static AllDevicesFragment newInstance() {
         AllDevicesFragment fragment = new AllDevicesFragment();
@@ -90,6 +91,8 @@ public class AllDevicesFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        _expandedDevices = new ArrayList<>();
 
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
@@ -143,7 +146,6 @@ public class AllDevicesFragment extends Fragment
                 break;
         }
 
-
         _recyclerView.setLayoutManager(_layoutManager);
 
         ImageButton b = (ImageButton) view.findViewById(R.id.add_button);
@@ -193,6 +195,7 @@ public class AllDevicesFragment extends Fragment
                 _recyclerView.setVisibility(View.VISIBLE);
 
                 _adapter = new DeviceListAdapter(deviceList, this);
+
                 _recyclerView.setAdapter(_adapter);
             }
         }
@@ -256,8 +259,30 @@ public class AllDevicesFragment extends Fragment
             addDevice();
         } else {
             // This is a click from an item in the list.
-            final Device d = (Device) v.getTag();
-            if (d != null) {
+            handleItemClick(v);
+        }
+    }
+
+    protected void handleItemClick(View v) {
+        int itemIndex = (int)v.getTag();
+        final Device d = _adapter.getItem(itemIndex);
+        if (d != null) {
+            ViewGroup expandedLayout = (ViewGroup)v.findViewById(R.id.expanded_layout);
+            if ( expandedLayout != null ) {
+                // We need to expand / contract the selected item
+                int lastExpanded = GenericDeviceViewHolder._expandedIndex;
+                if (GenericDeviceViewHolder._expandedIndex == itemIndex ) {
+                    GenericDeviceViewHolder._expandedIndex = -1;
+                    expandedLayout.setVisibility(View.GONE);
+                } else {
+                    GenericDeviceViewHolder._expandedIndex = itemIndex;
+                    expandedLayout.setVisibility(View.VISIBLE);
+                }
+                _adapter.notifyItemChanged(itemIndex);
+                if ( lastExpanded != -1 ) {
+                    _adapter.notifyItemChanged(lastExpanded);
+                }
+            } else {
                 // Put the device into LAN mode before pushing the detail fragment
                 MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {

@@ -116,6 +116,8 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        super.bindViewHolder(holder);
+
         Resources res = MainActivity.getInstance().getResources();
 
         SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;

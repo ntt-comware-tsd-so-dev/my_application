@@ -4,6 +4,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -29,10 +30,12 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
     public TextView _deviceNameTextView;
     public TextView _deviceStatusTextView;
     public ProgressBar _spinner;
-    public LinearLayout _expandedLayout;
+    public ViewGroup _expandedLayout;
     public Button _scheduleButton;
     public Button _notificationsButton;
     public ImageButton _detailsButton;
+
+    public static int _expandedIndex = -1;
 
     public GenericDeviceViewHolder(View itemView) {
         super(itemView);
@@ -41,7 +44,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
         _deviceNameTextView = (TextView)itemView.findViewById(R.id.device_name);
         _deviceStatusTextView = (TextView)itemView.findViewById(R.id.device_state);
         _spinner = (ProgressBar)itemView.findViewById(R.id.spinner);
-        _expandedLayout = (LinearLayout)itemView.findViewById(R.id.expanded_layout);
+        _expandedLayout = (ViewGroup)itemView.findViewById(R.id.expanded_layout);
         if ( _expandedLayout != null ) {
             // We have an expanded layout with some extra controls
             _scheduleButton = (Button)itemView.findViewById(R.id.schedule_button);

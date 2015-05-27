@@ -769,8 +769,6 @@ public class Device implements Comparable<Device> {
         return DeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
-    protected static int _expandedPosition;
-
     /**
      * Updates the views in the ViewHolder with information from the Device object.
      * <p>
@@ -786,20 +784,7 @@ public class Device implements Comparable<Device> {
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
 
         if ( h._expandedLayout != null ) {
-            // Set up the expanding / collapsing click handler
-            h.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if ( h._expandedLayout.getVisibility() == View.VISIBLE ) {
-                        h._expandedLayout.setVisibility(View.GONE);
-                        _expandedPosition = -1;
-                    } else {
-                        h._expandedLayout.setVisibility(View.VISIBLE);
-                        _expandedPosition = h.getPosition();
-                    }
-                }
-            });
-            h._expandedLayout.setVisibility(_expandedPosition == h.getPosition() ? View.VISIBLE : View.GONE);
+            h._expandedLayout.setVisibility(h.getPosition() == GenericDeviceViewHolder._expandedIndex ? View.VISIBLE : View.GONE);
             // Set up handlers for the buttons in the expanded view
             h._notificationsButton.setOnClickListener(new View.OnClickListener() {
                 @Override

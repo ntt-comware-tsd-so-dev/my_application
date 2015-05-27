@@ -14,8 +14,8 @@
         style="?android:attr/progressBarStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:layout_gravity="center_vertical|start"/>
 
     <LinearLayout
@@ -33,7 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-               >
+                >
 
                 <TextView
                     android:id="@+id/device_name"
@@ -49,6 +49,7 @@
 
             <TextView
                 android:id="@+id/device_state"
+                android:text="online"
                 style="@style/DeviceListItemStatusTextView"
                 android:layout_width="wrap_content"
                 android:layout_gravity="center"
@@ -69,10 +70,10 @@
                 android:background="@drawable/button_rounded"
                 android:id="@+id/schedule_button"
                 android:text="@string/schedule"
-                android:layout_weight="1"
-                android:layout_margin="8dp"
                 android:paddingLeft="4dp"
                 android:paddingRight="4dp"
+                android:layout_weight="1"
+                android:layout_margin="8dp"
                 android:layout_gravity="center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -83,12 +84,24 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_margin="8dp"
+                android:layout_gravity="center_vertical"
                 android:paddingLeft="4dp"
                 android:paddingRight="4dp"
-                android:layout_gravity="center_vertical"
                 android:id="@+id/notifications_button"
                 android:text="@string/notifications"
                 />
+
+            <ImageButton
+                android:id="@+id/power_button"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:scaleType="fitXY"
+                android:layout_marginRight="10dp"
+                android:layout_marginEnd="10dp"
+                android:padding="5dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_power_pending"
+                android:layout_gravity="center_vertical"/>
 
         </LinearLayout>
     </LinearLayout>

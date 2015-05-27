@@ -108,7 +108,8 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
             case ITEM_VIEW_TYPE_SWITCHED:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_switched_device_grid :
-                        R.layout.cardview_switched_device;
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
+                                R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
