@@ -15,7 +15,7 @@ package com.aylanetworks.agilelink.framework;
  */
 public class UIConfig {
     /** Enumeration of styles the list views can be shown in (all devices / device groups) */
-    public enum ListStyle { List, Grid }
+    public enum ListStyle { List, Grid, ExpandingList }
 
     /** Enumeration of navigation styles the app can be configured with */
     public enum NavStyle { Pager, Drawer }

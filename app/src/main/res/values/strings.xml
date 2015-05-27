@@ -381,5 +381,8 @@
     <string name="error_no_gateway_instructions">No Gateways located. Register a gateway first.</string>
     <string name="add_device_sensor_warning">Further setup for this device will occur in the background. The sensor may not respond immediately for the next couple of minutes.</string>
     <string name="message_attention">Attention</string>
+    <string name="lan_mode_enabled">LAN Mode Enabled</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
 
 </resources>

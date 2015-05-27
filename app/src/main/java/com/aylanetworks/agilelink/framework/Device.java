@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.framework;
 
 import android.content.Context;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -22,8 +23,12 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
+import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
 import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
+import com.aylanetworks.agilelink.fragments.ScheduleFragment;
+
+import org.apache.log4j.chainsaw.Main;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -764,6 +769,8 @@ public class Device implements Comparable<Device> {
         return DeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
+    protected static int _expandedPosition;
+
     /**
      * Updates the views in the ViewHolder with information from the Device object.
      * <p>
@@ -773,10 +780,51 @@ public class Device implements Comparable<Device> {
      * @param holder The view holder for this object
      */
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
-        GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
+        final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getDevice().getProductName());
         h._deviceStatusTextView.setText(getDeviceState());
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+
+        if ( h._expandedLayout != null ) {
+            // Set up the expanding / collapsing click handler
+            h.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if ( h._expandedLayout.getVisibility() == View.VISIBLE ) {
+                        h._expandedLayout.setVisibility(View.GONE);
+                        _expandedPosition = -1;
+                    } else {
+                        h._expandedLayout.setVisibility(View.VISIBLE);
+                        _expandedPosition = h.getPosition();
+                    }
+                }
+            });
+            h._expandedLayout.setVisibility(_expandedPosition == h.getPosition() ? View.VISIBLE : View.GONE);
+            // Set up handlers for the buttons in the expanded view
+            h._notificationsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MainActivity.getInstance().pushFragment(PropertyNotificationFragment.newInstance(Device.this));
+                }
+            });
+            h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+
+            h._scheduleButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MainActivity.getInstance().pushFragment(ScheduleContainerFragment.newInstance(Device.this));
+                }
+            });
+            h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+
+            h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.app_theme_primary_medium_dark), PorterDuff.Mode.SRC_ATOP);
+            h._detailsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MainActivity.getInstance().pushFragment(DeviceDetailFragment.newInstance(Device.this));
+                }
+            });
+        }
 
         h._currentDevice = this;
     }
@@ -867,7 +915,14 @@ public class Device implements Comparable<Device> {
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
-        return "";
+        if ( getDevice().lanEnabled ) {
+            return MainActivity.getInstance().getString(R.string.lan_mode_enabled);
+        }
+        if ( isOnline() ) {
+            return MainActivity.getInstance().getString(R.string.online);
+        } else {
+            return MainActivity.getInstance().getString(R.string.offline);
+        }
     }
 
     /**

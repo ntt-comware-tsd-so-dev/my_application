@@ -16,7 +16,7 @@
         <item name="android:textColor">@color/button_fg</item>
         <item name="android:paddingTop">6dp</item>
         <item name="android:paddingBottom">6dp</item>
-        <item name="android:textSize">18dp</item>
+        <item name="android:textSize">18sp</item>
     </style>
 
     <!-- Style for text views in list items that show the device name -->
@@ -29,7 +29,7 @@
     </style>
 
     <!-- Style for the device status, shown to the right of list view items -->
-    <style name="DeviceListItemStatusTextView" parent="@android:style/TextAppearance.Medium">
+    <style name="DeviceListItemStatusTextView" parent="@android:style/TextAppearance.Small">
         <item name="android:textStyle">italic</item>
         <item name="android:gravity">center_vertical|right</item>
         <item name="android:layout_gravity">center_vertical</item>

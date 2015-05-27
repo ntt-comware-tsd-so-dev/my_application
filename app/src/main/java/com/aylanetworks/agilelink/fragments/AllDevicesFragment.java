@@ -25,6 +25,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.UIConfig;
 
 import java.util.List;
 
@@ -42,17 +43,6 @@ public class AllDevicesFragment extends Fragment
 
     private final static String LOG_TAG = "AllDevicesFragment";
 
-    public final static int DISPLAY_MODE_LIST = 0;
-    public final static int DISPLAY_MODE_GRID = 1;
-
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    protected static final String ARG_DISPLAY_MODE = "display_mode";
-
-    /**
-     * Mode we should display
-     */
-    protected int _displayMode = DISPLAY_MODE_LIST;
-
     /**
      * The fragment's recycler view and helpers
      */
@@ -61,11 +51,8 @@ public class AllDevicesFragment extends Fragment
     protected DeviceListAdapter _adapter;
     protected TextView _emptyView;
 
-    public static AllDevicesFragment newInstance(int displayMode) {
+    public static AllDevicesFragment newInstance() {
         AllDevicesFragment fragment = new AllDevicesFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_DISPLAY_MODE, displayMode);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -104,10 +91,6 @@ public class AllDevicesFragment extends Fragment
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        if (getArguments() != null) {
-            _displayMode = getArguments().getInt(ARG_DISPLAY_MODE);
-        }
-
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
         if (dm != null) {
@@ -139,21 +122,27 @@ public class AllDevicesFragment extends Fragment
         _emptyView.setVisibility(View.VISIBLE);
         _emptyView.setText(R.string.fetching_devices);
 
-        if ( _displayMode == DISPLAY_MODE_LIST ) {
-            _layoutManager = new LinearLayoutManager(getActivity());
-        } else {
-            int nColumns = getResources().getInteger(R.integer.grid_width);
-            Log.d("COLS", "Columns: " + nColumns);
-            GridLayoutManager gm = new GridLayoutManager(getActivity(), nColumns);
-            gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                @Override
-                public int getSpanSize(int position) {
-                    Device device = _adapter.getItem(position);
-                    return device.getGridViewSpan();
-                }
-            });
-            _layoutManager = gm;
+        switch ( MainActivity.getUIConfig()._listStyle ) {
+            case List:
+            case ExpandingList:
+                _layoutManager = new LinearLayoutManager(getActivity());
+                break;
+
+            case Grid:
+                int nColumns = getResources().getInteger(R.integer.grid_width);
+                Log.d("COLS", "Columns: " + nColumns);
+                GridLayoutManager gm = new GridLayoutManager(getActivity(), nColumns);
+                gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                    @Override
+                    public int getSpanSize(int position) {
+                        Device device = _adapter.getItem(position);
+                        return device.getGridViewSpan();
+                    }
+                });
+                _layoutManager = gm;
+                break;
         }
+
 
         _recyclerView.setLayoutManager(_layoutManager);
 
