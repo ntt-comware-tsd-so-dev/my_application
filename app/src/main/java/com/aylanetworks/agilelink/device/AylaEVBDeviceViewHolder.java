@@ -8,6 +8,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 
 /*
  * AylaEVBDeviceViewHolder.java
@@ -17,20 +18,16 @@ import com.aylanetworks.agilelink.R;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class AylaEVBDeviceViewHolder extends RecyclerView.ViewHolder {
-    public TextView _deviceNameTextView;
+public class AylaEVBDeviceViewHolder extends GenericDeviceViewHolder {
     public ImageButton _greenButton;
     public ImageButton _blueButton;
     public ImageView _buttonStateImageView;
-    public ProgressBar _spinner;
 
     public AylaEVBDeviceViewHolder(View v) {
         super(v);
 
-        _deviceNameTextView = (TextView)v.findViewById(R.id.device_name);
         _greenButton = (ImageButton)v.findViewById(R.id.green_button);
         _blueButton = (ImageButton)v.findViewById(R.id.blue_button);
         _buttonStateImageView = (ImageView)v.findViewById(R.id.blue_button_state_image);
-        _spinner = (ProgressBar)v.findViewById(R.id.spinner);
     }
 }

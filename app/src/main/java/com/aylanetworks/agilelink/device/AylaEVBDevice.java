@@ -160,6 +160,8 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         // Device name
+        super.bindViewHolder(holder);
+
         AylaEVBDeviceViewHolder h = (AylaEVBDeviceViewHolder) holder;
         Resources res = MainActivity.getInstance().getResources();
 

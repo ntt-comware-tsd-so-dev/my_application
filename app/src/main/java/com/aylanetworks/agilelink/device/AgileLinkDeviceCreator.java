@@ -102,7 +102,8 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_ayla_evb_device_grid :
-                        R.layout.cardview_ayla_evb_device;
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_ayla_evb_device_expandable :
+                                R.layout.cardview_ayla_evb_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new AylaEVBDeviceViewHolder(v);
 
