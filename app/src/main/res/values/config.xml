@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="portrait_only">true</bool>
+
+    <!-- Number of columns to use in the grid view -->
     <integer name="grid_width">2</integer>
+
+    <!-- Base font family to use for the application -->
+    <string name="font_family">sans-serif-light</string>
 </resources>
