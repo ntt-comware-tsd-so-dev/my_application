@@ -25,6 +25,7 @@
     <style name="DeviceListItemTextView" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/card_text</item>
         <item name="android:fontFamily">@string/font_family</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_height">wrap_content</item>

@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.framework;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -802,7 +803,7 @@ public class Device implements Comparable<Device> {
             });
             h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
 
-            h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.app_theme_primary_medium_dark), PorterDuff.Mode.SRC_ATOP);
+            h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.card_text), PorterDuff.Mode.SRC_ATOP);
             h._detailsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -811,6 +812,15 @@ public class Device implements Comparable<Device> {
             });
         }
 
+
+        // Is this a shared device?
+        Resources res = MainActivity.getInstance().getResources();
+        int color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
+        if (!getDevice().amOwner()) {
+            // Yes, this device is shared.
+            color = res.getColor(R.color.card_shared_text);
+        }
+        h._deviceNameTextView.setTextColor(color);
         h._currentDevice = this;
     }
 

@@ -121,25 +121,10 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         Resources res = MainActivity.getInstance().getResources();
 
         SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
-        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
-        h._deviceNameTextView.setText(getDevice().getProductName());
-
         Drawable buttonDrawable = getSwitchedDrawable(res);
 
         h._switchButton.setImageDrawable(buttonDrawable);
         h._switchButton.setOnClickListener(this);
-
-        // Is this a shared device?
-        int color = res.getColor(R.color.card_text);
-        if (!getDevice().amOwner()) {
-            // Yes, this device is shared.
-            color = res.getColor(R.color.card_shared_text);
-        }
-        if (!isOnline() ) {
-            color = res.getColor(R.color.disabled_text);
-        }
-
-        h._deviceNameTextView.setTextColor(color);
     }
 
 
