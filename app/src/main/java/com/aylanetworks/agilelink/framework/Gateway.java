@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 
 import com.aylanetworks.aaml.AylaDevice;
@@ -107,8 +109,16 @@ public class Gateway extends Device {
         return c.getResources().getDrawable(R.drawable.ic_zigbee);
     }
 
-    public void configureWithJsonElement(JsonElement json) {
-        Logger.logError(LOG_TAG, "Configure with: " + json.toString());
+    @Override
+    public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        super.bindViewHolder(holder);
+        try {
+            CardView cardView = (CardView) holder.itemView;
+            cardView.setCardBackgroundColor(MainActivity.getInstance().getResources().getColor(R.color.card_background_gateway));
+        } catch (ClassCastException e) {
+            // This is not a cardview. Just set the background color of the view.
+            holder.itemView.setBackgroundColor(MainActivity.getInstance().getResources().getColor(R.color.card_background_gateway));
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
