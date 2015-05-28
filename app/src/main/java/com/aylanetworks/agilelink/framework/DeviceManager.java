@@ -563,6 +563,9 @@ public class DeviceManager implements DeviceStatusListener {
                             Log.e(LOG_TAG, "Unknown device [" + dsn + "] has entered LAN mode???");
                         }
                     }
+
+                    // If the LAN device has changed, then the list has changed.
+                    _deviceManager.get().notifyDeviceListChanged();
                 }
             } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
                     type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {

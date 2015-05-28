@@ -910,7 +910,7 @@ public class Device implements Comparable<Device> {
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
-        if ( getDevice().lanEnabled ) {
+        if ( SessionManager.deviceManager().isLastLanModeDevice(this) ) {
             return MainActivity.getInstance().getString(R.string.lan_mode_enabled);
         }
         if ( isOnline() ) {
