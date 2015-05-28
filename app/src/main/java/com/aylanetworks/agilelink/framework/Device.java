@@ -781,7 +781,10 @@ public class Device implements Comparable<Device> {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getDevice().getProductName());
-        h._deviceStatusTextView.setText(getDeviceState());
+        if ( h._deviceStatusTextView != null ) {
+            h._deviceStatusTextView.setText(getDeviceState());
+        }
+
         h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
 
         if ( h._expandedLayout != null ) {
