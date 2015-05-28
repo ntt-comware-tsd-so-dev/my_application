@@ -51,10 +51,6 @@ import java.util.Set;
 public class DeviceManager implements DeviceStatusListener {
     private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
 
-    /** Number of times we will hit the status poll timer without finishing polling for devices
-     * before we start over.
-     */
-    private static final int DEVICE_STATUS_POLL_RETRY_PENDING = 3;
     /** Interfaces */
     public interface DeviceListListener {
         /**
@@ -676,9 +672,9 @@ public class DeviceManager implements DeviceStatusListener {
         }
     };
 
+    // List of devices we will poll the status of. Each device is removed from the head of the
+    // list and queried for its properties.
     private ArrayList<Device> _devicesToPoll;
-
-    private int _retryPendingCount = 0;
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
@@ -701,21 +697,14 @@ public class DeviceManager implements DeviceStatusListener {
                 if ( _deviceList != null ) {
                     _devicesToPoll = new ArrayList<Device>(_deviceList);
                 }
-                _retryPendingCount = DEVICE_STATUS_POLL_RETRY_PENDING;
                 updateNextDeviceStatus();
             } else {
-                Log.d(LOG_TAG, "Still not done polling from the last timer event. Pending count is " + _retryPendingCount);
-                Log.v(LOG_TAG, "Waiting for responses from:");
+                Log.d(LOG_TAG, "Still not done polling from the last timer event.");
+                Log.v(LOG_TAG, "Current queue is:");
                 for ( Device d : _devicesToPoll ) {
                     Log.v(LOG_TAG, d.getDevice().getProductName());
                 }
-
-                if ( --_retryPendingCount == 0 ) {
-                    Log.w(LOG_TAG, "Canceling pending list!");
-                    _retryPendingCount = DEVICE_STATUS_POLL_RETRY_PENDING;
-                    _devicesToPoll = new ArrayList<Device>(_deviceList);
-                    updateNextDeviceStatus();
-                }
+                updateNextDeviceStatus();
             }
 
             // Only continue polling if we're not in LAN mode and somebody is listening
@@ -723,7 +712,7 @@ public class DeviceManager implements DeviceStatusListener {
                 _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
                 _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
             } else {
-                Log.d(LOG_TAG, "Device Status Timer: Nobody listening or in LAN mode");
+                Log.d(LOG_TAG, "Device Status Timer: Nobody listening.");
             }
         }
     };
@@ -731,8 +720,8 @@ public class DeviceManager implements DeviceStatusListener {
     private void updateNextDeviceStatus() {
         Log.v(LOG_TAG, "updateNextDeviceStatus");
         if ( _startingLANMode ) {
-            Log.d(LOG_TAG, "Clearing list of devices to poll, as we're entering LAN mode");
-            _devicesToPoll.clear();
+            Log.d(LOG_TAG, "Not updating status while entering LAN mode");
+            return;
         }
 
         if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
