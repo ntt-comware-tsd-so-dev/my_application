@@ -78,9 +78,19 @@ public class DeviceDetailListFragment extends AboutFragment {
     }
 
     private String formatMAC(String mac) {
+        if (mac.contains(":")) {
+            // Already formatted
+            return mac;
+        }
+
+        int start = 0;
+        if ( mac.startsWith("0x") || mac.startsWith("0X") ) {
+            start = 2;
+        }
+
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (int i = 0; i < mac.length() - 2; i+=2 ) {
+        for (int i = start; i <= mac.length() - 2; i+=2 ) {
             if ( !first ) {
                 sb.append(":");
             } else {
