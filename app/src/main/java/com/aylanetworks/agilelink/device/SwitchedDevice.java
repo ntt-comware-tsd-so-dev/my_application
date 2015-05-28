@@ -65,7 +65,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public String[] getNotifiablePropertyNames() {
-        return new String[]{PROPERTY_OUTLET};
+        return new String[]{getObservablePropertyName()};
     }
 
     @Override
