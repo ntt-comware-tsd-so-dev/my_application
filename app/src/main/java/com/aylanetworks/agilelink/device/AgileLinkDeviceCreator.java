@@ -97,21 +97,27 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
         View v;
-        boolean isGrid = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.Grid;
+        UIConfig.ListStyle listStyle = MainActivity.getUIConfig()._listStyle;
         int resId;
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
-                resId = isGrid ? R.layout.cardview_ayla_evb_device_grid : R.layout.cardview_ayla_evb_device;
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_ayla_evb_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_ayla_evb_device_expandable :
+                                R.layout.cardview_ayla_evb_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new AylaEVBDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SWITCHED:
-                resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_switched_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
+                                R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
-                resId = isGrid ? R.layout.cardview_generic_device_grid : R.layout.cardview_generic_device;
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_generic_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_generic_device_expandable :
+                                R.layout.cardview_generic_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
         }

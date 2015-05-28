@@ -38,6 +38,8 @@
             <!-- Main recycler view -->
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recycler_view"
+                android:paddingBottom="@dimen/device_list_padding"
+                android:clipToPadding="false"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
 
@@ -61,13 +63,12 @@
     <!-- Empty text view -->
     <TextView
         android:id="@+id/empty"
-        style="@style/TextAppearance.AppCompat.Medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center_vertical"
         android:padding="8dp"
-        android:textStyle="bold"
+        android:textSize="18sp"
         android:text="@string/group_empty_text"
         android:textColor="@color/empty_list_text"
         android:visibility="gone"/>

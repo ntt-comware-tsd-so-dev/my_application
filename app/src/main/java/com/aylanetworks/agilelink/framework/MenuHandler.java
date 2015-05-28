@@ -97,18 +97,14 @@ public class MenuHandler {
     }
 
     public static void handleAllDevices() {
-        int displayMode = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
-                AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
-        Fragment frag = AllDevicesFragment.newInstance(displayMode);
+        Fragment frag = AllDevicesFragment.newInstance();
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
     }
 
     public static void handleDeviceGroups() {
-        int displayMode = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
-                AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
-        Fragment frag = DeviceGroupsFragment.newInstance(displayMode);
+        Fragment frag = DeviceGroupsFragment.newInstance();
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();

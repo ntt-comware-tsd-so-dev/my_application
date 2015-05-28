@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -23,9 +22,10 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.MenuHandler;
+import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -42,17 +42,6 @@ public class AllDevicesFragment extends Fragment
 
     private final static String LOG_TAG = "AllDevicesFragment";
 
-    public final static int DISPLAY_MODE_LIST = 0;
-    public final static int DISPLAY_MODE_GRID = 1;
-
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    protected static final String ARG_DISPLAY_MODE = "display_mode";
-
-    /**
-     * Mode we should display
-     */
-    protected int _displayMode = DISPLAY_MODE_LIST;
-
     /**
      * The fragment's recycler view and helpers
      */
@@ -61,11 +50,10 @@ public class AllDevicesFragment extends Fragment
     protected DeviceListAdapter _adapter;
     protected TextView _emptyView;
 
-    public static AllDevicesFragment newInstance(int displayMode) {
+    protected List<String> _expandedDevices;
+
+    public static AllDevicesFragment newInstance() {
         AllDevicesFragment fragment = new AllDevicesFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_DISPLAY_MODE, displayMode);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -104,9 +92,7 @@ public class AllDevicesFragment extends Fragment
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        if (getArguments() != null) {
-            _displayMode = getArguments().getInt(ARG_DISPLAY_MODE);
-        }
+        _expandedDevices = new ArrayList<>();
 
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
@@ -139,20 +125,25 @@ public class AllDevicesFragment extends Fragment
         _emptyView.setVisibility(View.VISIBLE);
         _emptyView.setText(R.string.fetching_devices);
 
-        if ( _displayMode == DISPLAY_MODE_LIST ) {
-            _layoutManager = new LinearLayoutManager(getActivity());
-        } else {
-            int nColumns = getResources().getInteger(R.integer.grid_width);
-            Log.d("COLS", "Columns: " + nColumns);
-            GridLayoutManager gm = new GridLayoutManager(getActivity(), nColumns);
-            gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                @Override
-                public int getSpanSize(int position) {
-                    Device device = _adapter.getItem(position);
-                    return device.getGridViewSpan();
-                }
-            });
-            _layoutManager = gm;
+        switch ( MainActivity.getUIConfig()._listStyle ) {
+            case List:
+            case ExpandingList:
+                _layoutManager = new LinearLayoutManager(getActivity());
+                break;
+
+            case Grid:
+                int nColumns = getResources().getInteger(R.integer.grid_width);
+                Log.d("COLS", "Columns: " + nColumns);
+                GridLayoutManager gm = new GridLayoutManager(getActivity(), nColumns);
+                gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                    @Override
+                    public int getSpanSize(int position) {
+                        Device device = _adapter.getItem(position);
+                        return device.getGridViewSpan();
+                    }
+                });
+                _layoutManager = gm;
+                break;
         }
 
         _recyclerView.setLayoutManager(_layoutManager);
@@ -204,6 +195,7 @@ public class AllDevicesFragment extends Fragment
                 _recyclerView.setVisibility(View.VISIBLE);
 
                 _adapter = new DeviceListAdapter(deviceList, this);
+
                 _recyclerView.setAdapter(_adapter);
             }
         }
@@ -267,8 +259,30 @@ public class AllDevicesFragment extends Fragment
             addDevice();
         } else {
             // This is a click from an item in the list.
-            final Device d = (Device) v.getTag();
-            if (d != null) {
+            handleItemClick(v);
+        }
+    }
+
+    protected void handleItemClick(View v) {
+        int itemIndex = (int)v.getTag();
+        final Device d = _adapter.getItem(itemIndex);
+        if (d != null) {
+            ViewGroup expandedLayout = (ViewGroup)v.findViewById(R.id.expanded_layout);
+            if ( expandedLayout != null ) {
+                // We need to expand / contract the selected item
+                int lastExpanded = GenericDeviceViewHolder._expandedIndex;
+                if (GenericDeviceViewHolder._expandedIndex == itemIndex ) {
+                    GenericDeviceViewHolder._expandedIndex = -1;
+                    expandedLayout.setVisibility(View.GONE);
+                } else {
+                    GenericDeviceViewHolder._expandedIndex = itemIndex;
+                    expandedLayout.setVisibility(View.VISIBLE);
+                }
+                _adapter.notifyItemChanged(itemIndex);
+                if ( lastExpanded != -1 ) {
+                    _adapter.notifyItemChanged(lastExpanded);
+                }
+            } else {
                 // Put the device into LAN mode before pushing the detail fragment
                 MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {

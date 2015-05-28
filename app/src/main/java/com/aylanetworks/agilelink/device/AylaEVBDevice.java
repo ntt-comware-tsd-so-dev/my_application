@@ -160,11 +160,11 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         // Device name
+        super.bindViewHolder(holder);
+
         AylaEVBDeviceViewHolder h = (AylaEVBDeviceViewHolder) holder;
         Resources res = MainActivity.getInstance().getResources();
-
-        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
-
+        
         h._deviceNameTextView.setText(getDevice().getProductName());
 
         // Blue button state
@@ -180,14 +180,6 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
         bulbId = isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown;
         h._blueButton.setImageDrawable(res.getDrawable(bulbId));
         h._blueButton.setOnClickListener(this);
-
-        // Is this a shared device?
-        int color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
-        if (!getDevice().amOwner()) {
-            // Yes, this device is shared.
-            color = res.getColor(R.color.card_shared_text);
-        }
-        h._deviceNameTextView.setTextColor(color);
     }
 
     @Override
