@@ -36,6 +36,7 @@
     <style name="DeviceListItemStatusTextView" parent="@android:style/TextAppearance.Small">
         <item name="android:textStyle">italic</item>
         <item name="android:gravity">center_vertical|right</item>
+        <item name="android:textColor">@color/card_detail_text</item>
         <item name="android:fontFamily">@string/font_family</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_margin">10dp</item>
