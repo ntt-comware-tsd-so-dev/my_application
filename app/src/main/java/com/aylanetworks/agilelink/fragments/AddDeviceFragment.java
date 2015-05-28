@@ -195,8 +195,6 @@ public class AddDeviceFragment extends Fragment
         // Stop polling
         SessionManager.deviceManager().stopPolling();
 
-        doScan();
-
         return view;
     }
 
@@ -384,6 +382,7 @@ public class AddDeviceFragment extends Fragment
             Logger.logInfo(LOG_TAG, "rn: registrationScanNextStep %d:%s", msg.arg1, msg.obj);
             if ( msg.arg1 == AylaNetworks.AML_ERROR_OK_NO_CONTENT ) {
                 // No registration candidates found
+                Toast.makeText(getActivity(), R.string.no_devices_found, Toast.LENGTH_LONG).show();
                 dismissWaitDialog();
             } else {
                 _nodeRegistrationGateway.processRegistrationScan(this);
