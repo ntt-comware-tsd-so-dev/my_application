@@ -104,7 +104,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      */
     static {
         _uiConfig = new UIConfig();
-        _uiConfig._listStyle = UIConfig.ListStyle.Grid;
+        _uiConfig._listStyle = UIConfig.ListStyle.ExpandingList;
         _uiConfig._navStyle = UIConfig.NavStyle.Drawer;
     }
 
@@ -765,15 +765,12 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            int displayMode = getUIConfig()._listStyle == UIConfig.ListStyle.List ?
-                    AllDevicesFragment.DISPLAY_MODE_LIST : AllDevicesFragment.DISPLAY_MODE_GRID;
-
             switch (position) {
                 case 0:
-                    return AllDevicesFragment.newInstance(displayMode);
+                    return AllDevicesFragment.newInstance();
 
                 case 1:
-                    return DeviceGroupsFragment.newInstance(displayMode);
+                    return DeviceGroupsFragment.newInstance();
 
                 case 2:
                     return SettingsFragment.newInstance();

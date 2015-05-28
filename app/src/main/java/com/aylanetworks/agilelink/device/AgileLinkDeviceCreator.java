@@ -75,6 +75,18 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 // This is a Zigbee dimmable light.
                 return new ZigbeeDimmableLightDevice(aylaDevice);
             }
+            if (aylaDevice.model.equals("Wireless_Switch")) {
+                // This is a Zigbee remote switch.
+                return new ZigbeeWirelessSwitch(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Motion_Sensor") || aylaDevice.model.equals("Motion_Sens")) {
+                // This is a Zigbee motion sensor.
+                return new ZigbeeMotionSensor(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Door_Sensor")) {
+                // This is a Zigbee door sensor.
+                return new ZigbeeDoorSensor(aylaDevice);
+            }
         }
 
         //  We don't know what this is. Create a generic device.
@@ -85,21 +97,27 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
         View v;
-        boolean isGrid = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.Grid;
+        UIConfig.ListStyle listStyle = MainActivity.getUIConfig()._listStyle;
         int resId;
         switch (viewType) {
             case ITEM_VIEW_TYPE_DEVKIT_DEVICE:
-                resId = isGrid ? R.layout.cardview_ayla_evb_device_grid : R.layout.cardview_ayla_evb_device;
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_ayla_evb_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_ayla_evb_device_expandable :
+                                R.layout.cardview_ayla_evb_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new AylaEVBDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_SWITCHED:
-                resId = isGrid ? R.layout.cardview_switched_device_grid : R.layout.cardview_switched_device;
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_switched_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
+                                R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
-                resId = isGrid ? R.layout.cardview_generic_device_grid : R.layout.cardview_generic_device;
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_generic_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_generic_device_expandable :
+                                R.layout.cardview_generic_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
         }

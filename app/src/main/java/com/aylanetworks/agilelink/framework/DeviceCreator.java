@@ -65,8 +65,22 @@ public class DeviceCreator {
      * @return The ViewHolder appropriate for the viewType
      */
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
-        int resId = MainActivity.getUIConfig()._listStyle == UIConfig.ListStyle.List ?
-                R.layout.cardview_generic_device : R.layout.cardview_generic_device_grid;
+        int resId;
+        switch (MainActivity.getUIConfig()._listStyle) {
+            case List:
+                resId = R.layout.cardview_generic_device;
+                break;
+
+            case ExpandingList:
+                resId = R.layout.cardview_generic_device_expandable;
+                break;
+
+            case Grid:
+            default:
+                resId = R.layout.cardview_generic_device_grid;
+                break;
+        }
+
         View v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
         return new GenericDeviceViewHolder(v);
     }

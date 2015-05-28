@@ -10,4 +10,8 @@
     <dimen name="group_button_padding">8dp</dimen>
     <dimen name="drawer_width">240dp</dimen>
     <dimen name="submenu_margin">12dp</dimen>
+
+    <!-- Space scrollable at the bottom of the All Devices / Groups views so the user can
+    scroll up from the + button without obscuring the last item in a long list -->
+    <dimen name="device_list_padding">80dp</dimen>
 </resources>

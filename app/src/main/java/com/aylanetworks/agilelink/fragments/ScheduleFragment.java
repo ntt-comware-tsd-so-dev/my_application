@@ -97,7 +97,7 @@ public class ScheduleFragment extends Fragment {
             R.id.button_saturday
     };
 
-    static ScheduleFragment newInstance(Device device, int scheduleIndex) {
+    public static ScheduleFragment newInstance(Device device, int scheduleIndex) {
         Bundle args = new Bundle();
         args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
         args.putInt(ARG_SCHEDULE_INDEX, scheduleIndex);

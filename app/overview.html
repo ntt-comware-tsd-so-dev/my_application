@@ -124,6 +124,15 @@ throughout the application. Modifying the initial 6 colors will change the color
 customization can be achieved through modifying the remaining colors individually. Those colors default to references to one of 
 the 6 app_theme colors.
 
+<h4>UI Task Table</h4>
+<table border="1" style="width:80%">
+    <tr><th>I want to</th><th>Here&apos;s how:</th></tr>
+    <tr><td>Change the application font</td><td>Change the <i>fontFamily</i> field in <i>config.xml</i></td></tr>
+    <tr><td>Change the way the list of devices is presented</td><td>Update the listStyle of UIConfig in MainActivity.java</td></tr>
+    <tr><td>Set an image for my new device</td><td>Override {@link com.aylanetworks.agilelink.framework.Device#getDeviceDrawable} in your new device class</td></tr>
+    <tr><td>Use swipe navigation instead of a pager</td><td>Update the navStyle of UIConfig in MainActivity.java</td></tr>
+</table>
+
 <h2>Application Flow</h2>
 <ul>
     <li>Application is launched</li>

@@ -44,12 +44,8 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     private HorizontalScrollView _buttonScrollView;
     private DeviceGroup _selectedGroup;
 
-    public static DeviceGroupsFragment newInstance(int displayMode) {
-        DeviceGroupsFragment fragment = new DeviceGroupsFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_DISPLAY_MODE, displayMode);
-        fragment.setArguments(args);
-        return fragment;
+    public static DeviceGroupsFragment newInstance() {
+        return new DeviceGroupsFragment();
     }
 
     public DeviceGroupsFragment() {

@@ -3,6 +3,7 @@
     android:id="@+id/card_view"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    card_view:cardBackgroundColor="@color/card_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="5dp"
@@ -24,11 +25,10 @@
 
         <TextView
             android:id="@+id/trigger_property"
+            style="@style/DeviceListItemStatusTextView"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_gravity="end|center_vertical"
-            android:textColor="@color/app_theme_primary_dark"
-            android:textStyle="italic"
             android:layout_height="wrap_content"/>
     </LinearLayout>
 

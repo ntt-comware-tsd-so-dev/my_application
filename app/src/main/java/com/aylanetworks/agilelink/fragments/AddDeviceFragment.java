@@ -14,7 +14,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -29,7 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
@@ -64,7 +62,7 @@ import java.util.Map;
 
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, Gateway.GatewayStatusListener {
+        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 
     private static final int REG_TYPE_SAME_LAN = 0;
@@ -88,6 +86,7 @@ public class AddDeviceFragment extends Fragment
     private Spinner _spinnerRegistrationType;
     private Spinner _spinnerGatewaySelection;
     private TextView _descriptionTextView;
+    private int _registrationType = REG_TYPE_SAME_LAN;
 
     private static boolean _needsExit;
 
@@ -115,7 +114,9 @@ public class AddDeviceFragment extends Fragment
             exitSetup();
         }
 
-        ensureJoinWindowClosed();
+        if (_nodeRegistrationGateway != null) {
+            _nodeRegistrationGateway.cleanupRegistrationScan();
+        }
 
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().startPolling();
@@ -155,13 +156,28 @@ public class AddDeviceFragment extends Fragment
 
         // Populate the spinners for product type & registration type
         Spinner s = (Spinner) view.findViewById(R.id.spinner_product_type);
-        s.setOnItemSelectedListener(this);
         s.setAdapter(createProductTypeAdapter());
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        if ((gateways != null) && (gateways.size() > 0)) {
+            // If they have a gateway, then default to Zigbee Node
+            int index = 0;
+            List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
+            for (Class<? extends Device> c : deviceClasses) {
+                if (c.getSimpleName().equals("ZigbeeNodeDevice")) {
+                    _nodeRegistrationGateway = gateways.get(0);
+                    _registrationType = REG_TYPE_NODE;
+                    s.setSelection(index);
+                    break;
+                }
+                index++;
+            }
+        }
+        s.setOnItemSelectedListener(this);
 
         s = _spinnerRegistrationType = (Spinner)view.findViewById(R.id.spinner_registration_type);
         ArrayAdapter<CharSequence>  adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        s.setSelection(REG_TYPE_SAME_LAN);
+        s.setSelection(_registrationType);
         s.setOnItemSelectedListener(this);
         s.setAdapter(adapter);
 
@@ -179,9 +195,13 @@ public class AddDeviceFragment extends Fragment
         // Stop polling
         SessionManager.deviceManager().stopPolling();
 
-        doScan();
-
         return view;
+    }
+
+    void dismissWaitDialog() {
+        StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+        Logger.logDebug(LOG_TAG, "rn: dismissWaitDialog called from %s", stacktrace[3].getMethodName());
+        MainActivity.getInstance().dismissWaitDialog();
     }
 
     ArrayAdapter<Device> createGatewayAdapter() {
@@ -236,6 +256,7 @@ public class AddDeviceFragment extends Fragment
             int spinnerVisible = View.VISIBLE;
             boolean showGateways = false;
             int textId;
+            _registrationType = position;
             switch (position) {
                 case REG_TYPE_BUTTON_PUSH:
                 default:
@@ -270,10 +291,10 @@ public class AddDeviceFragment extends Fragment
             Gateway gateway = (Gateway) parent.getAdapter().getItem(position);
             if (gateway != null) {
                 Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDevice().dsn + "]");
-                mNodeRegistrationGateway = gateway;
+                _nodeRegistrationGateway = gateway;
             } else {
                 Logger.logError(LOG_TAG, "rn: no gateway");
-                mNodeRegistrationGateway = null;
+                _nodeRegistrationGateway = null;
             }
         }
 
@@ -303,154 +324,20 @@ public class AddDeviceFragment extends Fragment
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
-    enum NodeRegistrationFindState {
-        NotStarted,
-        Started,
-        OpenJoinWindow,
-        FindDevices,
-    }
-
-    private void ensureJoinWindowClosed() {
-        if (mNodeRegistrationGateway != null) {
-            // We need to do this any time the join window is left open
-            Logger.logInfo(LOG_TAG, "rn: Register node close join window");
-            mNodeRegistrationGateway.closeJoinWindow(AddDeviceFragment.this);        // close the join window
-        }
-    }
-
-    private NodeRegistrationFindState mNodeRegistrationState = NodeRegistrationFindState.NotStarted;
-    private Gateway mNodeRegistrationGateway;
-    private List<AylaDeviceNode> mNodeRegistrationCandidates;
-
-    public void gatewayRegisterCandidateComplete(Gateway gateway, AylaDeviceNode node, Message msg) {
-        Logger.logInfo(LOG_TAG, "rn: gatewayRegisterCandidateComplete " + msg.what + ":" + msg.arg1);
-        MainActivity.getInstance().dismissWaitDialog();
-        if (AylaNetworks.succeeded(msg)) {
-            Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-            // TODO: do we need to add it to some list?
-            Logger.logInfo(LOG_TAG, "rn: registered node [" + node.dsn + "]:[" + node.model + "]");
-            // TODO: rename it
-            // now we need to rename it...
-        } else {
-            Logger.logError(LOG_TAG, "rn: failed to register node. error=" + msg.what + ":" + msg.arg1);
-            Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_device_node, Toast.LENGTH_LONG).show();
-        }
-        ensureJoinWindowClosed();
-    }
-
-    public void gatewayGetRegistrationCandidatesComplete(Gateway gateway, List<AylaDeviceNode> list, Message msg) {
-        Logger.logInfo(LOG_TAG, "rn: gatewayGetRegistrationCandidatesComplete " + msg.what + ":" + msg.arg1);
-        if (AylaNetworks.succeeded(msg)) {
-            // we have a list of candidates...
-            mNodeRegistrationCandidates = list;
-
-            // for now, we are just going to register the first one...
-            final AylaDeviceNode node = list.get(0);
-            MainActivity.getInstance().runOnUiThread(new Runnable() {
-                public void run() {
-                    mNodeRegistrationGateway.registerCandidate(node, AddDeviceFragment.this);
-                }
-            });
-        } else {
-            if (msg.arg1 == 412) {
-                // invoke it again manually (412: retry open join window)
-                mNodeRegistrationState = NodeRegistrationFindState.Started;
-                nextNodeRegistrationStep();
-            } else if (msg.arg1 == 404) {
-                // invoke it again manually (404: retry get candidates)
-                Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed 404");
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {		// don't flood with retries
-                    @Override
-                    public void run() {
-                        Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed run");
-                        if (mNodeRegistrationGateway.getPropertyBooleanJoinStatus()) {
-                            Logger.logInfo(LOG_TAG, "rn: Register node GRC FindDevices");
-                            mNodeRegistrationGateway.getRegistrationCandidates(AddDeviceFragment.this);
-                        } else {
-                            MainActivity.getInstance().dismissWaitDialog();
-                            mNodeRegistrationState = NodeRegistrationFindState.NotStarted;                        }
-                    }
-                }, 5000);									// Delay 5 seconds
-
-            } else {
-                // error message (restart)
-                mNodeRegistrationState = NodeRegistrationFindState.NotStarted;
-                MainActivity.getInstance().dismissWaitDialog();
-                Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_registration_candidates, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    public void gatewayOpenJoinWindowComplete(Gateway gateway, final Message msg) {
-        Logger.logInfo(LOG_TAG, "rn: gatewayOpenJoinWindowComplete " + msg.what + ":" + msg.arg1);
-        if (AylaNetworks.succeeded(msg)) {
-            nextNodeRegistrationStep();
-        } else {
-            mNodeRegistrationState = NodeRegistrationFindState.NotStarted;
-            MainActivity.getInstance().dismissWaitDialog();
-            Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_join_window, Toast.LENGTH_LONG).show();
-        }
-    }
-
-
-    private void nextNodeRegistrationStep() {
-        Logger.logInfo(LOG_TAG, "rn: Register node state=" + mNodeRegistrationState);
-        if (mNodeRegistrationState == NodeRegistrationFindState.Started) {
-            Logger.logInfo(LOG_TAG, "rn: Register node get property join_status");
-            if (mNodeRegistrationGateway.getPropertyBooleanJoinStatus()) {
-                Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=true)");
-                Logger.logInfo(LOG_TAG, "rn: Register node FindDevices");
-                mNodeRegistrationState = NodeRegistrationFindState.FindDevices;
-                mNodeRegistrationGateway.getRegistrationCandidates(this);
-            } else {
-                Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=false)");
-                Logger.logInfo(LOG_TAG, "rn: Register node OpenJoinWindow");
-                mNodeRegistrationState = NodeRegistrationFindState.OpenJoinWindow;
-                mNodeRegistrationGateway.openJoinWindow(this);
-            }
-        } else if (mNodeRegistrationState == NodeRegistrationFindState.OpenJoinWindow) {
-            Logger.logInfo(LOG_TAG, "rn: Register node FindDevices");
-            mNodeRegistrationState = NodeRegistrationFindState.FindDevices;
-            mNodeRegistrationGateway.getRegistrationCandidates(this);
-        }
-    }
+    private Gateway _nodeRegistrationGateway;
 
     private void registerButtonClick() {
         // Register button clicked
-        String regType = getSelectedRegistrationType();
-        Logger.logInfo(LOG_TAG, "rn: Register clicked [" + regType + "]");
-        if (TextUtils.equals(regType, AylaNetworks.AML_REGISTRATION_TYPE_NODE)) {
+        if (_registrationType == REG_TYPE_NODE) {
             // we need something to register...
             Logger.logError(LOG_TAG, "rn: Register node no device node to register!");
             Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_no_device, Toast.LENGTH_LONG).show();
         } else {
+            Logger.logInfo(LOG_TAG, "rn: registerNewDevice");
             MainActivity.getInstance().showWaitDialog(null, null);
             AylaDevice newDevice = new AylaDevice();
-            newDevice.registrationType = regType;
+            newDevice.registrationType = getSelectedRegistrationType();
             registerNewDevice(newDevice);
-        }
-    }
-
-    private void scanButtonClick() {
-        // Scan button clicked
-        String regType = getSelectedRegistrationType();
-        Logger.logInfo(LOG_TAG, "rn: Scan clicked [" + regType + "]");
-        if (TextUtils.equals(regType, AylaNetworks.AML_REGISTRATION_TYPE_NODE)) {
-            if (mNodeRegistrationGateway == null) {
-                Logger.logError(LOG_TAG, "rn: Register node has no gateway!");
-                Toast.makeText(MainActivity.getInstance(), R.string.error_no_gateway, Toast.LENGTH_LONG).show();
-            } else {
-                // Put up a progress dialog
-                MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
-                        getString(R.string.scanning_for_devices_message));
-
-                Logger.logInfo(LOG_TAG, "rn: Register node for gateway [" + mNodeRegistrationGateway.getDevice().dsn + "]");
-                mNodeRegistrationState = NodeRegistrationFindState.Started;
-                nextNodeRegistrationStep();
-            }
-        } else {
-            doScan();
         }
     }
 
@@ -464,7 +351,7 @@ public class AddDeviceFragment extends Fragment
                 break;
 
             case R.id.scan_button:
-                scanButtonClick();
+                doScan();
                 break;
         }
     }
@@ -490,13 +377,95 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    private void doScan() {
-        // Put up a progress dialog
-        MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
-                getString(R.string.scanning_for_devices_message));
+    public void registrationScanNextStep(Message msg, int messageResourceId) {
+        if (msg.what == AylaNetworks.AML_ERROR_OK) {
+            Logger.logInfo(LOG_TAG, "rn: registrationScanNextStep %d:%s", msg.arg1, msg.obj);
+            if ( msg.arg1 == AylaNetworks.AML_ERROR_OK_NO_CONTENT ) {
+                // No registration candidates found
+                Toast.makeText(getActivity(), R.string.no_devices_found, Toast.LENGTH_LONG).show();
+                dismissWaitDialog();
+            } else {
+                _nodeRegistrationGateway.processRegistrationScan(this);
+            }
+        } else {
+            Logger.logError(LOG_TAG, "rn: registrationScanNextStep %d:%d:%s", msg.what, msg.arg1, msg.obj);
+            dismissWaitDialog();
+            if (messageResourceId != 0) {
+                Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 
-        Logger.logVerbose(LOG_TAG, "calling returnHostScanForNewDevices...");
-        AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
+    private void showMessage(int resourceId){
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+        alertDialog.setTitle("Attention");
+        alertDialog.setMessage(getString(resourceId));
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+    }
+
+    public void registrationComplete(Device device, Message msg, int messageResourceId) {
+        dismissWaitDialog();
+        if (messageResourceId != 0) {
+            Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
+        }
+        if (AylaNetworks.succeeded(msg)) {
+            Logger.logInfo(LOG_TAG, "rn: registrationComplete %d:%s", msg.arg1, msg.obj);
+
+            int resourceId = device.hasPostRegistrationProcessingResourceId();
+            if (resourceId > 0) {
+                showMessage(resourceId);
+            }
+
+            // HELP: do we want to do this here?
+            /*
+            MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+            // Now update the device notifications
+            DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
+            helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                @Override
+                public void newDeviceUpdated(Device device, int error) {
+                    MainActivity mainActivity = MainActivity.getInstance();
+                    mainActivity.dismissWaitDialog();
+                    int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                    Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                    SessionManager.deviceManager().refreshDeviceList();
+                }
+            });
+            */
+
+
+        } else {
+            Logger.logError(LOG_TAG, "rn: registrationComplete %d:%d:%s", msg.what, msg.arg1, msg.obj);
+        }
+    }
+
+    private void doScan() {
+        if (_registrationType==REG_TYPE_NODE) {
+            if (_nodeRegistrationGateway == null) {
+                Logger.logError(LOG_TAG, "rn: Register node has no gateway!");
+                Toast.makeText(MainActivity.getInstance(), R.string.error_no_gateway, Toast.LENGTH_LONG).show();
+            } else {
+                // Put up a progress dialog
+                MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
+                        getString(R.string.scanning_for_devices_message));
+
+                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
+                _nodeRegistrationGateway.startRegistrationScan(this);
+            }
+        } else {
+            // Put up a progress dialog
+            MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
+                    getString(R.string.scanning_for_devices_message));
+
+            Logger.logVerbose(LOG_TAG, "rn: returnHostScanForNewDevices");
+            AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
+        }
     }
 
     @Override

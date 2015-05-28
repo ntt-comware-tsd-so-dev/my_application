@@ -8,6 +8,7 @@
         <item name="colorPrimary">@color/app_theme_primary</item>
         <item name="colorPrimaryDark">@color/app_theme_primary_dark</item>
         <item name="colorAccent">@color/app_theme_accent</item>
+        <item name="android:fontFamily">@string/font_family</item>
         <item name="android:buttonStyle">@style/AgileLinkButton</item>
     </style>
 
@@ -16,22 +17,27 @@
         <item name="android:textColor">@color/button_fg</item>
         <item name="android:paddingTop">6dp</item>
         <item name="android:paddingBottom">6dp</item>
-        <item name="android:textSize">18dp</item>
+        <item name="android:fontFamily">@string/font_family</item>
+        <item name="android:textSize">18sp</item>
     </style>
 
     <!-- Style for text views in list items that show the device name -->
     <style name="DeviceListItemTextView" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/card_text</item>
+        <item name="android:fontFamily">@string/font_family</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">10dp</item>
     </style>
 
     <!-- Style for the device status, shown to the right of list view items -->
-    <style name="DeviceListItemStatusTextView" parent="@android:style/TextAppearance.Medium">
+    <style name="DeviceListItemStatusTextView" parent="@android:style/TextAppearance.Small">
         <item name="android:textStyle">italic</item>
         <item name="android:gravity">center_vertical|right</item>
+        <item name="android:textColor">@color/card_detail_text</item>
+        <item name="android:fontFamily">@string/font_family</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_margin">10dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -42,6 +48,7 @@
     <style name="ContactTextView" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
         <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@string/font_family</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">10dp</item>
@@ -54,6 +61,7 @@
         <item name="android:gravity">center</item>
         <item name="android:padding">5dp</item>
         <item name="android:paddingTop">20dp</item>
+        <item name="android:fontFamily">@string/font_family</item>
         <item name="android:textColor">@color/title_bar_text</item>
     </style>
 
@@ -66,6 +74,7 @@
     <style name="Submenu_text" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
         <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@string/font_family</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginLeft">10dp</item>
