@@ -24,12 +24,9 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
-import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
+import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
-import com.aylanetworks.agilelink.fragments.ScheduleFragment;
-
-import org.apache.log4j.chainsaw.Main;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -793,7 +790,7 @@ public class Device implements Comparable<Device> {
             h._notificationsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(PropertyNotificationFragment.newInstance(Device.this));
+                    MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(Device.this));
                 }
             });
             h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
