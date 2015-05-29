@@ -44,7 +44,7 @@ public class ZigbeeWirelessSwitch extends Device {
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
         if (propertyName.equals(PROPERTY_ZB_REMOTE_SWITCH)) {
-            return MainActivity.getInstance().getString(R.string.property_motion_sensor_friendly_name);
+            return MainActivity.getInstance().getString(R.string.property_remote_switch_friendly_name);
         }
         return super.friendlyNameForPropertyName(propertyName);
     }
