@@ -16,7 +16,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +71,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private ImageView _imageView;
     private Button _scheduleButton;
     private Button _notificationsButton;
-
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -344,10 +342,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.i(LOG_TAG, "Unregister Device: " + _device);
-
-                        // Remove the device from all groups
-                        SessionManager.deviceManager().getGroupManager().removeDeviceFromAllGroups(_device);
-                        _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
+                        _device.unregisterDevice(_unregisterDeviceHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)

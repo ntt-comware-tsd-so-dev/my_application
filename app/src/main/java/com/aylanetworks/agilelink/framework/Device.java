@@ -147,6 +147,32 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Override to provide additional initialization that must be completed after the device
+     * has been added to the device list.  Do not do any lengthy or server related initialization
+     * in the constructor, save all that for this deviceAdded method.
+     */
+    public void deviceAdded() { }
+
+    /**
+     * Override to provide additional actions that must be performed when unregistering a device.
+     * Always invoke the super
+     *
+     * @param handler
+     */
+    public void unregisterDevice(Handler handler) {
+        // Remove the device from all groups
+        SessionManager.deviceManager().getGroupManager().removeDeviceFromAllGroups(this);
+
+        if (isDeviceNode()) {
+            Gateway gateway = Gateway.getGatewayForDeviceNode(this);
+            gateway.removeDeviceNode(this);
+        }
+
+        // Unregister the device
+        getDevice().unregisterDevice(handler);
+    }
+
+    /**
      * Gets the latest device status from the server and calls listener when done.
      * Derived classes can perform other operations to obtain information about the device state.
      * This method is called whenever the DeviceManager's device status timer is hit, or if in
@@ -899,8 +925,26 @@ public class Device implements Comparable<Device> {
         return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
     }
 
+    /**
+     * Override to provide additional initialization that must be completed after registering
+     * the device.
+     */
     public void postRegistration() { }
 
+    /**
+     * Override to provide additional initialization that must be completed after registering
+     * the device. notifyDeviceStatusChanged is called when complete.
+     *
+     * @param gateway The gateway that the device node is linked to.
+     */
+    public void postRegistrationForGatewayDevice(Gateway gateway) { }
+
+    /**
+     * Override to provide the resource string for a dialog box presented to the user after
+     * registering the device.
+     *
+     * @return String resource id.
+     */
     public int hasPostRegistrationProcessingResourceId() { return 0; }
 
     /**

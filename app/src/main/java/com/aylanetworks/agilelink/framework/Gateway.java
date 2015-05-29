@@ -13,9 +13,10 @@ import com.aylanetworks.aaml.AylaDeviceGateway;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
+import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.google.gson.JsonElement;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -37,6 +38,22 @@ public class Gateway extends Device {
 
     private final static String PROPERTY_JOIN_ENABLE = "join_enable";
     private final static String PROPERTY_JOIN_STATUS = "join_status";
+
+    private final static long SCAN_TIMEOUT = (30 * 1000);
+
+    /**
+     * Get the gateway for a device.
+     *
+     * @param device The Device to get the gateway for.
+     * @return Gateway.  Null if the device is not a DeviceNode.
+     */
+    public static Gateway getGatewayForDeviceNode(Device device) {
+        if (device.isDeviceNode()) {
+            AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+            return (Gateway)SessionManager.deviceManager().deviceByDSN(adn.gatewayDsn);
+        }
+        return null;
+    }
 
     /**
      * Interface used when scanning for and registering a gateway's device nodes
@@ -66,12 +83,64 @@ public class Gateway extends Device {
 
     }
 
+    // We need a simple, generic completion handler to use when performing a lot of different
+    // steps that do not need notification along the way to anybody but the one performing
+    // the steps.
+    public interface AylaGatewayCompletionHandler {
+
+        public void handle(Gateway gateway, Message msg, Object tag);
+    }
+
     public Gateway(AylaDevice aylaDevice) {
         super(aylaDevice);
     }
 
+    @Override
+    public void deviceAdded() {
+        getGroupManager().fetchZigbeeGroupsIfNeeded();
+        getBindingManager().fetchZigbeeBindingsIfNeeded();
+    }
+
     public AylaDeviceGateway getGatewayDevice() {
         return (AylaDeviceGateway)getDevice();
+    }
+
+    public void removeDeviceNode(Device device) {
+
+    }
+
+    private ZigbeeGroupManager _groupManager;
+
+    public ZigbeeGroupManager getGroupManager() {
+        if (_groupManager == null) {
+            _groupManager = (ZigbeeGroupManager)SessionManager.deviceManager().getDeviceAssistantManager(this, ZigbeeGroupManager.class);
+        }
+        return _groupManager;
+    }
+
+    private ZigbeeBindingManager _bindingManager;
+
+    public ZigbeeBindingManager getBindingManager() {
+        if (_bindingManager == null) {
+            _bindingManager = (ZigbeeBindingManager)SessionManager.deviceManager().getDeviceAssistantManager(this, ZigbeeBindingManager.class);
+        }
+        return _bindingManager;
+    }
+
+    public void createGroup(String groupName, List<Device>deviceList, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().createGroup(groupName, deviceList, tag, handler);
+    }
+
+    public void deleteGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().deleteGroup(group, tag, handler);
+    }
+
+    public void createBinding(AylaBindingZigbee binding, Object tag, AylaGatewayCompletionHandler handler) {
+        getBindingManager().createBinding(binding, tag, handler);
+    }
+
+    public void deleteBinding(AylaBindingZigbee binding, Object tag, AylaGatewayCompletionHandler handler) {
+        getBindingManager().deleteBinding(binding, tag, handler);
     }
 
     @Override
@@ -130,6 +199,7 @@ public class Gateway extends Device {
      */
     public void startRegistrationScan(GatewayNodeRegistrationListener listener) {
         _nodeRegistrationState = NodeRegistrationFindState.Started;
+        _nodeRegistrationStarted = System.currentTimeMillis();
         nextNodeRegistrationStep(listener);
     }
 
@@ -161,6 +231,7 @@ public class Gateway extends Device {
 
     NodeRegistrationFindState _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
     List<AylaDeviceNode> _nodeRegistrationCandidates;
+    long _nodeRegistrationStarted;
 
     void nextNodeRegistrationStep(GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: Register node state=" + _nodeRegistrationState);
@@ -279,27 +350,38 @@ public class Gateway extends Device {
             });
         } else {
             if (msg.arg1 == 412) {
-                // invoke it again manually (412: retry open join window)
-                _nodeRegistrationState = NodeRegistrationFindState.Started;
-                listener.registrationScanNextStep(getSucceededMessage(), 0);
+                if (System.currentTimeMillis() - _nodeRegistrationStarted > SCAN_TIMEOUT) {
+                    Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
+                    _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
+                    listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
+                } else {
+                    // invoke it again manually (412: retry open join window)
+                    _nodeRegistrationState = NodeRegistrationFindState.Started;
+                    listener.registrationScanNextStep(getSucceededMessage(), 0);
+                }
             } else if (msg.arg1 == 404) {
-                // invoke it again manually (404: retry get candidates)
-                Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed 404");
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {		// don't flood with retries
-                    @Override
-                    public void run() {
-                        Logger.logInfo(LOG_TAG, "rn: Register node GRC postDelayed run");
-                        if (getPropertyBooleanJoinStatus()) {
-                            Logger.logInfo(LOG_TAG, "rn: Register node GRC FindDevices");
-                            getRegistrationCandidates(listener);
-                        } else {
-                            _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
-                            listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
+                if (System.currentTimeMillis() - _nodeRegistrationStarted > SCAN_TIMEOUT) {
+                    Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
+                    _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
+                    listener.registrationScanNextStep(msg, R.string.no_devices_found);
+                } else {
+                    // invoke it again manually (404: retry get candidates)
+                    Logger.logVerbose(LOG_TAG, "rn: Register node GRC postDelayed 404");
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {        // don't flood with retries
+                        @Override
+                        public void run() {
+                            Logger.logVerbose(LOG_TAG, "rn: Register node GRC postDelayed run");
+                            if (getPropertyBooleanJoinStatus()) {
+                                Logger.logVerbose(LOG_TAG, "rn: Register node GRC FindDevices");
+                                getRegistrationCandidates(listener);
+                            } else {
+                                _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
+                                listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
+                            }
                         }
-                    }
-                }, 5000);									// Delay 5 seconds
-
+                    }, 5000);                                    // Delay 5 seconds
+                }
             } else {
                 // error message (restart)
                 _nodeRegistrationState = NodeRegistrationFindState.NotStarted;
@@ -418,17 +500,19 @@ public class Gateway extends Device {
         @Override
         public void handleMessage(Message msg) {
             Logger.logMessage(LOG_TAG, "rn: ChangeName", msg);
+            Device device = _device.get();
             if (AylaNetworks.succeeded(msg)) {
-                _device.get().getDevice().productName = _newDeviceName;
+                device.getDevice().productName = _newDeviceName;
                 // Let the world know something is different
                 SessionManager.deviceManager().deviceChanged(_device.get());
             }
             _gateway.get().closeJoinWindow();
 
             // Here we will create our groups & bindings
-            _device.get().postRegistration();
+            Logger.logVerbose(LOG_TAG, "zg: registration complete [%s] [%s] (%s)", device.getDevice().dsn, _newDeviceName, device.getClass().getSimpleName());
+            device.postRegistrationForGatewayDevice(_gateway.get());
 
-            _listener.registrationComplete(_device.get(), msg, R.string.gateway_registered_device_node);
+            _listener.registrationComplete(device, msg, R.string.gateway_registered_device_node);
         }
     }
 }
