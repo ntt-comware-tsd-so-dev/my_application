@@ -96,9 +96,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
-        // TODO: remove this after DNS works
-        SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
-
         setContentView(R.layout.login);
 
         _username = (EditText) findViewById(R.id.userNameEditText);
