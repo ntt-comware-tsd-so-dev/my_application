@@ -221,7 +221,6 @@ public class AddDeviceFragment extends Fragment
                 e.printStackTrace();
             }
         }
-
         return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new Device[deviceList.size()]));
     }
 
@@ -380,13 +379,7 @@ public class AddDeviceFragment extends Fragment
     public void registrationScanNextStep(Message msg, int messageResourceId) {
         if (msg.what == AylaNetworks.AML_ERROR_OK) {
             Logger.logInfo(LOG_TAG, "rn: registrationScanNextStep %d:%s", msg.arg1, msg.obj);
-            if ( msg.arg1 == AylaNetworks.AML_ERROR_OK_NO_CONTENT ) {
-                // No registration candidates found
-                Toast.makeText(getActivity(), R.string.no_devices_found, Toast.LENGTH_LONG).show();
-                dismissWaitDialog();
-            } else {
-                _nodeRegistrationGateway.processRegistrationScan(this);
-            }
+            _nodeRegistrationGateway.processRegistrationScan(this);
         } else {
             Logger.logError(LOG_TAG, "rn: registrationScanNextStep %d:%d:%s", msg.what, msg.arg1, msg.obj);
             dismissWaitDialog();
@@ -422,8 +415,6 @@ public class AddDeviceFragment extends Fragment
                 showMessage(resourceId);
             }
 
-            // HELP: do we want to do this here?
-            /*
             MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
             // Now update the device notifications
             DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
@@ -437,8 +428,6 @@ public class AddDeviceFragment extends Fragment
                     SessionManager.deviceManager().refreshDeviceList();
                 }
             });
-            */
-
 
         } else {
             Logger.logError(LOG_TAG, "rn: registrationComplete %d:%d:%s", msg.what, msg.arg1, msg.obj);

@@ -178,6 +178,15 @@ public class Logger implements Thread.UncaughtExceptionHandler {
         intLogMessage(LogLevel.Error, tag, msg);
     }
 
+    public static void logError(String tag, Exception ex) {
+        intLogMessage(LogLevel.Error, tag, ex.getLocalizedMessage());
+    }
+
+    public static void logError(String tag, Exception ex, String fmt, Object... args) {
+        String detail = String.format(fmt, args);
+        intLogMessage(LogLevel.Error, tag, String.format("%s '%s'", detail, ex.getLocalizedMessage()));
+    }
+
     public static void logError(String tag, String fmt, Object... args) {
         intLogMessage(LogLevel.Error, tag, String.format(fmt, args));
     }

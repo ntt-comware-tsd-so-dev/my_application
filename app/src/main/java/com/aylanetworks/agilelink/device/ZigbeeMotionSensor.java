@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
@@ -31,7 +32,20 @@ public class ZigbeeMotionSensor extends Device {
     }
 
     @Override
+    public String[] getNotifiablePropertyNames() {
+        return new String[]{PROPERTY_ZB_INPUT};
+    }
+
+    @Override
     public String getObservablePropertyName() { return PROPERTY_ZB_MOTION_SENSOR;  }
+
+    @Override
+    public String friendlyNameForPropertyName(String propertyName) {
+        if (propertyName.equals(PROPERTY_ZB_MOTION_SENSOR)) {
+            return MainActivity.getInstance().getString(R.string.property_remote_switch_friendly_name);
+        }
+        return super.friendlyNameForPropertyName(propertyName);
+    }
 
     @Override
     public String deviceTypeName() {

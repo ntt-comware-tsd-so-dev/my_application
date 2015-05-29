@@ -1,109 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="fill_parent"
-                android:background="@color/device_details_background"
-                android:clickable="true">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/device_details_background" >
 
-    <LinearLayout
-        android:id="@+id/top_layout_container"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/device_image"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="0"
-            />
+        android:layout_height="fill_parent"
+        android:clickable="true">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/top_layout_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
             android:layout_margin="10dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/device_name"
-                android:layout_width="match_parent"
+            <ImageView
+                android:id="@+id/device_image"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="0"
+                />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|center_vertical"
                 android:layout_margin="10dp"
-                android:gravity="center"
-                android:text="Testing 123"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textStyle="bold"/>
-
-            <Button
-                android:id="@+id/schedule_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
                 android:layout_weight="1"
-                android:gravity="center"
-                android:text="@string/schedule"/>
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/device_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_margin="10dp"
+                    android:gravity="center"
+                    android:text="Testing 123"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textStyle="bold"/>
+
+                <Button
+                    android:id="@+id/schedule_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/schedule"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/device_properties"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/top_layout_container"
-        android:layout_margin="10dp"
-        android:gravity="left"
-        android:text="@string/device_properties"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold"/>
+        <TextView
+            android:id="@+id/device_properties"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/top_layout_container"
+            android:layout_margin="10dp"
+            android:gravity="left"
+            android:text="@string/device_properties"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold"/>
 
 
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/bottom_button_row"
-        android:layout_below="@id/device_properties"
-        android:layout_gravity="center"/>
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/bottom_button_row"
+            android:layout_below="@id/device_properties"
+            android:layout_gravity="center"/>
 
-    <!-- Layout for the button row at the bottom -->
+        <!-- Layout for the button row at the bottom -->
+
+        <LinearLayout
+            android:id="@+id/bottom_button_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/device_details_bottom_bar_background"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/notifications_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:padding="4dp"
+                android:gravity="center"
+                android:text="@string/notifications"/>
+
+            <Button
+                android:id="@+id/sharing_button"
+                style="@style/AgileLinkButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:padding="4dp"
+                android:text="@string/sharing_button_text"/>
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
 
     <LinearLayout
-        android:id="@+id/bottom_button_row"
+        android:id="@+id/factory_reset_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@color/device_details_bottom_bar_background"
-        android:baselineAligned="false"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone" >
 
-        <Button
-            android:id="@+id/notifications_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:padding="4dp"
+        <TextView
+            android:id="@+id/factory_reset_notice"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_margin="16dp"
             android:gravity="center"
-            android:text="@string/notifications"/>
-
-        <Button
-            android:id="@+id/sharing_button"
-            style="@style/AgileLinkButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:padding="4dp"
-            android:text="@string/sharing_button_text"/>
-
-
+            android:padding="16dp"
+            android:text="@string/factory_reset_in_progress"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
     </LinearLayout>
-
-</RelativeLayout>
+</FrameLayout>

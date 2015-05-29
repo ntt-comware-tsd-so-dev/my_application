@@ -225,6 +225,9 @@
     <string name="property_zigbee_output_friendly_name">Output</string>
     <string name="property_outlet_friendly_name">Switch</string>
     <string name="property_light_friendly_name">Light</string>
+    <string name="property_door_sensor_friendly_name">Door Sensor</string>
+    <string name="property_motion_sensor_friendly_name">Motion Sensor</string>
+    <string name="property_remote_switch_friendly_name">Remote Switch</string>
     <string name="turn_on">Turn on</string>
     <string name="turn_off">Turn off</string>
     <string name="blue_led">Blue LED</string>
@@ -384,5 +387,7 @@
     <string name="lan_mode_enabled">LAN Mode Enabled</string>
     <string name="online">Online</string>
     <string name="offline">Offline</string>
+    <string name="factory_reset_in_progress">Factory Reset in Progress</string>
+    <string name="factory_reset_in_progress_toast">Factory Reset in Progress</string>
 
 </resources>
