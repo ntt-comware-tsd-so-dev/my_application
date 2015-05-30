@@ -187,6 +187,14 @@ public class Gateway extends Device {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
+    enum NodeRegistrationFindState {
+        NotStarted,
+        Started,
+        OpenJoinWindow,
+        FindDevices,
+        Timeout,
+    }
+
     void openJoinWindow(ScanTag tag) {
         AylaDeviceGateway gateway = (AylaDeviceGateway) getDevice();
         Map<String, String> callParams = new HashMap<String, String>();
@@ -195,7 +203,7 @@ public class Gateway extends Device {
     }
 
     class GetPropertyJoinEnableHandler extends Handler {
-        private ScanTag _tag;
+        ScanTag _tag;
 
         GetPropertyJoinEnableHandler(ScanTag tag) {  _tag = tag; }
 
@@ -210,7 +218,7 @@ public class Gateway extends Device {
     }
 
     class RegistrationCandidatesHandler extends Handler {
-        private ScanTag _tag;
+        ScanTag _tag;
 
         RegistrationCandidatesHandler(ScanTag tag) { _tag = tag; }
 
@@ -224,8 +232,8 @@ public class Gateway extends Device {
     }
 
     class RegistrationCandidateHandler extends Handler {
-        private AylaDeviceNode _node;
-        private ScanTag _tag;
+        AylaDeviceNode _node;
+        ScanTag _tag;
 
         RegistrationCandidateHandler(AylaDeviceNode node, ScanTag tag) { _tag = tag; _node = node; }
 
@@ -282,28 +290,28 @@ public class Gateway extends Device {
     }
 
     class ScanTag {
-        public Gateway gateway;
-        public NodeRegistrationFindState state;
-        public long startTicks;
-        public GatewayNodeRegistrationListener listener;
-        public ScanTagCompletionHandler completion;
-        public List<AylaDeviceNode> list;
-        public Device device;
-        public int resourceId;
+        WeakReference<ScanTagCompletionHandler> _completion;
+        Gateway gateway;
+        NodeRegistrationFindState state;
+        long startTicks;
+        GatewayNodeRegistrationListener listener;
+        List<AylaDeviceNode> list;
+        Device device;
+        int resourceId;
 
         ScanTag(Gateway gateway, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
+            _completion = new WeakReference<ScanTagCompletionHandler>(completion);
             this.gateway = gateway;
             this.state = NodeRegistrationFindState.Started;
             this.startTicks = System.currentTimeMillis();
             this.listener = listener;
-            this.completion = completion;
         }
 
         void nextStep() {
             Logger.logInfo(LOG_TAG, "rn: Register node state=" + state);
             if (state == NodeRegistrationFindState.Started) {
                 Logger.logInfo(LOG_TAG, "rn: Register node get property join_status");
-                if (gateway.getPropertyBooleanJoinStatus()) {
+                if (gateway.getPropertyBoolean(PROPERTY_JOIN_STATUS)) {
                     Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=true)");
                     Logger.logInfo(LOG_TAG, "rn: Register node FindDevices");
                     state = NodeRegistrationFindState.FindDevices;
@@ -370,7 +378,9 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.error_gateway_registration_candidates;
-                        completion.handle(gateway, msg, this);
+                        if (_completion.get() != null) {
+                            _completion.get().handle(gateway, msg, this);
+                        }
                         //listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
                     } else {
                         // verify/set values again
@@ -379,12 +389,16 @@ public class Gateway extends Device {
                 } else {
                     state = NodeRegistrationFindState.NotStarted;
                     resourceId = R.string.error_gateway_join_window;
-                    completion.handle(gateway, msg, this);
+                    if (_completion.get() != null) {
+                        _completion.get().handle(gateway, msg, this);
+                    }
                 }
             } else {
                 state = NodeRegistrationFindState.NotStarted;
                 resourceId = R.string.error_gateway_join_window;
-                completion.handle(gateway, msg, this);
+                if (_completion.get() != null) {
+                    _completion.get().handle(gateway, msg, this);
+                }
             }
         }
 
@@ -423,7 +437,9 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.error_gateway_registration_candidates;
-                        completion.handle(gateway, msg, this);
+                        if (_completion.get() != null) {
+                            _completion.get().handle(gateway, msg, this);
+                        }
                     } else {
                         // invoke it again manually (412: retry open join window)
                         state = NodeRegistrationFindState.Started;
@@ -434,7 +450,9 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.no_devices_found;
-                        completion.handle(gateway, msg, this);
+                        if (_completion.get() != null) {
+                            _completion.get().handle(gateway, msg, this);
+                        }
                     } else {
                         // invoke it again manually (404: retry get candidates)
                         Logger.logVerbose(LOG_TAG, "rn: Register node GRC postDelayed 404");
@@ -443,13 +461,15 @@ public class Gateway extends Device {
                             @Override
                             public void run() {
                                 Logger.logVerbose(LOG_TAG, "rn: Register node GRC postDelayed run");
-                                if (getPropertyBooleanJoinStatus()) {
+                                if (getPropertyBoolean(PROPERTY_JOIN_STATUS)) {
                                     Logger.logVerbose(LOG_TAG, "rn: Register node GRC FindDevices");
                                     gateway.registrationCandidates(ScanTag.this);
                                 } else {
                                     state = NodeRegistrationFindState.NotStarted;
                                     resourceId = R.string.error_gateway_registration_candidates;
-                                    completion.handle(gateway, msg, ScanTag.this);
+                                    if (_completion.get() != null) {
+                                        _completion.get().handle(gateway, msg, ScanTag.this);
+                                    }
                                 }
                             }
                         }, 5000);                                    // Delay 5 seconds
@@ -458,7 +478,9 @@ public class Gateway extends Device {
                     // error message (restart)
                     state = NodeRegistrationFindState.NotStarted;
                     resourceId = R.string.error_gateway_registration_candidates;
-                    completion.handle(gateway, msg, this);
+                    if (_completion.get() != null) {
+                        _completion.get().handle(gateway, msg, this);
+                    }
                 }
             }
         }
@@ -479,7 +501,9 @@ public class Gateway extends Device {
             } else {
                 state = NodeRegistrationFindState.NotStarted;
                 resourceId = R.string.error_gateway_register_device_node;
-                completion.handle(gateway, msg, this);
+                if (_completion.get() != null) {
+                    _completion.get().handle(gateway, msg, this);
+                }
             }
         }
 
@@ -488,11 +512,12 @@ public class Gateway extends Device {
             Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDevice().dsn, device.getDevice().productName);
             device.postRegistrationForGatewayDevice(gateway);
             resourceId = R.string.gateway_registered_device_node;
-            completion.handle(gateway, msg, this);
+            if (_completion.get() != null) {
+                _completion.get().handle(gateway, msg, this);
+            }
         }
     }
 
-    ScanTagCompletionHandler _nodeRegistrationCompletion;
     ScanTag _nodeRegistrationTag;
 
     /**
@@ -501,53 +526,61 @@ public class Gateway extends Device {
      * @param listener GatewayNodeRegistrationListener
      */
     public void startRegistrationScan(final GatewayNodeRegistrationListener listener) {
-        _nodeRegistrationCompletion = new ScanTagCompletionHandler() {
+        Logger.logInfo(LOG_TAG, "rn: startRegistrationScan start");
+        _nodeRegistrationTag = new ScanTag(this, listener, new ScanTagCompletionHandler() {
             @Override
             public void handle(Gateway gateway, Message msg, ScanTag tag) {
-                Logger.logMessage(LOG_TAG, msg, "rn: Register node completion handler");
-                if (AylaNetworks.succeeded(msg)) {
-                } else {
-                    // failed :(
-                }
                 gateway.closeJoinWindow();
                 listener.registrationComplete(tag.device, msg, tag.resourceId);
+                Logger.logInfo(LOG_TAG, "rn: startRegistrationScan complete");
+                _nodeRegistrationTag = null;
             }
-        };
-        _nodeRegistrationTag = new ScanTag(this, listener, _nodeRegistrationCompletion);
+        });
         _nodeRegistrationTag.nextStep();;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Close Join Window
 
     /**
      * Must be called when the application UI that invoked startRegistrationScan has
      * completed.
      */
     public void cleanupRegistrationScan() {
-        _nodeRegistrationCompletion = null;
         _nodeRegistrationTag = null;
         closeJoinWindow();
     }
 
-    enum NodeRegistrationFindState {
-        NotStarted,
-        Started,
-        OpenJoinWindow,
-        FindDevices,
-        Timeout,
+    void closeJoinWindowProperties(CloseTag tag) {
+        AylaDeviceGateway gateway = (AylaDeviceGateway) getDevice();
+        Map<String, String> callParams = new HashMap<String, String>();
+        callParams.put("names", PROPERTY_JOIN_ENABLE + " " + PROPERTY_JOIN_STATUS);
+        gateway.getProperties(new GetPropertyJoinDisableHandler(tag), callParams);
     }
 
-    boolean getPropertyBooleanJoinStatus() {
-        return getPropertyBoolean(PROPERTY_JOIN_STATUS);
+    class GetPropertyJoinDisableHandler extends Handler {
+        private CloseTag _tag;
+
+        GetPropertyJoinDisableHandler(CloseTag tag) {  _tag = tag; }
+
+        @Override
+        public void handleMessage(Message msg) { _tag.joinDisableProperty(msg); }
+    }
+
+    interface CloseTagCompletionHandler {
+
+        void handle(Gateway gateway, Message msg, CloseTag tag);
     }
 
     class CloseTag {
+        WeakReference<CloseTagCompletionHandler> _completion;
         Gateway gateway;
         long startTicks;
-        WeakReference<AylaGatewayCompletionHandler> _completion;
 
-        CloseTag(Gateway gateway, AylaGatewayCompletionHandler completion) {
+        CloseTag(Gateway gateway, CloseTagCompletionHandler completion) {
+            _completion = new WeakReference<CloseTagCompletionHandler>(completion);
             this.gateway = gateway;
             this.startTicks = System.currentTimeMillis();
-            _completion = new WeakReference<AylaGatewayCompletionHandler>(completion);
         }
 
         void joinDisableProperty(Message msg) {
@@ -597,12 +630,16 @@ public class Gateway extends Device {
                 }
                 if (got == 2) {
                     // good to go
-                    _completion.get().handle(gateway, msg, null);
+                    if (_completion.get() != null) {
+                        _completion.get().handle(gateway, msg, null);
+                    }
                 } else if (set > 0) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
                         msg.what = AylaNetworks.AML_ERROR_FAIL;
                         msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
-                        _completion.get().handle(gateway, msg, null);
+                        if (_completion.get() != null) {
+                            _completion.get().handle(gateway, msg, null);
+                        }
                     } else {
                         // verify/set values again
                         gateway.closeJoinWindowProperties(this);
@@ -610,10 +647,14 @@ public class Gateway extends Device {
                 } else {
                     msg.what = errorWhat;
                     msg.arg1 = errorArg1;
-                    _completion.get().handle(gateway, msg, null);
+                    if (_completion.get() != null) {
+                        _completion.get().handle(gateway, msg, null);
+                    }
                 }
             } else {
-                _completion.get().handle(gateway, msg, null);
+                if (_completion.get() != null) {
+                    _completion.get().handle(gateway, msg, null);
+                }
             }
         }
     }
@@ -623,30 +664,13 @@ public class Gateway extends Device {
     void closeJoinWindow() {
         // We need to do this any time the join window is left open
         Logger.logInfo(LOG_TAG, "rn: closeJoinWindow start");
-        _closeJoinWindowTag = new CloseTag(this, new AylaGatewayCompletionHandler() {
+        _closeJoinWindowTag = new CloseTag(this, new CloseTagCompletionHandler() {
             @Override
-            public void handle(Gateway gateway, Message msg, Object tag) {
+            public void handle(Gateway gateway, Message msg, CloseTag tag) {
                 Logger.logInfo(LOG_TAG, "rn: closeJoinWindow complete %d:%d", msg.what, msg.arg1);
                 _closeJoinWindowTag = null;
             }
         });
         closeJoinWindowProperties(_closeJoinWindowTag);
     }
-
-    void closeJoinWindowProperties(CloseTag tag) {
-        AylaDeviceGateway gateway = (AylaDeviceGateway) getDevice();
-        Map<String, String> callParams = new HashMap<String, String>();
-        callParams.put("names", PROPERTY_JOIN_ENABLE + " " + PROPERTY_JOIN_STATUS);
-        gateway.getProperties(new GetPropertyJoinDisableHandler(tag), callParams);
-    }
-
-    class GetPropertyJoinDisableHandler extends Handler {
-        private CloseTag _tag;
-
-        GetPropertyJoinDisableHandler(CloseTag tag) {  _tag = tag; }
-
-        @Override
-        public void handleMessage(Message msg) { _tag.joinDisableProperty(msg); }
-    }
-
 }
