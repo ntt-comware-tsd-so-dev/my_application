@@ -8,16 +8,20 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 
+import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceGateway;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -183,26 +187,20 @@ public class Gateway extends Device {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
-    // Dan said to do the open join window using the property like the iOS version does,
-    // as this way of doing it was only done with the nexTurn gateway.
-    // 2015/5/22 When I looked at the iOS code, it too calls an Ayla library method that
-    // invokes registration_window.json with a duration.
-    // 2015/5/27 Set JOIN_ENABLE=240, JOIN_STATUS=1
-    void openJoinWindowWithScanTag(ScanTag tag) {
-        AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
-        final String joinWindowOpenTime = "240"; // optional window open duration, defaults to 200 seconds
+    void openJoinWindow(ScanTag tag) {
+        AylaDeviceGateway gateway = (AylaDeviceGateway) getDevice();
         Map<String, String> callParams = new HashMap<String, String>();
-        callParams.put(AylaDevice.kAylaDeviceJoinWindowDuration, joinWindowOpenTime);
-        device.openRegistrationJoinWindow(new OpenJoinWindowHandler(tag), callParams);
+        callParams.put("names", PROPERTY_JOIN_ENABLE + " " + PROPERTY_JOIN_STATUS);
+        gateway.getProperties(new GetPropertyJoinEnableHandler(tag), callParams);
     }
 
-    static class OpenJoinWindowHandler extends Handler {
+    class GetPropertyJoinEnableHandler extends Handler {
         private ScanTag _tag;
 
-        OpenJoinWindowHandler(ScanTag tag) {  _tag = tag; }
+        GetPropertyJoinEnableHandler(ScanTag tag) {  _tag = tag; }
 
         @Override
-        public void handleMessage(Message msg) { _tag.joinWindowComplete(msg); }
+        public void handleMessage(Message msg) { _tag.joinEnableProperty(msg); }
     }
 
     void registrationCandidates(ScanTag tag) {
@@ -211,7 +209,7 @@ public class Gateway extends Device {
         device.getRegistrationCandidates(new RegistrationCandidatesHandler(tag), callParams);
     }
 
-    static class RegistrationCandidatesHandler extends Handler {
+    class RegistrationCandidatesHandler extends Handler {
         private ScanTag _tag;
 
         RegistrationCandidatesHandler(ScanTag tag) { _tag = tag; }
@@ -225,7 +223,7 @@ public class Gateway extends Device {
         device.registerCandidate(new RegistrationCandidateHandler(node, tag), node);
     }
 
-    static class RegistrationCandidateHandler extends Handler {
+    class RegistrationCandidateHandler extends Handler {
         private AylaDeviceNode _node;
         private ScanTag _tag;
 
@@ -261,7 +259,7 @@ public class Gateway extends Device {
         device.getDevice().update(new UpdateHandler(device, name, tag), params);
     }
 
-    static class UpdateHandler extends Handler {
+    class UpdateHandler extends Handler {
         Device _device;
         String _name;
         ScanTag _tag;
@@ -314,7 +312,7 @@ public class Gateway extends Device {
                     Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=false)");
                     Logger.logInfo(LOG_TAG, "rn: Register node OpenJoinWindow");
                     state = NodeRegistrationFindState.OpenJoinWindow;
-                    gateway.openJoinWindowWithScanTag(this);
+                    gateway.openJoinWindow(this);
                 }
             } else if (state == NodeRegistrationFindState.OpenJoinWindow) {
                 Logger.logInfo(LOG_TAG, "rn: Register node FindDevices");
@@ -327,18 +325,47 @@ public class Gateway extends Device {
             }
         }
 
-        void joinWindowComplete(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: openRegistrationJoinWindow");
+        void joinEnableProperty(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "rn: getProperties JOIN_ENABLE/STATUS");
             if (AylaNetworks.succeeded(msg)) {
-                // HACK: per Dan (on nexTurn project) wait for the command to succeed on the gateway
-                // We've opened the Join Window, but it can take a while for everybody to think so
-                try {
-                    Thread.sleep(5000);
-                } catch (Exception ex) {
+                AylaProperty[] props = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaProperty[].class);
+                int got = 0;
+                int set = 0;
+                for (AylaProperty prop : props) {
+                    if (prop.name.equals(PROPERTY_JOIN_ENABLE)) {
+                        Logger.logVerbose(LOG_TAG, "rn: prop [%s]=[%s]", prop.name, prop.value);
+                        if (prop.datapoint.nValue().intValue() == 240) {
+                           got++;
+                        } else {
+                            AylaDatapoint dp = new AylaDatapoint();
+                            dp.nValue(240);
+                            AylaRestService rs = prop.createDatapoint(dp);
+                            Message m = rs.execute();
+                            Logger.logMessage(LOG_TAG, m, "rn: setProperty JOIN_ENABLE");
+                            if (AylaNetworks.succeeded(m)) {
+                                set++;
+                            }
+                        }
+                    } else if (prop.name.equals(PROPERTY_JOIN_STATUS)) {
+                        Logger.logVerbose(LOG_TAG, "rn: prop [%s]=[%s]", prop.name, prop.value);
+                        if (prop.datapoint.nValue().intValue() == 1) {
+                            got++;
+                        } else{
+                            AylaDatapoint dp = new AylaDatapoint();
+                            dp.nValue(1);
+                            AylaRestService rs = prop.createDatapoint(dp);
+                            Message m = rs.execute();
+                            Logger.logMessage(LOG_TAG, m, "rn: setProperty JOIN_STATUS");
+                            if (AylaNetworks.succeeded(m)) {
+                                set++;
+                            }
+                        }
+                    }
                 }
-                nextStep();
-            } else {
-                if (msg.arg1 == 412) {
+                if (got == 2) {
+                    // good to go
+                    nextStep();
+                } else if (set > 0) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
@@ -346,11 +373,18 @@ public class Gateway extends Device {
                         completion.handle(gateway, msg, this);
                         //listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
                     } else {
-                        // invoke it again manually (412: retry open join window)
-                        state = NodeRegistrationFindState.Started;
-                        nextStep();;
+                        // verify/set values again
+                        gateway.openJoinWindow(this);
                     }
+                } else {
+                    state = NodeRegistrationFindState.NotStarted;
+                    resourceId = R.string.error_gateway_join_window;
+                    completion.handle(gateway, msg, this);
                 }
+            } else {
+                state = NodeRegistrationFindState.NotStarted;
+                resourceId = R.string.error_gateway_join_window;
+                completion.handle(gateway, msg, this);
             }
         }
 
@@ -488,6 +522,8 @@ public class Gateway extends Device {
      * completed.
      */
     public void cleanupRegistrationScan() {
+        _nodeRegistrationCompletion = null;
+        _nodeRegistrationTag = null;
         closeJoinWindow();
     }
 
@@ -503,15 +539,114 @@ public class Gateway extends Device {
         return getPropertyBoolean(PROPERTY_JOIN_STATUS);
     }
 
-    // 2015/5/27 Set JOIN_ENABLE=0, JOIN_STATUS=0
+    class CloseTag {
+        Gateway gateway;
+        long startTicks;
+        WeakReference<AylaGatewayCompletionHandler> _completion;
+
+        CloseTag(Gateway gateway, AylaGatewayCompletionHandler completion) {
+            this.gateway = gateway;
+            this.startTicks = System.currentTimeMillis();
+            _completion = new WeakReference<AylaGatewayCompletionHandler>(completion);
+        }
+
+        void joinDisableProperty(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "rn: closeJoinWindow getProperties JOIN_ENABLE/STATUS");
+            if (AylaNetworks.succeeded(msg)) {
+                AylaProperty[] props = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaProperty[].class);
+                int errorWhat = 0;
+                int errorArg1 = 0;
+                int got = 0;
+                int set = 0;
+                for (AylaProperty prop : props) {
+                    if (prop.name.equals(PROPERTY_JOIN_ENABLE)) {
+                        Logger.logVerbose(LOG_TAG, "rn: closeJoinWindow prop [%s]=[%s]", prop.name, prop.value);
+                        if (prop.datapoint.nValue().intValue() == 0) {
+                            got++;
+                        } else {
+                            AylaDatapoint dp = new AylaDatapoint();
+                            dp.nValue(0);
+                            AylaRestService rs = prop.createDatapoint(dp);
+                            Message m = rs.execute();
+                            Logger.logMessage(LOG_TAG, m, "rn: setProperty JOIN_ENABLE");
+                            if (AylaNetworks.succeeded(m)) {
+                                set++;
+                            } else {
+                                errorWhat = m.what;
+                                errorArg1 = m.arg1;
+                            }
+                        }
+                    } else if (prop.name.equals(PROPERTY_JOIN_STATUS)) {
+                        Logger.logVerbose(LOG_TAG, "rn: closeJoinWindow prop [%s]=[%s]", prop.name, prop.value);
+                        if (prop.datapoint.nValue().intValue() == 0) {
+                            got++;
+                        } else{
+                            AylaDatapoint dp = new AylaDatapoint();
+                            dp.nValue(0);
+                            AylaRestService rs = prop.createDatapoint(dp);
+                            Message m = rs.execute();
+                            Logger.logMessage(LOG_TAG, m, "rn: setProperty JOIN_STATUS");
+                            if (AylaNetworks.succeeded(m)) {
+                                set++;
+                            } else {
+                                errorWhat = m.what;
+                                errorArg1 = m.arg1;
+                            }
+                        }
+                    }
+                }
+                if (got == 2) {
+                    // good to go
+                    _completion.get().handle(gateway, msg, null);
+                } else if (set > 0) {
+                    if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
+                        msg.what = AylaNetworks.AML_ERROR_FAIL;
+                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
+                        _completion.get().handle(gateway, msg, null);
+                    } else {
+                        // verify/set values again
+                        gateway.closeJoinWindowProperties(this);
+                    }
+                } else {
+                    msg.what = errorWhat;
+                    msg.arg1 = errorArg1;
+                    _completion.get().handle(gateway, msg, null);
+                }
+            } else {
+                _completion.get().handle(gateway, msg, null);
+            }
+        }
+    }
+
+    CloseTag _closeJoinWindowTag;
+
     void closeJoinWindow() {
         // We need to do this any time the join window is left open
-        Logger.logInfo(LOG_TAG, "rn: Register node close join window");
-        AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
-        device.closeRegistrationJoinWindow(new Handler() {
-            public void handleMessage(Message msg) {
-                // nothing
+        Logger.logInfo(LOG_TAG, "rn: closeJoinWindow start");
+        _closeJoinWindowTag = new CloseTag(this, new AylaGatewayCompletionHandler() {
+            @Override
+            public void handle(Gateway gateway, Message msg, Object tag) {
+                Logger.logInfo(LOG_TAG, "rn: closeJoinWindow complete %d:%d", msg.what, msg.arg1);
+                _closeJoinWindowTag = null;
             }
-        }, null);
+        });
+        closeJoinWindowProperties(_closeJoinWindowTag);
     }
+
+    void closeJoinWindowProperties(CloseTag tag) {
+        AylaDeviceGateway gateway = (AylaDeviceGateway) getDevice();
+        Map<String, String> callParams = new HashMap<String, String>();
+        callParams.put("names", PROPERTY_JOIN_ENABLE + " " + PROPERTY_JOIN_STATUS);
+        gateway.getProperties(new GetPropertyJoinDisableHandler(tag), callParams);
+    }
+
+    class GetPropertyJoinDisableHandler extends Handler {
+        private CloseTag _tag;
+
+        GetPropertyJoinDisableHandler(CloseTag tag) {  _tag = tag; }
+
+        @Override
+        public void handleMessage(Message msg) { _tag.joinDisableProperty(msg); }
+    }
+
 }
