@@ -154,18 +154,26 @@ public class Logger implements Thread.UncaughtExceptionHandler {
     /**
      * Helper method for logging information about an Ayla Message
      * @param tag Module tag of the log entry
-     * @param text Detail text for the log entry
      * @param msg The Ayla Message to log information about.
+     * @param text Detail text for the log entry
      */
-    public static void logMessage(String tag, String text, Message msg) {
+    /**
+     * Helper method for logging information about an Ayla Message
+     * @param tag Module tag of the log entry
+     * @param msg The Ayla Message to log information about.
+     * @param fmt  Detail text for the log entry supporting formatting
+     * @param args Optional arguments.
+     */
+    public static void logMessage(String tag, Message msg, String fmt, Object... args) {
+        String detail = String.format(fmt, args);
         String jsonResult = (String)msg.obj;
         if (!TextUtils.isEmpty(jsonResult)) {
             jsonResult = jsonResult.replace("\n", "");
         }
         if (AylaNetworks.succeeded(msg)) {
-            intLogMessage(LogLevel.Info, tag, "results:[%s], %s", jsonResult, text);
+            intLogMessage(LogLevel.Info, tag, "results:[%s], %s", jsonResult, detail);
         } else {
-            intLogMessage(LogLevel.Error, tag, "results:%d:%d:[%s], %s", msg.what, msg.arg1, jsonResult, text);
+            intLogMessage(LogLevel.Error, tag, "results:%d:%d:[%s], %s", msg.what, msg.arg1, jsonResult, detail);
         }
     }
 

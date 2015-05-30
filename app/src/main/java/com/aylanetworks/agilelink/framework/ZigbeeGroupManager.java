@@ -223,7 +223,7 @@ public class ZigbeeGroupManager {
 
         @Override
         public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, "zg: getGroups", msg);
+            Logger.logMessage(LOG_TAG, msg, "zg: getGroups");
             if (AylaNetworks.succeeded(msg)) {
                 Set<AylaGroupZigbee> groupSet = new HashSet<>();
                 AylaGroupZigbee[] groups = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaGroupZigbee[].class);
@@ -262,24 +262,23 @@ public class ZigbeeGroupManager {
 
     static class CreateHandler extends Handler {
         private WeakReference<ZigbeeGroupManager> _manager;
-        private WeakReference<Object> _tag;
-        private WeakReference<Gateway.AylaGatewayCompletionHandler> _handler;
+        private Object _tag;
+        private Gateway.AylaGatewayCompletionHandler _handler;
         String _name;
 
         CreateHandler(ZigbeeGroupManager manager, String name, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
             _manager = new WeakReference<ZigbeeGroupManager>(manager);
-            if (tag != null) {
-                _tag = new WeakReference<Object>(tag);
-            }
-            if (handler != null) {
-                _handler = new WeakReference<Gateway.AylaGatewayCompletionHandler>(handler);
-            }
             _name = name;
+            _tag = tag;
+            _handler = handler;
         }
 
         @Override
         public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, String.format("zg: createGroup [%s]", _name), msg);
+            Logger.logMessage(LOG_TAG, msg, "zg: createGroup [%s]", _name);
+            if (_manager.get() == null) {
+                Logger.logWarning(LOG_TAG, "zg: ZigbeeGroupManager went away.");
+            }
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 if (msg.arg1 == 206) {
                     // has failing nodes...
@@ -293,32 +292,31 @@ public class ZigbeeGroupManager {
             } else {
                 _manager.get().notifyCreateCompleted(_name, msg, null);
             }
-            if ((_handler != null) && (_handler.get() != null)) {
-                _handler.get().handle(_manager.get()._gateway, msg, _tag.get());
+            if (_handler != null) {
+                _handler.handle(_manager.get()._gateway, msg, _tag);
             }
         }
     }
 
     static class DeleteHandler extends Handler {
         private WeakReference<ZigbeeGroupManager> _manager;
-        private WeakReference<Object> _tag;
-        private WeakReference<Gateway.AylaGatewayCompletionHandler> _handler;
         String _name;
+        private Object _tag;
+        private Gateway.AylaGatewayCompletionHandler _handler;
 
         DeleteHandler(ZigbeeGroupManager manager, String name, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
             _manager = new WeakReference<ZigbeeGroupManager>(manager);
-            if (tag != null) {
-                _tag = new WeakReference<Object>(tag);
-            }
-            if (handler != null) {
-                _handler = new WeakReference<Gateway.AylaGatewayCompletionHandler>(handler);
-            }
+            _tag = tag;
+            _handler = handler;
             _name = name;
         }
 
         @Override
         public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, String.format("zg: deleteGroup [%s]", _name), msg);
+            Logger.logMessage(LOG_TAG, msg, "zg: deleteGroup [%s]", _name);
+            if (_manager.get() == null) {
+                Logger.logWarning(LOG_TAG, "zg: ZigbeeGroupManager went away.");
+            }
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 if (msg.arg1 == 206) {
                     // has failing nodes...
@@ -329,10 +327,15 @@ public class ZigbeeGroupManager {
                     _manager.get().notifyDeleteCompleted(_name, msg);
                 }
             } else {
+                if (msg.arg1 == 404) {
+                    // treat it like success, since it is now gone...
+                    msg.what = AylaNetworks.AML_ERROR_OK;
+                    _manager.get().removeGroupByName(_name);
+                }
                 _manager.get().notifyDeleteCompleted(_name, msg);
             }
-            if ((_handler != null) && (_handler.get() != null)) {
-                _handler.get().handle(_manager.get()._gateway, msg, _tag.get());
+            if (_handler != null) {
+                _handler.handle(_manager.get()._gateway, msg, _tag);
             }
         }
     }

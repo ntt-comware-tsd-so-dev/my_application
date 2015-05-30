@@ -71,8 +71,13 @@ public class ZigbeeWirelessSwitch extends Device {
 
     private void initializeRemoteBinding(Gateway gateway) {
         String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
-        AylaBindingZigbee binding = gateway.getBindingManager().getByName(name);
         AylaGroupZigbee group = gateway.getGroupManager().getByName(name);
+        if (group == null) {
+            Logger.logError(LOG_TAG, "zg: initializeRemoteBinding no group [%s]", name);
+            return;
+        }
+
+        AylaBindingZigbee binding = gateway.getBindingManager().getByName(name);
         if (binding == null) {
             binding = new AylaBindingZigbee();
             binding.bindingName = name;
@@ -151,7 +156,7 @@ public class ZigbeeWirelessSwitch extends Device {
                 @Override
                 public void handle(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
-                        initializeRemoteBinding(gateway);
+                        removeRemoteBinding(gateway);
                     } else {
                         // failed :(
                         Logger.logError(LOG_TAG, "zg: removeRemoteGroup [%s] on gateway [%s] failed", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);

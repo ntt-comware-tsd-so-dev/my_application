@@ -376,19 +376,6 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    public void registrationScanNextStep(Message msg, int messageResourceId) {
-        if (msg.what == AylaNetworks.AML_ERROR_OK) {
-            Logger.logInfo(LOG_TAG, "rn: registrationScanNextStep %d:%s", msg.arg1, msg.obj);
-            _nodeRegistrationGateway.processRegistrationScan(this);
-        } else {
-            Logger.logError(LOG_TAG, "rn: registrationScanNextStep %d:%d:%s", msg.what, msg.arg1, msg.obj);
-            dismissWaitDialog();
-            if (messageResourceId != 0) {
-                Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     private void showMessage(int resourceId){
         AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
         alertDialog.setTitle("Attention");
