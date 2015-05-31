@@ -63,7 +63,7 @@ import java.util.Map;
 
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener {
+        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 
     private static final int REG_TYPE_SAME_LAN = 0;
@@ -418,6 +418,34 @@ public class AddDeviceFragment extends Fragment
         alertDialog.show();
     }
 
+    public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
+        Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
+        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDevice().dsn, device.getDevice().productName);
+
+        /*
+        int resourceId = device.hasPostRegistrationProcessingResourceId();
+        if (resourceId > 0) {
+            showMessage(resourceId);
+        }
+
+        // TODO: This shouldn't be here... this should be in the Device class...
+        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+        // Now update the device notifications
+        DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
+        helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+            @Override
+            public void newDeviceUpdated(Device device, int error) {
+                MainActivity mainActivity = MainActivity.getInstance();
+                mainActivity.dismissWaitDialog();
+                int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                SessionManager.deviceManager().refreshDeviceList();
+            }
+        });
+        */
+
+    }
+
     /**
      * Set _useSingleSelect to true to show a dialog that only allows one device to selected
      * for registration.  Set to false to show a dialog with a multiselect list of devices to
@@ -426,8 +454,7 @@ public class AddDeviceFragment extends Fragment
     boolean _useSingleSelect = true;
 
     public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
-        //final Gateway gateway = (Gateway)tag;
-
+        _scanTag = null;
         dismissWaitDialog();
 
         // Let the user choose which device to connect to
@@ -490,41 +517,24 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
-        Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDevice().dsn, device.getDevice().productName);
-
-        /*
-        int resourceId = device.hasPostRegistrationProcessingResourceId();
-        if (resourceId > 0) {
-            showMessage(resourceId);
-        }
-
-        // TODO: This shouldn't be here... this should be in the Device class...
-        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-        // Now update the device notifications
-        DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-        helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
-            @Override
-            public void newDeviceUpdated(Device device, int error) {
-                MainActivity mainActivity = MainActivity.getInstance();
-                mainActivity.dismissWaitDialog();
-                int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                SessionManager.deviceManager().refreshDeviceList();
-            }
-        });
-        */
-
-    }
-
     public void gatewayRegistrationComplete(Message msg, int messageResourceId, Object tag) {
         Logger.logMessage(LOG_TAG, msg, "rn: gatewayRegistrationComplete");
+        _scanTag = null;
         dismissWaitDialog();
         if (messageResourceId != 0) {
             Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
         }
     }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        if (_scanTag != null) {
+            Logger.logInfo(LOG_TAG, "rn: cancel Register node scan");
+            _scanTag.cancel();
+        }
+    }
+
+    Gateway.AylaGatewayScanCancelHandler _scanTag;
 
     private void doScan() {
         if (_registrationType==REG_TYPE_NODE) {
@@ -533,15 +543,15 @@ public class AddDeviceFragment extends Fragment
                 Toast.makeText(MainActivity.getInstance(), R.string.error_no_gateway, Toast.LENGTH_LONG).show();
             } else {
                 // Put up a progress dialog
-                MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
-                        getString(R.string.scanning_for_devices_message));
+                MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title),
+                        getString(R.string.scanning_for_devices_message), this);
 
                 // set to true to automatically register all candidates found.
                 // set to false to invoke gatewayRegistrationCandidates with a list of candidates
                 _nodeRegistrationGateway.autoRegister = false;
 
                 Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
-                _nodeRegistrationGateway.startRegistrationScan(_nodeRegistrationGateway, this);
+                _scanTag = _nodeRegistrationGateway.startRegistrationScan(_nodeRegistrationGateway, this);
             }
         } else {
             // Put up a progress dialog

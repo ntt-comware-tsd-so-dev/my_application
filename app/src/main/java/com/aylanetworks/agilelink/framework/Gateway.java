@@ -375,9 +375,18 @@ public class Gateway extends Device {
         void handle(Gateway gateway, Message msg, ScanTag tag);
     }
 
-    class ScanTag extends GatewayTag {
+    /**
+     * Interface for canceling the gateway registration candidate scan
+     */
+    public interface AylaGatewayScanCancelHandler {
+
+        public void cancel();
+    }
+
+    class ScanTag extends GatewayTag implements AylaGatewayScanCancelHandler {
         WeakReference<ScanTagCompletionHandler> _completion;
         NodeRegistrationFindState state;
+        boolean running;
 
         ScanTag(Gateway gateway, Object tag, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
             _completion = new WeakReference<ScanTagCompletionHandler>(completion);
@@ -386,9 +395,14 @@ public class Gateway extends Device {
             this.gateway = gateway;
             this.state = NodeRegistrationFindState.Started;
             this.startTicks = System.currentTimeMillis();
+            this.running = true;
         }
 
         void nextStep() {
+            if (running == false) {
+                Logger.logVerbose(LOG_TAG, "rn: Register node canceled.");
+                return;
+            }
             Logger.logInfo(LOG_TAG, "rn: Register node state=" + state);
             if (state == NodeRegistrationFindState.Started) {
                 Logger.logInfo(LOG_TAG, "rn: Register node get property join_status");
@@ -415,6 +429,10 @@ public class Gateway extends Device {
         }
 
         void joinEnableProperty(Message msg) {
+            if (running == false) {
+                Logger.logVerbose(LOG_TAG, "rn: Register node canceled.");
+                return;
+            }
             Logger.logMessage(LOG_TAG, msg, "rn: getProperties JOIN_ENABLE/STATUS");
             if (AylaNetworks.succeeded(msg)) {
                 AylaProperty[] props = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaProperty[].class);
@@ -473,6 +491,10 @@ public class Gateway extends Device {
                         handler.postDelayed(new Runnable() {        // don't flood with retries
                             @Override
                             public void run() {
+                                if (running == false) {
+                                    Logger.logVerbose(LOG_TAG, "rn: Register node canceled.");
+                                    return;
+                                }
                                 Logger.logVerbose(LOG_TAG, "rn: Register node OJW postDelayed run");
                                 // verify/set values again
                                 gateway.openJoinWindow(ScanTag.this);
@@ -492,6 +514,10 @@ public class Gateway extends Device {
         }
 
         void candidatesComplete(final Message msg) {
+            if (running == false) {
+                Logger.logVerbose(LOG_TAG, "rn: Register node canceled.");
+                return;
+            }
             Logger.logMessage(LOG_TAG, msg, "rn: getRegistrationCandidates");
             if (AylaNetworks.succeeded(msg)) {
                 // we have a list of candidates...
@@ -544,6 +570,10 @@ public class Gateway extends Device {
                         handler.postDelayed(new Runnable() {        // don't flood with retries
                             @Override
                             public void run() {
+                                if (running == false) {
+                                    Logger.logVerbose(LOG_TAG, "rn: Register node canceled.");
+                                    return;
+                                }
                                 Logger.logVerbose(LOG_TAG, "rn: Register node GRC postDelayed run");
                                 if (getPropertyBoolean(PROPERTY_JOIN_STATUS)) {
                                     Logger.logVerbose(LOG_TAG, "rn: Register node GRC FindDevices");
@@ -571,16 +601,28 @@ public class Gateway extends Device {
                 _completion.get().handle(gateway, msg, this);
             }
         }
+
+        @Override
+        public void cancel() {
+            Logger.logInfo(LOG_TAG, "rn: Register node cancel");
+            this.running = false;
+            Message msg = new Message();
+            msg.what = AylaNetworks.AML_ERROR_FAIL;
+            msg.arg1 = AylaNetworks.AML_ERROR_FAIL;
+            completion(msg);
+        }
     }
 
     ScanTag _scanTag;
 
     /**
-     * Start the registration scan for this gateway.
+     * Start the gateway registration candidate scan.
      *
-     * @param listener GatewayNodeRegistrationListener
+     * @param userTag Optional user object to pair with all method calls to the listener.
+     * @param listener GatewayNodeRegistrationListener for tracking progress.
+     * @return AylaGatewayScanCancelHandler used to cancel the scan.
      */
-    public void startRegistrationScan(Object userTag, GatewayNodeRegistrationListener listener) {
+    public AylaGatewayScanCancelHandler startRegistrationScan(Object userTag, GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: startRegistrationScan start");
         _scanTag = new ScanTag(this, userTag, listener, new ScanTagCompletionHandler() {
             @Override
@@ -602,7 +644,8 @@ public class Gateway extends Device {
                 _scanTag = null;
             }
         });
-        _scanTag.nextStep();;
+        _scanTag.nextStep();
+        return _scanTag;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
