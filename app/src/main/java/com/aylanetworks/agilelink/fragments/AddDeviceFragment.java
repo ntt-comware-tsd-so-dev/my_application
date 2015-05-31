@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.StrictMode;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -31,7 +30,6 @@ import android.widget.Toast;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
-import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -420,7 +418,12 @@ public class AddDeviceFragment extends Fragment
         alertDialog.show();
     }
 
-    boolean _useSingleSelect = false;
+    /**
+     * Set _useSingleSelect to true to show a dialog that only allows one device to selected
+     * for registration.  Set to false to show a dialog with a multiselect list of devices to
+     * register.
+     */
+    boolean _useSingleSelect = true;
 
     public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
         //final Gateway gateway = (Gateway)tag;
@@ -487,34 +490,39 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    public void gatewayRegistrationComplete(Device device, Message msg, int messageResourceId) {
+    public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
+        Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
+        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDevice().dsn, device.getDevice().productName);
+
+        /*
+        int resourceId = device.hasPostRegistrationProcessingResourceId();
+        if (resourceId > 0) {
+            showMessage(resourceId);
+        }
+
+        // TODO: This shouldn't be here... this should be in the Device class...
+        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+        // Now update the device notifications
+        DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
+        helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+            @Override
+            public void newDeviceUpdated(Device device, int error) {
+                MainActivity mainActivity = MainActivity.getInstance();
+                mainActivity.dismissWaitDialog();
+                int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                SessionManager.deviceManager().refreshDeviceList();
+            }
+        });
+        */
+
+    }
+
+    public void gatewayRegistrationComplete(Message msg, int messageResourceId, Object tag) {
+        Logger.logMessage(LOG_TAG, msg, "rn: gatewayRegistrationComplete");
         dismissWaitDialog();
         if (messageResourceId != 0) {
             Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
-        }
-        Logger.logMessage(LOG_TAG, msg, "rn: gatewayRegistrationComplete");
-        if (AylaNetworks.succeeded(msg)) {
-            int resourceId = device.hasPostRegistrationProcessingResourceId();
-            if (resourceId > 0) {
-                showMessage(resourceId);
-            }
-
-            if (device != null) {
-                // TODO: This shouldn't be here... this should be in the Device class...
-                MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-                // Now update the device notifications
-                DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-                helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
-                    @Override
-                    public void newDeviceUpdated(Device device, int error) {
-                        MainActivity mainActivity = MainActivity.getInstance();
-                        mainActivity.dismissWaitDialog();
-                        int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                        SessionManager.deviceManager().refreshDeviceList();
-                    }
-                });
-            }
         }
     }
 
@@ -527,6 +535,10 @@ public class AddDeviceFragment extends Fragment
                 // Put up a progress dialog
                 MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title),
                         getString(R.string.scanning_for_devices_message));
+
+                // set to true to automatically register all candidates found.
+                // set to false to invoke gatewayRegistrationCandidates with a list of candidates
+                _nodeRegistrationGateway.autoRegister = false;
 
                 Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
                 _nodeRegistrationGateway.startRegistrationScan(_nodeRegistrationGateway, this);
