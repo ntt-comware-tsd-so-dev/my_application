@@ -7,6 +7,7 @@ import android.os.Message;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
@@ -63,7 +64,15 @@ public class Gateway extends Device {
      */
     public interface GatewayNodeRegistrationListener {
 
-        //public void registrationCandidates(ArrayList<AylaDeviceNode> list, Object tag);
+        /**
+         * Notify that registration candidates are available, the UI is then
+         * given a chance to allow the user to select which devices to actually
+         * register.  Then call back to gateway.registerCandidates
+         *
+         * @param list
+         * @param tag
+         */
+        public void gatewayRegistrationCandidates(List<AylaDeviceNode> list, Object tag);
 
         /**
          * Notify that the the processs of scanning and registering a gateway's
@@ -73,7 +82,7 @@ public class Gateway extends Device {
          * @param msg The final Message.
          * @param messageResourceId String resource id to display a toast to the user.
          */
-        public void registrationComplete(Device device, Message msg, int messageResourceId);
+        public void gatewayRegistrationComplete(Device device, Message msg, int messageResourceId);
 
     }
 
@@ -226,22 +235,22 @@ public class Gateway extends Device {
         public void handleMessage(Message msg) { _tag.candidatesComplete(msg); }
     }
 
-    void registerCandidate(AylaDeviceNode node, ScanTag tag) {
+    void registerCandidateST(AylaDeviceNode node, ScanTag tag) {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
-        device.registerCandidate(new RegistrationCandidateHandler(node, tag), node);
+        device.registerCandidate(new RegistrationCandidateHandlerST(node, tag), node);
     }
 
-    class RegistrationCandidateHandler extends Handler {
+    class RegistrationCandidateHandlerST extends Handler {
         AylaDeviceNode _node;
         ScanTag _tag;
 
-        RegistrationCandidateHandler(AylaDeviceNode node, ScanTag tag) { _tag = tag; _node = node; }
+        RegistrationCandidateHandlerST(AylaDeviceNode node, ScanTag tag) { _tag = tag; _node = node; }
 
         @Override
         public void handleMessage(Message msg) { _tag.registerComplete(_node, msg); }
     }
 
-    void setDefaultName(Device device, ScanTag tag) {
+    void setDefaultNameST(Device device, ScanTag tag) {
         String name = device.deviceTypeName();
         String dsn = device.getDevice().dsn;
         List<Device> devices = SessionManager.deviceManager().deviceList();
@@ -264,15 +273,15 @@ public class Gateway extends Device {
         Logger.logInfo(LOG_TAG, "rn: Register node rename [%s] [%s] to [%s]", dsn, device.getDevice().deviceName, name);
         Map<String, String> params = new HashMap<>();
         params.put("productName", name);
-        device.getDevice().update(new UpdateHandler(device, name, tag), params);
+        device.getDevice().update(new UpdateHandlerST(device, name, tag), params);
     }
 
-    class UpdateHandler extends Handler {
+    class UpdateHandlerST extends Handler {
         Device _device;
         String _name;
         ScanTag _tag;
 
-        UpdateHandler(Device device, String name, ScanTag tag) { _device = device; _name = name; _tag = tag; }
+        UpdateHandlerST(Device device, String name, ScanTag tag) { _device = device; _name = name; _tag = tag; }
 
         @Override
         public void handleMessage(Message msg) {
@@ -291,20 +300,24 @@ public class Gateway extends Device {
 
     class ScanTag {
         WeakReference<ScanTagCompletionHandler> _completion;
+        Object tag;
+        GatewayNodeRegistrationListener listener;
         Gateway gateway;
         NodeRegistrationFindState state;
         long startTicks;
-        GatewayNodeRegistrationListener listener;
         List<AylaDeviceNode> list;
         Device device;
         int resourceId;
+        boolean autoRegister;
 
-        ScanTag(Gateway gateway, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
+        ScanTag(Gateway gateway, Object tag, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
             _completion = new WeakReference<ScanTagCompletionHandler>(completion);
+            this.tag = tag;
+            this.listener = listener;
             this.gateway = gateway;
             this.state = NodeRegistrationFindState.Started;
             this.startTicks = System.currentTimeMillis();
-            this.listener = listener;
+            this.autoRegister = false;
         }
 
         void nextStep() {
@@ -378,13 +391,25 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.error_gateway_registration_candidates;
+                        msg.what = AylaNetworks.AML_ERROR_FAIL;
+                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
                         if (_completion.get() != null) {
+                            Log.i(LOG_TAG, "rn: OJWTO completion handler");
                             _completion.get().handle(gateway, msg, this);
+                        } else {
+                            Log.e(LOG_TAG, "rn: OJWTO no completion handler!");
                         }
-                        //listener.registrationScanNextStep(msg, R.string.error_gateway_registration_candidates);
                     } else {
-                        // verify/set values again
-                        gateway.openJoinWindow(this);
+                        Logger.logVerbose(LOG_TAG, "rn: Register node OJW postDelayed");
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {        // don't flood with retries
+                            @Override
+                            public void run() {
+                                Logger.logVerbose(LOG_TAG, "rn: Register node OJW postDelayed run");
+                                // verify/set values again
+                                gateway.openJoinWindow(ScanTag.this);
+                            }
+                        }, 5000);                                    // Delay 5 seconds
                     }
                 } else {
                     state = NodeRegistrationFindState.NotStarted;
@@ -419,17 +444,24 @@ public class Gateway extends Device {
                     list.add(node);
                 }
 
-                // TODO: Bring up a dialog showing which ones to register.
+                if (autoRegister) {
+                    // Auto-register first candidate
+                    // pull the first candidate off the list
+                    AylaDeviceNode node = list.get(0);
+                    gateway.registerCandidateST(list.get(0), this);
 
-                // pull the first candidate off the list
-                AylaDeviceNode node = list.get(0);
-                gateway.registerCandidate(list.get(0), this);
-
-                /*
-                for (AylaDeviceNode node : list) {
-                    gateway.registerCandidate(this, node);
+                    /*
+                    for (AylaDeviceNode node : list) {
+                        gateway.registerCandidateST(this, node);
+                    }
+                    */
+                } else {
+                    // Allow the UI to bring up a dialog showing which ones to register.
+                    if (_completion.get() != null) {
+                        _completion.get().handle(gateway, msg, this);
+                    }
                 }
-                */
+
 
             } else {
                 if (msg.arg1 == 412) {
@@ -437,6 +469,8 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.error_gateway_registration_candidates;
+                        msg.what = AylaNetworks.AML_ERROR_FAIL;
+                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
                         if (_completion.get() != null) {
                             _completion.get().handle(gateway, msg, this);
                         }
@@ -450,6 +484,8 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.no_devices_found;
+                        msg.what = AylaNetworks.AML_ERROR_FAIL;
+                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
                         if (_completion.get() != null) {
                             _completion.get().handle(gateway, msg, this);
                         }
@@ -497,7 +533,7 @@ public class Gateway extends Device {
                 Logger.logInfo(LOG_TAG, "rn: registered node [%s]:[%s]", adn.dsn, adn.model);
                 Logger.logDebug(LOG_TAG, "rn: registered node [%s]", adn);
                 Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(adn);
-                gateway.setDefaultName(device, this);
+                gateway.setDefaultNameST(device, this);
             } else {
                 state = NodeRegistrationFindState.NotStarted;
                 resourceId = R.string.error_gateway_register_device_node;
@@ -518,26 +554,185 @@ public class Gateway extends Device {
         }
     }
 
-    ScanTag _nodeRegistrationTag;
+    ScanTag _scanTag;
 
     /**
      * Start the registration scan for this gateway.
      *
      * @param listener GatewayNodeRegistrationListener
      */
-    public void startRegistrationScan(final GatewayNodeRegistrationListener listener) {
+    public void startRegistrationScan(Object userTag, GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: startRegistrationScan start");
-        _nodeRegistrationTag = new ScanTag(this, listener, new ScanTagCompletionHandler() {
+        _scanTag = new ScanTag(this, userTag, listener, new ScanTagCompletionHandler() {
             @Override
-            public void handle(Gateway gateway, Message msg, ScanTag tag) {
-                gateway.closeJoinWindow();
-                listener.registrationComplete(tag.device, msg, tag.resourceId);
+            public void handle(Gateway gateway, Message msg, ScanTag scanTag) {
+                if (AylaNetworks.succeeded(msg)) {
+                    if (scanTag.device != null) {
+                        gateway.closeJoinWindow();
+                        scanTag.listener.gatewayRegistrationComplete(scanTag.device, msg, scanTag.resourceId);
+                    } else {
+                        scanTag.listener.gatewayRegistrationCandidates(scanTag.list, null);
+                    }
+                } else {
+                    gateway.closeJoinWindow();
+                    scanTag.listener.gatewayRegistrationComplete(scanTag.device, msg, scanTag.resourceId);
+                }
                 Logger.logInfo(LOG_TAG, "rn: startRegistrationScan complete");
-                _nodeRegistrationTag = null;
+                _scanTag = null;
             }
         });
-        _nodeRegistrationTag.nextStep();;
+        _scanTag.nextStep();;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Register candidate
+
+    void registerCandidateRT(AylaDeviceNode node, RegisterTag tag) {
+        AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
+        device.registerCandidate(new RegistrationCandidateHandlerRT(node, tag), node);
+    }
+
+    class RegistrationCandidateHandlerRT extends Handler {
+        AylaDeviceNode _node;
+        RegisterTag _tag;
+
+        RegistrationCandidateHandlerRT(AylaDeviceNode node, RegisterTag tag) { _tag = tag; _node = node; }
+
+        @Override
+        public void handleMessage(Message msg) { _tag.registerComplete(_node, msg); }
+    }
+
+    void setDefaultNameRT(Device device, RegisterTag tag) {
+        String name = device.deviceTypeName();
+        String dsn = device.getDevice().dsn;
+        List<Device> devices = SessionManager.deviceManager().deviceList();
+        boolean existsName = false;
+        int nameIteration = 2;
+        do {
+            existsName = false;
+            for (Device d : devices) {
+                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                    continue;
+                }
+                if (TextUtils.equals(d.getDevice().deviceName, name)) {
+                    existsName = true;
+                }
+            }
+            if (existsName) {
+                name = name + " " + (nameIteration++);
+            }
+        } while (existsName);
+        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s] [%s] to [%s]", dsn, device.getDevice().deviceName, name);
+        Map<String, String> params = new HashMap<>();
+        params.put("productName", name);
+        device.getDevice().update(new UpdateHandlerRT(device, name, tag), params);
+    }
+
+    class UpdateHandlerRT extends Handler {
+        Device _device;
+        String _name;
+        RegisterTag _tag;
+
+        UpdateHandlerRT(Device device, String name, RegisterTag tag) { _device = device; _name = name; _tag = tag; }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (AylaNetworks.succeeded(msg)) {
+                _device.getDevice().productName = _name;
+                SessionManager.deviceManager().deviceChanged(_device);
+            }
+            _tag.updateComplete(_device, msg);
+        }
+    }
+
+
+    interface RegisterCompletionHandler {
+
+        void handle(Gateway gateway, Message msg, RegisterTag tag);
+    }
+
+    class RegisterTag {
+        WeakReference<RegisterCompletionHandler> _completion;
+        Object tag;
+        GatewayNodeRegistrationListener listener;
+        Gateway gateway;
+        List<AylaDeviceNode> list;
+        Device device;
+        int currentIndex;
+        long startTicks;
+        int resourceId;
+
+        RegisterTag(Gateway gateway, List<AylaDeviceNode> list, Object tag, GatewayNodeRegistrationListener listener, RegisterCompletionHandler completion) {
+            _completion = new WeakReference<RegisterCompletionHandler>(completion);
+            this.tag = tag;
+            this.listener = listener;
+            this.gateway = gateway;
+            this.list = new ArrayList<AylaDeviceNode>(list);
+            this.startTicks = System.currentTimeMillis();
+            this.currentIndex = 0;
+        }
+
+        void nextStep() {
+            AylaDeviceNode adn = list.get(currentIndex);
+            Logger.logInfo(LOG_TAG, "rn: register node [%s]:[%s]", adn.dsn, adn.model);
+            gateway.registerCandidateRT(adn, this);
+        }
+
+        void registerComplete(AylaDeviceNode node, Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, node.gatewayDsn);
+            if (AylaNetworks.succeeded(msg)) {
+                AylaDeviceNode adn = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDeviceNode.class);
+                // No way that it could get registered unless it was Online.
+                adn.connectionStatus = "Online";
+                if (TextUtils.isEmpty(adn.oemModel)) {
+                    adn.oemModel = "zigbee1";
+                }
+                Logger.logInfo(LOG_TAG, "rn: registered node [%s]:[%s]", adn.dsn, adn.model);
+                Logger.logDebug(LOG_TAG, "rn: registered node [%s]", adn);
+                Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(adn);
+                gateway.setDefaultNameRT(device, this);
+            } else {
+                resourceId = R.string.error_gateway_register_device_node;
+                if (_completion.get() != null) {
+                    _completion.get().handle(gateway, msg, this);
+                }
+            }
+        }
+
+        void updateComplete(Device device, Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDevice().dsn, device.getDevice().productName);
+            this.device = device;
+            device.postRegistrationForGatewayDevice(gateway);
+
+            if (currentIndex < list.size() - 1) {
+                currentIndex++;
+                nextStep();
+            } else {
+                resourceId = R.string.gateway_registered_device_node;
+                if (_completion.get() != null) {
+                    _completion.get().handle(gateway, msg, this);
+                }
+            }
+        }
+    }
+
+    RegisterTag _registerTag;
+
+    public void registerCandidates(List<AylaDeviceNode> list, Object userTag, GatewayNodeRegistrationListener listener) {
+        Logger.logInfo(LOG_TAG, "rn: registerCandidates start");
+        _registerTag = new RegisterTag(this, list, userTag, listener, new RegisterCompletionHandler() {
+            @Override
+            public void handle(Gateway gateway, Message msg, RegisterTag registerTag) {
+                gateway.closeJoinWindow();
+                // TODO: what about multiple devices...
+                registerTag.listener.gatewayRegistrationComplete(registerTag.device, msg, registerTag.resourceId);
+                Logger.logInfo(LOG_TAG, "rn: registerCandidates complete");
+                _registerTag = null;
+            }
+        });
+        _registerTag.nextStep();;
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Close Join Window
@@ -547,7 +742,7 @@ public class Gateway extends Device {
      * completed.
      */
     public void cleanupRegistrationScan() {
-        _nodeRegistrationTag = null;
+        _scanTag = null;
         closeJoinWindow();
     }
 
@@ -659,18 +854,18 @@ public class Gateway extends Device {
         }
     }
 
-    CloseTag _closeJoinWindowTag;
+    CloseTag _closeTag;
 
     void closeJoinWindow() {
         // We need to do this any time the join window is left open
         Logger.logInfo(LOG_TAG, "rn: closeJoinWindow start");
-        _closeJoinWindowTag = new CloseTag(this, new CloseTagCompletionHandler() {
+        _closeTag = new CloseTag(this, new CloseTagCompletionHandler() {
             @Override
             public void handle(Gateway gateway, Message msg, CloseTag tag) {
                 Logger.logInfo(LOG_TAG, "rn: closeJoinWindow complete %d:%d", msg.what, msg.arg1);
-                _closeJoinWindowTag = null;
+                _closeTag = null;
             }
         });
-        closeJoinWindowProperties(_closeJoinWindowTag);
+        closeJoinWindowProperties(_closeTag);
     }
 }

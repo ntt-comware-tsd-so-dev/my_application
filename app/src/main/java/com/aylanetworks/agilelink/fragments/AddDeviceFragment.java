@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -28,7 +29,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -101,9 +104,33 @@ public class AddDeviceFragment extends Fragment
     public void onResume() {
         Logger.logVerbose(LOG_TAG, "onResume");
         super.onResume();
+
+        /*
+        if (_nodeRegistrationGateway != null) {
+            // not sure this is the right thing to do...
+            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_nodeRegistrationGateway));
+        }
+        AylaLanMode.pause(true);
+        */
+
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().stopPolling();
         }
+
+        /*
+        // TODO: The following two hacks are there so that I can get consistent behavior.  Need to
+        // TODO: the real problems here...
+
+        // TODO: quick hack... remove this
+        // TODO: Nothing I do seems to disable LAN mode, except for this.
+        AylaLanMode.device = null;
+
+        // TODO: quick hack... remove this
+        // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
+        // TODO: immediately go to the network to get the current value.
+        StrictMode.ThreadPolicy tp = StrictMode.ThreadPolicy.LAX;
+        StrictMode.setThreadPolicy(tp);
+        */
     }
 
     @Override
@@ -121,6 +148,10 @@ public class AddDeviceFragment extends Fragment
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().startPolling();
         }
+
+        /*
+        AylaLanMode.resume();
+        */
     }
 
     @Override
@@ -389,35 +420,101 @@ public class AddDeviceFragment extends Fragment
         alertDialog.show();
     }
 
-    public void registrationComplete(Device device, Message msg, int messageResourceId) {
+    boolean _useSingleSelect = false;
+
+    public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
+        //final Gateway gateway = (Gateway)tag;
+
+        dismissWaitDialog();
+
+        // Let the user choose which device to connect to
+        String apNames[] = new String[list.size()];
+
+        final List<AylaDeviceNode> selected = new ArrayList<AylaDeviceNode>();
+        boolean[] isSelectedArray = new boolean[list.size()];
+        for ( int i = 0; i < list.size(); i++ ) {
+            isSelectedArray[i] = true;
+            AylaDeviceNode adn = list.get(i);
+            Logger.logVerbose(LOG_TAG, "rn: candidate [%s]", adn);
+            apNames[i] = adn.model;
+            selected.add(adn);
+        }
+
+        if (_useSingleSelect) {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.choose_new_device)
+                    .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            AylaDeviceNode adn = list.get(which);
+                            Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s]", adn.dsn, adn.model);
+                            List<AylaDeviceNode> tmp = new ArrayList<AylaDeviceNode>();
+                            tmp.add(adn);
+                            MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+                            _nodeRegistrationGateway.registerCandidates(tmp, _nodeRegistrationGateway, AddDeviceFragment.this);
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create().show();
+        } else {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.choose_new_device)
+                    .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                            AylaDeviceNode adn = list.get(which);
+                            Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s] %s", adn.dsn, adn.model, (isChecked ? "YES" : "NO"));
+                            if (isChecked) {
+                                selected.add(adn);
+                            } else {
+                                selected.remove(adn);
+                            }
+                        }
+                    })
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (selected.size() > 0) {
+                                MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+                                _nodeRegistrationGateway.registerCandidates(selected, _nodeRegistrationGateway, AddDeviceFragment.this);
+                            }
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create().show();
+        }
+    }
+
+    public void gatewayRegistrationComplete(Device device, Message msg, int messageResourceId) {
         dismissWaitDialog();
         if (messageResourceId != 0) {
             Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
         }
+        Logger.logMessage(LOG_TAG, msg, "rn: gatewayRegistrationComplete");
         if (AylaNetworks.succeeded(msg)) {
-            Logger.logInfo(LOG_TAG, "rn: registrationComplete %d:%s", msg.arg1, msg.obj);
-
             int resourceId = device.hasPostRegistrationProcessingResourceId();
             if (resourceId > 0) {
                 showMessage(resourceId);
             }
 
-            MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-            // Now update the device notifications
-            DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-            helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
-                @Override
-                public void newDeviceUpdated(Device device, int error) {
-                    MainActivity mainActivity = MainActivity.getInstance();
-                    mainActivity.dismissWaitDialog();
-                    int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                    Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                    SessionManager.deviceManager().refreshDeviceList();
-                }
-            });
-
-        } else {
-            Logger.logError(LOG_TAG, "rn: registrationComplete %d:%d:%s", msg.what, msg.arg1, msg.obj);
+            if (device != null) {
+                // TODO: This shouldn't be here... this should be in the Device class...
+                MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+                // Now update the device notifications
+                DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
+                helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                    @Override
+                    public void newDeviceUpdated(Device device, int error) {
+                        MainActivity mainActivity = MainActivity.getInstance();
+                        mainActivity.dismissWaitDialog();
+                        int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                        SessionManager.deviceManager().refreshDeviceList();
+                    }
+                });
+            }
         }
     }
 
@@ -432,7 +529,7 @@ public class AddDeviceFragment extends Fragment
                         getString(R.string.scanning_for_devices_message));
 
                 Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
-                _nodeRegistrationGateway.startRegistrationScan(this);
+                _nodeRegistrationGateway.startRegistrationScan(_nodeRegistrationGateway, this);
             }
         } else {
             // Put up a progress dialog
