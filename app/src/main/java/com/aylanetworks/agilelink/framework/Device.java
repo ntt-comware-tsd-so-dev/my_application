@@ -150,8 +150,10 @@ public class Device implements Comparable<Device> {
      * Override to provide additional initialization that must be completed after the device
      * has been added to the device list.  Do not do any lengthy or server related initialization
      * in the constructor, save all that for this deviceAdded method.
+     *
+     * @param oldDevice The device that this device replaces in the device list.  Null if new.
      */
-    public void deviceAdded() { }
+    public void deviceAdded(Device oldDevice) { }
 
     /**
      * Override to provide additional actions that must be performed when unregistering a device.

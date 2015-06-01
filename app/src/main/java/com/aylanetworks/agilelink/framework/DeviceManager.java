@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
@@ -21,7 +22,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -88,8 +88,6 @@ public class DeviceManager implements DeviceStatusListener {
     DeviceManager() {
         _deviceListListeners = new HashSet<>();
         _deviceStatusListeners = new HashSet<>();
-
-        _assistantManagers = new HashMap<String,Object>();
 
         _groupManager = new GroupManager();
         _groupManager.fetchDeviceGroups();
@@ -504,32 +502,6 @@ public class DeviceManager implements DeviceStatusListener {
         _deviceStatusListeners.remove(listener);
     }
 
-    // Device Assistant Managers
-
-    protected HashMap<String,Object> _assistantManagers;
-
-    public Object getDeviceAssistantManager(Device device, Class<?> clazz) {
-        String key = clazz.getSimpleName();
-        String fullKey = String.format("%s-%s", device.getDevice().dsn, key);
-        Logger.logVerbose(LOG_TAG, "zg: getDeviceAssistantManager [%s]", fullKey);
-        Object retval = _assistantManagers.get(fullKey);
-        if (retval == null) {
-            try {
-                retval = clazz.getDeclaredConstructor(new Class[]{device.getClass()}).newInstance(device);
-                setDeviceAssistantManager(device, key, retval);
-                Logger.logInfo(LOG_TAG, "zg: getDeviceAssistantManager created [%s]", fullKey);
-            } catch (Exception ex) {
-                Logger.logError(LOG_TAG, ex, "zg: getDeviceAssistantManager [%s]", fullKey);
-            }
-        }
-        return retval;
-    }
-
-    public void setDeviceAssistantManager(Device device, String key, Object object){
-        String fullkey = String.format("%s-%s", device.getDevice().dsn, key);
-        _assistantManagers.put(fullkey, object);
-    }
-
     // Groups
     protected GroupManager _groupManager;
     public GroupManager getGroupManager() {
@@ -830,6 +802,16 @@ public class DeviceManager implements DeviceStatusListener {
             }
         }
 
+        private Device getDeviceFromList(List<Device> list, Device device) {
+            String dsn = device.getDevice().dsn;
+            for (Device d : list) {
+                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                    return d;
+                }
+            }
+            return null;
+        }
+
         @Override
         public void handleMessage(Message msg) {
             List<Device> newDeviceList = new ArrayList<Device>();
@@ -849,12 +831,21 @@ public class DeviceManager implements DeviceStatusListener {
                 }
 
                 if ( _deviceManager.get().deviceListChanged(newDeviceList) ) {
+
+                    // remember the old device list for a little bit
+                    List<Device> oldDeviceList = new ArrayList<Device>();
+                    if (_deviceManager.get()._deviceList != null) {
+                        oldDeviceList = _deviceManager.get()._deviceList;
+                    }
+
+                    // replace the old device list with the new list
                     _deviceManager.get()._deviceList = newDeviceList;
 
                     // The device list has changed.  Give these new devices a chance to initialize
                     // before notifying anybody
                     for (Device device : newDeviceList) {
-                        device.deviceAdded();;
+                        Device oldDevice = getDeviceFromList(oldDeviceList, device);
+                        device.deviceAdded(oldDevice);
                     }
 
                     _deviceManager.get().notifyDeviceListChanged();

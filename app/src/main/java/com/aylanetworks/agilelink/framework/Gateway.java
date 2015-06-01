@@ -107,7 +107,16 @@ public class Gateway extends Device {
     }
 
     @Override
-    public void deviceAdded() {
+    public void deviceAdded(Device oldDevice) {
+
+        if (oldDevice != null) {
+            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDevice().dsn);
+            Gateway gateway = (Gateway)oldDevice;
+            _groupManager = gateway._groupManager;
+            _bindingManager = gateway._bindingManager;
+        } else {
+            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDevice().dsn);
+        }
         getGroupManager().fetchZigbeeGroupsIfNeeded();
         getBindingManager().fetchZigbeeBindingsIfNeeded();
     }
@@ -117,14 +126,13 @@ public class Gateway extends Device {
     }
 
     public void removeDeviceNode(Device device) {
-
     }
 
     private ZigbeeGroupManager _groupManager;
 
     public ZigbeeGroupManager getGroupManager() {
         if (_groupManager == null) {
-            _groupManager = (ZigbeeGroupManager)SessionManager.deviceManager().getDeviceAssistantManager(this, ZigbeeGroupManager.class);
+            _groupManager = new ZigbeeGroupManager(this);
         }
         return _groupManager;
     }
@@ -133,7 +141,7 @@ public class Gateway extends Device {
 
     public ZigbeeBindingManager getBindingManager() {
         if (_bindingManager == null) {
-            _bindingManager = (ZigbeeBindingManager)SessionManager.deviceManager().getDeviceAssistantManager(this, ZigbeeBindingManager.class);
+            _bindingManager = new ZigbeeBindingManager(this);
         }
         return _bindingManager;
     }
