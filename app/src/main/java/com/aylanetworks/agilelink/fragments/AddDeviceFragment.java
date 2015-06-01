@@ -91,11 +91,17 @@ public class AddDeviceFragment extends Fragment
 
     private static boolean _needsExit;
 
+    private boolean _enableLANMode;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logVerbose(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        // we don't want the device manager to try entering lan mode when fetching the device list
+        _enableLANMode = SessionManager.sessionParameters().enableLANMode;
+        SessionManager.sessionParameters().enableLANMode = false;
     }
 
     @Override
@@ -142,6 +148,8 @@ public class AddDeviceFragment extends Fragment
         if (_nodeRegistrationGateway != null) {
             _nodeRegistrationGateway.cleanupRegistrationScan();
         }
+
+        SessionManager.sessionParameters().enableLANMode = _enableLANMode;
 
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().startPolling();

@@ -129,6 +129,32 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Optional interface to be used when fetching devices.
+     */
+    public interface GetDevicesCompletion {
+
+        /**
+         * Method invoked when fetchDeviceList has completed.
+         *
+         * @param msg Message
+         * @param newDeviceList Device list.
+         * @param tag Optional user data.
+         */
+        public void complete(Message msg, List<Device> newDeviceList, Object tag);
+    }
+
+    /**
+     * Refreshes the list of devices, calling the provided completion handler when the list
+     * has been returned and processed.
+     *
+     * @param tag Optional user data.
+     * @param completion Completion handler.
+     */
+    public void refreshDeviceListWithCompletion(Object tag, GetDevicesCompletion completion) {
+        fetchDeviceListWithCompletion(tag, completion);
+    }
+
+    /**
      * Refreshes the status of the supplied device
      * @param device Device to refresh the status of
      */
@@ -175,8 +201,8 @@ public class DeviceManager implements DeviceStatusListener {
      * Starts polling for device list and status changes
      */
     public void startPolling() {
-        Log.v(LOG_TAG, "startPolling");
-        stopPolling();
+        Logger.logDebug(LOG_TAG, "rn: startPolling");
+        stopPollingWithLog(false);
         _pollingStopped = false;
         _deviceListTimerRunnable.run();
         _deviceStatusTimerHandler.postDelayed(_deviceStatusTimerRunnable, _deviceStatusPollInterval);
@@ -186,7 +212,15 @@ public class DeviceManager implements DeviceStatusListener {
      * Stops polling for device list and status changes
      */
     private boolean _pollingStopped;
+
     public void stopPolling() {
+        stopPollingWithLog(true);
+    }
+
+    private void stopPollingWithLog(boolean verbose) {
+        if (verbose) {
+            Logger.logDebug(LOG_TAG, "rn: stopPolling");
+        }
         _pollingStopped = true;
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
@@ -684,6 +718,10 @@ public class DeviceManager implements DeviceStatusListener {
     private Runnable _deviceListTimerRunnable = new Runnable() {
         @Override
         public void run() {
+            if (_pollingStopped) {
+                Logger.logDebug(LOG_TAG, "rn: polling stopped.");
+                return;
+            }
             Log.v(LOG_TAG, "Device List Timer");
 
             if ( _startingLANMode ) {
@@ -773,21 +811,31 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Private methods */
 
-
     /** Handler called when the list of devices has been obtained from the server. */
     static class GetDevicesHandler extends Handler {
         private final WeakReference<DeviceManager> _deviceManager;
+        ArrayList<GetDevicesCompletion> _completionSet;
+        ArrayList<Object> _tagSet;
 
         GetDevicesHandler(DeviceManager manager) {
             _deviceManager = new WeakReference<DeviceManager>(manager);
+            _completionSet = new ArrayList<>();
+            _tagSet = new ArrayList<>();
+        }
+
+        void addCompletion(Object tag, GetDevicesCompletion completion) {
+            synchronized (_completionSet) {
+                _completionSet.add(completion);
+                _tagSet.add(tag);
+            }
         }
 
         @Override
         public void handleMessage(Message msg) {
+            List<Device> newDeviceList = new ArrayList<Device>();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Create our device array
                 Log.v(LOG_TAG, "Device list JSON: " + msg.obj);
-                List<Device> newDeviceList = new ArrayList<Device>();
                 AylaDevice[] devices = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice[].class);
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
                 for ( AylaDevice aylaDevice : devices ) {
@@ -818,6 +866,14 @@ public class DeviceManager implements DeviceStatusListener {
                 }
                 _deviceManager.get().refreshDeviceStatus(null);
             }
+
+            synchronized (_completionSet) {
+                for (int i = 0; i < _completionSet.size(); i++) {
+                    _completionSet.get(i).complete(msg, newDeviceList, _tagSet.get(i));
+                }
+                _completionSet.clear();
+                _tagSet.clear();
+            }
         }
     }
 
@@ -825,6 +881,11 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Fetches the list of devices from the server */
     private void fetchDeviceList() {
+        AylaDevice.getDevices(_getDevicesHandler);
+    }
+
+    private void fetchDeviceListWithCompletion(Object tag, GetDevicesCompletion completion) {
+        _getDevicesHandler.addCompletion(tag, completion);
         AylaDevice.getDevices(_getDevicesHandler);
     }
 

@@ -206,8 +206,8 @@ public class Gateway extends Device {
     /// Node Scanning & Registration
 
     void registerCandidate(AylaDeviceNode node, GatewayTag tag) {
-        AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
-        device.registerCandidate(new RegistrationCandidateHandler(node, tag), node);
+        AylaDeviceGateway gateway = (AylaDeviceGateway) getDevice();
+        gateway.registerCandidate(new RegistrationCandidateHandler(node, tag), node);
     }
 
     static class RegistrationCandidateHandler extends Handler {
@@ -278,23 +278,40 @@ public class Gateway extends Device {
 
         void register() {
             AylaDeviceNode adn = list.get(currentIndex);
-            Logger.logInfo(LOG_TAG, "rn: register node [%s]:[%s]", adn.dsn, adn.model);
+            Logger.logInfo(LOG_TAG, "rn: register node [%s:%s]", adn.dsn, adn.model);
             gateway.registerCandidate(adn, this);
         }
 
         void registerComplete(AylaDeviceNode node, Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, node.gatewayDsn);
+            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, gateway.getDevice().dsn);
             if (AylaNetworks.succeeded(msg)) {
                 AylaDeviceNode adn = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDeviceNode.class);
-                // No way that it could get registered unless it was Online.
                 adn.connectionStatus = "Online";
-                if (TextUtils.isEmpty(adn.oemModel)) {
-                    adn.oemModel = "zigbee1";
-                }
-                Logger.logInfo(LOG_TAG, "rn: registered node [%s]:[%s]", adn.dsn, adn.model);
+                Logger.logInfo(LOG_TAG, "rn: registered node [%s:%s]", adn.dsn, adn.model);
                 Logger.logDebug(LOG_TAG, "rn: registered node [%s]", adn);
-                Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(adn);
-                gateway.setDefaultName(device, this);
+                // let's get the real device list now from the server/gateway
+                SessionManager.deviceManager().refreshDeviceListWithCompletion(adn, new DeviceManager.GetDevicesCompletion() {
+                    @Override
+                    public void complete(Message msg, List<Device> list, Object tag) {
+                        AylaDeviceNode adn = (AylaDeviceNode) tag;
+                        Logger.logMessage(LOG_TAG, msg, "rn: got devices");
+                        if (AylaNetworks.succeeded(msg)) {
+                            for (Device d : list) {
+                                if (d.getDevice().dsn.equals(adn.dsn)) {
+                                    // The device has successfully been added to the device list, now lets rename it.
+                                    Logger.logInfo(LOG_TAG, "rn: registered device [%s:%s]", d.getDevice().dsn, d.getDevice().model);
+                                    Logger.logDebug(LOG_TAG, "rn: registered device [%s]", d);
+                                    gateway.setDefaultName(d, GatewayTag.this);
+                                    return;
+                                }
+                            }
+                        }
+                        Logger.logError(LOG_TAG, "rn: registered device [%s] not found on device list", adn.dsn);
+                        resourceId = R.string.error_gateway_register_device_node;
+                        completion(msg);
+                    }
+                });
+
             } else {
                 resourceId = R.string.error_gateway_register_device_node;
                 completion(msg);
@@ -615,7 +632,9 @@ public class Gateway extends Device {
      *
      * @param autoRegister When set to true, then all devices found will be automatically registered
      *                     to the same gateway. When set to false, then the UI is given the chance to
-     *                     show a dialog for the user to select which devices to register.
+     *                     show a dialog through the GatewayNodeRegistrationListener
+     *                     gatewayRegistrationCandidates method for the user to select which devices
+     *                     to register.
      * @param userTag Optional user object to pair with all method calls to the listener.
      * @param listener GatewayNodeRegistrationListener for tracking progress.
      * @return AylaGatewayScanCancelHandler used to cancel the scan.
