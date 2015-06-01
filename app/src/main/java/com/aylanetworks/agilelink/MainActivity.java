@@ -105,7 +105,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      */
     static {
         _uiConfig = new UIConfig();
-        _uiConfig._listStyle = UIConfig.ListStyle.ExpandingList;
+        _uiConfig._listStyle = UIConfig.ListStyle.Grid;
         _uiConfig._navStyle = UIConfig.NavStyle.Drawer;
     }
 
