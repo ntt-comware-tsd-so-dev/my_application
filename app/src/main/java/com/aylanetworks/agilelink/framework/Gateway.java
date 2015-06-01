@@ -205,13 +205,6 @@ public class Gateway extends Device {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
-    /**
-     * When set to true, then all devices found will be automatically registered to the same gateway.
-     * When set to false, then the UI is given the chance to show a dialog for the user to select
-     * which devices to register.
-     */
-    public boolean autoRegister;
-
     void registerCandidate(AylaDeviceNode node, GatewayTag tag) {
         AylaDeviceGateway device = (AylaDeviceGateway) getDevice();
         device.registerCandidate(new RegistrationCandidateHandler(node, tag), node);
@@ -386,10 +379,12 @@ public class Gateway extends Device {
     class ScanTag extends GatewayTag implements AylaGatewayScanCancelHandler {
         WeakReference<ScanTagCompletionHandler> _completion;
         NodeRegistrationFindState state;
+        boolean autoRegister;
         boolean running;
 
-        ScanTag(Gateway gateway, Object tag, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
+        ScanTag(Gateway gateway, boolean autoRegister, Object tag, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
             _completion = new WeakReference<ScanTagCompletionHandler>(completion);
+            this.autoRegister = autoRegister;
             this.tag = tag;
             this.listener = listener;
             this.gateway = gateway;
@@ -618,17 +613,20 @@ public class Gateway extends Device {
     /**
      * Start the gateway registration candidate scan.
      *
+     * @param autoRegister When set to true, then all devices found will be automatically registered
+     *                     to the same gateway. When set to false, then the UI is given the chance to
+     *                     show a dialog for the user to select which devices to register.
      * @param userTag Optional user object to pair with all method calls to the listener.
      * @param listener GatewayNodeRegistrationListener for tracking progress.
      * @return AylaGatewayScanCancelHandler used to cancel the scan.
      */
-    public AylaGatewayScanCancelHandler startRegistrationScan(Object userTag, GatewayNodeRegistrationListener listener) {
+    public AylaGatewayScanCancelHandler startRegistrationScan(boolean autoRegister, Object userTag, GatewayNodeRegistrationListener listener) {
         Logger.logInfo(LOG_TAG, "rn: startRegistrationScan start");
-        _scanTag = new ScanTag(this, userTag, listener, new ScanTagCompletionHandler() {
+        _scanTag = new ScanTag(this, autoRegister, userTag, listener, new ScanTagCompletionHandler() {
             @Override
             public void handle(Gateway gateway, Message msg, ScanTag scanTag) {
                 if (AylaNetworks.succeeded(msg)) {
-                    if (autoRegister) {
+                    if (_autoRegister) {
                         // all candidates have been registered
                         gateway.closeJoinWindow();
                         scanTag.listener.gatewayRegistrationComplete(msg, scanTag.resourceId, scanTag.tag);

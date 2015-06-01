@@ -546,12 +546,8 @@ public class AddDeviceFragment extends Fragment
                 MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title),
                         getString(R.string.scanning_for_gateway_devices_message), this);
 
-                // set to true to automatically register all candidates found.
-                // set to false to invoke gatewayRegistrationCandidates with a list of candidates
-                _nodeRegistrationGateway.autoRegister = false;
-
                 Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
-                _scanTag = _nodeRegistrationGateway.startRegistrationScan(_nodeRegistrationGateway, this);
+                _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
             }
         } else {
             // Put up a progress dialog
