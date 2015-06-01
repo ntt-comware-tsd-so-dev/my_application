@@ -626,7 +626,7 @@ public class Gateway extends Device {
             @Override
             public void handle(Gateway gateway, Message msg, ScanTag scanTag) {
                 if (AylaNetworks.succeeded(msg)) {
-                    if (_autoRegister) {
+                    if (scanTag.autoRegister) {
                         // all candidates have been registered
                         gateway.closeJoinWindow();
                         scanTag.listener.gatewayRegistrationComplete(msg, scanTag.resourceId, scanTag.tag);
