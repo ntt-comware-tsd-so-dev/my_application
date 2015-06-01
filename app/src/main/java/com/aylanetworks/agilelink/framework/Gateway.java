@@ -22,7 +22,6 @@ import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -394,13 +393,13 @@ public class Gateway extends Device {
     }
 
     class ScanTag extends GatewayTag implements AylaGatewayScanCancelHandler {
-        WeakReference<ScanTagCompletionHandler> _completion;
+        ScanTagCompletionHandler _completion; // not weak, because it is the only thing holding on to it
         NodeRegistrationFindState state;
         boolean autoRegister;
         boolean running;
 
         ScanTag(Gateway gateway, boolean autoRegister, Object tag, GatewayNodeRegistrationListener listener, ScanTagCompletionHandler completion) {
-            _completion = new WeakReference<ScanTagCompletionHandler>(completion);
+            _completion = completion;
             this.autoRegister = autoRegister;
             this.tag = tag;
             this.listener = listener;
@@ -491,7 +490,7 @@ public class Gateway extends Device {
                         resourceId = R.string.error_gateway_registration_candidates;
                         msg.what = AylaNetworks.AML_ERROR_FAIL;
                         msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
-                        if (_completion.get() != null) {
+                        if (_completion != null) {
                             Log.i(LOG_TAG, "rn: OJWTO completion handler");
                         } else {
                             Log.e(LOG_TAG, "rn: OJWTO no completion handler!");
@@ -536,13 +535,27 @@ public class Gateway extends Device {
                 list = new ArrayList<AylaDeviceNode>();
                 AylaDeviceNode[] nodes = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDeviceNode[].class);
                 String amOwnerStr = "";
+                String oemModel = gateway.getDevice().oemModel;
+                String gatewayDsn = gateway.getDevice().dsn;
                 for (AylaDeviceNode node : nodes) {
                     if (node.amOwner()) {
                         amOwnerStr = "true";
                     } else {
                         amOwnerStr = "false";
                     }
+                    node.connectionStatus = "Online";
+                    if (TextUtils.isEmpty(node.oemModel)) {
+                        node.oemModel = oemModel;
+                    }
+                    if (TextUtils.isEmpty(node.gatewayDsn)) {
+                        node.gatewayDsn = gatewayDsn;
+                    }
+                    if (TextUtils.equals(node.productName, node.dsn)) {
+                        Device fakeDevice = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(node);
+                        node.productName = fakeDevice.deviceTypeName();
+                    }
                     Logger.logInfo(LOG_TAG, "rn: candidate DSN:%s amOwner:%s", node.dsn, amOwnerStr);
+                    Logger.logDebug(LOG_TAG, "rn: candidate [%s]", node);
                     list.add(node);
                 }
 
@@ -609,8 +622,8 @@ public class Gateway extends Device {
 
         @Override
         void completion(Message msg) {
-            if (_completion.get() != null) {
-                _completion.get().handle(gateway, msg, this);
+            if (_completion != null) {
+                _completion.handle(gateway, msg, this);
             }
         }
 
@@ -675,10 +688,10 @@ public class Gateway extends Device {
     }
 
     class RegisterTag extends GatewayTag {
-        WeakReference<RegisterCompletionHandler> _completion;
+        RegisterCompletionHandler _completion; // not weak, because it is the only thing holding on to it
 
         RegisterTag(Gateway gateway, List<AylaDeviceNode> list, Object tag, GatewayNodeRegistrationListener listener, RegisterCompletionHandler completion) {
-            _completion = new WeakReference<RegisterCompletionHandler>(completion);
+            _completion = completion;
             this.tag = tag;
             this.listener = listener;
             this.gateway = gateway;
@@ -689,8 +702,8 @@ public class Gateway extends Device {
 
         @Override
         void completion(Message msg) {
-            if (_completion.get() != null) {
-                _completion.get().handle(gateway, msg, this);
+            if (_completion != null) {
+                _completion.handle(gateway, msg, this);
             }
         }
     }
@@ -746,12 +759,12 @@ public class Gateway extends Device {
     }
 
     class CloseTag {
-        WeakReference<CloseTagCompletionHandler> _completion;
+        CloseTagCompletionHandler _completion; // not weak, because it is the only thing holding on to it
         Gateway gateway;
         long startTicks;
 
         CloseTag(Gateway gateway, CloseTagCompletionHandler completion) {
-            _completion = new WeakReference<CloseTagCompletionHandler>(completion);
+            _completion = completion;
             this.gateway = gateway;
             this.startTicks = System.currentTimeMillis();
         }
@@ -803,16 +816,12 @@ public class Gateway extends Device {
                 }
                 if (got == 2) {
                     // good to go
-                    if (_completion.get() != null) {
-                        _completion.get().handle(gateway, msg, null);
-                    }
+                    completion(msg);
                 } else if (set > 0) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
                         msg.what = AylaNetworks.AML_ERROR_FAIL;
                         msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
-                        if (_completion.get() != null) {
-                            _completion.get().handle(gateway, msg, null);
-                        }
+                        completion(msg);
                     } else {
                         // verify/set values again
                         gateway.closeJoinWindowProperties(this);
@@ -820,14 +829,16 @@ public class Gateway extends Device {
                 } else {
                     msg.what = errorWhat;
                     msg.arg1 = errorArg1;
-                    if (_completion.get() != null) {
-                        _completion.get().handle(gateway, msg, null);
-                    }
+                    completion(msg);
                 }
             } else {
-                if (_completion.get() != null) {
-                    _completion.get().handle(gateway, msg, null);
-                }
+                completion(msg);
+            }
+        }
+
+        void completion(Message msg) {
+            if (_completion != null) {
+                _completion.handle(gateway, msg, this);
             }
         }
     }

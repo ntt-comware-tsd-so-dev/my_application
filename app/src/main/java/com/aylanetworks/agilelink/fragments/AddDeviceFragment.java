@@ -459,7 +459,7 @@ public class AddDeviceFragment extends Fragment
      * for registration.  Set to false to show a dialog with a multiselect list of devices to
      * register.
      */
-    boolean _useSingleSelect = true;
+    boolean _useSingleSelect = false;
 
     public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
         _scanTag = null;
@@ -474,7 +474,7 @@ public class AddDeviceFragment extends Fragment
             isSelectedArray[i] = true;
             AylaDeviceNode adn = list.get(i);
             Logger.logVerbose(LOG_TAG, "rn: candidate [%s]", adn);
-            apNames[i] = adn.model;
+            apNames[i] = adn.productName;
             selected.add(adn);
         }
 
