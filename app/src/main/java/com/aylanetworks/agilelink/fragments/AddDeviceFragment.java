@@ -544,7 +544,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 // Put up a progress dialog
                 MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title),
-                        getString(R.string.scanning_for_devices_message), this);
+                        getString(R.string.scanning_for_gateway_devices_message), this);
 
                 // set to true to automatically register all candidates found.
                 // set to false to invoke gatewayRegistrationCandidates with a list of candidates

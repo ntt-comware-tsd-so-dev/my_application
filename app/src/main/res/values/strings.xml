@@ -92,6 +92,7 @@
     <string name="scan">Scan for Devices</string>
     <string name="scanning_for_devices_title">Scanning</string>
     <string name="scanning_for_devices_message">Scanning for available access points...</string>
+    <string name="scanning_for_gateway_devices_message">Scanning for available devices...</string>
     <string name="error_wifi_not_enabled">WiFi must be enabled to set up a new device</string>
     <string name="wifi_initial_text">Tap SCAN FOR DEVICES to start</string>
     <string name="connecting_to_device_title">Connecting</string>
