@@ -232,7 +232,7 @@ public class Gateway extends Device {
                 if (TextUtils.equals(d.getDevice().dsn, dsn)) {
                     continue;
                 }
-                if (TextUtils.equals(d.getDevice().deviceName, name)) {
+                if (TextUtils.equals(d.getDevice().productName, name)) {
                     existsName = true;
                 }
             }
@@ -240,7 +240,7 @@ public class Gateway extends Device {
                 name = name + " " + (nameIteration++);
             }
         } while (existsName);
-        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s] [%s] to [%s]", dsn, device.getDevice().deviceName, name);
+        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s:%s] to [%s]", dsn, device.getDevice().productName, name);
         Map<String, String> params = new HashMap<>();
         params.put("productName", name);
         device.getDevice().update(new UpdateHandler(device, name, tag), params);
