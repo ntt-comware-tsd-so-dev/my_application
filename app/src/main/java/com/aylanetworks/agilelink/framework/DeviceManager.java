@@ -844,8 +844,14 @@ public class DeviceManager implements DeviceStatusListener {
                     // The device list has changed.  Give these new devices a chance to initialize
                     // before notifying anybody
                     for (Device device : newDeviceList) {
-                        Device oldDevice = getDeviceFromList(oldDeviceList, device);
-                        device.deviceAdded(oldDevice);
+                        device.deviceAdded(getDeviceFromList(oldDeviceList, device));
+                    }
+                    // Step through the old device list to see if there are any devices on it
+                    // that aren't on the new device list and send them a removal notice.
+                    for (Device device : oldDeviceList) {
+                        if (getDeviceFromList(newDeviceList, device) == null) {
+                            device.deviceRemoved();
+                        }
                     }
 
                     _deviceManager.get().notifyDeviceListChanged();

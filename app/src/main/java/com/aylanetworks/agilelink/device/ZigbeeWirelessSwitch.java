@@ -176,8 +176,15 @@ public class ZigbeeWirelessSwitch extends Device {
 
     @Override
     public void deviceAdded(Device oldDevice) {
+        super.deviceAdded(oldDevice);
         Gateway gateway = Gateway.getGatewayForDeviceNode(this);
         Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDevice().dsn, gateway.getDevice().dsn);
+    }
+
+    @Override
+    public void deviceRemoved() {
+        super.deviceRemoved();
+        Logger.logInfo(LOG_TAG, "zg: deviceRemoved [%s]", this.getDevice().dsn);
     }
 
     @Override

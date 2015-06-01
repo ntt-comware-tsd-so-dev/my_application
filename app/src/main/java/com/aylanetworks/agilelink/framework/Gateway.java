@@ -108,7 +108,7 @@ public class Gateway extends Device {
 
     @Override
     public void deviceAdded(Device oldDevice) {
-
+        super.deviceAdded(oldDevice);
         if (oldDevice != null) {
             Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDevice().dsn);
             Gateway gateway = (Gateway)oldDevice;
@@ -125,6 +125,11 @@ public class Gateway extends Device {
         return (AylaDeviceGateway)getDevice();
     }
 
+    /**
+     * Called when a unregisterDevice is called on a DeviceNode
+     *
+     * @param device
+     */
     public void removeDeviceNode(Device device) {
     }
 
