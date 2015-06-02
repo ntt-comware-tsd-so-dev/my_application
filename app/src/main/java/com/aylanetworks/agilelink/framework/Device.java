@@ -249,7 +249,7 @@ public class Device implements Comparable<Device> {
         Message getTimeoutMessage() {
             Message msg = new Message();
             msg.what = AylaNetworks.AML_ERROR_FAIL;
-            msg.arg1 = 408;
+            msg.arg1 = AylaNetworks.AML_ERROR_TIMEOUT;
             msg.obj = null;
             return msg;
         }

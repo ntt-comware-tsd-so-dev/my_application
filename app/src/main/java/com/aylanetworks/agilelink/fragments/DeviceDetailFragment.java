@@ -341,7 +341,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
 
                 // if timeout, ask if they want to do it again?
-                if (msg.arg1 == 408) {
+                if (msg.arg1 == AylaNetworks.AML_ERROR_TIMEOUT) {
                     _deviceDetailFragment.get().unregisterDeviceTimeout();
                 }
             }
@@ -421,7 +421,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.factory_reset_failed, Toast.LENGTH_LONG).show();
 
                 // if timeout, ask if they want to do it again?
-                if (msg.arg1 == 408) {
+                if (msg.arg1 == AylaNetworks.AML_ERROR_TIMEOUT) {
                     _deviceDetailFragment.get().factoryResetDeviceTimeout();
                 }
             }
