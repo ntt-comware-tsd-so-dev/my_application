@@ -66,6 +66,8 @@
     <string name="sign_up_error">There was an error during sign-up</string>
     <string name="add_device_menu">Add Device</string>
 
+    <string name="attention">Attention</string>
+
     <string name="unregister_device">Unregister Device</string>
     <string name="unregister_confirm_title">Unregister Device</string>
     <string name="unregister_confirm_body">Are you sure you want to remove this device from your account?</string>
@@ -85,6 +87,8 @@
     <string name="factory_reset_success">The device has been factory reset</string>
     <string name="factory_reset_failure_timeout">Factory Reset device has still not completed successfully.</string>
     <string name="factory_reset_try_again">Try Again</string>
+    <string name="factory_reset_in_progress">Factory Reset in Progress</string>
+    <string name="factory_reset_in_progress_toast">Factory Reset in Progress</string>
 
     <string name="register">Register</string>
     <string name="registration_type">Registration Type</string>
@@ -403,7 +407,5 @@
     <string name="lan_mode_enabled">LAN Mode Enabled</string>
     <string name="online">Online</string>
     <string name="offline">Offline</string>
-    <string name="factory_reset_in_progress">Factory Reset in Progress</string>
-    <string name="factory_reset_in_progress_toast">Factory Reset in Progress</string>
 
 </resources>

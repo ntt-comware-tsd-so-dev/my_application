@@ -415,9 +415,9 @@ public class AddDeviceFragment extends Fragment
 
     private void showMessage(int resourceId){
         AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-        alertDialog.setTitle("Attention");
+        alertDialog.setTitle(getString(R.string.attention));
         alertDialog.setMessage(getString(resourceId));
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,getString(android.R.string.ok),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
