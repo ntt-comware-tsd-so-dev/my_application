@@ -351,6 +351,14 @@ public class Gateway extends Device {
                 completion(msg);
             }
         }
+
+        Message getTimeoutMessage() {
+            Message msg = new Message();
+            msg.what = AylaNetworks.AML_ERROR_FAIL;
+            msg.arg1 = 408;
+            msg.obj = null;
+            return msg;
+        }
     }
 
     enum NodeRegistrationFindState {
@@ -501,14 +509,12 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.error_gateway_registration_candidates;
-                        msg.what = AylaNetworks.AML_ERROR_FAIL;
-                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
                         if (_completion != null) {
                             Log.i(LOG_TAG, "rn: OJWTO completion handler");
                         } else {
                             Log.e(LOG_TAG, "rn: OJWTO no completion handler!");
                         }
-                        completion(msg);
+                        completion(getTimeoutMessage());
                     } else {
                         Logger.logVerbose(LOG_TAG, "rn: Register node OJW postDelayed");
                         final Handler handler = new Handler();
@@ -585,9 +591,7 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.error_gateway_registration_candidates;
-                        msg.what = AylaNetworks.AML_ERROR_FAIL;
-                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
-                        completion(msg);
+                        completion(getTimeoutMessage());
                     } else {
                         // invoke it again manually (412: retry open join window)
                         state = NodeRegistrationFindState.Started;
@@ -598,9 +602,7 @@ public class Gateway extends Device {
                         Logger.logVerbose(LOG_TAG, "rn: Register node timeout");
                         state = NodeRegistrationFindState.Timeout;
                         resourceId = R.string.no_devices_found;
-                        msg.what = AylaNetworks.AML_ERROR_FAIL;
-                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
-                        completion(msg);
+                        completion(getTimeoutMessage());
                     } else {
                         // invoke it again manually (404: retry get candidates)
                         Logger.logVerbose(LOG_TAG, "rn: Register node GRC postDelayed 404");
@@ -832,9 +834,7 @@ public class Gateway extends Device {
                     completion(msg);
                 } else if (set > 0) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
-                        msg.what = AylaNetworks.AML_ERROR_FAIL;
-                        msg.arg1 = AylaNetworks.AML_ERROR_UNREACHABLE;
-                        completion(msg);
+                        completion(getTimeoutMessage());
                     } else {
                         // verify/set values again
                         gateway.closeJoinWindowProperties(this);
@@ -847,6 +847,14 @@ public class Gateway extends Device {
             } else {
                 completion(msg);
             }
+        }
+
+        Message getTimeoutMessage() {
+            Message msg = new Message();
+            msg.what = AylaNetworks.AML_ERROR_FAIL;
+            msg.arg1 = 408;
+            msg.obj = null;
+            return msg;
         }
 
         void completion(Message msg) {

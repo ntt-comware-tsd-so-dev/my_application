@@ -106,6 +106,27 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Remove the device from the device list and any groups it may belong in.
+     *
+     * @param device Device to remove.
+     */
+    public void removeDevice(Device device) {
+        if (device != null) {
+            // remove from all groups
+            getGroupManager().removeDeviceFromAllGroups(device);
+
+            // If a device node, then let the Gateway know we are removing it
+            if (device.isDeviceNode()) {
+                Gateway gateway = Gateway.getGatewayForDeviceNode(device);
+                gateway.removeDeviceNode(device);
+            }
+
+            // remove from the property list so that we don't try to get properties for it.
+            _deviceList.remove(device);
+        }
+    }
+
+    /**
      * Returns the device with the given DSN, or null if not found
      * @param dsn the DSN of the device to find
      * @return The found device, or null if not found

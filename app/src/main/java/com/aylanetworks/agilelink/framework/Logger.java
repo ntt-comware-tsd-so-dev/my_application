@@ -171,9 +171,9 @@ public class Logger implements Thread.UncaughtExceptionHandler {
             jsonResult = jsonResult.replace("\n", "");
         }
         if (AylaNetworks.succeeded(msg)) {
-            intLogMessage(LogLevel.Info, tag, "results:[%s], %s", jsonResult, detail);
+            intLogMessage(LogLevel.Info, tag, "%s results:[%s]", detail, jsonResult);
         } else {
-            intLogMessage(LogLevel.Error, tag, "results:%d:%d:[%s], %s", msg.what, msg.arg1, jsonResult, detail);
+            intLogMessage(LogLevel.Error, tag, "%s results:%d:%d:[%s]", detail, msg.what, msg.arg1, jsonResult);
         }
     }
 
