@@ -36,6 +36,7 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Logger;
@@ -130,6 +131,40 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 }
             });
         }
+
+        Button remoteButton = (Button)view.findViewById(R.id.remote_button);
+        remoteButton.setOnClickListener(this);
+        if (_device instanceof RemoteSwitchDevice) {
+            Logger.logDebug(LOG_TAG, "rm: we are a remote.");
+        } else {
+            List<Device> remotes = SessionManager.deviceManager().getDevicesOfClass(new Class[] {RemoteSwitchDevice.class});
+            if ((remotes != null) && (remotes.size() > 0)) {
+                Logger.logInfo(LOG_TAG, "rm: we have %d remotes.", remotes.size());
+                boolean pairable = false;
+                // Right now we have only one type of remote switch, but at some point there could be
+                // multiple types of remotes
+                for (Device device : remotes) {
+                    RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
+                    if (remote.isPairableDevice(_device)) {
+                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
+                                _device.getDevice().dsn, _device.getClass().getSimpleName(),
+                                device.getDevice().dsn, device.getClass().getSimpleName());
+                        pairable = true;
+                    }
+                }
+                if (!pairable) {
+                    remoteButton.setVisibility(View.GONE);
+                    Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with any of the available remotes.");
+                }
+            } else {
+                remoteButton.setVisibility(View.GONE);
+                Logger.logInfo(LOG_TAG, "rm: we don't have any remotes.");
+            }
+        }
+
+        Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
+        triggerButton.setOnClickListener(this);
+        triggerButton.setVisibility(View.GONE);
 
         updateUI();
 
@@ -508,6 +543,15 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         MainActivity.getInstance().pushFragment(frag);
     }
 
+    private void remoteClicked() {
+        // we could do a fragment... or what?
+        Fragment frag = _device.getRemoteFragment();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    private void triggerClicked() {
+    }
+
     private void sharingClicked() {
         ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _device);
         MainActivity.getInstance().pushFragment(frag);
@@ -538,7 +582,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             @Override
             public void statusUpdated(Device device, boolean changed) {
                 MainActivity.getInstance().dismissWaitDialog();
-                if ( changed ) {
+                if (changed) {
                     chooseTimezone();
                 } else {
                     Toast.makeText(MainActivity.getInstance(),
@@ -605,6 +649,14 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.schedule_button:
                 scheduleClicked();
+                break;
+
+            case R.id.remote_button:
+                remoteClicked();
+                break;
+
+            case R.id.trigger_button:
+                triggerClicked();
                 break;
 
             case R.id.sharing_button:

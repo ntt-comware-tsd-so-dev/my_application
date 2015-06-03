@@ -106,6 +106,114 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Returns the gateway device, or null if one is not found
+     * @return The gateway device, or null if one is not found
+     */
+    public Gateway getGatewayDevice() {
+        if ((_deviceList != null) && (_deviceList.size() > 0)) {
+            for (Device gateway : _deviceList) {
+                if (gateway.isGateway()) {
+                    return (Gateway) gateway;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns a list of available gateway devices.
+     * @return List of gateway devices.
+     */
+    public List<Gateway> getGatewayDevices() {
+        List<Gateway> list = new ArrayList<Gateway>();
+        if ((_deviceList != null) && (_deviceList.size() > 0)) {
+            for (Device gateway : _deviceList) {
+                if (gateway.isGateway()) {
+                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                    list.add((Gateway) gateway);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Returns a list of available devices of the specified class
+     *
+     * @param classes Array of class to match against
+     * @return List of matching devices
+     */
+    public List<Device> getDevicesOfClass(Class[] classes) {
+        if ((_deviceList==null) || (classes==null) || (classes.length==0)) {
+            return null;
+        }
+
+        List<Device> devices = new ArrayList<>(_deviceList);
+        List<Device> list = new ArrayList<Device>();
+        for (Device device : devices) {
+            for (Class clazz : classes) {
+                if (clazz.isInstance(device)) {
+                    list.add(device);
+                    break;
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * The GetDeviceComparable interface is used by the getDevicesOfComparableType method
+     * to return a list of devices of a certain type.
+     */
+    public interface GetDeviceComparable {
+
+        /**
+         * Interface method used to determine if a device is of a certain type.
+         * @param another Device to examine.
+         * @return true if the device is of the correct type. false if it is not.
+         */
+        public boolean isDeviceComparableType(Device another);
+    }
+
+    /**
+     * Returns a list of available devices of the specified type, as determined by
+     * the GetDeviceComparable interface.
+     *
+     * @param comparable GetDeviceComparable used to compare.
+     * @return List of matching devices
+     */
+    public List<Device> getDevicesOfComparableType(GetDeviceComparable comparable) {
+        if ((_deviceList==null) || (comparable==null)) {
+            return null;
+        }
+
+        List<Device> devices = new ArrayList<>(_deviceList);
+        List<Device> list = new ArrayList<Device>();
+        for (Device device : devices) {
+            if (comparable.isDeviceComparableType(device)) {
+                list.add(device);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Returns the device with the given DSN, or null if not found
+     * @param dsn the DSN of the device to find
+     * @return The found device, or null if not found
+     */
+    public Device deviceByDSN(String dsn) {
+        if (_deviceList != null) {
+            for (Device d : _deviceList) {
+                if (d.getDevice().dsn.compareTo(dsn) == 0) {
+                    return d;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Remove the device from the device list and any groups it may belong in.
      *
      * @param device Device to remove.
@@ -124,20 +232,6 @@ public class DeviceManager implements DeviceStatusListener {
             // remove from the property list so that we don't try to get properties for it.
             _deviceList.remove(device);
         }
-    }
-
-    /**
-     * Returns the device with the given DSN, or null if not found
-     * @param dsn the DSN of the device to find
-     * @return The found device, or null if not found
-     */
-    public Device deviceByDSN(String dsn) {
-        for ( Device d : _deviceList ) {
-            if ( d.getDevice().dsn.compareTo(dsn) == 0 ) {
-                return d;
-            }
-        }
-        return null;
     }
 
     /**
@@ -409,38 +503,6 @@ public class DeviceManager implements DeviceStatusListener {
 
     public boolean isShuttingDown() {
         return _shuttingDown;
-    }
-
-    /**
-     * Returns the gateway device, or null if one is not found
-     * @return The gateway device, or null if one is not found
-     */
-    public Gateway getGatewayDevice() {
-        if ((_deviceList != null) && (_deviceList.size() > 0)) {
-            for (Device gateway : _deviceList) {
-                if (gateway.isGateway()) {
-                    return (Gateway) gateway;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns a list of available gateway devices.
-     * @return List of gateway devices.
-     */
-    public List<Gateway> getGatewayDevices() {
-        List<Gateway> list = new ArrayList<Gateway>();
-        if ((_deviceList != null) && (_deviceList.size() > 0)) {
-            for (Device gateway : _deviceList) {
-                if (gateway.isGateway()) {
-                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
-                    list.add((Gateway) gateway);
-                }
-            }
-        }
-        return list;
     }
 
     // Poll interval methods

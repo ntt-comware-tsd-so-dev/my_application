@@ -155,6 +155,10 @@ public class Gateway extends Device {
         getGroupManager().createGroup(groupName, deviceList, tag, handler);
     }
 
+    public void updateGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().updateGroup(group, tag, handler);
+    }
+
     public void deleteGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
         getGroupManager().deleteGroup(group, tag, handler);
     }

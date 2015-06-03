@@ -21,6 +21,12 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="remote">Remote</string>
+    <string name="remote_paired_devices">Paired Devices</string>
+    <string name="remote_paired_remote">Paired Remote</string>
+    <string name="remote_add">Add</string>
+    <string name="remote_remove">Remove</string>
+    <string name="trigger">Trigger</string>
     <string name="device_properties">Properties</string>
     <string name="up"><u>Sign Up</u></string>
     <string name="forgot"><u>Forgot Password</u></string>
@@ -408,4 +414,15 @@
     <string name="online">Online</string>
     <string name="offline">Offline</string>
 
+    <string name="remote_pair_to_device">Select remote to pair</string>
+    <string name="remote_pair_to_devices">Select devices to pair</string>
+    <string name="remote_pair_title">Pair Remote</string>
+    <string name="remote_pair_single_body">Pairing device to remote</string>
+    <string name="remote_pair_multiple_body">Pairing devices to remote</string>
+
+    <string name="remote_unpair_from_device">Select remote to unpair</string>
+    <string name="remote_unpair_from_devices">Select devices to unpair</string>
+    <string name="remote_unpair_title">Unpair Remote</string>
+    <string name="remote_unpair_single_body">Unpairing device from remote</string>
+    <string name="remote_unpair_multiple_body">Unpairing devices from remote</string>
 </resources>

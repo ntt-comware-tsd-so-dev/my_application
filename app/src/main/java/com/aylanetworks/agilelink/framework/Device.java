@@ -26,6 +26,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
+import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 
 import java.lang.ref.WeakReference;
@@ -1051,6 +1052,14 @@ public class Device implements Comparable<Device> {
      */
     public Fragment getNotificationsFragment() {
         return PropertyNotificationFragment.newInstance(this);
+    }
+
+    /**
+     * Returns a fragment used to set up remote binding for this device.
+     * @return a Fragment used to configure remote binding for this device.
+     */
+    public Fragment getRemoteFragment() {
+        return RemoteFragment.newInstance(this);
     }
 
     @Override
