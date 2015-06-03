@@ -120,6 +120,7 @@ public class AllDevicesFragment extends Fragment
 
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
+        _recyclerView.getItemAnimator().setSupportsChangeAnimations(true);
 
         _recyclerView.setVisibility(View.GONE);
         _emptyView.setVisibility(View.VISIBLE);

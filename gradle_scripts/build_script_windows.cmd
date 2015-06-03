@@ -6,7 +6,7 @@ cd libraries
 git clone https://github.com/AylaNetworks/Android_AylaLibrary.git
 cd Android_AylaLibrary
 : git checkout -b master_candidate_merge3 origin/master_candidate_merge3
-git checkout -b master_candidate origin/master_candidate
+git checkout master
 cd ..
 git clone https://github.com/AylaNetworks/Android_AylaZigbeeLibrary.git
 rmdir /s /q Android_AylaLibrary\lib\src\com\aylanetworks\aaml\zigbee

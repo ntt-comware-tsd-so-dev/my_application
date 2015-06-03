@@ -16,7 +16,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +38,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -72,7 +72,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private ImageView _imageView;
     private Button _scheduleButton;
     private Button _notificationsButton;
-
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -270,6 +269,14 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 }
                 break;
 
+            case R.id.action_factory_reset_device:
+                if ( _device.getDevice().amOwner() ) {
+                    factoryResetDevice();
+                } else {
+                    removeShare();
+                }
+                break;
+
             case R.id.action_timezone:
                 updateTimezone();
                 break;
@@ -307,15 +314,20 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
     // Handler for device unregister call
     static class UnregisterDeviceHandler extends Handler {
         private WeakReference<DeviceDetailFragment> _deviceDetailFragment;
+
         public UnregisterDeviceHandler(DeviceDetailFragment deviceDetailFragment) {
             _deviceDetailFragment = new WeakReference<DeviceDetailFragment>(deviceDetailFragment);
         }
 
         @Override
         public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "fr: unregister device");
+            MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 Log.i(LOG_TAG, "Device unregistered: " + _deviceDetailFragment.get()._device);
 
@@ -327,8 +339,35 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             } else {
                 Log.e(LOG_TAG, "Unregister device failed for " + _deviceDetailFragment.get()._device + ": " + msg.obj);
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
+
+                // if timeout, ask if they want to do it again?
+                if (msg.arg1 == AylaNetworks.AML_ERROR_TIMEOUT) {
+                    _deviceDetailFragment.get().unregisterDeviceTimeout();
+                }
             }
         }
+    }
+
+    void unregisterDeviceTimeout() {
+        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _device.getDevice().dsn);
+        Resources res = getActivity().getResources();
+        new AlertDialog.Builder(getActivity())
+                .setTitle(res.getString(R.string.unregister_confirm_title))
+                .setMessage(res.getString(R.string.unregister_failure_timeout))
+                .setPositiveButton(R.string.unregister_try_again, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Put up a progress dialog
+                        MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_unregister_title),
+                                getString(R.string.waiting_unregister_body));
+
+                        Log.i(LOG_TAG, "Unregister Device: " + _device);
+                        _device.unregisterDevice(_unregisterDeviceHandler);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .setIcon(R.drawable.ic_launcher)
+                .show();
     }
 
     private UnregisterDeviceHandler _unregisterDeviceHandler = new UnregisterDeviceHandler(this);
@@ -343,17 +382,99 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Log.i(LOG_TAG, "Unregister Device: " + _device);
+                        // Put up a progress dialog
+                        MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_unregister_title),
+                                getString(R.string.waiting_unregister_body));
 
-                        // Remove the device from all groups
-                        SessionManager.deviceManager().getGroupManager().removeDeviceFromAllGroups(_device);
-                        _device.getDevice().unregisterDevice(_unregisterDeviceHandler);
+                        Log.i(LOG_TAG, "Unregister Device: " + _device);
+                        _device.unregisterDevice(_unregisterDeviceHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .setIcon(R.drawable.ic_launcher)
                 .show();
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static class FactoryResetDeviceHandler extends Handler {
+        private WeakReference<DeviceDetailFragment> _deviceDetailFragment;
+
+        public FactoryResetDeviceHandler(DeviceDetailFragment deviceDetailFragment) {
+            _deviceDetailFragment = new WeakReference<DeviceDetailFragment>(deviceDetailFragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "fr: factory reset device");
+            MainActivity.getInstance().dismissWaitDialog();
+            if ( AylaNetworks.succeeded(msg) || (msg.arg1 == 404)) {
+                Log.i(LOG_TAG, "fr: Device factory reset: " + _deviceDetailFragment.get()._device);
+
+                Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.factory_reset_success, Toast.LENGTH_SHORT).show();
+
+                // Pop ourselves off of the back stack and force a refresh of the device list
+                _deviceDetailFragment.get().getFragmentManager().popBackStack();
+                SessionManager.deviceManager().refreshDeviceList();
+            } else {
+                Log.e(LOG_TAG, "fr: Factory reset device failed for " + _deviceDetailFragment.get()._device + ": " + msg.obj);
+                Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.factory_reset_failed, Toast.LENGTH_LONG).show();
+
+                // if timeout, ask if they want to do it again?
+                if (msg.arg1 == AylaNetworks.AML_ERROR_TIMEOUT) {
+                    _deviceDetailFragment.get().factoryResetDeviceTimeout();
+                }
+            }
+        }
+    }
+
+    void factoryResetDeviceTimeout() {
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _device.getDevice().dsn);
+        Resources res = getActivity().getResources();
+        new AlertDialog.Builder(getActivity())
+                .setTitle(res.getString(R.string.factory_reset_confirm_title))
+                .setMessage(res.getString(R.string.factory_reset_failure_timeout))
+                .setPositiveButton(R.string.factory_reset_try_again, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Put up a progress dialog
+                        MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_factory_reset_title),
+                                getString(R.string.waiting_factory_reset_body));
+
+                        Log.i(LOG_TAG, "Factory Reset Device: " + _device);
+                        _device.factoryResetDevice(_factoryResetDeviceHandler);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .setIcon(R.drawable.ic_launcher)
+                .show();
+    }
+
+    private FactoryResetDeviceHandler _factoryResetDeviceHandler = new FactoryResetDeviceHandler(this);
+
+    void factoryResetDevice() {
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _device.getDevice().dsn);
+        Resources res = getActivity().getResources();
+        new AlertDialog.Builder(getActivity())
+                .setTitle(res.getString(R.string.factory_reset_confirm_title))
+                .setMessage(res.getString(R.string.factory_reset_confirm_body))
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Put up a progress dialog
+                        MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_factory_reset_title),
+                                getString(R.string.waiting_factory_reset_body));
+
+                        Log.i(LOG_TAG, "Factory Reset Device: " + _device);
+                        _device.factoryResetDevice(_factoryResetDeviceHandler);
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(R.drawable.ic_launcher)
+                .show();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void removeShare() {
         // Confirm first!

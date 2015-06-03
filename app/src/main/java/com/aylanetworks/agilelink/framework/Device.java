@@ -147,6 +147,186 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * This method is invoked after the device is added to the device list.
+     *
+     * Override to provide additional initialization that must be completed after the device
+     * has been added to the device list.  Do not do any lengthy or server related initialization
+     * in the constructor, save all that for this deviceAdded method.
+     *
+     * Always invoke the super.
+     *
+     * @param oldDevice The device that this device replaces in the device list.  Null if new.
+     */
+    public void deviceAdded(Device oldDevice) {
+        // copy properties
+    }
+
+    /**
+     * This method is invoked after devices have been added to the device list and this
+     * device is not on the new device list.
+     *
+     * Always invoke the super.
+     *
+     */
+    public void deviceRemoved() { }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    interface ResetTagCompletionHandler {
+
+        void handle(Message msg, ResetTag tag);
+    }
+
+    class ResetTag {
+        private final static int FACTORY_RESET_INC = 10 * 1000;
+        private final static int FACTORY_RESET_WAIT_TIME = 30 * 1000;
+        private final static int FACTORY_RESET_SCAN_TIME = 20 * 1000;
+
+        WeakReference<Handler> _handler;
+        Device _device;
+        ResetTagCompletionHandler _completion; // not weak, because it is the only thing holding on to it
+        long startTicks;
+
+        ResetTag(Handler handler, Device device, ResetTagCompletionHandler completion) {
+            _handler = new WeakReference<Handler>(handler);
+            _device = device;
+            _completion = completion;
+            this.startTicks = System.currentTimeMillis();
+        }
+
+        void resetDevice(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "fr: ResetTag resetDevice");
+            if (AylaNetworks.succeeded(msg)) {
+                // check to see if the device is still in the list
+                delayedCheckIfGone();
+            } else {
+                completion(msg);
+            }
+        }
+
+        void checkIfGone() {
+            // let's get the device list now from the server/gateway
+            SessionManager.deviceManager().refreshDeviceListWithCompletion(this, new DeviceManager.GetDevicesCompletion() {
+                @Override
+                public void complete(Message msg, List<Device> list, Object tag) {
+                    ResetTag frt = (ResetTag) tag;
+                    Device device = frt._device;
+                    String dsn = device.getDevice().dsn;
+                    boolean found = false;
+                    Logger.logMessage(LOG_TAG, msg, "fr: ResetTag got devices");
+                    if (AylaNetworks.succeeded(msg)) {
+                        for (Device d : list) {
+                            if (d.getDevice().dsn.equals(dsn)) {
+                                Logger.logInfo(LOG_TAG, "fr: ResetTag device [%s] still in device list", dsn);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) {
+                        if (System.currentTimeMillis() - startTicks > FACTORY_RESET_WAIT_TIME) {
+                            Logger.logVerbose(LOG_TAG, "fr: ResetTag timeout");
+                            frt.completion(getTimeoutMessage());
+                        } else {
+                            frt.delayedCheckIfGone();
+                        }
+                    } else {
+                        Logger.logInfo(LOG_TAG, "fr: ResetTag successful.");
+                        frt.completion(getSuccessMessage());
+                    }
+                }
+            });
+        }
+
+        Message getSuccessMessage() {
+            Message msg = new Message();
+            msg.what = AylaNetworks.AML_ERROR_OK;
+            msg.arg1 = AylaNetworks.AML_ERROR_ASYNC_OK;
+            msg.obj = null;
+            return msg;
+        }
+
+        Message getTimeoutMessage() {
+            Message msg = new Message();
+            msg.what = AylaNetworks.AML_ERROR_FAIL;
+            msg.arg1 = AylaNetworks.AML_ERROR_TIMEOUT;
+            msg.obj = null;
+            return msg;
+        }
+
+        void delayedCheckIfGone() {
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() { checkIfGone(); }
+            }, 10000);
+        }
+
+        void completion(Message msg) {
+            if (_handler.get() != null) {
+                _handler.get().handleMessage(msg);
+            }
+            _completion.handle(msg, this);
+        }
+    }
+
+    static class ResetHandler extends Handler {
+        private ResetTag _tag;
+
+        ResetHandler(ResetTag tag) {  _tag = tag; }
+
+        @Override
+        public void handleMessage(Message msg) { _tag.resetDevice(msg); }
+    }
+
+    ResetTag _resetTag;
+
+    public void factoryResetDevice(Handler handler) {
+        Logger.logInfo(LOG_TAG, "fr: factory reset start");
+        _resetTag = new ResetTag(handler, this, new ResetTagCompletionHandler() {
+            @Override
+            public void handle(Message msg, ResetTag tag) {
+                Logger.logInfo(LOG_TAG, "fr: factory reset complete %d:%d", msg.what, msg.arg1);
+                _resetTag = null;
+            }
+        });
+
+        // remove the device from the device manager list...
+        // so that we don't try getting properties for it, etc.
+        SessionManager.deviceManager().removeDevice(this);
+
+        // factory reset the device
+        getDevice().factoryReset(new ResetHandler(_resetTag), null);
+    }
+
+    /**
+     * Override to provide additional actions that must be performed when unregistering a device.
+     * Always invoke the super
+     *
+     * @param handler
+     */
+    public void unregisterDevice(Handler handler) {
+
+        Logger.logInfo(LOG_TAG, "fr: unregisterDevice start");
+        _resetTag = new ResetTag(handler, this, new ResetTagCompletionHandler() {
+            @Override
+            public void handle(Message msg, ResetTag tag) {
+                Logger.logInfo(LOG_TAG, "fr: unregisterDevice complete %d:%d", msg.what, msg.arg1);
+                _resetTag = null;
+            }
+        });
+
+        // remove the device from the device manager list...
+        // so that we don't try getting properties for it, etc.
+        SessionManager.deviceManager().removeDevice(this);
+
+        // unregister the device
+        getDevice().unregisterDevice(new ResetHandler(_resetTag));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
      * Gets the latest device status from the server and calls listener when done.
      * Derived classes can perform other operations to obtain information about the device state.
      * This method is called whenever the DeviceManager's device status timer is hit, or if in
@@ -899,8 +1079,26 @@ public class Device implements Comparable<Device> {
         return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
     }
 
+    /**
+     * Override to provide additional initialization that must be completed after registering
+     * the device.
+     */
     public void postRegistration() { }
 
+    /**
+     * Override to provide additional initialization that must be completed after registering
+     * the device. notifyDeviceStatusChanged is called when complete.
+     *
+     * @param gateway The gateway that the device node is linked to.
+     */
+    public void postRegistrationForGatewayDevice(Gateway gateway) { }
+
+    /**
+     * Override to provide the resource string for a dialog box presented to the user after
+     * registering the device.
+     *
+     * @return String resource id.
+     */
     public int hasPostRegistrationProcessingResourceId() { return 0; }
 
     /**

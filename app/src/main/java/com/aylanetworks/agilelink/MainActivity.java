@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -104,7 +105,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      */
     static {
         _uiConfig = new UIConfig();
-        _uiConfig._listStyle = UIConfig.ListStyle.ExpandingList;
+        _uiConfig._listStyle = UIConfig.ListStyle.Grid;
         _uiConfig._navStyle = UIConfig.NavStyle.Drawer;
     }
 
@@ -127,6 +128,27 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
 
         _progressDialog = ProgressDialog.show(this, title, message, true);
+    }
+
+    /**
+     * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
+     * The caller should call dismissWaitDialog() when finished.  This dialog is also cancelable
+     * by pressing the back key.
+     *
+     * @param title title of the dialog.
+     * @param message message to display.
+     * @param cancelListener Cancel listener.
+     */
+    public void showWaitDialogWithCancel(String title, String message, DialogInterface.OnCancelListener cancelListener) {
+        if (_progressDialog != null) {
+            dismissWaitDialog();
+        }
+
+        if (title == null) {
+            title = getResources().getString(R.string.please_wait);
+        }
+
+        _progressDialog = ProgressDialog.show(this, title, message, true, true, cancelListener);
     }
 
     /**
