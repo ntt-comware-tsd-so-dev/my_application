@@ -1055,8 +1055,8 @@ public class Device implements Comparable<Device> {
     }
 
     /**
-     * Returns a fragment used to set up remote binding for this device.
-     * @return a Fragment used to configure remote binding for this device.
+     * Returns a fragment used to set up remote switch pairing for this device.
+     * @return a Fragment used to configure remote switch pairing for this device.
      */
     public Fragment getRemoteFragment() {
         return RemoteFragment.newInstance(this);

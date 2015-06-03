@@ -24,8 +24,8 @@
     <string name="remote">Remote</string>
     <string name="remote_paired_devices">Paired Devices</string>
     <string name="remote_paired_remote">Paired Remote</string>
-    <string name="remote_add">Add</string>
-    <string name="remote_remove">Remove</string>
+    <string name="remote_add">Pair</string>
+    <string name="remote_remove">Unpair</string>
     <string name="trigger">Trigger</string>
     <string name="device_properties">Properties</string>
     <string name="up"><u>Sign Up</u></string>
