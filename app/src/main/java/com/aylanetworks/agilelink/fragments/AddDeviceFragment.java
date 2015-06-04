@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -128,13 +129,13 @@ public class AddDeviceFragment extends Fragment
         // TODO: quick hack... remove this
         // TODO: Nothing I do seems to disable LAN mode, except for this.
         AylaLanMode.device = null;
+        */
 
         // TODO: quick hack... remove this
         // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
         // TODO: immediately go to the network to get the current value.
         StrictMode.ThreadPolicy tp = StrictMode.ThreadPolicy.LAX;
         StrictMode.setThreadPolicy(tp);
-        */
     }
 
     @Override
@@ -243,7 +244,7 @@ public class AddDeviceFragment extends Fragment
 
     ArrayAdapter<Device> createGatewayAdapter() {
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]));
+        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]), true);
     }
 
     ArrayAdapter<Device> createProductTypeAdapter() {

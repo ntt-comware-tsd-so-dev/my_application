@@ -11,8 +11,6 @@ import android.widget.TextView;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 
-import java.util.List;
-
 /*
  * DeviceTypeAdapter.java
  * AgileLink Application Framework
@@ -23,9 +21,17 @@ import java.util.List;
 
 public class DeviceTypeAdapter extends ArrayAdapter<Device> {
 
+    public boolean useProductName;
+
     public DeviceTypeAdapter(Context c, Device[] objects) {
         super(c, R.layout.spinner_device_selection, objects);
     }
+
+    public DeviceTypeAdapter(Context c, Device[] objects, boolean productName) {
+        super(c, R.layout.spinner_device_selection, objects);
+        useProductName = productName;
+    }
+
 
     @Override
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
@@ -38,7 +44,7 @@ public class DeviceTypeAdapter extends ArrayAdapter<Device> {
         iv.setImageDrawable(d.getDeviceDrawable(getContext()));
 
         TextView name = (TextView)spinner.findViewById(R.id.device_name);
-        name.setText(d.deviceTypeName());
+        name.setText(useProductName ? d.getDevice().productName : d.deviceTypeName());
 
         return spinner;
     }
