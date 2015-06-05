@@ -45,7 +45,7 @@ public class Gateway extends Device {
     private final static long SCAN_TIMEOUT = (30 * 1000);
 
     /**
-     * Get the gateway for a device.
+     * Get the gateway for a device node.
      *
      * @param device The Device to get the gateway for.
      * @return Gateway.  Null if the device is not a DeviceNode.
@@ -57,6 +57,51 @@ public class Gateway extends Device {
         }
         return null;
     }
+
+    public List<Device> filterDeviceList(List<Device> devices) {
+        List<Device> list = new ArrayList<>();
+        AylaDeviceGateway gateway = (AylaDeviceGateway)getDevice();
+        if (gateway.nodes != null) {
+            for (AylaDeviceNode node : gateway.nodes) {
+                if (DeviceManager.isDsnInDeviceList(node.dsn, devices)) {
+                    list.add(SessionManager.deviceManager().deviceByDSN(node.dsn));
+                }
+            }
+        } else {
+            Logger.logError(LOG_TAG, "rm: gateway [%s] has no nodes!", gateway.dsn);
+        }
+        return list;
+    }
+
+    /**
+     * Returns the list of all devices for this gateway.
+     * @return The list of devices.
+     */
+    public List<Device> deviceList() {
+        return filterDeviceList(SessionManager.deviceManager().deviceList());
+    }
+
+    /**
+     * Returns a list of available devices for this gateway of the specified class
+     *
+     * @param classes Array of class to match against
+     * @return List of matching devices
+     */
+    public List<Device> getDevicesOfClass(Class[] classes) {
+        return filterDeviceList(SessionManager.deviceManager().getDevicesOfClass(classes));
+    }
+
+    /**
+     * Returns a list of available devices for this gateway of the specified type, as determined by
+     * the GetDeviceComparable interface.
+     *
+     * @param comparable GetDeviceComparable used to compare.
+     * @return List of matching devices
+     */
+    public List<Device> getDevicesOfComparableType(DeviceManager.GetDeviceComparable comparable) {
+        return filterDeviceList(SessionManager.deviceManager().getDevicesOfComparableType(comparable));
+    }
+
 
     /**
      * Interface used when scanning for and registering a gateway's device nodes

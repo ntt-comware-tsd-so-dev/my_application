@@ -32,6 +32,7 @@ import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -45,6 +46,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     private static final String ARG_DSN = "dsn";
 
     Device _device;
+    Gateway _gateway;
     ListView _listView;
     SimpleDeviceListAdapter _adapter;
     TextView _titleView;
@@ -102,12 +104,14 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_remote_detail, container, false);
 
-        if ( _device == null ) {
+        if (( _device == null) || !_device.isDeviceNode()) {
             Log.e(LOG_TAG, "Unable to find device!");
             getFragmentManager().popBackStack();
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
 
         } else {
+            _gateway = Gateway.getGatewayForDeviceNode(_device);
+
             _listView = (ListView) view.findViewById(R.id.listView);
             _titleView = (TextView) view.findViewById(R.id.device_name);
             _imageView = (ImageView) view.findViewById(R.id.device_image);
@@ -124,7 +128,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 Logger.logDebug(LOG_TAG, "rm: we are a remote.");
             } else {
                 listLabel.setText(getString(R.string.remote_paired_remote));
-                List<Device> remotes = SessionManager.deviceManager().getDevicesOfClass(new Class[]{ZigbeeWirelessSwitch.class});
+                List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{ZigbeeWirelessSwitch.class});
                 if ((remotes != null) && (remotes.size() > 0)) {
                     Logger.logInfo(LOG_TAG, "rm: we have %d remotes.", remotes.size());
                     // we only have one type of remote class, so it's safe to do this with the first one
@@ -152,7 +156,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             devices = ((RemoteSwitchDevice)_device).getPairedDevices();
         } else {
             devices = new ArrayList<Device>();
-            List<Device> remotes = SessionManager.deviceManager().getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+            List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
             for (Device device : remotes) {
                 RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
                 if (remote.isDevicePaired(_device)) {
@@ -237,7 +241,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             RemoteSwitchDevice remote = (RemoteSwitchDevice)_device;
 
             // Get a list of the devices that can be paired to this remote
-            final List<Device> devices = SessionManager.deviceManager().getDevicesOfComparableType(this);
+            final List<Device> devices = _gateway.getDevicesOfComparableType(this);
             final List<Device> list = new ArrayList<Device>();
             for (Device device : devices) {
                 // This only checks to see if the device is paired with this remote
@@ -284,7 +288,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             // Device is or can be paired to a remote switch
 
             // Get a list of the remotes that this device can be paired with
-            List<Device> remotes = SessionManager.deviceManager().getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+            List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
             final List<Device> list = new ArrayList<Device>();
             for (Device device : remotes) {
                 RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
@@ -369,7 +373,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             // Device is or can be paired to a remote switch
 
             // Unpair device from the remote that is paired with
-            List<Device> remotes = SessionManager.deviceManager().getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+            List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
             for (Device device : remotes) {
                 RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
                 if (remote.isDevicePaired(_device)) {

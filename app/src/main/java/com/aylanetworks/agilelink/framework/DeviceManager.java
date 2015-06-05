@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -81,6 +82,30 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** The one and only device that is currently LAN-mode enabled. */
     private Device _lanModeEnabledDevice;
+
+    /** Public Helper Methods */
+
+    static public boolean isDsnInAylaDeviceNodeList(String dsn, List<AylaDeviceNode> devices) {
+        if (devices == null || devices.size() == 0)
+            return false;
+        for (AylaDeviceNode adn : devices) {
+            if (TextUtils.equals(dsn, adn.dsn)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static public boolean isDsnInDeviceList(String dsn, List<Device> devices) {
+        if (devices == null || devices.size() == 0)
+            return false;
+        for (Device d : devices) {
+            if (TextUtils.equals(dsn, d.getDevice().dsn)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /** Public Methods */
 

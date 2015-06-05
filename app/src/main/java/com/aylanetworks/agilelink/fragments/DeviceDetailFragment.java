@@ -39,6 +39,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -134,32 +135,38 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         Button remoteButton = (Button)view.findViewById(R.id.remote_button);
         remoteButton.setOnClickListener(this);
-        if (_device instanceof RemoteSwitchDevice) {
-            Logger.logDebug(LOG_TAG, "rm: we are a remote.");
-        } else {
-            List<Device> remotes = SessionManager.deviceManager().getDevicesOfClass(new Class[] {RemoteSwitchDevice.class});
-            if ((remotes != null) && (remotes.size() > 0)) {
-                Logger.logInfo(LOG_TAG, "rm: we have %d remotes.", remotes.size());
-                boolean pairable = false;
-                // Right now we have only one type of remote switch, but at some point there could be
-                // multiple types of remotes
-                for (Device device : remotes) {
-                    RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
-                    if (remote.isPairableDevice(_device)) {
-                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
-                                _device.getDevice().dsn, _device.getClass().getSimpleName(),
-                                device.getDevice().dsn, device.getClass().getSimpleName());
-                        pairable = true;
-                    }
-                }
-                if (!pairable) {
-                    remoteButton.setVisibility(View.GONE);
-                    Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with any of the available remotes.");
-                }
+
+        if (_device.isDeviceNode()) {
+            Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+            if (_device instanceof RemoteSwitchDevice) {
+                Logger.logDebug(LOG_TAG, "rm: we are a remote.");
             } else {
-                remoteButton.setVisibility(View.GONE);
-                Logger.logInfo(LOG_TAG, "rm: we don't have any remotes.");
+                List<Device> remotes = gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+                if ((remotes != null) && (remotes.size() > 0)) {
+                    Logger.logInfo(LOG_TAG, "rm: we have %d remotes.", remotes.size());
+                    boolean pairable = false;
+                    // Right now we have only one type of remote switch, but at some point there could be
+                    // multiple types of remotes
+                    for (Device device : remotes) {
+                        RemoteSwitchDevice remote = (RemoteSwitchDevice) device;
+                        if (remote.isPairableDevice(_device)) {
+                            Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
+                                    _device.getDevice().dsn, _device.getClass().getSimpleName(),
+                                    device.getDevice().dsn, device.getClass().getSimpleName());
+                            pairable = true;
+                        }
+                    }
+                    if (!pairable) {
+                        remoteButton.setVisibility(View.GONE);
+                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with any of the available remotes.");
+                    }
+                } else {
+                    remoteButton.setVisibility(View.GONE);
+                    Logger.logInfo(LOG_TAG, "rm: we don't have any remotes.");
+                }
             }
+        } else {
+            remoteButton.setVisibility(View.GONE);
         }
 
         Button triggerButton = (Button)view.findViewById(R.id.trigger_button);

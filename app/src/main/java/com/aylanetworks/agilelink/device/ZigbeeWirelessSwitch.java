@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceNode;
@@ -15,6 +14,7 @@ import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.ZigbeeGroupManager;
@@ -238,28 +238,6 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         pairDevices(Arrays.asList(device), tag, completion);
     }
 
-    boolean isDsnInAylaDeviceNodeList(String dsn, List<AylaDeviceNode> devices) {
-        if (devices == null || devices.size() == 0)
-            return false;
-        for (AylaDeviceNode adn : devices) {
-            if (TextUtils.equals(dsn, adn.dsn)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    boolean isDsnInDeviceList(String dsn, List<Device> devices) {
-        if (devices == null || devices.size() == 0)
-            return false;
-        for (Device d : devices) {
-            if (TextUtils.equals(dsn, d.getDevice().dsn)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public void pairDevices(List<Device> list, final Object userTag, final RemoteSwitchCompletionHandler completion) {
 
@@ -273,7 +251,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         // add list to devices
         for (Device device : list) {
             AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
-            if (!isDsnInAylaDeviceNodeList(adn.dsn, devices)) {
+            if (!DeviceManager.isDsnInAylaDeviceNodeList(adn.dsn, devices)) {
                 devices.add(adn);
             }
         }
@@ -310,7 +288,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         List<AylaDeviceNode> current = ZigbeeGroupManager.getDeviceNodes(group);
         List<AylaDeviceNode> devices = new ArrayList<AylaDeviceNode>();
         for (AylaDeviceNode adn : current) {
-            if (!isDsnInDeviceList(adn.dsn, list)) {
+            if (!DeviceManager.isDsnInDeviceList(adn.dsn, list)) {
                 devices.add(adn);
             }
         }
