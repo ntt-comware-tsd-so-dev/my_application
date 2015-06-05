@@ -727,10 +727,16 @@ public class Gateway extends Device {
         _scanTag = new ScanTag(this, autoRegister, userTag, listener, new ScanTagCompletionHandler() {
             @Override
             public void handle(Gateway gateway, Message msg, ScanTag scanTag) {
+                Logger.logMessage(LOG_TAG, msg, "rn: startRegistrationScan");
                 if (AylaNetworks.succeeded(msg)) {
                     if (scanTag.autoRegister) {
                         // all candidates have been registered
                         gateway.closeJoinWindow();
+                        scanTag.listener.gatewayRegistrationComplete(msg, scanTag.resourceId, scanTag.tag);
+                    } else if ((scanTag.list == null) || (scanTag.list.size() == 0)) {
+                        gateway.closeJoinWindow();
+                        Logger.logWarning(LOG_TAG, "rn: startRegistrationScan success but empty/null list");
+                        scanTag.resourceId = R.string.error_gateway_registration_candidates;
                         scanTag.listener.gatewayRegistrationComplete(msg, scanTag.resourceId, scanTag.tag);
                     } else {
                         // present the candidate list to the user

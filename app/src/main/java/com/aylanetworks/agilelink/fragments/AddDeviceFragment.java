@@ -418,7 +418,7 @@ public class AddDeviceFragment extends Fragment
         AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
         alertDialog.setTitle(getString(R.string.attention));
         alertDialog.setMessage(getString(resourceId));
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,getString(android.R.string.ok),
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
@@ -498,7 +498,7 @@ public class AddDeviceFragment extends Fragment
                     .create().show();
         } else {
             new AlertDialog.Builder(getActivity())
-                    .setTitle(R.string.choose_new_device)
+                    .setTitle(R.string.choose_new_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
