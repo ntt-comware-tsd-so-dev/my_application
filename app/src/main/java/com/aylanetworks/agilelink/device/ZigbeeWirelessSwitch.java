@@ -102,7 +102,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
             Logger.logDebug(LOG_TAG, "zg: initializeRemoteBinding [%s] createBinding [%s:%s:%s]", getDevice().dsn, binding.bindingName, binding.toName, binding.fromId);
             gateway.createBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
-                public void handle(Gateway gateway, Message msg, Object tag) {
+                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
                         // all done binding the remote
                         Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] success", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
@@ -122,7 +122,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
             Logger.logDebug(LOG_TAG, "zg: initializeRemoteGroup [%s] createGroup [%s]", getDevice().dsn, name);
             gateway.createGroup(name, null, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
-                public void handle(Gateway gateway, Message msg, Object tag) {
+                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
                         initializeRemoteBinding(gateway);
                     } else {
@@ -143,7 +143,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
             Logger.logDebug(LOG_TAG, "zg: removeRemoteGroup [%s] deleteBinding [%s]", getDevice().dsn, name);
             gateway.deleteBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
-                public void handle(Gateway gateway, Message msg, Object tag) {
+                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
                         Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
                     } else {
@@ -166,7 +166,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
             Logger.logDebug(LOG_TAG, "zg: removeRemoteGroup [%s] deleteGroup [%s]", getDevice().dsn, name);
             gateway.deleteGroup(group, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
-                public void handle(Gateway gateway, Message msg, Object tag) {
+                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
                         removeRemoteBinding(gateway);
                     } else {
@@ -263,7 +263,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         }
         gateway.updateGroup(group, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
-            public void handle(Gateway gateway, Message msg, Object tag) {
+            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                 Logger.logMessage(LOG_TAG, msg, "rm: pairDevices complete");
                 completion.handle(ZigbeeWirelessSwitch.this, msg, userTag);
             }
@@ -301,7 +301,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         }
         gateway.updateGroup(group, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
-            public void handle(Gateway gateway, Message msg, Object tag) {
+            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                 Logger.logMessage(LOG_TAG, msg, "rm: unpairDevices complete");
                 completion.handle(ZigbeeWirelessSwitch.this, msg, userTag);
             }

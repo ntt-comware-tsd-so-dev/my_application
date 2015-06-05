@@ -62,7 +62,8 @@ import java.util.TimeZone;
  * Created by Brian King on 1/15/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
-public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener {
+
+public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener, Gateway.AylaGatewayCompletionHandler {
     public final static String LOG_TAG = "DeviceDetailFragment";
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
@@ -74,6 +75,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private ImageView _imageView;
     private Button _scheduleButton;
     private Button _notificationsButton;
+    private Switch _identifySwitch;
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -99,6 +101,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onDestroy() {
         super.onDestroy();
+        ensureIdentifyOff();
         SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
     }
 
@@ -136,7 +139,16 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Button remoteButton = (Button)view.findViewById(R.id.remote_button);
         remoteButton.setOnClickListener(this);
 
+        _identifySwitch = (Switch)view.findViewById(R.id.identify_button);
+        _identifySwitch.setOnClickListener(this);
+
+        Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
+        triggerButton.setOnClickListener(this);
+        triggerButton.setVisibility(View.GONE);
+
         if (_device.isDeviceNode()) {
+            _identifySwitch.setVisibility(View.VISIBLE);
+
             Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
             if (_device instanceof RemoteSwitchDevice) {
                 Logger.logDebug(LOG_TAG, "rm: we are a remote.");
@@ -167,11 +179,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             }
         } else {
             remoteButton.setVisibility(View.GONE);
+            _identifySwitch.setVisibility(View.GONE);
         }
-
-        Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
-        triggerButton.setOnClickListener(this);
-        triggerButton.setVisibility(View.GONE);
 
         updateUI();
 
@@ -556,6 +565,29 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         MainActivity.getInstance().pushFragment(frag);
     }
 
+    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+        Switch control = (Switch)tag;
+        control.setEnabled(true);
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _device.getDevice().dsn, (control.isChecked() ? "ON" : "OFF"));
+    }
+
+    private void identifyClicked(View v) {
+        Switch control = (Switch)v;
+        control.setEnabled(false);
+        Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _device.getDevice().dsn, (control.isChecked() ? "ON" : "OFF"));
+        gateway.identifyDeviceNode(_device, control.isChecked(), 255, v, this);
+    }
+
+    private void ensureIdentifyOff() {
+        if ((_device != null) && _device.isDeviceNode()) {
+            Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+            // we don't care about the results
+            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _device.getDevice().dsn);
+            gateway.identifyDeviceNode(_device, false, 0, null, null);
+        }
+    }
+
     private void triggerClicked() {
     }
 
@@ -660,6 +692,10 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.remote_button:
                 remoteClicked();
+                break;
+
+            case R.id.identify_button:
+                identifyClicked(v);
                 break;
 
             case R.id.trigger_button:

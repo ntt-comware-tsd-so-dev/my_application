@@ -379,7 +379,7 @@ public class ZigbeeGroupManager {
                 _manager.get().notifyCreateCompleted(_name, msg, null);
             }
             if (_handler != null) {
-                _handler.handle(_manager.get()._gateway, msg, _tag);
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
             }
         }
     }
@@ -419,7 +419,7 @@ public class ZigbeeGroupManager {
                 _manager.get().notifyUpdateCompleted(_name, msg, null);
             }
             if (_handler != null) {
-                _handler.handle(_manager.get()._gateway, msg, _tag);
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
             }
         }
     }
@@ -461,7 +461,7 @@ public class ZigbeeGroupManager {
                 _manager.get().notifyDeleteCompleted(_name, msg);
             }
             if (_handler != null) {
-                _handler.handle(_manager.get()._gateway, msg, _tag);
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
             }
         }
     }

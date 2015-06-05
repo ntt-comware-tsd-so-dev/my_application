@@ -27,6 +27,7 @@
     <string name="remote_add">Pair</string>
     <string name="remote_remove">Unpair</string>
     <string name="trigger">Trigger</string>
+    <string name="identify">Identify</string>
     <string name="device_properties">Properties</string>
     <string name="up"><u>Sign Up</u></string>
     <string name="forgot"><u>Forgot Password</u></string>

@@ -22,6 +22,7 @@ import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -149,7 +150,7 @@ public class Gateway extends Device {
     // the steps.
     public interface AylaGatewayCompletionHandler {
 
-        public void handle(Gateway gateway, Message msg, Object tag);
+        public void gatewayCompletion(Gateway gateway, Message msg, Object tag);
     }
 
     public Gateway(AylaDevice aylaDevice) {
@@ -932,4 +933,56 @@ public class Gateway extends Device {
         });
         closeJoinWindowProperties(_closeTag);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Identify Device Node
+
+    static class IdentifyHandler extends Handler {
+        WeakReference<Gateway> _gateway;
+        Object _userTag;
+        AylaGatewayCompletionHandler _completion;
+
+        public IdentifyHandler(Gateway gateway, Object userTag, AylaGatewayCompletionHandler completion) {
+            _gateway = new WeakReference<>(gateway);
+            _userTag = userTag;
+            _completion = completion;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "adn: identify");
+            Logger.logInfo(LOG_TAG, "adn: identifyDeviceNode complete");
+            if (_completion != null) {
+                _completion.gatewayCompletion(_gateway.get(), msg, _userTag);
+            }
+        }
+    }
+
+    /**
+     * Used to identify a node by blinking a light, making a sound, vibrating, etc
+     *
+     * @param device Gateway Device to identify.
+     * @param on true to turn on, false to turn off.
+     * @param time Duration, in seconds, to identify device. 0 - 255.
+     * @param userTag Option user data to return with handler.
+     * @param handler AylaGatewayCompletionHandler completion handler.
+     */
+    public void identifyDeviceNode(Device device, boolean on, int time, Object userTag, AylaGatewayCompletionHandler handler) {
+        if ((device == null) || !device.isDeviceNode()) {
+            handler.gatewayCompletion(this, null, userTag);
+            return;
+        }
+        AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+        Logger.logInfo(LOG_TAG, "adn: identifyDeviceNode start");
+        Map<String, String> callParams = new HashMap<String, String>();
+        //callParams.put(AylaDeviceNode.kAylaNodeParamIdentifyValue, AylaDeviceNode.kAylaNodeParamIdentifyResult);
+        if (on) {
+            callParams.put(AylaDeviceNode.kAylaNodeParamIdentifyValue, AylaDeviceNode.kAylaNodeParamIdentifyOn);
+            callParams.put(AylaDeviceNode.kAylaNodeParamIdentifyTime, ""+time);
+        } else {
+            callParams.put(AylaDeviceNode.kAylaNodeParamIdentifyValue, AylaDeviceNode.kAylaNodeParamIdentifyOff);
+        }
+        adn.identify(new IdentifyHandler(this, userTag, handler), callParams);
+    }
+
 }
