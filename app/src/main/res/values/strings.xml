@@ -419,10 +419,15 @@
     <string name="remote_pair_title">Pair Remote</string>
     <string name="remote_pair_single_body">Pairing device to remote</string>
     <string name="remote_pair_multiple_body">Pairing devices to remote</string>
+    <string name="remote_pair_body">Are you sure you want to pair to remote?</string>
+    <string name="remote_pair_toast">Pair Complete</string>
 
     <string name="remote_unpair_from_device">Select remote to unpair</string>
     <string name="remote_unpair_from_devices">Select devices to unpair</string>
     <string name="remote_unpair_title">Unpair Remote</string>
     <string name="remote_unpair_single_body">Unpairing device from remote</string>
     <string name="remote_unpair_multiple_body">Unpairing devices from remote</string>
+    <string name="remote_unpair_body">Are you sure you want to unpair from remote?</string>
+    <string name="remote_unpair_toast">Unpair Complete</string>
+
 </resources>

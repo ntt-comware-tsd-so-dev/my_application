@@ -151,10 +151,17 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     }
 
     void updateList() {
+        boolean enableAdd = true;
+        boolean enableRem = false;
+
         List<Device> devices;
         if (_device instanceof RemoteSwitchDevice) {
+            // we are a remote
             devices = ((RemoteSwitchDevice)_device).getPairedDevices();
+            enableRem = (devices.size() > 0);
         } else {
+            // we are a device
+
             devices = new ArrayList<Device>();
             List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
             for (Device device : remotes) {
@@ -164,13 +171,16 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                             _device.getDevice().dsn, _device.getClass().getSimpleName(),
                             device.getDevice().dsn, device.getClass().getSimpleName());
                     devices.add(device);
+                    enableAdd = false;
+                    enableRem = true;
                 }
             }
         }
         _adapter = newSimpleDeviceListAdapter(devices);
         _listView.setAdapter(_adapter);
 
-        _removeButton.setEnabled(devices.size() > 0);
+        _addButton.setEnabled(enableAdd);
+        _removeButton.setEnabled(enableRem);
     }
 
     void updateUI() {
@@ -198,6 +208,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             public void handle(RemoteSwitchDevice remote, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
                 updateList();
+                Toast.makeText(getActivity(), R.string.remote_pair_toast, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -209,6 +220,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             public void handle(RemoteSwitchDevice remote, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
                 updateList();
+                Toast.makeText(getActivity(), R.string.remote_pair_toast, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -220,6 +232,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             public void handle(RemoteSwitchDevice remote, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
                 updateList();
+                Toast.makeText(getActivity(), R.string.remote_unpair_toast, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -231,6 +244,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             public void handle(RemoteSwitchDevice remote, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
                 updateList();
+                Toast.makeText(getActivity(), R.string.remote_unpair_toast, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -372,18 +386,27 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
         } else {
             // Device is or can be paired to a remote switch
 
-            // Unpair device from the remote that is paired with
-            List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
-            for (Device device : remotes) {
-                RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
-                if (remote.isDevicePaired(_device)) {
-                    Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is paired with remote [%s:%s]",
-                            _device.getDevice().dsn, _device.getClass().getSimpleName(),
-                            device.getDevice().dsn, device.getClass().getSimpleName());
-                    unpairDevice(remote, _device);
+            AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
+            ad.setTitle(R.string.remote_unpair_title);
+            ad.setMessage(R.string.remote_unpair_body);
+            ad.setNegativeButton(android.R.string.no, null);
+            ad.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // Unpair device from the remote that is paired with
+                    List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+                    for (Device device : remotes) {
+                        RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
+                        if (remote.isDevicePaired(_device)) {
+                            Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is paired with remote [%s:%s]",
+                                    _device.getDevice().dsn, _device.getClass().getSimpleName(),
+                                    device.getDevice().dsn, device.getClass().getSimpleName());
+                            unpairDevice(remote, _device);
+                        }
+                    }
                 }
-            }
-
+            });
+            ad.show();
         }
     }
 

@@ -58,6 +58,11 @@ public class Gateway extends Device {
         return null;
     }
 
+    /**
+     * Given a list of devices, returns a list containing only devices owned by this gateway.
+     * @param devices List of devices.
+     * @return List of devices owned by this gateway.
+     */
     public List<Device> filterDeviceList(List<Device> devices) {
         List<Device> list = new ArrayList<>();
         AylaDeviceGateway gateway = (AylaDeviceGateway)getDevice();
