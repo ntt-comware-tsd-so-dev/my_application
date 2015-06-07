@@ -243,7 +243,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             Log.e(LOG_TAG, "No triggers found for this notification");
         } else {
             for ( AylaApplicationTrigger trigger : _originalTrigger.applicationTriggers ) {
-                AylaContact contact = SessionManager.getInstance().getContactManager().getContactByID(Integer.parseInt(trigger.contact_id));
+                AylaContact contact = SessionManager.getInstance().getContactManager().getContactByID(Integer.parseInt(trigger.contactId));
                 if ( contact != null ) {
                     if ( trigger.name.equals("email") ) {
                         _emailContacts.add(contact);

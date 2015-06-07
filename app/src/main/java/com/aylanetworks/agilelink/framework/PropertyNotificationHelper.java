@@ -142,7 +142,7 @@ public class PropertyNotificationHelper {
 
     private void addTriggerApp(AylaContact contact, boolean isEmail) {
         AylaApplicationTrigger app = new AylaApplicationTrigger();
-        app.contact_id = contact.id.toString();
+        app.contactId = contact.id.toString();
         app.message = _device.friendlyNameForPropertyName(_property.name());
         if ( isEmail ) {
             app.emailAddress = contact.email;
