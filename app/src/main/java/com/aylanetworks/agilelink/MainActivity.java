@@ -45,6 +45,7 @@ import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
@@ -58,7 +59,7 @@ import com.google.gson.annotations.Expose;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener {
+public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener {
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -336,6 +337,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Logger.logInfo(LOG_TAG, "app: Create");
+
         // Phones are portrait-only. Tablets support orientation changes.
         if(getResources().getBoolean(R.bool.portrait_only)){
             Log.i("BOOL", "portrait_only: true");
@@ -356,14 +359,28 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // We want to know when the user logs in or out
         SessionManager.addSessionListener(this);
+        ((AgileLinkApplication)getApplication()).addListener(this);
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
+        Logger.logInfo(LOG_TAG, "app: Destroy");
         _theInstance = null;
         SessionManager.removeSessionListener(this);
+        ((AgileLinkApplication)getApplication()).removeListener(this);
         super.onDestroy();
+    }
+
+    @Override
+    public void onScreenOff(boolean power) {
+    }
+
+    @Override
+    public void onApplicationBackground() {
+    }
+
+    @Override
+    public void onApplicationForeground() {
     }
 
     private void initUI() {
