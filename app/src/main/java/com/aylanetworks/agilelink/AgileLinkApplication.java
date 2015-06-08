@@ -29,12 +29,53 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
     private static final String LOG_TAG = "App";
 
+    /**
+     * Life cycle of the application
+     */
+    public enum LifeCycleState {
+        /**
+         * Application is running in the foreground
+         */
+        Foreground,
+
+        /**
+         * Application is running in the background.
+         */
+        Background,
+
+        /**
+         * Device has entered idle mode
+         */
+        ScreenOff,
+
+        /**
+         * Device has been powered down.
+         */
+        PowerOff
+    }
+
+    /**
+     * Interface used for notifying of application state changes.
+     *
+     */
+    public interface AgileLinkApplicationListener {
+
+        /**
+         * Indicate a change in the application life cycle state.
+         *
+         * @param state LifeCycleState
+         */
+        public void applicationLifeCycleStateChange(LifeCycleState state);
+
+    }
+
     private static Context context;
     private ScreenPowerReceiver _receiver;
     private Set<AgileLinkApplicationListener> _listeners;
+    LifeCycleState _lifeCycleState;
+    ActivityLifeCycleState _activityLifeCycleState;
 
     public void onCreate(){
-        _background = true;
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
@@ -55,6 +96,12 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
         Logger.getInstance().initialize();
 
+        // we are in the background until we have an active activity
+        _lifeCycleState = LifeCycleState.Background;
+
+        _listeners = new HashSet<>();
+
+        // notification of screen off & power off
         _receiver = new ScreenPowerReceiver(this);
 
         // Catch screen off event
@@ -67,32 +114,12 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         powerOffFilter.addAction(Intent.ACTION_SHUTDOWN);
         context.registerReceiver(_receiver, powerOffFilter);
 
-        _listeners = new HashSet<>();
+        // notification of activity life cycle
+        registerActivityLifecycleCallbacks(this);
     }
 
-    /**
-     * Interface used for notifying of application state changes.
-     *
-     */
-    public interface AgileLinkApplicationListener {
-
-        /**
-         * Notify of the power down or screen off.
-         *
-         * @param power true indicates that the power has been shut off,
-         *              false indicates that just the screen has been shut off.
-         */
-        public void onScreenOff(boolean power);
-
-        /**
-         * Application has entered the background.
-         */
-        public void onApplicationBackground();
-
-        /**
-         * Application has entered the foreground
-         */
-        public void onApplicationForeground();
+    public static Context getAppContext() {
+        return AgileLinkApplication.context;
     }
 
     public void addListener(AgileLinkApplicationListener listener) {
@@ -103,21 +130,18 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         _listeners.remove(listener);
     }
 
-    void notifyScreenOff(boolean power) {
-        for ( AgileLinkApplicationListener l : _listeners) {
-            l.onScreenOff(power);
-        }
+    /**
+     * Obtain the current LifeCycleState of the application
+     *
+     * @return LifeCycleState
+     */
+    public LifeCycleState getLifeCycleState() {
+        return _lifeCycleState;
     }
 
-    void notifyBackground() {
+    void notifyLifeCycleStateChange(LifeCycleState state) {
         for ( AgileLinkApplicationListener l : _listeners) {
-            l.onApplicationBackground();
-        }
-    }
-
-    void notifyForeground() {
-        for ( AgileLinkApplicationListener l : _listeners ) {
-            l.onApplicationForeground();
+            l.applicationLifeCycleStateChange(state);
         }
     }
 
@@ -133,26 +157,21 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         public void onReceive(Context context, Intent intent) {
             AgileLinkApplication app = _app.get();
             String action = intent.getAction();
-            //Logger.logVerbose(LOG_TAG, "ScreenPowerReceiver onReceive [%s]", action);
             if (TextUtils.equals(action, "android.intent.action.SCREEN_OFF")) {
                 Logger.logInfo(LOG_TAG, "app: Screen off");
                 if (app != null) {
-                    app.notifyScreenOff(false);
+                    app.onScreenOff(false);
                 }
             } else if (TextUtils.equals(action, "android.intent.action.ACTION_SHUTDOWN")) {
                 Logger.logInfo(LOG_TAG, "app: Power off");
                 if (app != null) {
-                    app.notifyScreenOff(true);
+                    app.onScreenOff(true);
                 }
             }
         }
     }
 
-    public static Context getAppContext() {
-        return AgileLinkApplication.context;
-    }
-
-    enum LifeCycleState {
+    enum ActivityLifeCycleState {
         Create,
         Start,
         Resume,
@@ -161,37 +180,45 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         Destroy
     }
 
-    LifeCycleState _lifeCycleState;
-    boolean _background;
+    void onScreenOff(boolean power) {
+        Logger.logInfo(LOG_TAG, "app: Background");
+        _lifeCycleState = (power) ? LifeCycleState.PowerOff : LifeCycleState.ScreenOff;
+        notifyLifeCycleStateChange(_lifeCycleState);
+    }
+
+    void checkForeground() {
+        if (_lifeCycleState != LifeCycleState.Foreground) {
+            Logger.logInfo(LOG_TAG, "app: Foreground");
+            _lifeCycleState = LifeCycleState.Foreground;
+            notifyLifeCycleStateChange(_lifeCycleState);
+        }
+    }
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        _lifeCycleState = LifeCycleState.Create;
+        _activityLifeCycleState = ActivityLifeCycleState.Create;
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        if (_background) {
-            _background = false;
-            Logger.logInfo(LOG_TAG, "app: Foreground");
-            notifyForeground();
-        }
-        _lifeCycleState = LifeCycleState.Start;
+        checkForeground();
+        _activityLifeCycleState = ActivityLifeCycleState.Start;
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        _lifeCycleState = LifeCycleState.Resume;
+        checkForeground();
+        _activityLifeCycleState = ActivityLifeCycleState.Resume;
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        _lifeCycleState = LifeCycleState.Pause;
+        _activityLifeCycleState = ActivityLifeCycleState.Pause;
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
-        _lifeCycleState = LifeCycleState.Stop;
+        _activityLifeCycleState = ActivityLifeCycleState.Stop;
     }
 
     @Override
@@ -200,16 +227,16 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        _lifeCycleState = LifeCycleState.Destroy;
-        _background = false;
+        _activityLifeCycleState = ActivityLifeCycleState.Destroy;
+        _lifeCycleState = LifeCycleState.Foreground;
     }
 
     @Override
     public void onTrimMemory(int level) {
-        if (_lifeCycleState == LifeCycleState.Stop) {
-            _background = true;
+        if (_activityLifeCycleState == ActivityLifeCycleState.Stop) {
             Logger.logInfo(LOG_TAG, "app: Background");
-            notifyBackground();
+            _lifeCycleState = LifeCycleState.Background;
+            notifyLifeCycleStateChange(_lifeCycleState);
         }
         super.onTrimMemory(level);
     }

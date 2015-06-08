@@ -337,8 +337,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Logger.logInfo(LOG_TAG, "app: Create");
-
         // Phones are portrait-only. Tablets support orientation changes.
         if(getResources().getBoolean(R.bool.portrait_only)){
             Log.i("BOOL", "portrait_only: true");
@@ -359,12 +357,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // We want to know when the user logs in or out
         SessionManager.addSessionListener(this);
+
+        // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
     }
 
     @Override
     public void onDestroy() {
-        Logger.logInfo(LOG_TAG, "app: Destroy");
         _theInstance = null;
         SessionManager.removeSessionListener(this);
         ((AgileLinkApplication)getApplication()).removeListener(this);
@@ -372,15 +371,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     @Override
-    public void onScreenOff(boolean power) {
-    }
-
-    @Override
-    public void onApplicationBackground() {
-    }
-
-    @Override
-    public void onApplicationForeground() {
+    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
+        Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
     }
 
     private void initUI() {
