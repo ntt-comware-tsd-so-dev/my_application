@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink.framework;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -13,6 +14,7 @@ import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
+import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
@@ -224,6 +226,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @param dsn the DSN of the device to find
      * @return The found device, or null if not found
      */
+    @Nullable
     public Device deviceByDSN(String dsn) {
         if (_deviceList != null) {
             for (Device d : _deviceList) {
@@ -715,8 +718,17 @@ public class DeviceManager implements DeviceStatusListener {
                     type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
                 // A device's property has changed.
                 Device d = _deviceManager.get().deviceByDSN(dsn);
+                AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(d.getDevice().dsn);
                 if ( d != null ) {
-                    // The properties have already been updated on this device.
+                    if ( aylaDevice != null ) {
+                        // Update the properties on this device to match those of the AylaDeviceManager
+                        if ( aylaDevice.properties != null ) {
+                            d.getDevice().properties = new AylaProperty[aylaDevice.properties.length];
+                            System.arraycopy(aylaDevice.properties, 0, d.getDevice().properties, 0, aylaDevice.properties.length);
+                        } else {
+                            d.getDevice().properties = null;
+                        }
+                    }
                     Log.d(LOG_TAG, "LAN mode handler: Device changed: " + d);
                     _deviceManager.get().notifyDeviceStatusChanged(d);
                 } else {
@@ -745,7 +757,6 @@ public class DeviceManager implements DeviceStatusListener {
             Log.d(LOG_TAG, "Reachability handler: " + json);
         }
     }
-
 
     private ReachabilityHandler _reachabilityHandler = new ReachabilityHandler(this);
 
