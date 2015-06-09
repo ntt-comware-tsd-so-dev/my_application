@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceManager;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
@@ -78,9 +79,6 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     private List<LANModeListener> _lanModeListeners = new ArrayList<>();
-
-    /** The one and only device that is currently LAN-mode enabled. */
-    private Device _lanModeEnabledDevice;
 
     /** Public Helper Methods */
 
@@ -372,7 +370,9 @@ public class DeviceManager implements DeviceStatusListener {
             listener.lanModeResult(false);
         } else {
             Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
-            if ( _lanModeEnabledDevice == listener._device ) {
+            String dsn = listener._device.getDevice().dsn;
+            AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(dsn);
+            if ( lanDevice != null && lanDevice.isLanModeActive() ) {
                 Log.d(LOG_TAG, listener._device + " is already in LAN mode");
                 listener.lanModeResult(true);
             } else {
@@ -398,7 +398,6 @@ public class DeviceManager implements DeviceStatusListener {
 
         // _lanModeListeners.add(listener);
         // listener.getDevice().getDevice().lanModeDisable();
-        _lanModeEnabledDevice = null;
         listener.lanModeResult(false);
 
         // Start polling our device status again so we include this device
@@ -672,9 +671,6 @@ public class DeviceManager implements DeviceStatusListener {
                     Log.i(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
                     _deviceManager.get().notifyLANModeChange();
 
-                    // Nobody is in LAN mode now.
-                    _deviceManager.get()._lanModeEnabledDevice = null;
-
                     // Notify our listeners, if any, and clear our list
                     for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                         LANModeListener listener = iter.next();
@@ -685,7 +681,6 @@ public class DeviceManager implements DeviceStatusListener {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
-                        _deviceManager.get()._lanModeEnabledDevice = device;
                         _deviceManager.get().setLastLanModeDevice(device);
 
                         if ( device != null ) {
@@ -824,9 +819,19 @@ public class DeviceManager implements DeviceStatusListener {
         }
     };
 
+    private List<Device>getDevicesToPoll() {
+        List<Device> devices = new ArrayList<Device>();
+        for ( Device d : _deviceList ) {
+            if ( !d.isInLanMode() ) {
+                devices.add(d);
+            }
+        }
+        return devices;
+    }
+
     // List of devices we will poll the status of. Each device is removed from the head of the
     // list and queried for its properties.
-    private ArrayList<Device> _devicesToPoll;
+    private List<Device> _devicesToPoll;
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
@@ -847,7 +852,7 @@ public class DeviceManager implements DeviceStatusListener {
             // library does not handle a series of requests all at once at this time.
             if ( _devicesToPoll == null ) {
                 if ( _deviceList != null ) {
-                    _devicesToPoll = new ArrayList<Device>(_deviceList);
+                    _devicesToPoll = getDevicesToPoll();
                 }
                 updateNextDeviceStatus();
             } else {

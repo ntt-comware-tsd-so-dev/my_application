@@ -14,6 +14,8 @@ import android.view.View;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceManager;
+import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSchedule;
@@ -1117,7 +1119,7 @@ public class Device implements Comparable<Device> {
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
-        if ( SessionManager.deviceManager().isLastLanModeDevice(this) ) {
+        if ( isInLanMode() ) {
             return MainActivity.getInstance().getString(R.string.lan_mode_enabled);
         }
         if ( isOnline() ) {
@@ -1125,6 +1127,14 @@ public class Device implements Comparable<Device> {
         } else {
             return MainActivity.getInstance().getString(R.string.offline);
         }
+    }
+
+    public boolean isInLanMode() {
+        // Get the AylaDevice from the DeviceManager. This has the actual LAN mode properties.
+        String dsn = _device.dsn;
+
+        AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.dsn);
+        return lanDevice != null && lanDevice.isLanModeActive();
     }
 
     /**
