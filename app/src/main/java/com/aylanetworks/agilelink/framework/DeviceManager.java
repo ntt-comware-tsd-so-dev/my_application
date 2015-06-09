@@ -671,11 +671,14 @@ public class DeviceManager implements DeviceStatusListener {
                     Log.i(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
                     _deviceManager.get().notifyLANModeChange();
 
-                    // Notify our listeners, if any, and clear our list
+                    // Notify our listeners for this device, if any, and clear our list
                     for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                         LANModeListener listener = iter.next();
-                        listener.lanModeResult(false);
-                        iter.remove();
+                        if ( TextUtils.equals(listener.getDevice().getDevice().dsn, notify.dsn) ) {
+                            listener.lanModeResult(false);
+                            iter.remove();
+                            _deviceManager.get().notifyDeviceStatusChanged(listener.getDevice());
+                        }
                     }
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
@@ -697,6 +700,7 @@ public class DeviceManager implements DeviceStatusListener {
                                     // Notify the listener that LAN mode has been enabled
                                     listener.lanModeResult(true);
                                     iter.remove();
+                                    _deviceManager.get().notifyDeviceStatusChanged(listener.getDevice());
                                 }
                             }
                         } else {
@@ -940,6 +944,15 @@ public class DeviceManager implements DeviceStatusListener {
                     Device device = params.deviceCreator.deviceForAylaDevice(aylaDevice);
                     if ( device != null ) {
                         newDeviceList.add(device);
+                        if ( !device.isInLanMode() ) {
+                            // Get everything into LAN mode ASAP
+                            _deviceManager.get().enterLANMode(new LANModeListener(device) {
+                                @Override
+                                public void lanModeResult(boolean isInLANMode) {
+                                    Log.d("BSK", "lanModeResult for " + getDevice().toString() + " : " + isInLANMode);
+                                }
+                            });
+                        }
                     } else {
                         Log.i(LOG_TAG, "No device created for " + aylaDevice.getProductName());
                     }
