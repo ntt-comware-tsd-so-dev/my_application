@@ -167,7 +167,7 @@ public class Gateway extends Device {
             _bindingManager = gateway._bindingManager;
         } else {
             Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDevice().dsn);
-        }
+         }
         getGroupManager().fetchZigbeeGroupsIfNeeded();
         getBindingManager().fetchZigbeeBindingsIfNeeded();
     }

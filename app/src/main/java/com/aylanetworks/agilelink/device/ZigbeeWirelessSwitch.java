@@ -80,9 +80,8 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         return R.string.add_device_sensor_warning;
     }
 
-
     private void initializeRemoteBinding(Gateway gateway) {
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         AylaGroupZigbee group = gateway.getGroupManager().getByName(name);
         if (group == null) {
             Logger.logError(LOG_TAG, "zg: initializeRemoteBinding no group [%s]", name);
@@ -93,22 +92,22 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         if (binding == null) {
             binding = new AylaBindingZigbee();
             binding.bindingName = name;
-            binding.gatewayDsn = gateway.getDevice().dsn;
-            binding.fromId = getDevice().dsn;
+            binding.gatewayDsn = gateway.getDeviceDsn();
+            binding.fromId = getDeviceDsn();
             binding.fromName = PROPERTY_ZB_REMOTE_SWITCH;
             binding.toId = group.getId().toString();
             binding.toName = name;
             binding.isGroup = true;
-            Logger.logDebug(LOG_TAG, "zg: initializeRemoteBinding [%s] createBinding [%s:%s:%s]", getDevice().dsn, binding.bindingName, binding.toName, binding.fromId);
+            Logger.logDebug(LOG_TAG, "zg: initializeRemoteBinding [%s] createBinding [%s:%s:%s]", getDeviceDsn(), binding.bindingName, binding.toName, binding.fromId);
             gateway.createBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
                 public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
                         // all done binding the remote
-                        Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] success", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
+                        Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] success", ((Device) tag).getDeviceDsn(), gateway.getDeviceDsn());
                     } else {
                         // failed :(
-                        Logger.logError(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] failed", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
+                        Logger.logError(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] failed", ((Device) tag).getDeviceDsn(), gateway.getDeviceDsn());
                     }
                 }
             });
@@ -116,10 +115,10 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     }
 
     private void initializeRemoteGroup(Gateway gateway) {
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         AylaGroupZigbee group = gateway.getGroupManager().getByName(name);
         if (group == null) {
-            Logger.logDebug(LOG_TAG, "zg: initializeRemoteGroup [%s] createGroup [%s]", getDevice().dsn, name);
+            Logger.logDebug(LOG_TAG, "zg: initializeRemoteGroup [%s] createGroup [%s]", getDeviceDsn(), name);
             gateway.createGroup(name, null, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
                 public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
@@ -127,7 +126,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
                         initializeRemoteBinding(gateway);
                     } else {
                         // failed :(
-                        Logger.logError(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] failed", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
+                        Logger.logError(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] failed", ((Device) tag).getDeviceDsn(), gateway.getDeviceDsn());
                     }
                 }
             });
@@ -137,33 +136,33 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     }
 
     private void removeRemoteBinding(Gateway gateway) {
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         AylaBindingZigbee binding = gateway.getBindingManager().getByName(name);
         if (binding != null) {
-            Logger.logDebug(LOG_TAG, "zg: removeRemoteGroup [%s] deleteBinding [%s]", getDevice().dsn, name);
+            Logger.logDebug(LOG_TAG, "zg: removeRemoteGroup [%s] deleteBinding [%s]", getDeviceDsn(), name);
             gateway.deleteBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
                 public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                     if (AylaNetworks.succeeded(msg)) {
-                        Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
+                        Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", ((Device) tag).getDeviceDsn(), gateway.getDeviceDsn());
                     } else {
                         // failed :(
-                        Logger.logError(LOG_TAG, "zg: removeRemoteBinding [%s] on gateway [%s] failed", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
+                        Logger.logError(LOG_TAG, "zg: removeRemoteBinding [%s] on gateway [%s] failed", ((Device) tag).getDeviceDsn(), gateway.getDeviceDsn());
                     }
                 }
             });
         } else {
-            Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", getDevice().dsn, gateway.getDevice().dsn);
+            Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", getDeviceDsn(), gateway.getDeviceDsn());
         }
     }
 
     private void removeRemoteGroup(Gateway gateway) {
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         AylaGroupZigbee group = gateway.getGroupManager().getByName(name);
         if (group == null) {
             removeRemoteBinding(gateway);
         } else {
-            Logger.logDebug(LOG_TAG, "zg: removeRemoteGroup [%s] deleteGroup [%s]", getDevice().dsn, name);
+            Logger.logDebug(LOG_TAG, "zg: removeRemoteGroup [%s] deleteGroup [%s]", getDeviceDsn(), name);
             gateway.deleteGroup(group, this, new Gateway.AylaGatewayCompletionHandler() {
                 @Override
                 public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
@@ -171,7 +170,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
                         removeRemoteBinding(gateway);
                     } else {
                         // failed :(
-                        Logger.logError(LOG_TAG, "zg: removeRemoteGroup [%s] on gateway [%s] failed", ((Device) tag).getDevice().dsn, gateway.getDevice().dsn);
+                        Logger.logError(LOG_TAG, "zg: removeRemoteGroup [%s] on gateway [%s] failed", ((Device) tag).getDeviceDsn(), gateway.getDeviceDsn());
                     }
                 }
             });
@@ -181,7 +180,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
         // we need to create 1 group & 1 binding
-        Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s]", this.getDevice().dsn, gateway.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
         initializeRemoteGroup(gateway);
     }
 
@@ -189,20 +188,20 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
         _gateway = Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "rm: deviceAdded [%s] on gateway [%s]", this.getDevice().dsn, _gateway.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "rm: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
     }
 
     @Override
     public void deviceRemoved() {
         super.deviceRemoved();
-        Logger.logInfo(LOG_TAG, "rm: deviceRemoved [%s]", this.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "rm: deviceRemoved [%s]", this.getDeviceDsn());
     }
 
     @Override
     public void unregisterDevice(Handler handler) {
         super.unregisterDevice(handler);
         Gateway gateway = Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDevice().dsn, gateway.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
         removeRemoteGroup(gateway);
     }
 
@@ -219,7 +218,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
 
     AylaGroupZigbee getGroup() {
         Gateway gateway = Gateway.getGatewayForDeviceNode(this);
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         return gateway.getGroupManager().getByName(name);
     }
 
@@ -244,7 +243,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         Logger.logInfo(LOG_TAG, "rm: pairDevices start");
 
         Gateway gateway = Gateway.getGatewayForDeviceNode(this);
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         AylaGroupZigbee group = gateway.getGroupManager().getByName(name);
 
         List<AylaDeviceNode> devices = ZigbeeGroupManager.getDeviceNodes(group);
@@ -281,7 +280,7 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
         Logger.logDebug(LOG_TAG, "rm: unpairDevices start");
 
         Gateway gateway = Gateway.getGatewayForDeviceNode(this);
-        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDevice().dsn;
+        String name = REMOTE_GROUP_BINDNG_NAME_PREFIX + getDeviceDsn();
         AylaGroupZigbee group = gateway.getGroupManager().getByName(name);
 
         // remove list from devices

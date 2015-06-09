@@ -110,26 +110,11 @@ public class AddDeviceFragment extends Fragment
         Logger.logVerbose(LOG_TAG, "onResume");
         super.onResume();
 
-        /*
-        if (_nodeRegistrationGateway != null) {
-            // not sure this is the right thing to do...
-            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_nodeRegistrationGateway));
-        }
-        AylaLanMode.pause(true);
-        */
-
+        // Stop polling & LAN mode
+        SessionManager.getInstance().setForeground(false);
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().stopPolling();
         }
-
-        /*
-        // TODO: The following two hacks are there so that I can get consistent behavior.  Need to
-        // TODO: the real problems here...
-
-        // TODO: quick hack... remove this
-        // TODO: Nothing I do seems to disable LAN mode, except for this.
-        AylaLanMode.device = null;
-        */
 
         // TODO: quick hack... remove this
         // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
@@ -150,15 +135,11 @@ public class AddDeviceFragment extends Fragment
             _nodeRegistrationGateway.cleanupRegistrationScan();
         }
 
-        SessionManager.sessionParameters().enableLANMode = _enableLANMode;
-
+        // Restart polling & LAN mode
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().startPolling();
         }
-
-        /*
-        AylaLanMode.resume();
-        */
+        SessionManager.getInstance().setForeground(true);
     }
 
     @Override

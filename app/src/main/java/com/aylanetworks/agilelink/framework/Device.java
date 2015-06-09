@@ -133,6 +133,15 @@ public class Device implements Comparable<Device> {
     }
 
     /**
+     * Handy method for obtaining the device DSN
+     *
+     * @return String DSN
+     */
+    public String getDeviceDsn() {
+        return _device.dsn;
+    }
+
+    /**
      * Constructor using the AylaDevice parameter
      * @param aylaDevice AylaDevice object this device represents
      */
