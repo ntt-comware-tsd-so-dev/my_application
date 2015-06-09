@@ -7,8 +7,10 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.aylanetworks.agilelink.framework.Logger;
@@ -122,6 +124,10 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         return AgileLinkApplication.context;
     }
 
+    public static SharedPreferences getSharedPreferences() {
+        return PreferenceManager.getDefaultSharedPreferences(AgileLinkApplication.context);
+    }
+
     public void addListener(AgileLinkApplicationListener listener) {
         _listeners.add(listener);
     }
@@ -181,7 +187,6 @@ public class AgileLinkApplication extends Application implements ComponentCallba
     }
 
     void onScreenOff(boolean power) {
-        Logger.logInfo(LOG_TAG, "app: Background");
         _lifeCycleState = (power) ? LifeCycleState.PowerOff : LifeCycleState.ScreenOff;
         notifyLifeCycleStateChange(_lifeCycleState);
     }

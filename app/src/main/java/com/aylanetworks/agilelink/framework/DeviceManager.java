@@ -3,7 +3,6 @@ package com.aylanetworks.agilelink.framework;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -16,7 +15,7 @@ import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 
 import java.lang.ref.WeakReference;
@@ -411,7 +410,7 @@ public class DeviceManager implements DeviceStatusListener {
      */
     public void setLastLanModeDevice(Device device) {
         // Save the last LAN mode device in user settings so we can re-enable it next time
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         if ( device != null ) {
             prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
         } else {
@@ -425,7 +424,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @return true if this device was the last LAN-mode enabled device, otherwise false
      */
     public boolean isLastLanModeDevice(Device device) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
         return lastDSN != null && device.getDevice().dsn != null && device.getDevice().dsn.equals(lastDSN);
     }

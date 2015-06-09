@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,6 +11,7 @@ import com.aylanetworks.aaml.AylaCache;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -127,8 +127,7 @@ public class SessionManager {
      * Clears out the saved user. Call this when the user wishes to log out without cached credentials.
      */
     public static void clearSavedUser() {
-        SharedPreferences settings =
-                PreferenceManager.getDefaultSharedPreferences(getInstance()._sessionParameters.context);
+        SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(PREFS_PASSWORD, "");
         editor.putString(PREFS_USERNAME, "");
@@ -660,7 +659,7 @@ public class SessionManager {
         }
 
         // Clear the saved password
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         settings.edit().putString(PREFS_PASSWORD, "").apply();
 
         Map<String, String> params = new HashMap<>();
@@ -713,8 +712,7 @@ public class SessionManager {
 
                 _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
 
-                SharedPreferences settings =
-                        PreferenceManager.getDefaultSharedPreferences(_sessionManager.get()._sessionParameters.context);
+                SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString(PREFS_PASSWORD, _sessionManager.get()._sessionParameters.password);
                 editor.putString(PREFS_USERNAME, _sessionManager.get()._sessionParameters.username);

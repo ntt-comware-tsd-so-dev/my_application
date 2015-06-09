@@ -13,7 +13,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -370,11 +369,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onDestroy();
     }
 
-    @Override
-    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
-        Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
-    }
-
     private void initUI() {
         switch ( getUIConfig()._navStyle ) {
             case Pager:
@@ -597,7 +591,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         _loginScreenUp = true;
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
         final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
@@ -656,6 +650,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         } else if ( !_loginScreenUp ) {
             showLoginDialog();
         }
+    }
+
+    @Override
+    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
+        Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
     }
 
     // SessionListener methods
