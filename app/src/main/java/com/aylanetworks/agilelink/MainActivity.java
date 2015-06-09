@@ -655,6 +655,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     @Override
     public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
         Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
+        SessionManager.getInstance().setForeground((state == AgileLinkApplication.LifeCycleState.Foreground));
     }
 
     // SessionListener methods

@@ -226,7 +226,13 @@ public class SessionManager {
      * @return true if LAN mode is permitted, false otherwise
      */
     public boolean lanModePermitted() {
-        return _sessionParameters.enableLANMode;
+        return (_foreground && _sessionParameters.enableLANMode);
+    }
+
+    boolean _foreground;
+
+    public void setForeground(boolean foreground) {
+        _foreground = foreground;
     }
 
     /** Inner Classes */

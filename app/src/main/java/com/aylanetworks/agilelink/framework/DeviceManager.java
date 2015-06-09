@@ -361,6 +361,9 @@ public class DeviceManager implements DeviceStatusListener {
         _pollingStopped = true;
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
+        if ((_devicesToPoll != null) && (_devicesToPoll.size() > 0)) {
+            _devicesToPoll.clear();
+        }
     }
 
     public void enterLANMode(LANModeListener listener) {
