@@ -134,6 +134,23 @@ public class Device implements Comparable<Device> {
         return _device;
     }
 
+    public void syncLanProperties() {
+        AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.dsn);
+        if (aylaDevice != null) {
+            // Update the properties on this device to match those of the AylaDeviceManager
+            if (aylaDevice.properties != null) {
+                _device.properties = new AylaProperty[aylaDevice.properties.length];
+                System.arraycopy(aylaDevice.properties, 0, _device.properties, 0, aylaDevice.properties.length);
+            } else {
+                Logger.logError(LOG_TAG, "syncLanProperties: AylaDevice has null properties for " + _device.dsn);
+                _device.properties = null;
+            }
+        } else {
+            Logger.logError(LOG_TAG, "syncLanProperties: No AylaDevice found for " + _device.dsn);
+            _device.properties = null;
+        }
+    }
+
     /**
      * Constructor using the AylaDevice parameter
      * @param aylaDevice AylaDevice object this device represents
