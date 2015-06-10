@@ -648,7 +648,9 @@ public class Device implements Comparable<Device> {
      * determine if a device change event should be sent.
      */
     protected boolean setProperties(AylaProperty[] newProperties) {
-        boolean hasChanged = (newProperties.length != getDevice().properties.length);
+        boolean hasChanged = (newProperties == null || getDevice().properties == null) ||
+                (newProperties.length != getDevice().properties.length);
+
         if (!hasChanged) {
             for (AylaProperty prop : newProperties) {
                 AylaProperty myProperty = getProperty(prop.name());
