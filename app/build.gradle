@@ -53,6 +53,6 @@ android.applicationVariants.all { variant ->
         options.setWindowTitle("Agile Link Application Framework")
         options.addStringOption("-stylesheetfile " + projectDir + "stylesheet.css")
         options.stylesheetFile = new File(projectDir, "stylesheet.css");
-        exclude '**/BuildConfig.java', '**/R.java'
+        exclude '**/BuildConfig.java', '**/R.java', '**/com/aylanetworks/aaml/**'
     }
 }
