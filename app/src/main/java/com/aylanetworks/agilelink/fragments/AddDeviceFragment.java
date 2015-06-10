@@ -404,16 +404,17 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void showMessage(int resourceId){
-        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-        alertDialog.setTitle(getString(R.string.attention));
-        alertDialog.setMessage(getString(resourceId));
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(getString(R.string.attention))
+                .setMessage(getString(resourceId))
+                .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                });
-        alertDialog.show();
+                })
+                .create()
+                .show();
     }
 
     public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
@@ -470,6 +471,7 @@ public class AddDeviceFragment extends Fragment
 
         if (_useSingleSelect) {
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
@@ -487,6 +489,7 @@ public class AddDeviceFragment extends Fragment
                     .create().show();
         } else {
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
@@ -650,6 +653,7 @@ public class AddDeviceFragment extends Fragment
             }
 
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
@@ -659,7 +663,8 @@ public class AddDeviceFragment extends Fragment
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
-                    .create().show();
+                    .create()
+                    .show();
         }
     }
 

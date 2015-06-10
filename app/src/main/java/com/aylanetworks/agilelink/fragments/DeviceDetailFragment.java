@@ -196,6 +196,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         editText.requestFocus();
 
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.rename_device_text)
                 .setView(editText)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -403,6 +404,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _device.getDevice().dsn);
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.unregister_confirm_title))
                 .setMessage(res.getString(R.string.unregister_failure_timeout))
                 .setPositiveButton(R.string.unregister_try_again, new DialogInterface.OnClickListener() {
@@ -417,7 +419,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -428,6 +429,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         // Confirm first!
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.unregister_confirm_title))
                 .setMessage(res.getString(R.string.unregister_confirm_body))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -442,7 +444,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -483,6 +484,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _device.getDevice().dsn);
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.factory_reset_confirm_title))
                 .setMessage(res.getString(R.string.factory_reset_failure_timeout))
                 .setPositiveButton(R.string.factory_reset_try_again, new DialogInterface.OnClickListener() {
@@ -497,7 +499,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -507,6 +508,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _device.getDevice().dsn);
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.factory_reset_confirm_title))
                 .setMessage(res.getString(R.string.factory_reset_confirm_body))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -521,7 +523,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -532,6 +533,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Resources res = getActivity().getResources();
 
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.confirm_remove_share_title))
                 .setMessage(res.getString(R.string.confirm_remove_shared_device_message_short))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -546,7 +548,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -653,8 +654,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             }
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.choose_timezone)
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(R.string.choose_timezone)
                 .setSingleChoiceItems(timezones, checkedItem, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
