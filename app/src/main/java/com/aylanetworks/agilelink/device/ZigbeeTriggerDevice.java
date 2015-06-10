@@ -92,6 +92,7 @@ public class ZigbeeTriggerDevice extends Device {
 
         public synchronized void runComplete(int what) {
             _state = (what == 0) ? DequeState.Success : DequeState.Failure;
+            ((ZigbeeTriggerDevice)_device).runNext(this);
         }
     }
 
@@ -212,17 +213,19 @@ public class ZigbeeTriggerDevice extends Device {
                 _gateway.deleteBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
                     @Override
                     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        AddTriggerGroupForSensor proc = (AddTriggerGroupForSensor)tag;
+                        RemoveTriggerGroupForSensor proc = (RemoveTriggerGroupForSensor)tag;
                         if (AylaNetworks.succeeded(msg)) {
                             Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", proc.getDeviceDsn(), gateway.getDeviceDsn());
                         } else {
                             // failed :(
                             Logger.logError(LOG_TAG, "zg: removeSensorBinding [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
                         }
+                        proc.runComplete(msg.what);
                     }
                 });
             } else {
                 Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s] succeeded", getDeviceDsn(), _gateway.getDeviceDsn());
+                runComplete(0);
             }
         }
 
@@ -236,7 +239,7 @@ public class ZigbeeTriggerDevice extends Device {
                 _gateway.deleteGroup(group, this, new Gateway.AylaGatewayCompletionHandler() {
                     @Override
                     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        AddTriggerGroupForSensor proc = (AddTriggerGroupForSensor)tag;
+                        RemoveTriggerGroupForSensor proc = (RemoveTriggerGroupForSensor)tag;
                         if (!AylaNetworks.succeeded(msg)) {
                             // failed :(
                             Logger.logError(LOG_TAG, "zg: removeSensorGroup [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
@@ -299,10 +302,9 @@ public class ZigbeeTriggerDevice extends Device {
         }
     }
 
-    void runComplete(DequeEntry entry, Device device, AylaGroupZigbee group, int what) {
+    void runNext(DequeEntry entry) {
         synchronized (_deque) {
             if (entry != null) {
-                entry.runComplete(what);
                 _deque.remove(entry);
             }
             // run the next entry in the Deque
