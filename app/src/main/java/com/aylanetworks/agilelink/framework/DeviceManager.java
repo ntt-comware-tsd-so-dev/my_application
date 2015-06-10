@@ -371,6 +371,11 @@ public class DeviceManager implements DeviceStatusListener {
             // We can't enter LAN mode for any devices.
             listener.lanModeResult(false);
         } else {
+            Device device = listener.getDevice();
+            if ( device.isInLanMode() ) {
+                Log.d(LOG_TAG, "Device " + device + " is already in LAN mode.");
+                listener.lanModeResult(true);
+            }
             Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
 
             _startingLANMode = true;
@@ -682,10 +687,16 @@ public class DeviceManager implements DeviceStatusListener {
                         Device device = _deviceManager.get().deviceByDSN(dsn);
                         _deviceManager.get().setLastLanModeDevice(device);
 
-                        // Update the properties on this device to the AylaDeviceManager's properties
-                        device.syncLanProperties();
 
                         if (device != null) {
+                            Log.d(LOG_TAG, "LAN mode enabled on " + device.toString());
+                            // Update the properties on this device to the AylaDeviceManager's properties
+                            if ( device.syncLanProperties() || device.getDevice().properties == null ) {
+                                // Also request an update, as these properties could be from the cache.
+                                Log.e("BSK", "Requesting LAN update for " + device);
+                                device.updateStatus(_deviceManager.get());
+                            }
+
                             // Remove the LAN-mode-enabled device from the list of devices to poll
                             List<Device> devicesToPoll = _deviceManager.get()._devicesToPoll;
                             if (devicesToPoll != null) {
@@ -826,6 +837,11 @@ public class DeviceManager implements DeviceStatusListener {
     private List<Device>getDevicesToPoll() {
         List<Device> devices = new ArrayList<Device>();
         for ( Device d : _deviceList ) {
+            if ( d.isDeviceNode() ) {
+                // Don't poll nodes
+                continue;
+            }
+
             if (    !d.isInLanMode() ||
                     d.getDevice().properties == null ||
                     d.getDevice().properties.length == 0 ) {
@@ -843,13 +859,16 @@ public class DeviceManager implements DeviceStatusListener {
         public void run() {
             Log.v(LOG_TAG, "Device Status Timer");
 
-            if ( _pollingStopped ) {
+            // Trigger the next timer
+            _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
+
+            if (_pollingStopped ) {
                 Log.d(LOG_TAG, "Polling manually stopped- not polling");
                 return;
             }
 
             // If we're in the process of entering LAN mode, don't query devices yet.
-            if ( _startingLANMode ) {
+            if (_startingLANMode) {
                 Log.i(LOG_TAG, "Not querying device status while entering LAN mode");
                 return;
             }
@@ -868,14 +887,6 @@ public class DeviceManager implements DeviceStatusListener {
                     Log.v(LOG_TAG, d.getDevice().getProductName());
                 }
                 updateNextDeviceStatus();
-            }
-
-            // Only continue polling if we're not in LAN mode and somebody is listening
-            if ( _deviceStatusListeners.size() > 0 ) {
-                _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
-                _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
-            } else {
-                Log.d(LOG_TAG, "Device Status Timer: Nobody listening.");
             }
         }
     };

@@ -33,7 +33,11 @@ import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -134,11 +138,55 @@ public class Device implements Comparable<Device> {
         return _device;
     }
 
-    public void syncLanProperties() {
+    /**
+     * Updates the device's property array to match that of the AylaDeviceManager's device's properties.
+     * @return true if the properties were updated, false if the properties were already the same
+     */
+    public boolean syncLanProperties() {
         AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.dsn);
         if (aylaDevice != null) {
             // Update the properties on this device to match those of the AylaDeviceManager
             if (aylaDevice.properties != null) {
+
+                // See if we already have the same properties
+                List<AylaProperty> theirProps = Arrays.asList(aylaDevice.properties);
+                List<AylaProperty> myProps = Arrays.asList(_device.properties);
+                Comparator<AylaProperty> comp = new Comparator<AylaProperty>() {
+                    @Override
+                    public int compare(AylaProperty lhs, AylaProperty rhs) {
+                        if ( TextUtils.equals(lhs.name, rhs.name) ) {
+                            if (TextUtils.equals(lhs.value, rhs.value)) {
+                                if (TextUtils.equals(lhs.direction, rhs.direction)) {
+                                    return 0;
+                                } else {
+                                    return lhs.direction.compareTo(rhs.direction);
+                                }
+                            } else {
+                                return lhs.value.compareTo(rhs.value);
+                            }
+                        } else {
+                            return lhs.name.compareTo(rhs.name);
+                        }
+                    }
+                };
+
+                Collections.sort(theirProps, comp);
+                Collections.sort(myProps, comp);
+                boolean needsUpdate = myProps.size() != theirProps.size();
+                if ( !needsUpdate ) {
+                    for (int i = 0; i < myProps.size(); i++) {
+                        if (!myProps.get(i).equals(theirProps.get(i))) {
+                            needsUpdate = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ( !needsUpdate ) {
+                    return false;
+                }
+
+                Logger.logDebug(LOG_TAG, "Copying properties for " + _device + "old: " + _device.properties + " new: " + aylaDevice.properties);
                 _device.properties = new AylaProperty[aylaDevice.properties.length];
                 System.arraycopy(aylaDevice.properties, 0, _device.properties, 0, aylaDevice.properties.length);
             } else {
@@ -149,6 +197,7 @@ public class Device implements Comparable<Device> {
             Logger.logError(LOG_TAG, "syncLanProperties: No AylaDevice found for " + _device.dsn);
             _device.properties = null;
         }
+        return true;
     }
 
     /**
@@ -357,10 +406,6 @@ public class Device implements Comparable<Device> {
     public void updateStatus(final DeviceStatusListener listener) {
         Map<String, String> getPropertyArguments = getPropertyArgumentMap();
 
-        // NOTE: The library will crash if the device's properties are null.
-        if (getDevice().properties == null) {
-            getDevice().properties = new AylaProperty[0];
-        }
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
@@ -1149,8 +1194,12 @@ public class Device implements Comparable<Device> {
     public boolean isInLanMode() {
         // Get the AylaDevice from the DeviceManager. This has the actual LAN mode properties.
         String dsn = _device.dsn;
+        if ( isDeviceNode() ) {
+            AylaDeviceNode node = (AylaDeviceNode)_device;
+            dsn = node.gatewayDsn;
+        }
 
-        AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.dsn);
+        AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(dsn);
         return lanDevice != null && lanDevice.isLanModeActive();
     }
 
