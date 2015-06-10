@@ -649,8 +649,14 @@ public class Gateway extends Device {
                         completion(getTimeoutMessage());
                     } else {
                         // invoke it again manually (412: retry open join window)
-                        state = NodeRegistrationFindState.Started;
-                        nextStep();;
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {        // don't flood gateway
+                            @Override
+                            public void run() {
+                                state = NodeRegistrationFindState.Started;
+                                nextStep();
+                            }
+                        }, 500);                                    // Delay .5 seconds
                     }
                 } else if (msg.arg1 == 404) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
