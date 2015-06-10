@@ -372,15 +372,15 @@ public class DeviceManager implements DeviceStatusListener {
             listener.lanModeResult(false);
         } else {
             Device device = listener.getDevice();
+            Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
             if ( device.isInLanMode() ) {
                 Log.d(LOG_TAG, "Device " + device + " is already in LAN mode.");
                 listener.lanModeResult(true);
+            } else {
+                _startingLANMode = true;
+                _lanModeListeners.add(listener);
+                listener.getDevice().getDevice().lanModeEnable();
             }
-            Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
-
-            _startingLANMode = true;
-            _lanModeListeners.add(listener);
-            listener.getDevice().getDevice().lanModeEnable();
         }
     }
 
