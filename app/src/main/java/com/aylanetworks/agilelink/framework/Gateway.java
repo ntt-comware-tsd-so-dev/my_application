@@ -290,14 +290,14 @@ public class Gateway extends Device {
 
     void setDefaultName(Device device, GatewayTag tag) {
         String name = device.deviceTypeName();
-        String dsn = device.getDevice().dsn;
+        String dsn = device.getDeviceDsn();
         List<Device> devices = SessionManager.deviceManager().deviceList();
         boolean existsName = false;
         int nameIteration = 2;
         do {
             existsName = false;
             for (Device d : devices) {
-                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                if (TextUtils.equals(d.getDeviceDsn(), dsn)) {
                     continue;
                 }
                 if (TextUtils.equals(d.getDevice().productName, name)) {
@@ -350,7 +350,7 @@ public class Gateway extends Device {
         }
 
         void registerComplete(AylaDeviceNode node, Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, gateway.getDevice().dsn);
+            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, gateway.getDeviceDsn());
             if (AylaNetworks.succeeded(msg)) {
                 AylaDeviceNode adn = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDeviceNode.class);
                 adn.connectionStatus = "Online";
@@ -364,9 +364,9 @@ public class Gateway extends Device {
                         Logger.logMessage(LOG_TAG, msg, "rn: got devices");
                         if (AylaNetworks.succeeded(msg)) {
                             for (Device d : list) {
-                                if (d.getDevice().dsn.equals(adn.dsn)) {
+                                if (d.getDeviceDsn().equals(adn.dsn)) {
                                     // The device has successfully been added to the device list, now lets rename it.
-                                    Logger.logInfo(LOG_TAG, "rn: registered device [%s:%s]", d.getDevice().dsn, d.getDevice().model);
+                                    Logger.logInfo(LOG_TAG, "rn: registered device [%s:%s]", d.getDeviceDsn(), d.getDevice().model);
                                     Logger.logDebug(LOG_TAG, "rn: registered device [%s]", d);
                                     gateway.setDefaultName(d, GatewayTag.this);
                                     return;
@@ -386,7 +386,7 @@ public class Gateway extends Device {
         }
 
         void updateComplete(Device device, Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDevice().dsn, device.getDevice().productName);
+            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDeviceDsn(), device.getDevice().productName);
             this.device = device;
             device.postRegistrationForGatewayDevice(gateway);
             if (currentIndex < list.size() - 1) {
@@ -610,7 +610,7 @@ public class Gateway extends Device {
                 AylaDeviceNode[] nodes = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDeviceNode[].class);
                 String amOwnerStr = "";
                 String oemModel = gateway.getDevice().oemModel;
-                String gatewayDsn = gateway.getDevice().dsn;
+                String gatewayDsn = gateway.getDeviceDsn();
                 for (AylaDeviceNode node : nodes) {
                     if (node.amOwner()) {
                         amOwnerStr = "true";

@@ -71,13 +71,15 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
     }
 
+    private static AgileLinkApplication sInstance;
     private static Context context;
     private ScreenPowerReceiver _receiver;
     private Set<AgileLinkApplicationListener> _listeners;
     LifeCycleState _lifeCycleState;
     ActivityLifeCycleState _activityLifeCycleState;
 
-    public void onCreate(){
+    public void onCreate() {
+        sInstance = this;
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
@@ -120,6 +122,28 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         registerActivityLifecycleCallbacks(this);
     }
 
+    /* This method is for use in emulated process environments. It will never be called on a
+       production Android device, where processes are removed by simply killing them; no user code
+      (including this callback) is executed when doing so.
+     */
+    @Override
+    public void onTerminate() {
+        sInstance = null;
+    }
+
+    public static AgileLinkApplication getsInstance() {
+        return sInstance;
+    }
+
+    /**
+     * Obtain the current LifeCycleState of the application
+     *
+     * @return LifeCycleState
+     */
+    public static LifeCycleState getLifeCycleState() {
+        return sInstance._lifeCycleState;
+    }
+
     public static Context getAppContext() {
         return AgileLinkApplication.context;
     }
@@ -134,15 +158,6 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
     public void removeListener(AgileLinkApplicationListener listener) {
         _listeners.remove(listener);
-    }
-
-    /**
-     * Obtain the current LifeCycleState of the application
-     *
-     * @return LifeCycleState
-     */
-    public LifeCycleState getLifeCycleState() {
-        return _lifeCycleState;
     }
 
     void notifyLifeCycleStateChange(LifeCycleState state) {

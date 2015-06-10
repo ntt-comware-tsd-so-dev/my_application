@@ -31,6 +31,7 @@ import android.widget.Toast;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -38,6 +39,7 @@ import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
@@ -115,6 +117,7 @@ public class AddDeviceFragment extends Fragment
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().stopPolling();
         }
+        AylaLanMode.pause(false);
 
         // TODO: quick hack... remove this
         // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
@@ -135,11 +138,16 @@ public class AddDeviceFragment extends Fragment
             _nodeRegistrationGateway.cleanupRegistrationScan();
         }
 
-        // Restart polling & LAN mode
-        if ( SessionManager.deviceManager() != null ) {
-            SessionManager.deviceManager().startPolling();
+        // make sure we are still in the foreground
+        if (AgileLinkApplication.getLifeCycleState() == AgileLinkApplication.LifeCycleState.Foreground) {
+
+            // Restart polling & LAN mode
+            if ( SessionManager.deviceManager() != null ) {
+                SessionManager.deviceManager().startPolling();
+            }
+            SessionManager.getInstance().setForeground(true);
+            AylaLanMode.resume();
         }
-        SessionManager.getInstance().setForeground(true);
     }
 
     @Override
