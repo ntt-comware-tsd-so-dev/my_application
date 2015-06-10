@@ -860,6 +860,7 @@ public class DeviceManager implements DeviceStatusListener {
             Log.v(LOG_TAG, "Device Status Timer");
 
             // Trigger the next timer
+            _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
             _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
 
             if (_pollingStopped ) {
