@@ -117,7 +117,8 @@ public class AddDeviceFragment extends Fragment
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().stopPolling();
         }
-        AylaLanMode.pause(false);
+        // Can't do the AylaLanMode.pause as we NEVER find anything...
+        //AylaLanMode.pause(false);
 
         // TODO: quick hack... remove this
         // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
@@ -146,7 +147,7 @@ public class AddDeviceFragment extends Fragment
                 SessionManager.deviceManager().startPolling();
             }
             SessionManager.getInstance().setForeground(true);
-            AylaLanMode.resume();
+            //AylaLanMode.resume();
         }
     }
 
@@ -468,6 +469,12 @@ public class AddDeviceFragment extends Fragment
             apNames[i] = adn.productName;
             selected.add(adn);
         }
+
+        /* Quicky test to see if Identify will work on the AylaDeviceNode candidate...
+        if (list != null && list.size() > 0) {
+            _nodeRegistrationGateway.identifyAylaDeviceNode(list.get(0), true, 255, this, null);
+        }
+        */
 
         if (_useSingleSelect) {
             new AlertDialog.Builder(getActivity())

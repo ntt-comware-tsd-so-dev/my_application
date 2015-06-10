@@ -978,7 +978,22 @@ public class Gateway extends Device {
             handler.gatewayCompletion(this, null, userTag);
             return;
         }
-        AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+        identifyAylaDeviceNode((AylaDeviceNode)device.getDevice(), on, time, userTag, handler);
+    }
+
+    /**
+     * Used to identify an AylaDeviceNode by blinking a light, making a sound, vibrating, etc.
+     * @param adn AylaDeviceNode to identify.
+     * @param on true to turn on, false to turn off.
+     * @param time Duration, in seconds, to identify device. 0 - 255.
+     * @param userTag Option user data to return with handler.
+     * @param handler AylaGatewayCompletionHandler completion handler.
+     */
+    public void identifyAylaDeviceNode(AylaDeviceNode adn, boolean on, int time, Object userTag, AylaGatewayCompletionHandler handler) {
+        if (adn == null) {
+            handler.gatewayCompletion(this, null, userTag);
+            return;
+        }
         Logger.logInfo(LOG_TAG, "adn: identifyDeviceNode start");
         Map<String, String> callParams = new HashMap<String, String>();
         //callParams.put(AylaDeviceNode.kAylaNodeParamIdentifyValue, AylaDeviceNode.kAylaNodeParamIdentifyResult);
