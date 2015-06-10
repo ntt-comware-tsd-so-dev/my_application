@@ -7,7 +7,6 @@ package com.aylanetworks.agilelink.device;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-import android.os.Handler;
 import android.os.Message;
 
 import com.aylanetworks.aaml.AylaDevice;
@@ -335,22 +334,7 @@ public class ZigbeeTriggerDevice extends Device {
     }
 
     @Override
-    public void deviceAdded(Device oldDevice) {
-        super.deviceAdded(oldDevice);
-        _gateway = Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
-    }
-
-    @Override
-    public void deviceRemoved() {
-        super.deviceRemoved();
-        Logger.logInfo(LOG_TAG, "zg: deviceRemoved [%s]", this.getDeviceDsn());
-    }
-
-    @Override
-    public void unregisterDevice(Handler handler) {
-        super.unregisterDevice(handler);
-
+    public void preUnregistrationForGatewayDevice(Gateway gateway) {
         // remove 4 bindings & 4 groups
         Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
         synchronized (_deque) {
@@ -363,6 +347,19 @@ public class ZigbeeTriggerDevice extends Device {
             addRunEntry(new RemoveTriggerGroupForSensor(this, false, false));
             runIfNeeded();
         }
+    }
+
+    @Override
+    public void deviceAdded(Device oldDevice) {
+        super.deviceAdded(oldDevice);
+        _gateway = Gateway.getGatewayForDeviceNode(this);
+        Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+    }
+
+    @Override
+    public void deviceRemoved() {
+        super.deviceRemoved();
+        Logger.logInfo(LOG_TAG, "zg: deviceRemoved [%s]", this.getDeviceDsn());
     }
 }
 

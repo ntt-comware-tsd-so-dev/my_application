@@ -251,6 +251,7 @@ public class DeviceManager implements DeviceStatusListener {
             if (device.isDeviceNode()) {
                 Gateway gateway = Gateway.getGatewayForDeviceNode(device);
                 gateway.removeDeviceNode(device);
+                device.preUnregistrationForGatewayDevice(gateway);
             }
 
             // remove from the property list so that we don't try to get properties for it.

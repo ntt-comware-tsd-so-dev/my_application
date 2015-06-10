@@ -2,7 +2,6 @@ package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.os.Message;
 
 import com.aylanetworks.aaml.AylaDevice;
@@ -185,6 +184,12 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     }
 
     @Override
+    public void preUnregistrationForGatewayDevice(Gateway gateway) {
+        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
+        removeRemoteGroup(gateway);
+    }
+
+    @Override
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
         _gateway = Gateway.getGatewayForDeviceNode(this);
@@ -195,14 +200,6 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     public void deviceRemoved() {
         super.deviceRemoved();
         Logger.logInfo(LOG_TAG, "rm: deviceRemoved [%s]", this.getDeviceDsn());
-    }
-
-    @Override
-    public void unregisterDevice(Handler handler) {
-        super.unregisterDevice(handler);
-        Gateway gateway = Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
-        removeRemoteGroup(gateway);
     }
 
     @Override
