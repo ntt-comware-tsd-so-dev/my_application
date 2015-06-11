@@ -1291,6 +1291,8 @@ public class Device implements Comparable<Device> {
 
         Map<String, String> paramMap = new HashMap<String, String>();
         paramMap.put("names", sb.toString());
+        // We always want to fetch from the devices or cloud rather than get cached vaules
+        paramMap.put("fetch", "1");
         return paramMap;
     }
 
