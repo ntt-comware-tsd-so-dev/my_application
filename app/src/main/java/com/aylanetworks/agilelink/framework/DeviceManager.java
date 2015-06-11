@@ -696,11 +696,11 @@ public class DeviceManager implements DeviceStatusListener {
                         if (device != null) {
                             Log.d(LOG_TAG, "LAN mode enabled on " + device.toString());
                             // Update the properties on this device to the AylaDeviceManager's properties
-                            if ( device.syncLanProperties() || device.getDevice().properties == null ) {
-                                // Also request an update, as these properties could be from the cache.
-                                Log.e("BSK", "Requesting LAN update for " + device);
-                                device.updateStatus(_deviceManager.get());
-                            }
+                            device.syncLanProperties();
+
+                            // Also request an update, as these properties could be from the cache.
+                            Log.e("BSK", "Requesting LAN update for " + device);
+                            device.updateStatus(_deviceManager.get());
 
                             // Remove the LAN-mode-enabled device from the list of devices to poll
                             List<Device> devicesToPoll = _deviceManager.get()._devicesToPoll;
@@ -924,7 +924,7 @@ public class DeviceManager implements DeviceStatusListener {
     /** Handler called when the list of devices has been obtained from the server. */
     static class GetDevicesHandler extends Handler {
         private final WeakReference<DeviceManager> _deviceManager;
-        ArrayList<GetDevicesCompletion> _completionSet;
+        final ArrayList<GetDevicesCompletion> _completionSet;
         ArrayList<Object> _tagSet;
 
         GetDevicesHandler(DeviceManager manager) {
@@ -963,14 +963,11 @@ public class DeviceManager implements DeviceStatusListener {
                     Device device = params.deviceCreator.deviceForAylaDevice(aylaDevice);
                     if ( device != null ) {
                         newDeviceList.add(device);
-                        if ( !device.isInLanMode() ) {
-                            // Get everything into LAN mode ASAP
-                            _deviceManager.get().enterLANMode(new LANModeListener(device) {
-                                @Override
-                                public void lanModeResult(boolean isInLANMode) {
-                                    Log.d("BSK", "lanModeResult for " + getDevice().toString() + " : " + isInLANMode);
-                                }
-                            });
+                        if ( AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
+                            if ( !device.isDeviceNode() && !device.isInLanMode() ) {
+                                Log.d("BSK", "LAN mode enabling " + device);
+                                device.getDevice().lanModeEnable();
+                            }
                         }
                     } else {
                         Log.i(LOG_TAG, "No device created for " + aylaDevice.getProductName());

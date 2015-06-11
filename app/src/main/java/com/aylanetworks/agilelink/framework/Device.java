@@ -150,7 +150,13 @@ public class Device implements Comparable<Device> {
 
                 // See if we already have the same properties
                 List<AylaProperty> theirProps = Arrays.asList(aylaDevice.properties);
-                List<AylaProperty> myProps = Arrays.asList(_device.properties);
+                List<AylaProperty> myProps;
+                if ( _device.properties == null ) {
+                    myProps = new ArrayList<>();
+                } else {
+                    myProps = Arrays.asList(_device.properties);
+                }
+
                 Comparator<AylaProperty> comp = new Comparator<AylaProperty>() {
                     @Override
                     public int compare(AylaProperty lhs, AylaProperty rhs) {
@@ -712,8 +718,8 @@ public class Device implements Comparable<Device> {
                 // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
-                if ( dm != null && dm.isLastLanModeDevice(_device.get())) {
-                    Logger.logDebug(LOG_TAG, "Entering LAN mode (I was the last LAN mode device): " + _device.get());
+                if ( dm != null ) {
+                    Logger.logDebug(LOG_TAG, "Entering LAN mode: " + _device.get());
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
 
@@ -1291,8 +1297,6 @@ public class Device implements Comparable<Device> {
 
         Map<String, String> paramMap = new HashMap<String, String>();
         paramMap.put("names", sb.toString());
-        // We always want to fetch from the devices or cloud rather than get cached vaules
-        paramMap.put("fetch", "1");
         return paramMap;
     }
 
