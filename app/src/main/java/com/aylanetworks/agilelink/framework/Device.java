@@ -1195,12 +1195,13 @@ public class Device implements Comparable<Device> {
 
     public boolean isInLanMode() {
         // Get the AylaDevice from the DeviceManager. This has the actual LAN mode properties.
-        String dsn = _device.dsn;
         if ( isDeviceNode() ) {
-            AylaDeviceNode node = (AylaDeviceNode)_device;
-            dsn = node.gatewayDsn;
+            // TODO: BSK: Get rid of this once nodes are working w/ LAN mode
+            Logger.logWarning(LOG_TAG, "Node returning false for isInLanMode() because I'm broken");
+            return false;
         }
 
+        String dsn = _device.dsn;
         AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(dsn);
         return lanDevice != null && lanDevice.isLanModeActive();
     }

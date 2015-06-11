@@ -372,6 +372,11 @@ public class DeviceManager implements DeviceStatusListener {
             listener.lanModeResult(false);
         } else {
             Device device = listener.getDevice();
+            if ( device.isDeviceNode() ) {
+                // TODO: BSK: Remove this once nodes are not broken
+                listener.lanModeResult(false);
+                return;
+            }
             Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
             if ( device.isInLanMode() ) {
                 Log.d(LOG_TAG, "Device " + device + " is already in LAN mode.");
