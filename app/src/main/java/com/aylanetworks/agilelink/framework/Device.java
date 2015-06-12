@@ -16,6 +16,7 @@ import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceManager;
 import com.aylanetworks.aaml.AylaDeviceNode;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSchedule;
@@ -719,7 +720,7 @@ public class Device implements Comparable<Device> {
                 // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
-                if ( dm != null ) {
+                if ( dm != null && AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
                     Logger.logDebug(LOG_TAG, "Entering LAN mode: " + _device.get());
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
