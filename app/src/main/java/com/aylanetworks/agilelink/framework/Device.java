@@ -189,6 +189,7 @@ public class Device implements Comparable<Device> {
                 }
 
                 if ( !needsUpdate ) {
+                    Logger.logInfo(LOG_TAG, "Property does not need update");
                     return false;
                 }
 
@@ -1201,14 +1202,8 @@ public class Device implements Comparable<Device> {
 
     public boolean isInLanMode() {
         // Get the AylaDevice from the DeviceManager. This has the actual LAN mode properties.
-        if ( isDeviceNode() ) {
-            // TODO: BSK: Get rid of this once nodes are working w/ LAN mode
-            Logger.logWarning(LOG_TAG, "Node returning false for isInLanMode() because I'm broken");
-            return false;
-        }
-
         String dsn = _device.dsn;
-        AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(dsn);
+        AylaDevice lanDevice = AylaDeviceManager.sharedManager().endpointForDSN(dsn);
         return lanDevice != null && lanDevice.isLanModeActive();
     }
 

@@ -372,11 +372,7 @@ public class DeviceManager implements DeviceStatusListener {
             listener.lanModeResult(false);
         } else {
             Device device = listener.getDevice();
-            if ( device.isDeviceNode() ) {
-                // TODO: BSK: Remove this once nodes are not broken
-                listener.lanModeResult(false);
-                return;
-            }
+
             Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
             if ( device.isInLanMode() ) {
                 Log.d(LOG_TAG, "Device " + device + " is already in LAN mode.");
@@ -842,11 +838,6 @@ public class DeviceManager implements DeviceStatusListener {
     private List<Device>getDevicesToPoll() {
         List<Device> devices = new ArrayList<Device>();
         for ( Device d : _deviceList ) {
-            if ( d.isDeviceNode() ) {
-                // Don't poll nodes
-                continue;
-            }
-
             if (    !d.isInLanMode() ||
                     d.getDevice().properties == null ||
                     d.getDevice().properties.length == 0 ) {
