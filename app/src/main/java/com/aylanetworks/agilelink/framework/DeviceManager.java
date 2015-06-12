@@ -676,7 +676,15 @@ public class DeviceManager implements DeviceStatusListener {
                     // Notify our listeners for this device, if any, and clear our list
                     for (Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                         LANModeListener listener = iter.next();
-                        if (TextUtils.equals(listener.getDevice().getDevice().dsn, notify.dsn)) {
+                        boolean shouldNotify = listener.getDevice().getDevice().dsn.equals(dsn);
+                        if ( !shouldNotify ) {
+                            // Check for a node / gateway
+                            if ( listener.getDevice().isDeviceNode() ) {
+                                AylaDeviceNode node = (AylaDeviceNode)listener.getDevice().getDevice();
+                                shouldNotify = (node.gatewayDsn.equals(dsn));
+                            }
+                        }
+                        if (shouldNotify) {
                             listener.lanModeResult(false);
                             iter.remove();
                             _deviceManager.get().notifyDeviceStatusChanged(listener.getDevice());
@@ -707,7 +715,16 @@ public class DeviceManager implements DeviceStatusListener {
                             // Notify listeners listening for this device
                             for (Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                                 LANModeListener listener = iter.next();
-                                if (listener.getDevice().getDevice().dsn.equals(dsn)) {
+                                boolean shouldNotify = listener.getDevice().getDevice().dsn.equals(dsn);
+                                if ( !shouldNotify ) {
+                                    // Check for a node / gateway
+                                    if ( listener.getDevice().isDeviceNode() ) {
+                                        AylaDeviceNode node = (AylaDeviceNode)listener.getDevice().getDevice();
+                                        shouldNotify = (node.gatewayDsn.equals(dsn));
+                                    }
+                                }
+
+                                if (shouldNotify) {
                                     // Notify the listener that LAN mode has been enabled
                                     listener.lanModeResult(true);
                                     iter.remove();
