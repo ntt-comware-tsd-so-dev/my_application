@@ -20,7 +20,7 @@ import com.aylanetworks.agilelink.framework.Logger;
 
 import java.util.ArrayDeque;
 
-public class ZigbeeTriggerDevice extends Device {
+public class ZigbeeTriggerDevice extends Device  {
 
     private final static String LOG_TAG = "ZigbeeTriggerDevice";
 
@@ -33,7 +33,6 @@ public class ZigbeeTriggerDevice extends Device {
 
     public ZigbeeTriggerDevice(AylaDevice device) {
         super(device);
-        initializeDeque();
     }
 
     @Override
@@ -55,10 +54,6 @@ public class ZigbeeTriggerDevice extends Device {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    DequeState _state;
-    DequeRunState _dequeRunState;
-    ArrayDeque<DequeEntry> _deque;
-
     enum DequeRunState {
         NotRunning,
         RunningDeque,
@@ -72,10 +67,12 @@ public class ZigbeeTriggerDevice extends Device {
     };
 
     class DequeEntry {
+        public DequeSet _dequeSet;
         public Device _device;
         public DequeState _state = DequeState.NotStarted;
 
-        public DequeEntry(Device device) {
+        public DequeEntry(DequeSet dequeSet, Device device) {
+            _dequeSet = dequeSet;
             _device = device;
         }
 
@@ -90,9 +87,13 @@ public class ZigbeeTriggerDevice extends Device {
         public void run() {
         }
 
-        public synchronized void runComplete(int what) {
-            _state = (what == 0) ? DequeState.Success : DequeState.Failure;
-            ((ZigbeeTriggerDevice)_device).runNext(this);
+        public synchronized void runComplete(Message msg) {
+            if ((msg == null) || AylaNetworks.succeeded(msg)) {
+                _state = DequeState.Success;
+            } else {
+                _state = DequeState.Failure;
+            }
+            _dequeSet.runNext(this, msg);
         }
     }
 
@@ -101,8 +102,8 @@ public class ZigbeeTriggerDevice extends Device {
         public boolean _open;
         public boolean _turnOn;
 
-        public AddTriggerGroupForSensor(Device device, boolean open, boolean turnOn) {
-            super(device);
+        public AddTriggerGroupForSensor(DequeSet dequeSet, Device device, boolean open, boolean turnOn) {
+            super(dequeSet, device);
             _open = open;
             _turnOn = turnOn;
         }
@@ -148,16 +149,16 @@ public class ZigbeeTriggerDevice extends Device {
                         AddTriggerGroupForSensor proc = (AddTriggerGroupForSensor)tag;
                         if (AylaNetworks.succeeded(msg)) {
                             // all done binding the remote
-                            Logger.logInfo(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s] success", proc.getDeviceDsn(), gateway.getDeviceDsn());
+                            Logger.logInfo(LOG_TAG, "zg: initializeSensorBinding [%s] on gateway [%s] success", proc.getDeviceDsn(), gateway.getDeviceDsn());
                         } else {
                             // failed :(
-                            Logger.logError(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
+                            Logger.logError(LOG_TAG, "zg: initializeSensorBinding [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
                         }
-                        proc.runComplete(msg.what);
+                        proc.runComplete(msg);
                     }
                 });
             } else {
-                runComplete(0);
+                runComplete(null);
             }
         }
 
@@ -169,13 +170,13 @@ public class ZigbeeTriggerDevice extends Device {
                 _gateway.createGroup(name, null, this, new Gateway.AylaGatewayCompletionHandler() {
                     @Override
                     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        AddTriggerGroupForSensor proc = (AddTriggerGroupForSensor)tag;
+                        AddTriggerGroupForSensor proc = (AddTriggerGroupForSensor) tag;
                         if (AylaNetworks.succeeded(msg)) {
                             initializeSensorBinding();
                         } else {
                             // failed :(
-                            Logger.logError(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
-                            proc.runComplete(msg.what);
+                            Logger.logError(LOG_TAG, "zg: initializeSensorGroup [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
+                            proc.runComplete(msg);
                         }
                     }
                 });
@@ -199,41 +200,17 @@ public class ZigbeeTriggerDevice extends Device {
         public boolean _open;
         public boolean _turnOn;
 
-        public RemoveTriggerGroupForSensor(Device device, boolean open, boolean turnOn) {
-            super(device);
+        public RemoveTriggerGroupForSensor(DequeSet dequeSet, Device device, boolean open, boolean turnOn) {
+            super(dequeSet, device);
             _open = open;
             _turnOn = turnOn;
-        }
-
-        void removeSensorBinding() {
-            String name = makeGroupKeyForSensor(_device, _open, _turnOn);
-            AylaBindingZigbee binding = _gateway.getBindingManager().getByName(name);
-            if (binding != null) {
-                Logger.logDebug(LOG_TAG, "zg: removeSensorBinding [%s] deleteBinding [%s]", getDeviceDsn(), name);
-                _gateway.deleteBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
-                    @Override
-                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        RemoveTriggerGroupForSensor proc = (RemoveTriggerGroupForSensor)tag;
-                        if (AylaNetworks.succeeded(msg)) {
-                            Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", proc.getDeviceDsn(), gateway.getDeviceDsn());
-                        } else {
-                            // failed :(
-                            Logger.logError(LOG_TAG, "zg: removeSensorBinding [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
-                        }
-                        proc.runComplete(msg.what);
-                    }
-                });
-            } else {
-                Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s] succeeded", getDeviceDsn(), _gateway.getDeviceDsn());
-                runComplete(0);
-            }
         }
 
         void removeSensorGroup() {
             String name = makeGroupKeyForSensor(_device, _open, _turnOn);
             AylaGroupZigbee group = _gateway.getGroupManager().getByName(name);
             if (group == null) {
-                removeSensorBinding();
+                runComplete(null);
             } else {
                 Logger.logDebug(LOG_TAG, "zg: removeSensorGroup [%s] deleteGroup [%s]", getDeviceDsn(), name);
                 _gateway.deleteGroup(group, this, new Gateway.AylaGatewayCompletionHandler() {
@@ -244,9 +221,33 @@ public class ZigbeeTriggerDevice extends Device {
                             // failed :(
                             Logger.logError(LOG_TAG, "zg: removeSensorGroup [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
                         }
-                        removeSensorBinding();
+                        proc.runComplete(msg);
                     }
                 });
+            }
+        }
+
+        void removeSensorBinding() {
+            String name = makeGroupKeyForSensor(_device, _open, _turnOn);
+            AylaBindingZigbee binding = _gateway.getBindingManager().getByName(name);
+            if (binding != null) {
+                Logger.logDebug(LOG_TAG, "zg: removeSensorBinding [%s] deleteBinding [%s]", getDeviceDsn(), name);
+                _gateway.deleteBinding(binding, this, new Gateway.AylaGatewayCompletionHandler() {
+                    @Override
+                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                        RemoveTriggerGroupForSensor proc = (RemoveTriggerGroupForSensor) tag;
+                        if (AylaNetworks.succeeded(msg)) {
+                            Logger.logInfo(LOG_TAG, "zg: unregisterRemote [%s] on gateway [%s] succeeded", proc.getDeviceDsn(), gateway.getDeviceDsn());
+                        } else {
+                            // failed :(
+                            Logger.logError(LOG_TAG, "zg: removeSensorBinding [%s] on gateway [%s] failed", proc.getDeviceDsn(), gateway.getDeviceDsn());
+                        }
+                        removeSensorGroup();
+                    }
+                });
+            } else {
+                Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s] succeeded", getDeviceDsn(), _gateway.getDeviceDsn());
+                removeSensorGroup();
             }
         }
 
@@ -254,71 +255,123 @@ public class ZigbeeTriggerDevice extends Device {
         public synchronized void run() {
             if (_state == DequeState.NotStarted) {
                 _state = DequeState.Connecting;
-                // remove the group & binding
-                removeSensorGroup();
+                // remove the binding & then the group
+                removeSensorBinding();
             }
         }
     }
 
-    public void initializeDeque() {
-        _state = DequeState.NotStarted;
-        _dequeRunState = DequeRunState.NotRunning;
-        _deque = new ArrayDeque<DequeEntry>();
-    }
+    public class DequeSet {
 
-    public void addRunEntry(DequeEntry entry) {
-        _deque.addLast(entry);
-    }
+        Gateway _gateway;
+        Device _device;
+        Object _tag;
+        DequeRunState _dequeRunState;
+        ArrayDeque<DequeEntry> _deque;
+        int countTotal;
+        int countSuccess;
+        int countFailure;
 
-    void runIfNeeded() {
-        if (_dequeRunState != DequeRunState.RunningDeque) {
-            run();
+        public DequeSet(Gateway gateway, Device device, Object tag) {
+            _gateway = gateway;
+            _device = device;
+            _tag = tag;
+            _dequeRunState = DequeRunState.NotRunning;
+            _deque = new ArrayDeque<>();
+            countTotal = countSuccess = countFailure = 0;
         }
-    }
 
-    void run() {
-        synchronized (_deque) {
-            DequeEntry first = _deque.peekFirst();
-            int count = 0;
-            while (true) {
-                DequeEntry entry = _deque.peekFirst();
-                if (entry != null) {
-                    if (entry.isReady()) {
-                        _dequeRunState = DequeRunState.RunningDeque;
-                        entry.run();
-                        break;
-                    } else if ((count > 0) && (entry == first)) {
-                        break;
+        public void addRunEntry(DequeEntry entry) {
+            entry._dequeSet = this;
+            _deque.addLast(entry);
+            countTotal++;
+        }
+
+        public boolean isSuccessful() {
+            return (countTotal == countSuccess);
+        }
+
+        public Gateway getGateway() {
+            return _gateway;
+        }
+
+        void runIfNeeded() {
+            if (_dequeRunState != DequeRunState.RunningDeque) {
+                run();
+            }
+        }
+
+        void run() {
+            synchronized (_deque) {
+                DequeEntry first = _deque.peekFirst();
+                int count = 0;
+                while (true) {
+                    DequeEntry entry = _deque.peekFirst();
+                    if (entry != null) {
+                        if (entry.isReady()) {
+                            _dequeRunState = DequeRunState.RunningDeque;
+                            entry.run();
+                            break;
+                        } else if ((count > 0) && (entry == first)) {
+                            break;
+                        } else {
+                            // the entry isn't ready to run, so move it to the bottom
+                            _deque.remove(entry);
+                            _deque.addLast(entry);
+                            count++;
+                        }
                     } else {
-                        _deque.remove(entry);
-                        _deque.addLast(entry);
-                        count++;
+                        _dequeRunState = DequeRunState.NotRunning;
+
+                        // the set is complete, but more might still be running...
+                        if (countTotal == countFailure + countSuccess) {
+                            ((ZigbeeTriggerDevice) _device).dequeSetComplete(this, _tag);
+                        }
+                        break;
                     }
-                } else {
-                    _dequeRunState = DequeRunState.NotRunning;
-                    break;
                 }
             }
         }
-    }
 
-    void runNext(DequeEntry entry) {
-        synchronized (_deque) {
-            if (entry != null) {
-                _deque.remove(entry);
+        void runNext(DequeEntry entry, Message msg) {
+            synchronized (_deque) {
+                if ((msg==null) || AylaNetworks.succeeded(msg)) {
+                    countSuccess++;
+                } else {
+                    countFailure++;
+                }
+                if (entry != null) {
+                    _deque.remove(entry);
+                }
+                // run the next entry in the Deque
+                run();
             }
-            // run the next entry in the Deque
-            run();
         }
-    }
 
-    public void clearDeque() {
-        synchronized (_deque) {
-            _deque.clear();
+        public void clearDeque() {
+            synchronized (_deque) {
+                _deque.clear();
+            }
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    Object _currentDequeSetLock = new Object();
+    DequeSet _currentDequeSet;
+
+    void dequeSetComplete(DequeSet dequeSet, Object tag) {
+
+        // make sure we still care...
+        if (_currentDequeSet == dequeSet) {
+            Gateway gateway = dequeSet.getGateway();
+            if (dequeSet.isSuccessful()) {
+                Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] success", (String)tag, this.getDeviceDsn(), gateway.getDeviceDsn());
+            } else {
+                Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] failure", (String)tag, this.getDeviceDsn(), gateway.getDeviceDsn());
+            }
+        }
+    }
 
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
@@ -326,12 +379,21 @@ public class ZigbeeTriggerDevice extends Device {
         // create 4 bindings & 4 groups
         Logger.logInfo(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
         _gateway = gateway;
-        synchronized (_deque) {
-            addRunEntry(new AddTriggerGroupForSensor(this, true, true));
-            addRunEntry(new AddTriggerGroupForSensor(this, true, false));
-            addRunEntry(new AddTriggerGroupForSensor(this, false, true));
-            addRunEntry(new AddTriggerGroupForSensor(this, false, false));
-            runIfNeeded();
+
+        // make sure we have the latest info
+        gateway.getGroupManager().fetchZigbeeGroups();
+        gateway.getBindingManager().fetchZigbeeBindings();
+
+        synchronized (_currentDequeSetLock) {
+            // it would be null, since we are just starting
+            if (_currentDequeSet == null) {
+                _currentDequeSet = new DequeSet(gateway, this, "initializeSensor");
+                _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, true, true));
+                _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, true, false));
+                _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, false, true));
+                _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, false, false));
+                _currentDequeSet.runIfNeeded();
+            }
         }
     }
 
@@ -339,15 +401,24 @@ public class ZigbeeTriggerDevice extends Device {
     public void preUnregistrationForGatewayDevice(Gateway gateway) {
         // remove 4 bindings & 4 groups
         Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
-        synchronized (_deque) {
-            // stop any add that may be going on...
-            clearDeque();
+
+        // make sure we have the latest info
+        gateway.getGroupManager().fetchZigbeeGroups();
+        gateway.getBindingManager().fetchZigbeeBindings();
+
+        synchronized (_currentDequeSetLock) {
+            if (_currentDequeSet != null) {
+                // stop any add that may be going on...
+                _currentDequeSet.clearDeque();
+                _currentDequeSet = null;
+            }
             // queue up the removals
-            addRunEntry(new RemoveTriggerGroupForSensor(this, true, true));
-            addRunEntry(new RemoveTriggerGroupForSensor(this, true, false));
-            addRunEntry(new RemoveTriggerGroupForSensor(this, false, true));
-            addRunEntry(new RemoveTriggerGroupForSensor(this, false, false));
-            runIfNeeded();
+            _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice");
+            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, true));
+            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, false));
+            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, true));
+            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, false));
+            _currentDequeSet.runIfNeeded();
         }
     }
 
