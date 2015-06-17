@@ -15,6 +15,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
+import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
@@ -83,6 +84,10 @@ public class MenuHandler {
 
             case R.id.action_sign_out:
                 signOut();
+                break;
+
+            case R.id.action_help:
+                help();
                 break;
 
             case R.id.action_about:
@@ -211,6 +216,11 @@ public class MenuHandler {
 
     public static void about() {
         AboutFragment frag = new AboutFragment();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    public static void help() {
+        HelpFragment frag = new HelpFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 

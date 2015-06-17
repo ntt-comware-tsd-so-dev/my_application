@@ -432,4 +432,14 @@
     <string name="remote_unpair_body">Are you sure you want to unpair from remote?</string>
     <string name="remote_unpair_toast">Unpair Complete</string>
 
+    <string name="help">Help</string>
+    <string name="about_amap">About AMAP</string>
+    <string name="get_started">Getting Started</string>
+    <string name="guides_videos">Guides &amp; Videos</string>
+    <string name="terms_and_condition">Terms &amp; Conditions</string>
+    <!--  Links for help page option -->
+    <string name="about_amap_link">https://www.aylanetworks.com/company/ayla</string>
+    <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
+    <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
+    <string name="terms_and_condition_link">http://www.kidde.com/home-safety/en/us/privacy/terms-and-conditions/</string>
 </resources>
