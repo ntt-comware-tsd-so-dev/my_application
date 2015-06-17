@@ -18,6 +18,10 @@
         android:title="@string/shares"/>
 
     <item
+        android:id="@+id/action_help"
+        android:title="@string/help"/>
+
+    <item
         android:id="@+id/action_about"
         android:title="@string/about"/>
 
