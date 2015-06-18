@@ -29,6 +29,7 @@ public class ZigbeeTriggerDevice extends Device  {
     public final static String ZB_IAS_CLOSE_TURN_ON = "4_out_0x0006_0x0000";
     public final static String ZB_IAS_CLOSE_TURN_OFF = "5_out_0x0006_0x0000";
 
+    public final static String GROUP_PREFIX_TRIGGER = "sensor-";
     Gateway _gateway;
 
     public ZigbeeTriggerDevice(AylaDevice device) {
@@ -45,7 +46,7 @@ public class ZigbeeTriggerDevice extends Device  {
 
     static public String makeGroupKeyForSensor(Device device, boolean open, boolean turnOn) {
         StringBuilder sb = new StringBuilder(512);
-        sb.append("sensor-");
+        sb.append(GROUP_PREFIX_TRIGGER);
         sb.append(device.getDevice().dsn);
         sb.append(open ? "Open" : "Close");
         sb.append(turnOn ? "On" : "Off");

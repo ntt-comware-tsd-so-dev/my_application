@@ -11,6 +11,8 @@ import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.aaml.zigbee.AylaNetworksZigbee;
+import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
+import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ import java.util.Set;
 public class ZigbeeGroupManager {
 
     private final static String LOG_TAG = "ZigbeeGroupManager";
-    private boolean _isDirty;
 
     private Gateway _gateway;
     private Set<ZigbeeGroupManagerListener> _listeners;
@@ -275,6 +276,7 @@ public class ZigbeeGroupManager {
     public void createGroup(String name, List<Device>deviceList, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         AylaGroupZigbee group = new AylaGroupZigbee();
         group.groupName = name;
+        group.gatewayDsn = _gateway.getDeviceDsn();
         if ((deviceList != null) && (deviceList.size() > 0)) {
             group.nodeDsns = new String[deviceList.size()];
             for (int i = 0; i < deviceList.size(); i++) {
@@ -284,6 +286,12 @@ public class ZigbeeGroupManager {
         Map<String, Object> callParams = new HashMap<String, Object>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.createGroup(new CreateHandler(this, name, tag, handler), group, callParams, false);
+    }
+
+    public void createGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+        Map<String, Object> callParams = new HashMap<String, Object>();
+        AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
+        gateway.createGroup(new CreateHandler(this, group.groupName, tag, handler), group, callParams, false);
     }
 
     public void updateGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
@@ -323,10 +331,16 @@ public class ZigbeeGroupManager {
 
                         // verify that it is an active group that we want to add
                         boolean add = true;
-                        if (group.groupName.startsWith("sensor-")) {
+                        String prefix = null;
+                        if (group.groupName.startsWith(ZigbeeTriggerDevice.GROUP_PREFIX_TRIGGER)) {
+                            prefix = ZigbeeTriggerDevice.GROUP_PREFIX_TRIGGER;
+                        } else if (group.groupName.startsWith(ZigbeeWirelessSwitch.GROUP_PREFIX_REMOTE)) {
+                            prefix = ZigbeeWirelessSwitch.GROUP_PREFIX_REMOTE;
+                        }
+                        if (prefix != null) {
                             add = false;
                             for (Device device : devices) {
-                                String key = "sensor-" + device.getDevice().dsn;
+                                String key = prefix + device.getDevice().dsn;
                                 if (group.groupName.startsWith(key)) {
                                     add = true;
                                     break;

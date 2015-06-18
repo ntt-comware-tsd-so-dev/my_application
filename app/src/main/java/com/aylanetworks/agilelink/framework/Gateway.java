@@ -19,6 +19,7 @@ import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
+import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -202,8 +203,21 @@ public class Gateway extends Device {
         return _bindingManager;
     }
 
-    public void createGroup(String groupName, List<Device>deviceList, Object tag, AylaGatewayCompletionHandler handler) {
-        getGroupManager().createGroup(groupName, deviceList, tag, handler);
+    private ZigbeeSceneManager _sceneManager;
+
+    public ZigbeeSceneManager getSceneManager() {
+        if (_sceneManager == null) {
+            _sceneManager = new ZigbeeSceneManager(this);
+        }
+        return _sceneManager;
+    }
+
+    public void createGroup(String groupName, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().createGroup(groupName, devices, tag, handler);
+    }
+
+    public void createGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().createGroup(group, tag, handler);
     }
 
     public void updateGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
@@ -220,6 +234,22 @@ public class Gateway extends Device {
 
     public void deleteBinding(AylaBindingZigbee binding, Object tag, AylaGatewayCompletionHandler handler) {
         getBindingManager().deleteBinding(binding, tag, handler);
+    }
+
+    public void createScene(String sceneName, List<Device> devices, List<AylaGroupZigbee> groups, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().createScene(sceneName, devices, groups, tag, handler);
+    }
+
+    public void createScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().createScene(scene, tag, handler);
+    }
+
+    public void updateScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().updateScene(scene, tag, handler);
+    }
+
+    public void deleteScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().deleteScene(scene, tag, handler);
     }
 
     @Override
