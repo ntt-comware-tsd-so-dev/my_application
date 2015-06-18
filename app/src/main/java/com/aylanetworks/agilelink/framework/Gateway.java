@@ -248,6 +248,10 @@ public class Gateway extends Device {
         getSceneManager().updateScene(scene, tag, handler);
     }
 
+    public void recallScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().recallScene(scene, tag, handler);
+    }
+
     public void deleteScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
         getSceneManager().deleteScene(scene, tag, handler);
     }
