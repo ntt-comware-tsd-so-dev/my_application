@@ -3,11 +3,11 @@ package com.aylanetworks.agilelink.framework;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -15,7 +15,7 @@ import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 
 import java.lang.ref.WeakReference;
@@ -82,6 +82,30 @@ public class DeviceManager implements DeviceStatusListener {
     /** The one and only device that is currently LAN-mode enabled. */
     private Device _lanModeEnabledDevice;
 
+    /** Public Helper Methods */
+
+    static public boolean isDsnInAylaDeviceNodeList(String dsn, List<AylaDeviceNode> devices) {
+        if (devices == null || devices.size() == 0)
+            return false;
+        for (AylaDeviceNode adn : devices) {
+            if (TextUtils.equals(dsn, adn.dsn)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static public boolean isDsnInDeviceList(String dsn, List<Device> devices) {
+        if (devices == null || devices.size() == 0)
+            return false;
+        for (Device d : devices) {
+            if (TextUtils.equals(dsn, d.getDevice().dsn)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Public Methods */
 
     /** Constructor */
@@ -106,6 +130,114 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Returns the gateway device, or null if one is not found
+     * @return The gateway device, or null if one is not found
+     */
+    public Gateway getGatewayDevice() {
+        if ((_deviceList != null) && (_deviceList.size() > 0)) {
+            for (Device gateway : _deviceList) {
+                if (gateway.isGateway()) {
+                    return (Gateway) gateway;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns a list of available gateway devices.
+     * @return List of gateway devices.
+     */
+    public List<Gateway> getGatewayDevices() {
+        List<Gateway> list = new ArrayList<Gateway>();
+        if ((_deviceList != null) && (_deviceList.size() > 0)) {
+            for (Device gateway : _deviceList) {
+                if (gateway.isGateway()) {
+                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                    list.add((Gateway) gateway);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Returns a list of available devices of the specified class
+     *
+     * @param classes Array of class to match against
+     * @return List of matching devices
+     */
+    public List<Device> getDevicesOfClass(Class[] classes) {
+        if ((_deviceList==null) || (classes==null) || (classes.length==0)) {
+            return null;
+        }
+
+        List<Device> devices = new ArrayList<>(_deviceList);
+        List<Device> list = new ArrayList<Device>();
+        for (Device device : devices) {
+            for (Class clazz : classes) {
+                if (clazz.isInstance(device)) {
+                    list.add(device);
+                    break;
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * The GetDeviceComparable interface is used by the getDevicesOfComparableType method
+     * to return a list of devices of a certain type.
+     */
+    public interface GetDeviceComparable {
+
+        /**
+         * Interface method used to determine if a device is of a certain type.
+         * @param another Device to examine.
+         * @return true if the device is of the correct type. false if it is not.
+         */
+        public boolean isDeviceComparableType(Device another);
+    }
+
+    /**
+     * Returns a list of available devices of the specified type, as determined by
+     * the GetDeviceComparable interface.
+     *
+     * @param comparable GetDeviceComparable used to compare.
+     * @return List of matching devices
+     */
+    public List<Device> getDevicesOfComparableType(GetDeviceComparable comparable) {
+        if ((_deviceList==null) || (comparable==null)) {
+            return null;
+        }
+
+        List<Device> devices = new ArrayList<>(_deviceList);
+        List<Device> list = new ArrayList<Device>();
+        for (Device device : devices) {
+            if (comparable.isDeviceComparableType(device)) {
+                list.add(device);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Returns the device with the given DSN, or null if not found
+     * @param dsn the DSN of the device to find
+     * @return The found device, or null if not found
+     */
+    public Device deviceByDSN(String dsn) {
+        if (_deviceList != null) {
+            for (Device d : _deviceList) {
+                if (d.getDevice().dsn.compareTo(dsn) == 0) {
+                    return d;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Remove the device from the device list and any groups it may belong in.
      *
      * @param device Device to remove.
@@ -119,25 +251,12 @@ public class DeviceManager implements DeviceStatusListener {
             if (device.isDeviceNode()) {
                 Gateway gateway = Gateway.getGatewayForDeviceNode(device);
                 gateway.removeDeviceNode(device);
+                device.preUnregistrationForGatewayDevice(gateway);
             }
 
             // remove from the property list so that we don't try to get properties for it.
             _deviceList.remove(device);
         }
-    }
-
-    /**
-     * Returns the device with the given DSN, or null if not found
-     * @param dsn the DSN of the device to find
-     * @return The found device, or null if not found
-     */
-    public Device deviceByDSN(String dsn) {
-        for ( Device d : _deviceList ) {
-            if ( d.getDevice().dsn.compareTo(dsn) == 0 ) {
-                return d;
-            }
-        }
-        return null;
     }
 
     /**
@@ -243,6 +362,9 @@ public class DeviceManager implements DeviceStatusListener {
         _pollingStopped = true;
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
         _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
+        if ((_devicesToPoll != null) && (_devicesToPoll.size() > 0)) {
+            _devicesToPoll.clear();
+        }
     }
 
     public void enterLANMode(LANModeListener listener) {
@@ -292,7 +414,7 @@ public class DeviceManager implements DeviceStatusListener {
      */
     public void setLastLanModeDevice(Device device) {
         // Save the last LAN mode device in user settings so we can re-enable it next time
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         if ( device != null ) {
             prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
         } else {
@@ -306,7 +428,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @return true if this device was the last LAN-mode enabled device, otherwise false
      */
     public boolean isLastLanModeDevice(Device device) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+        SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
         return lastDSN != null && device.getDevice().dsn != null && device.getDevice().dsn.equals(lastDSN);
     }
@@ -409,38 +531,6 @@ public class DeviceManager implements DeviceStatusListener {
 
     public boolean isShuttingDown() {
         return _shuttingDown;
-    }
-
-    /**
-     * Returns the gateway device, or null if one is not found
-     * @return The gateway device, or null if one is not found
-     */
-    public Gateway getGatewayDevice() {
-        if ((_deviceList != null) && (_deviceList.size() > 0)) {
-            for (Device gateway : _deviceList) {
-                if (gateway.isGateway()) {
-                    return (Gateway) gateway;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns a list of available gateway devices.
-     * @return List of gateway devices.
-     */
-    public List<Gateway> getGatewayDevices() {
-        List<Gateway> list = new ArrayList<Gateway>();
-        if ((_deviceList != null) && (_deviceList.size() > 0)) {
-            for (Device gateway : _deviceList) {
-                if (gateway.isGateway()) {
-                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
-                    list.add((Gateway) gateway);
-                }
-            }
-        }
-        return list;
     }
 
     // Poll interval methods

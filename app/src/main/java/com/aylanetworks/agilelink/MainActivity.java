@@ -10,18 +10,17 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.internal.view.menu.MenuBuilder;
 import android.text.TextUtils;
@@ -45,6 +44,7 @@ import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
@@ -58,7 +58,7 @@ import com.google.gson.annotations.Expose;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener {
+public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener {
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -356,13 +356,16 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // We want to know when the user logs in or out
         SessionManager.addSessionListener(this);
+
+        // We want to know about application state changes
+        ((AgileLinkApplication)getApplication()).addListener(this);
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
         _theInstance = null;
         SessionManager.removeSessionListener(this);
+        ((AgileLinkApplication)getApplication()).removeListener(this);
         super.onDestroy();
     }
 
@@ -588,7 +591,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         _loginScreenUp = true;
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
         final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
@@ -647,6 +650,12 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         } else if ( !_loginScreenUp ) {
             showLoginDialog();
         }
+    }
+
+    @Override
+    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
+        Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
+        SessionManager.getInstance().setForeground((state == AgileLinkApplication.LifeCycleState.Foreground));
     }
 
     // SessionListener methods

@@ -21,6 +21,13 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="remote">Remote</string>
+    <string name="remote_paired_devices">Paired Devices</string>
+    <string name="remote_paired_remote">Paired Remote</string>
+    <string name="remote_add">Pair</string>
+    <string name="remote_remove">Unpair</string>
+    <string name="trigger">Trigger</string>
+    <string name="identify">Identify</string>
     <string name="device_properties">Properties</string>
     <string name="up"><u>Sign Up</u></string>
     <string name="forgot"><u>Forgot Password</u></string>
@@ -357,6 +364,7 @@
     <string name="registering_device_title">Registering Device</string>
     <string name="registering_device_body">Registering the new device with your account. Please wait...</string>
     <string name="choose_new_device">Tap the device you would like to set up, or cancel</string>
+    <string name="choose_new_devices">Check the device(s) you would like to set up, or cancel</string>
     <string name="exiting_setup_title">Exiting Setup</string>
     <string name="exiting_setup_body">Exiting setup. Please wait...</string>
     <string name="device_connection_failed_reconnecting">Device failed to connect with the service. Attempting to connect to the device...</string>
@@ -408,4 +416,30 @@
     <string name="online">Online</string>
     <string name="offline">Offline</string>
 
+    <string name="remote_pair_to_device">Select remote to pair</string>
+    <string name="remote_pair_to_devices">Select devices to pair</string>
+    <string name="remote_pair_title">Pair Remote</string>
+    <string name="remote_pair_single_body">Pairing device to remote</string>
+    <string name="remote_pair_multiple_body">Pairing devices to remote</string>
+    <string name="remote_pair_body">Are you sure you want to pair to remote?</string>
+    <string name="remote_pair_toast">Pair Complete</string>
+
+    <string name="remote_unpair_from_device">Select remote to unpair</string>
+    <string name="remote_unpair_from_devices">Select devices to unpair</string>
+    <string name="remote_unpair_title">Unpair Remote</string>
+    <string name="remote_unpair_single_body">Unpairing device from remote</string>
+    <string name="remote_unpair_multiple_body">Unpairing devices from remote</string>
+    <string name="remote_unpair_body">Are you sure you want to unpair from remote?</string>
+    <string name="remote_unpair_toast">Unpair Complete</string>
+
+    <string name="help">Help</string>
+    <string name="about_amap">About AMAP</string>
+    <string name="get_started">Getting Started</string>
+    <string name="guides_videos">Guides &amp; Videos</string>
+    <string name="terms_and_condition">Terms &amp; Conditions</string>
+    <!--  Links for help page option -->
+    <string name="about_amap_link">https://www.aylanetworks.com/company/ayla</string>
+    <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
+    <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
+    <string name="terms_and_condition_link">http://www.kidde.com/home-safety/en/us/privacy/terms-and-conditions/</string>
 </resources>

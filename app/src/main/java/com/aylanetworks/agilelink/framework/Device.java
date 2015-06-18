@@ -26,6 +26,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
+import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 
 import java.lang.ref.WeakReference;
@@ -129,6 +130,15 @@ public class Device implements Comparable<Device> {
      */
     public AylaDevice getDevice() {
         return _device;
+    }
+
+    /**
+     * Handy method for obtaining the device DSN
+     *
+     * @return String DSN
+     */
+    public String getDeviceDsn() {
+        return _device.dsn;
     }
 
     /**
@@ -299,12 +309,6 @@ public class Device implements Comparable<Device> {
         getDevice().factoryReset(new ResetHandler(_resetTag), null);
     }
 
-    /**
-     * Override to provide additional actions that must be performed when unregistering a device.
-     * Always invoke the super
-     *
-     * @param handler
-     */
     public void unregisterDevice(Handler handler) {
 
         Logger.logInfo(LOG_TAG, "fr: unregisterDevice start");
@@ -1053,6 +1057,14 @@ public class Device implements Comparable<Device> {
         return PropertyNotificationFragment.newInstance(this);
     }
 
+    /**
+     * Returns a fragment used to set up remote switch pairing for this device.
+     * @return a Fragment used to configure remote switch pairing for this device.
+     */
+    public Fragment getRemoteFragment() {
+        return RemoteFragment.newInstance(this);
+    }
+
     @Override
     public String toString() {
         return getDevice().getProductName();
@@ -1089,7 +1101,7 @@ public class Device implements Comparable<Device> {
      * Override to provide additional initialization that must be completed after registering
      * the device. notifyDeviceStatusChanged is called when complete.
      *
-     * @param gateway The gateway that the device node is linked to.
+     * @param gateway The Gateway that the device node is linked to.
      */
     public void postRegistrationForGatewayDevice(Gateway gateway) { }
 
@@ -1100,6 +1112,14 @@ public class Device implements Comparable<Device> {
      * @return String resource id.
      */
     public int hasPostRegistrationProcessingResourceId() { return 0; }
+
+    /**
+     * Override to provide addition removal that must be completed before unregistering
+     * or factory resetting the device.
+     *
+     * @param gateway The Gateway that the device node is linked to.
+     */
+    public void preUnregistrationForGatewayDevice(Gateway gateway) { }
 
     /**
      * Returns a string representing the state of the device (on, off, open, closed, etc.)

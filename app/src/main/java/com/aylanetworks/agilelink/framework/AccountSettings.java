@@ -3,14 +3,13 @@ package com.aylanetworks.agilelink.framework;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDatum;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -142,7 +141,7 @@ public class AccountSettings {
     public void addNotificationMethod(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
             // We write this into shared preferences, as this setting is on a per-device basis
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+            SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
             SharedPreferences.Editor editor = settings.edit();
             editor.putBoolean(SETTINGS_KEY_PUSH, true);
             editor.apply();
@@ -162,7 +161,7 @@ public class AccountSettings {
     public void removeNotificationMethod(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH)) {
             // We write this into shared preferences, as this setting is on a per-device basis
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+            SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
             SharedPreferences.Editor editor = settings.edit();
             editor.putBoolean(SETTINGS_KEY_PUSH, false);
             editor.apply();
@@ -178,7 +177,7 @@ public class AccountSettings {
     public boolean isNotificationMethodSet(String notificationMethod) {
         if ( notificationMethod.equals(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH) ) {
             // Push is stored in local settings
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
+            SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
             return settings.getBoolean(SETTINGS_KEY_PUSH, false);
         }
 

@@ -36,8 +36,10 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -60,7 +62,8 @@ import java.util.TimeZone;
  * Created by Brian King on 1/15/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
-public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener {
+
+public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener, Gateway.AylaGatewayCompletionHandler {
     public final static String LOG_TAG = "DeviceDetailFragment";
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
@@ -72,6 +75,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private ImageView _imageView;
     private Button _scheduleButton;
     private Button _notificationsButton;
+    private Switch _identifySwitch;
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -97,6 +101,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onDestroy() {
         super.onDestroy();
+        ensureIdentifyOff();
         SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
     }
 
@@ -131,6 +136,52 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             });
         }
 
+        Button remoteButton = (Button)view.findViewById(R.id.remote_button);
+        remoteButton.setOnClickListener(this);
+
+        _identifySwitch = (Switch)view.findViewById(R.id.identify_button);
+        _identifySwitch.setOnClickListener(this);
+
+        Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
+        triggerButton.setOnClickListener(this);
+        triggerButton.setVisibility(View.GONE);
+
+        if (_device.isDeviceNode()) {
+            _identifySwitch.setVisibility(View.VISIBLE);
+
+            Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+            if (_device instanceof RemoteSwitchDevice) {
+                Logger.logDebug(LOG_TAG, "rm: we are a remote.");
+            } else {
+                List<Device> remotes = gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+                if ((remotes != null) && (remotes.size() > 0)) {
+                    Logger.logInfo(LOG_TAG, "rm: we have %d remotes.", remotes.size());
+                    boolean pairable = false;
+                    // Right now we have only one type of remote switch, but at some point there could be
+                    // multiple types of remotes
+                    for (Device device : remotes) {
+                        RemoteSwitchDevice remote = (RemoteSwitchDevice) device;
+                        if (remote.isPairableDevice(_device)) {
+                            Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
+                                    _device.getDevice().dsn, _device.getClass().getSimpleName(),
+                                    device.getDevice().dsn, device.getClass().getSimpleName());
+                            pairable = true;
+                        }
+                    }
+                    if (!pairable) {
+                        remoteButton.setVisibility(View.GONE);
+                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with any of the available remotes.");
+                    }
+                } else {
+                    remoteButton.setVisibility(View.GONE);
+                    Logger.logInfo(LOG_TAG, "rm: we don't have any remotes.");
+                }
+            }
+        } else {
+            remoteButton.setVisibility(View.GONE);
+            _identifySwitch.setVisibility(View.GONE);
+        }
+
         updateUI();
 
         return view;
@@ -145,6 +196,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         editText.requestFocus();
 
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.rename_device_text)
                 .setView(editText)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -352,6 +404,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _device.getDevice().dsn);
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.unregister_confirm_title))
                 .setMessage(res.getString(R.string.unregister_failure_timeout))
                 .setPositiveButton(R.string.unregister_try_again, new DialogInterface.OnClickListener() {
@@ -366,7 +419,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -377,6 +429,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         // Confirm first!
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.unregister_confirm_title))
                 .setMessage(res.getString(R.string.unregister_confirm_body))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -391,7 +444,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -432,6 +484,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _device.getDevice().dsn);
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.factory_reset_confirm_title))
                 .setMessage(res.getString(R.string.factory_reset_failure_timeout))
                 .setPositiveButton(R.string.factory_reset_try_again, new DialogInterface.OnClickListener() {
@@ -446,7 +499,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -456,6 +508,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _device.getDevice().dsn);
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.factory_reset_confirm_title))
                 .setMessage(res.getString(R.string.factory_reset_confirm_body))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -470,7 +523,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -481,6 +533,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Resources res = getActivity().getResources();
 
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(res.getString(R.string.confirm_remove_share_title))
                 .setMessage(res.getString(R.string.confirm_remove_shared_device_message_short))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -495,7 +548,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .setIcon(R.drawable.ic_launcher)
                 .show();
     }
 
@@ -506,6 +558,38 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private void scheduleClicked() {
         Fragment frag = _device.getScheduleFragment();
         MainActivity.getInstance().pushFragment(frag);
+    }
+
+    private void remoteClicked() {
+        // we could do a fragment... or what?
+        Fragment frag = _device.getRemoteFragment();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+        Switch control = (Switch)tag;
+        control.setEnabled(true);
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _device.getDevice().dsn, (control.isChecked() ? "ON" : "OFF"));
+    }
+
+    private void identifyClicked(View v) {
+        Switch control = (Switch)v;
+        control.setEnabled(false);
+        Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _device.getDevice().dsn, (control.isChecked() ? "ON" : "OFF"));
+        gateway.identifyDeviceNode(_device, control.isChecked(), 255, v, this);
+    }
+
+    private void ensureIdentifyOff() {
+        if ((_device != null) && _device.isDeviceNode()) {
+            Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+            // we don't care about the results
+            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _device.getDevice().dsn);
+            gateway.identifyDeviceNode(_device, false, 0, null, null);
+        }
+    }
+
+    private void triggerClicked() {
     }
 
     private void sharingClicked() {
@@ -538,7 +622,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             @Override
             public void statusUpdated(Device device, boolean changed) {
                 MainActivity.getInstance().dismissWaitDialog();
-                if ( changed ) {
+                if (changed) {
                     chooseTimezone();
                 } else {
                     Toast.makeText(MainActivity.getInstance(),
@@ -570,8 +654,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             }
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.choose_timezone)
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(R.string.choose_timezone)
                 .setSingleChoiceItems(timezones, checkedItem, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -605,6 +690,18 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.schedule_button:
                 scheduleClicked();
+                break;
+
+            case R.id.remote_button:
+                remoteClicked();
+                break;
+
+            case R.id.identify_button:
+                identifyClicked(v);
+                break;
+
+            case R.id.trigger_button:
+                triggerClicked();
                 break;
 
             case R.id.sharing_button:

@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -30,6 +31,7 @@ import android.widget.Toast;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -37,6 +39,7 @@ import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
@@ -109,32 +112,19 @@ public class AddDeviceFragment extends Fragment
         Logger.logVerbose(LOG_TAG, "onResume");
         super.onResume();
 
-        /*
-        if (_nodeRegistrationGateway != null) {
-            // not sure this is the right thing to do...
-            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_nodeRegistrationGateway));
-        }
-        AylaLanMode.pause(true);
-        */
-
+        // Stop polling & LAN mode
+        SessionManager.getInstance().setForeground(false);
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().stopPolling();
         }
-
-        /*
-        // TODO: The following two hacks are there so that I can get consistent behavior.  Need to
-        // TODO: the real problems here...
-
-        // TODO: quick hack... remove this
-        // TODO: Nothing I do seems to disable LAN mode, except for this.
-        AylaLanMode.device = null;
+        // Can't do the AylaLanMode.pause as we NEVER find anything...
+        //AylaLanMode.pause(false);
 
         // TODO: quick hack... remove this
         // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
         // TODO: immediately go to the network to get the current value.
         StrictMode.ThreadPolicy tp = StrictMode.ThreadPolicy.LAX;
         StrictMode.setThreadPolicy(tp);
-        */
     }
 
     @Override
@@ -149,15 +139,16 @@ public class AddDeviceFragment extends Fragment
             _nodeRegistrationGateway.cleanupRegistrationScan();
         }
 
-        SessionManager.sessionParameters().enableLANMode = _enableLANMode;
+        // make sure we are still in the foreground
+        if (AgileLinkApplication.getLifeCycleState() == AgileLinkApplication.LifeCycleState.Foreground) {
 
-        if ( SessionManager.deviceManager() != null ) {
-            SessionManager.deviceManager().startPolling();
+            // Restart polling & LAN mode
+            if ( SessionManager.deviceManager() != null ) {
+                SessionManager.deviceManager().startPolling();
+            }
+            SessionManager.getInstance().setForeground(true);
+            //AylaLanMode.resume();
         }
-
-        /*
-        AylaLanMode.resume();
-        */
     }
 
     @Override
@@ -243,7 +234,7 @@ public class AddDeviceFragment extends Fragment
 
     ArrayAdapter<Device> createGatewayAdapter() {
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]));
+        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]), true);
     }
 
     ArrayAdapter<Device> createProductTypeAdapter() {
@@ -414,16 +405,17 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void showMessage(int resourceId){
-        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-        alertDialog.setTitle(getString(R.string.attention));
-        alertDialog.setMessage(getString(resourceId));
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(getString(R.string.attention))
+                .setMessage(getString(resourceId))
+                .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                });
-        alertDialog.show();
+                })
+                .create()
+                .show();
     }
 
     public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
@@ -478,8 +470,15 @@ public class AddDeviceFragment extends Fragment
             selected.add(adn);
         }
 
+        /* Quicky test to see if Identify will work on the AylaDeviceNode candidate...
+        if (list != null && list.size() > 0) {
+            _nodeRegistrationGateway.identifyAylaDeviceNode(list.get(0), true, 255, this, null);
+        }
+        */
+
         if (_useSingleSelect) {
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
@@ -497,7 +496,8 @@ public class AddDeviceFragment extends Fragment
                     .create().show();
         } else {
             new AlertDialog.Builder(getActivity())
-                    .setTitle(R.string.choose_new_device)
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.choose_new_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
@@ -660,6 +660,7 @@ public class AddDeviceFragment extends Fragment
             }
 
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
@@ -669,7 +670,8 @@ public class AddDeviceFragment extends Fragment
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
-                    .create().show();
+                    .create()
+                    .show();
         }
     }
 

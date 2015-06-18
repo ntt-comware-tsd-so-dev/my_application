@@ -11,6 +11,8 @@ import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.aaml.zigbee.AylaNetworksZigbee;
+import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
+import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ import java.util.Set;
 public class ZigbeeGroupManager {
 
     private final static String LOG_TAG = "ZigbeeGroupManager";
-    private boolean _isDirty;
 
     private Gateway _gateway;
     private Set<ZigbeeGroupManagerListener> _listeners;
@@ -49,6 +50,8 @@ public class ZigbeeGroupManager {
         void zigbeeGroupMembersChanged(Gateway gateway, AylaGroupZigbee group);
 
         void zigbeeCreateGroupCompleted(Gateway gateway, String name, Message msg, AylaGroupZigbee group);
+
+        void zigbeeUpdateGroupCompleted(Gateway gateway, String name, Message msg, AylaGroupZigbee group);
 
         void zigbeeDeleteGroupCompleted(Gateway gateway, String name, Message msg);
     }
@@ -76,7 +79,6 @@ public class ZigbeeGroupManager {
 
     /**
      * Useful utility method for logging the current devices in AylaGroupZigbee object.
-     *
      * @param group AylaGroupZigbee
      * @return A string containing the DSN's of the devices in the group.
      */
@@ -103,11 +105,12 @@ public class ZigbeeGroupManager {
     }
 
     /**
-     * Get a list of the AylaDeviceNode devices that are in a AylaGroupZigbee group.
+     * Get a list of the AylaDeviceNode devices that are in a AylaGroupZigbee group. This method
+     * is used to build the group.nodes array of an AylaGroupZigbee instance.
      * @param group AylaGroupZigbee
      * @return List of AylaDeviceNode devices in the group.
      */
-    public List<AylaDeviceNode> getDevices(AylaGroupZigbee group) {
+    static public List<AylaDeviceNode> getDeviceNodes(AylaGroupZigbee group) {
         List<AylaDeviceNode> list = new ArrayList<AylaDeviceNode>();
         if (group != null) {
             // always try the String array first
@@ -129,6 +132,9 @@ public class ZigbeeGroupManager {
                         Logger.logWarning(LOG_TAG, "zg: getDevices [%s] dn NULL", group.groupName);
                         continue;
                     }
+                    if (TextUtils.equals(dn.action, "delete")) {
+                        continue;
+                    }
                     Device d = SessionManager.deviceManager().deviceByDSN(dn.dsn);
                     if (d == null) {
                         Logger.logWarning(LOG_TAG, "zg: getDevices [%s] getDeviceByDSN [%s] NULL", group.groupName, dn.dsn);
@@ -144,6 +150,81 @@ public class ZigbeeGroupManager {
             Logger.logWarning(LOG_TAG, "zg: getDevices no group");
         }
         return list;
+    }
+
+    /**
+     * Get a list of the Device devices that are in a AylaGroupZigbee group.
+     * @param group AylaGroupZigbee
+     * @return List of Device devices in the group.
+     */
+    static public List<Device> getDevices(AylaGroupZigbee group) {
+        List<Device> list = new ArrayList<Device>();
+        if (group != null) {
+            // always try the String array first
+            if (group.nodeDsns != null) {
+                Logger.logDebug(LOG_TAG, "zg: getDevices [%s] nodeDsns", group.groupName);
+                for (String nodeDsn : group.nodeDsns) {
+                    Device d = SessionManager.deviceManager().deviceByDSN(nodeDsn);
+                    if (d == null) {
+                        Logger.logWarning(LOG_TAG, "zg: getDevices [%s] getDeviceByDSN [%s] NULL", group.groupName, nodeDsn);
+                        continue;
+                    }
+                    Logger.logDebug(LOG_TAG, "zg: getDevices [%s] [%s]", group.groupName, nodeDsn);
+                    list.add(d);
+                }
+            } else if (group.nodes != null) {
+                Logger.logDebug(LOG_TAG, "zg: getDevices [%s] nodes", group.groupName);
+                for (AylaDeviceZigbeeNode dn : group.nodes) {
+                    if (dn == null) {
+                        Logger.logWarning(LOG_TAG, "zg: getDevices [%s] dn NULL", group.groupName);
+                        continue;
+                    }
+                    if (TextUtils.equals(dn.action, "delete")) {
+                        continue;
+                    }
+                    Device d = SessionManager.deviceManager().deviceByDSN(dn.dsn);
+                    if (d == null) {
+                        Logger.logWarning(LOG_TAG, "zg: getDevices [%s] getDeviceByDSN [%s] NULL", group.groupName, dn.dsn);
+                        continue;
+                    }
+                    Logger.logDebug(LOG_TAG, "zg: getDevices [%s] [%s]", group.groupName, dn.dsn);
+                    list.add(d);
+                }
+            } else {
+                Logger.logWarning(LOG_TAG, "zg: getDevices [%s] no nodes", group.groupName);
+            }
+        } else {
+            Logger.logWarning(LOG_TAG, "zg: getDevices no group");
+        }
+        return list;
+    }
+
+    /**
+     * Determine if a Device is in a AylaGroupZigbee.
+     * @param device Device to search for.
+     * @param group AylaGroupZigbee to search in
+     * @return Return true if the device is in the group, false if it isn't.
+     */
+    static public boolean isDeviceInGroup(Device device, AylaGroupZigbee group) {
+        String dsn = device.getDevice().dsn;
+        // always try the String array first
+        if (group.nodeDsns != null) {
+            for (String nodeDsn : group.nodeDsns) {
+                if (TextUtils.equals(dsn, nodeDsn)) {
+                    return true;
+                }
+            }
+        } else if (group.nodes != null) {
+            for (AylaDeviceZigbeeNode dn : group.nodes) {
+                if (dn == null) {
+                    continue;
+                }
+                if (TextUtils.equals(dsn, dn.dsn)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void fetchZigbeeGroupsIfNeeded() {
@@ -195,6 +276,7 @@ public class ZigbeeGroupManager {
     public void createGroup(String name, List<Device>deviceList, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         AylaGroupZigbee group = new AylaGroupZigbee();
         group.groupName = name;
+        group.gatewayDsn = _gateway.getDeviceDsn();
         if ((deviceList != null) && (deviceList.size() > 0)) {
             group.nodeDsns = new String[deviceList.size()];
             for (int i = 0; i < deviceList.size(); i++) {
@@ -204,6 +286,18 @@ public class ZigbeeGroupManager {
         Map<String, Object> callParams = new HashMap<String, Object>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.createGroup(new CreateHandler(this, name, tag, handler), group, callParams, false);
+    }
+
+    public void createGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+        Map<String, Object> callParams = new HashMap<String, Object>();
+        AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
+        gateway.createGroup(new CreateHandler(this, group.groupName, tag, handler), group, callParams, false);
+    }
+
+    public void updateGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+        Map<String, Object> callParams = new HashMap<String, Object>();
+        AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
+        gateway.updateGroup(new UpdateHandler(this, group, tag, handler), group, callParams, false);
     }
 
     public void deleteGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
@@ -237,10 +331,16 @@ public class ZigbeeGroupManager {
 
                         // verify that it is an active group that we want to add
                         boolean add = true;
-                        if (group.groupName.startsWith("sensor-")) {
+                        String prefix = null;
+                        if (group.groupName.startsWith(ZigbeeTriggerDevice.GROUP_PREFIX_TRIGGER)) {
+                            prefix = ZigbeeTriggerDevice.GROUP_PREFIX_TRIGGER;
+                        } else if (group.groupName.startsWith(ZigbeeWirelessSwitch.GROUP_PREFIX_REMOTE)) {
+                            prefix = ZigbeeWirelessSwitch.GROUP_PREFIX_REMOTE;
+                        }
+                        if (prefix != null) {
                             add = false;
                             for (Device device : devices) {
-                                String key = "sensor-" + device.getDevice().dsn;
+                                String key = prefix + device.getDevice().dsn;
                                 if (group.groupName.startsWith(key)) {
                                     add = true;
                                     break;
@@ -293,7 +393,47 @@ public class ZigbeeGroupManager {
                 _manager.get().notifyCreateCompleted(_name, msg, null);
             }
             if (_handler != null) {
-                _handler.handle(_manager.get()._gateway, msg, _tag);
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
+            }
+        }
+    }
+
+    static class UpdateHandler extends Handler {
+        private WeakReference<ZigbeeGroupManager> _manager;
+        private Object _tag;
+        private Gateway.AylaGatewayCompletionHandler _handler;
+        private AylaGroupZigbee _group;
+        String _name;
+
+        UpdateHandler(ZigbeeGroupManager manager, AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+            _manager = new WeakReference<ZigbeeGroupManager>(manager);
+            _group = group;
+            _name = group.groupName;
+            _tag = tag;
+            _handler = handler;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "zg: updateGroup [%s]", _name);
+            if (_manager.get() == null) {
+                Logger.logWarning(LOG_TAG, "zg: ZigbeeGroupManager went away.");
+            }
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                if (msg.arg1 == 206) {
+                    // has failing nodes...
+                    Logger.logWarning(LOG_TAG, "zg: updateGroup [%s] has failing nodes", _name);
+                    _manager.get().notifyCreateCompleted(_name, msg, null);
+                } else {
+                    AylaGroupZigbee group = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaGroupZigbee.class);
+                    _manager.get().updateGroup(group);
+                    _manager.get().notifyUpdateCompleted(_name, msg, group);
+                }
+            } else {
+                _manager.get().notifyUpdateCompleted(_name, msg, null);
+            }
+            if (_handler != null) {
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
             }
         }
     }
@@ -335,7 +475,7 @@ public class ZigbeeGroupManager {
                 _manager.get().notifyDeleteCompleted(_name, msg);
             }
             if (_handler != null) {
-                _handler.handle(_manager.get()._gateway, msg, _tag);
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
             }
         }
     }
@@ -352,6 +492,17 @@ public class ZigbeeGroupManager {
         for (AylaGroupZigbee g : _groups) {
             if (g.groupName.equals(group.groupName)) {
                 return;
+            }
+        }
+        _groups.add(group);
+        notifyListChanged();
+    }
+
+    private void updateGroup(AylaGroupZigbee group) {
+        for (AylaGroupZigbee g : _groups) {
+            if (g.groupName.equals(group.groupName)) {
+                _groups.remove(g);
+                break;
             }
         }
         _groups.add(group);
@@ -384,6 +535,12 @@ public class ZigbeeGroupManager {
     protected void notifyCreateCompleted(String name, Message msg, AylaGroupZigbee group) {
         for ( ZigbeeGroupManagerListener l : _listeners ) {
             l.zigbeeCreateGroupCompleted(_gateway, name, msg, group);
+        }
+    }
+
+    protected void notifyUpdateCompleted(String name, Message msg, AylaGroupZigbee group) {
+        for ( ZigbeeGroupManagerListener l : _listeners ) {
+            l.zigbeeUpdateGroupCompleted(_gateway, name, msg, group);
         }
     }
 
