@@ -376,13 +376,13 @@ public class ZigbeeTriggerDevice extends Device  {
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
 
-        // create 4 bindings & 4 groups
-        Logger.logInfo(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
-        _gateway = gateway;
-
         // make sure we have the latest info
         gateway.getGroupManager().fetchZigbeeGroups();
         gateway.getBindingManager().fetchZigbeeBindings();
+
+        // create 4 bindings & 4 groups
+        Logger.logInfo(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
+        _gateway = gateway;
 
         synchronized (_currentDequeSetLock) {
             // it would be null, since we are just starting
@@ -399,12 +399,13 @@ public class ZigbeeTriggerDevice extends Device  {
 
     @Override
     public void preUnregistrationForGatewayDevice(Gateway gateway) {
-        // remove 4 bindings & 4 groups
-        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
 
         // make sure we have the latest info
         gateway.getGroupManager().fetchZigbeeGroups();
         gateway.getBindingManager().fetchZigbeeBindings();
+
+        // remove 4 bindings & 4 groups
+        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
 
         synchronized (_currentDequeSetLock) {
             if (_currentDequeSet != null) {
