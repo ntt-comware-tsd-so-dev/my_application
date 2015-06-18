@@ -423,7 +423,7 @@ public class ZigbeeGroupManager {
                 if (msg.arg1 == 206) {
                     // has failing nodes...
                     Logger.logWarning(LOG_TAG, "zg: updateGroup [%s] has failing nodes", _name);
-                    _manager.get().notifyCreateCompleted(_name, msg, null);
+                    _manager.get().notifyUpdateCompleted(_name, msg, null);
                 } else {
                     AylaGroupZigbee group = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaGroupZigbee.class);
                     _manager.get().updateGroup(group);

@@ -52,6 +52,8 @@ public class ZigbeeSceneManager {
 
         void zigbeeUpdateSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
 
+        void zigbeeRecallSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
+
         void zigbeeDeleteSceneCompleted(Gateway gateway, String name, Message msg);
     }
 
@@ -241,7 +243,7 @@ public class ZigbeeSceneManager {
         callParams.put(AylaNetworksZigbee.kAylaZigbeeNodeParamDetail, "true");          // default is "false"
         callParams.put(AylaNetworksZigbee.kAylaZigbeeNodeParamStatusFilter, "active");  // default is "active"
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
-        gateway.getGroups(new GetScenesHandler(this), callParams, false);
+        gateway.getScenes(new GetScenesHandler(this), callParams, false);
     }
 
     public List<AylaSceneZigbee> getScenes() {
@@ -303,6 +305,12 @@ public class ZigbeeSceneManager {
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.updateScene(new UpdateHandler(this, scene, tag, handler), scene, callParams, false);
+    }
+
+    public void recallScene(AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+        Map<String, Object> callParams = new HashMap<>();
+        AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
+        gateway.recallScene(new RecallHandler(this, scene, tag, handler), scene, callParams, false);
     }
 
     public void deleteScene(AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
@@ -405,7 +413,7 @@ public class ZigbeeSceneManager {
                 if (msg.arg1 == 206) {
                     // has failing nodes...
                     Logger.logWarning(LOG_TAG, "zs: updateScene [%s] has failing nodes", _name);
-                    _manager.get().notifyCreateCompleted(_name, msg, null);
+                    _manager.get().notifyUpdateCompleted(_name, msg, null);
                 } else {
                     AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
                     _manager.get().updateScene(scene);
@@ -413,6 +421,48 @@ public class ZigbeeSceneManager {
                 }
             } else {
                 _manager.get().notifyUpdateCompleted(_name, msg, null);
+            }
+            if (_handler != null) {
+                _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
+            }
+        }
+    }
+
+    static class RecallHandler extends Handler {
+        private WeakReference<ZigbeeSceneManager> _manager;
+        private Object _tag;
+        private Gateway.AylaGatewayCompletionHandler _handler;
+        private AylaSceneZigbee _scene;
+        String _name;
+
+        RecallHandler(ZigbeeSceneManager manager, AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+            _manager = new WeakReference<>(manager);
+            _scene = scene;
+            _name = scene.sceneName;
+            _tag = tag;
+            _handler = handler;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "zs: recallScene [%s]", _name);
+            if (_manager.get() == null) {
+                Logger.logWarning(LOG_TAG, "zs: ZigbeeSceneManager went away.");
+            }
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                if (msg.arg1 == 206) {
+                    // has failing nodes...
+                    Logger.logWarning(LOG_TAG, "zs: recallScene [%s] has failing nodes", _name);
+                    _manager.get().notifyRecallCompleted(_name, msg, null);
+                } else {
+                    AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
+                    // TODO: do we need to update the scene?
+                    _manager.get().updateScene(scene);
+
+                    _manager.get().notifyRecallCompleted(_name, msg, scene);
+                }
+            } else {
+                _manager.get().notifyRecallCompleted(_name, msg, null);
             }
             if (_handler != null) {
                 _handler.gatewayCompletion(_manager.get()._gateway, msg, _tag);
@@ -526,9 +576,16 @@ public class ZigbeeSceneManager {
         }
     }
 
+    protected void notifyRecallCompleted(String name, Message msg, AylaSceneZigbee scene) {
+        for ( ZigbeeSceneManagerListener l : _listeners ) {
+            l.zigbeeRecallSceneCompleted(_gateway, name, msg, scene);
+        }
+    }
+
     protected void notifyDeleteCompleted(String name, Message msg) {
         for ( ZigbeeSceneManagerListener l : _listeners ) {
             l.zigbeeDeleteSceneCompleted(_gateway, name, msg);
         }
     }
+
 }
