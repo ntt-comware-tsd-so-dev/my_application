@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +24,8 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -42,19 +43,28 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
 
     public final static String LOG_TAG = "TriggerFragment";
 
+    private final static int FRAGMENT_RESOURCE_ID = R.layout.fragment_trigger_manage;
+
     private static final String ARG_DSN = "dsn";
 
     Gateway _gateway;
     ZigbeeTriggerDevice _device;
 
-    AylaGroupZigbee _openTurnOn;
-    AylaGroupZigbee _openTurnOff;
-    AylaGroupZigbee _closeTurnOn;
-    AylaGroupZigbee _closeTurnOff;
+    AylaGroupZigbee _openTurnOnGroup;
+    AylaBindingZigbee _openTurnOnBinding;
+    AylaGroupZigbee _openTurnOffGroup;
+    AylaBindingZigbee _openTurnOffBinding;
+    AylaGroupZigbee _closeTurnOnGroup;
+    AylaBindingZigbee _closeTurnOnBinding;
+    AylaGroupZigbee _closeTurnOffGroup;
+    AylaBindingZigbee _closeTurnOffBinding;
+    int _setupErrors;
+    int _fixCount;
 
     ListView _listView;
     ArrayAdapter<String> _adapter;
     TextView _titleView;
+    TextView _dsnView;
     ImageView _imageView;
     RadioButton _onSensorRadio;
     RadioButton _offSensorRadio;
@@ -62,6 +72,9 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     Button _turnOff;
     Button _removeOn;
     Button _removeOff;
+
+    View _errorContainer;
+    TextView _errorMessage;
 
     public static TriggerFragment newInstance(Device device) {
         TriggerFragment frag = new TriggerFragment();
@@ -86,18 +99,23 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_trigger_manage, container, false);
+        View view = inflater.inflate(FRAGMENT_RESOURCE_ID, container, false);
 
         if (( _device == null) || !_device.isDeviceNode()) {
-            Log.e(LOG_TAG, "Unable to find device!");
+            Logger.logError(LOG_TAG, "No device specified");
             getFragmentManager().popBackStack();
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
-
         } else {
             _gateway = Gateway.getGatewayForDeviceNode(_device);
 
+            _errorContainer = view.findViewById(R.id.error_container);
+            Button errorButton = (Button)view.findViewById(R.id.error_fix);
+            errorButton.setOnClickListener(this);
+            _errorMessage = (TextView)view.findViewById(R.id.error_message);
+
             _listView = (ListView) view.findViewById(R.id.listView);
             _titleView = (TextView) view.findViewById(R.id.device_name);
+            _dsnView = (TextView) view.findViewById(R.id.device_dsn);
             _imageView = (ImageView) view.findViewById(R.id.device_image);
 
             _onSensorRadio  = (RadioButton) view.findViewById(R.id.radio_turn_on);
@@ -117,18 +135,79 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             _removeOff = (Button) view.findViewById(R.id.action_turn_off_remove);
             _removeOff.setOnClickListener(this);
 
-            TextView listLabel = (TextView) view.findViewById(R.id.list_label);
-
             updateGroups();
         }
         return view;
     }
 
     private void updateGroups() {
-        _openTurnOn = _device.getTriggerGroup(true, true);
-        _openTurnOff = _device.getTriggerGroup(true, false);
-        _closeTurnOn = _device.getTriggerGroup(false, true);
-        _closeTurnOff = _device.getTriggerGroup(false, false);
+        String key;
+        int errors = 0;
+
+        key = ZigbeeTriggerDevice.makeGroupKeyForSensor(_device, true, true);
+        _openTurnOnGroup = _device.getTriggerGroupByName(key);
+        if (_openTurnOnGroup == null) {
+            Logger.logError(LOG_TAG, "tf: no group found for " + key);
+            errors++;
+        }
+        _openTurnOnBinding = _device.getTriggerBindingByName(key);
+        if (_openTurnOnBinding == null) {
+            Logger.logError(LOG_TAG, "tf: no binding found for " + key);
+            errors++;
+        } else {
+            Logger.logDebug(LOG_TAG, "tf: binding " + _openTurnOnBinding);
+        }
+
+        key = ZigbeeTriggerDevice.makeGroupKeyForSensor(_device, true, false);
+        _openTurnOffGroup = _device.getTriggerGroupByName(key);
+        if (_openTurnOffGroup == null) {
+            Logger.logError(LOG_TAG, "tf: no group found for " + key);
+            errors++;
+        }
+        _openTurnOffBinding = _device.getTriggerBindingByName(key);
+        if (_openTurnOffBinding == null) {
+            Logger.logError(LOG_TAG, "tf: no binding found for " + key);
+            errors++;
+        } else {
+            Logger.logDebug(LOG_TAG, "tf: binding " + _openTurnOffBinding);
+        }
+
+        key = ZigbeeTriggerDevice.makeGroupKeyForSensor(_device, false, true);
+        _closeTurnOnGroup = _device.getTriggerGroupByName(key);
+        if (_closeTurnOnGroup == null) {
+            Logger.logError(LOG_TAG, "tf: no group found for " + key);
+            errors++;
+        }
+        _closeTurnOnBinding = _device.getTriggerBindingByName(key);
+        if (_closeTurnOnBinding == null) {
+            Logger.logError(LOG_TAG, "tf: no binding found for " + key);
+            errors++;
+        } else {
+            Logger.logDebug(LOG_TAG, "tf: binding " + _closeTurnOnBinding);
+        }
+
+        key = ZigbeeTriggerDevice.makeGroupKeyForSensor(_device, false, false);
+        _closeTurnOffGroup = _device.getTriggerGroupByName(key);
+        if (_closeTurnOffGroup == null) {
+            Logger.logError(LOG_TAG, "tf: no group found for " + key);
+            errors++;
+        }
+        _closeTurnOffBinding = _device.getTriggerBindingByName(key);
+        if (_closeTurnOffBinding == null) {
+            Logger.logError(LOG_TAG, "tf: no binding found for " + key);
+            errors++;
+        } else {
+            Logger.logDebug(LOG_TAG, "tf: binding " + _closeTurnOffBinding);
+        }
+
+        if (errors > 0 && _fixCount > 0) {
+            // if fixing it doesn't create the group & bindings again, usually a factory
+            // reset will help.
+            _errorMessage.setText(getString(R.string.trigger_setup_error_again));
+        }
+        _errorContainer.setVisibility((errors > 0) ? View.VISIBLE : View.GONE);
+        _setupErrors = errors;
+
         updateUI();
     }
 
@@ -138,31 +217,35 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         boolean enableRemOn = false;
         boolean enableRemOff = false;
 
-        AylaGroupZigbee turnOn;
-        AylaGroupZigbee turnOff;
-        if (_onSensorRadio.isChecked()) {
-            Log.e(LOG_TAG, "tf: updateList TriggerOn");
-            turnOn = _openTurnOn;
-            turnOff = _openTurnOff;
+        if (_setupErrors > 0) {
+            enableAddOn = enableAddOff = false;
         } else {
-            Log.e(LOG_TAG, "tf: updateList TriggerOff");
-            turnOn = _closeTurnOn;
-            turnOff = _closeTurnOff;
+            AylaGroupZigbee turnOn;
+            AylaGroupZigbee turnOff;
+            if (_onSensorRadio.isChecked()) {
+                Logger.logInfo(LOG_TAG, "tf: updateList TriggerOn");
+                turnOn = _openTurnOnGroup;
+                turnOff = _openTurnOffGroup;
+            } else {
+                Logger.logInfo(LOG_TAG, "tf: updateList TriggerOff");
+                turnOn = _closeTurnOnGroup;
+                turnOff = _closeTurnOffGroup;
+            }
+            List<String> values = new ArrayList<>();
+            List<Device> onDevs = _gateway.getGroupManager().getDevices(turnOn);
+            List<Device> ofDevs = _gateway.getGroupManager().getDevices(turnOff);
+            for (Device device : onDevs) {
+                values.add("Turn on " + device.getDevice().getProductName());
+                enableRemOn = true;
+            }
+            for (Device device : ofDevs) {
+                values.add("Turn off " + device.getDevice().getProductName());
+                enableRemOff = true;
+            }
+            _adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, values);
+            _listView.setAdapter(_adapter);
+            _adapter.notifyDataSetChanged();
         }
-        List<String> values = new ArrayList<>();
-        List<Device> onDevs = _gateway.getGroupManager().getDevices(turnOn);
-        List<Device> ofDevs = _gateway.getGroupManager().getDevices(turnOff);
-        for (Device device : onDevs) {
-            values.add("Turn on " + device.getDevice().getProductName());
-            enableRemOn = true;
-        }
-        for (Device device : ofDevs) {
-            values.add("Turn off " + device.getDevice().getProductName());
-            enableRemOff = true;
-        }
-        _adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, values);
-        _listView.setAdapter(_adapter);
-        _adapter.notifyDataSetChanged();
 
         _turnOn.setEnabled(enableAddOn);
         _turnOff.setEnabled(enableAddOff);
@@ -171,21 +254,16 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     }
 
     void updateUI() {
-        if ( _device == null ) {
-            Log.e(LOG_TAG, "Unable to find device!");
-            getFragmentManager().popBackStack();
-            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
-        } else {
-            // Set the device title and image
-            _titleView.setText(_device.toString());
-            _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
+        // Set the device title and image
+        _titleView.setText(_device.toString());
+        _dsnView.setText(_device.getDeviceDsn());
+        _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
 
-            // set the radio button labels
-            _onSensorRadio.setText(_device.getTriggerOnName());
-            _offSensorRadio.setText(_device.getTriggerOffName());
+        // set the radio button labels
+        _onSensorRadio.setText(_device.getTriggerOnName());
+        _offSensorRadio.setText(_device.getTriggerOffName());
 
-            updateList();
-        }
+        updateList();
     }
 
     @Override
@@ -197,9 +275,9 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         MainActivity.getInstance().showWaitDialog(R.string.trigger_update_title, R.string.trigger_update_body);
         AylaGroupZigbee group;
         if (_onSensorRadio.isChecked()) {
-            group = turnOn ? _openTurnOn : _openTurnOff;
+            group = turnOn ? _openTurnOnGroup : _openTurnOffGroup;
         } else {
-            group = turnOn ? _closeTurnOn : _closeTurnOff;
+            group = turnOn ? _closeTurnOnGroup : _closeTurnOffGroup;
         }
         _gateway.addDevicesToGroup(group, list, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
@@ -215,9 +293,9 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         MainActivity.getInstance().showWaitDialog(R.string.trigger_update_title, R.string.trigger_update_body);
         AylaGroupZigbee group;
         if (_onSensorRadio.isChecked()) {
-            group = turnOn ? _openTurnOn : _openTurnOff;
+            group = turnOn ? _openTurnOnGroup : _openTurnOffGroup;
         } else {
-            group = turnOn ? _closeTurnOn : _closeTurnOff;
+            group = turnOn ? _closeTurnOnGroup : _closeTurnOffGroup;
         }
         _gateway.removeDevicesFromGroup(group, list, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
@@ -245,12 +323,12 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     private void addDevicesClicked(final boolean turnOn) {
 
         // Get a list of the devices that can be targeted
-        Log.e(LOG_TAG, "tf: addDevicesClicked " + turnOn);
+        Logger.logDebug(LOG_TAG, "tf: addDevicesClicked " + turnOn);
         List<Device> filterList;
         if (_onSensorRadio.isChecked()) {
-            filterList = _gateway.getGroupManager().getDevices(turnOn ? _openTurnOn : _openTurnOff);
+            filterList = _gateway.getGroupManager().getDevices(turnOn ? _openTurnOnGroup : _openTurnOffGroup);
         } else {
-            filterList = _gateway.getGroupManager().getDevices(turnOn ? _closeTurnOn : _closeTurnOff);
+            filterList = _gateway.getGroupManager().getDevices(turnOn ? _closeTurnOnGroup : _closeTurnOffGroup);
         }
         final List<Device> list = getAvailableDevices(filterList);
 
@@ -291,12 +369,12 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     }
 
     private void removeDevicesClicked(final boolean turnOn) {
-        Log.e(LOG_TAG, "tf: removeDevicesClicked " + turnOn);
+        Logger.logDebug(LOG_TAG, "tf: removeDevicesClicked " + turnOn);
         List<Device> filterList;
         if (_onSensorRadio.isChecked()) {
-            filterList = _gateway.getGroupManager().getDevices(turnOn ? _openTurnOn : _openTurnOff);
+            filterList = _gateway.getGroupManager().getDevices(turnOn ? _openTurnOnGroup : _openTurnOffGroup);
         } else {
-            filterList = _gateway.getGroupManager().getDevices(turnOn ? _closeTurnOn : _closeTurnOff);
+            filterList = _gateway.getGroupManager().getDevices(turnOn ? _closeTurnOnGroup : _closeTurnOffGroup);
         }
         final List<Device> list = filterList;
 
@@ -336,6 +414,19 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
                 .create().show();
     }
 
+    private void fixTriggersClicked() {
+        MainActivity.getInstance().showWaitDialog(R.string.trigger_action_fix_title, R.string.trigger_action_fix_body);
+        _device.fixRegistrationForGatewayDevice(_gateway, this, new Gateway.AylaGatewayCompletionHandler() {
+            @Override
+            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                MainActivity.getInstance().dismissWaitDialog();
+                _fixCount++;
+                updateGroups();
+                Toast.makeText(getActivity(), AylaNetworks.succeeded(msg) ? R.string.trigger_action_fix_complete : R.string.trigger_action_fix_failure, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     @Override
     public void onClick(View v) {
         v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -359,6 +450,10 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
 
             case R.id.action_turn_off_remove:
                 removeDevicesClicked(false);
+                break;
+
+            case R.id.error_fix:
+                fixTriggersClicked();
                 break;
         }
     }
