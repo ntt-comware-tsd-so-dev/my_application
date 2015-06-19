@@ -18,6 +18,7 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
+import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
@@ -194,6 +195,10 @@ public class Gateway extends Device {
         return _groupManager;
     }
 
+    public List<AylaGroupZigbee> getGroups() {
+        return getGroupManager().getGroups();
+    }
+
     private ZigbeeBindingManager _bindingManager;
 
     public ZigbeeBindingManager getBindingManager() {
@@ -222,6 +227,43 @@ public class Gateway extends Device {
 
     public void updateGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
         getGroupManager().updateGroup(group, tag, handler);
+    }
+
+    public void addDevicesToGroup(AylaGroupZigbee group, List<Device> list, Object tag, AylaGatewayCompletionHandler handler) {
+        List<AylaDeviceNode> devices = ZigbeeGroupManager.getDeviceNodes(group);
+        // add list to devices
+        for (Device device : list) {
+            AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+            // make sure it isn't already in the list
+            if (!DeviceManager.isDsnInAylaDeviceNodeList(adn.dsn, devices)) {
+                devices.add(adn);
+            }
+        }
+        group.nodeDsns = new String[devices.size()];
+        group.nodes = new AylaDeviceZigbeeNode[devices.size()];
+        for (int i = 0; i < devices.size(); i++) {
+            group.nodeDsns[i] = devices.get(i).dsn;
+            group.nodes[i] = (AylaDeviceZigbeeNode)devices.get(i);
+        }
+        updateGroup(group, tag, handler);
+    }
+
+    public void removeDevicesFromGroup(AylaGroupZigbee group, List<Device> list, Object tag, AylaGatewayCompletionHandler handler) {
+        // remove list from devices
+        List<AylaDeviceNode> current = ZigbeeGroupManager.getDeviceNodes(group);
+        List<AylaDeviceNode> devices = new ArrayList<AylaDeviceNode>();
+        for (AylaDeviceNode adn : current) {
+            if (!DeviceManager.isDsnInDeviceList(adn.dsn, list)) {
+                devices.add(adn);
+            }
+        }
+        group.nodeDsns = new String[devices.size()];
+        group.nodes = new AylaDeviceZigbeeNode[devices.size()];
+        for (int i = 0; i < devices.size(); i++) {
+            group.nodeDsns[i] = devices.get(i).dsn;
+            group.nodes[i] = (AylaDeviceZigbeeNode)devices.get(i);
+        }
+        updateGroup(group, tag, handler);
     }
 
     public void deleteGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {

@@ -8,17 +8,20 @@ package com.aylanetworks.agilelink.device;
  */
 
 import android.os.Message;
+import android.text.TextUtils;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 
 import java.util.ArrayDeque;
+import java.util.List;
 
 public class ZigbeeTriggerDevice extends Device  {
 
@@ -48,9 +51,39 @@ public class ZigbeeTriggerDevice extends Device  {
         StringBuilder sb = new StringBuilder(512);
         sb.append(GROUP_PREFIX_TRIGGER);
         sb.append(device.getDevice().dsn);
+        // don't localize these words
         sb.append(open ? "Open" : "Close");
         sb.append(turnOn ? "On" : "Off");
         return sb.toString();
+    }
+
+    public String getTriggerOnName() {
+        return MainActivity.getInstance().getString(R.string.trigger_on_name);
+    }
+
+    public String getTriggerOffName() {
+        return MainActivity.getInstance().getString(R.string.trigger_off_name);
+    }
+
+    public AylaGroupZigbee getTriggerGroup(boolean open, boolean turnOn) {
+        String key = makeGroupKeyForSensor(this, open, turnOn);
+        List<AylaGroupZigbee> groups = _gateway.getGroups();
+        if ((groups != null) && (groups.size() > 0)) {
+            for (AylaGroupZigbee group : groups) {
+                if (TextUtils.equals(group.groupName, key)) {
+                    return group;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean isTriggerTarget(Device another) {
+        return (another instanceof ZigbeeSwitchedDevice);
+    }
+
+    public void addDevicesToTriggerGroup(AylaGroupZigbee group, List<Device> devices, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+        _gateway.updateGroup(group, tag, completion);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
