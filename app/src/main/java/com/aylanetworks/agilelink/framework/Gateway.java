@@ -181,7 +181,7 @@ public class Gateway extends Device {
     /**
      * Called when a unregisterDevice is called on a DeviceNode
      *
-     * @param device
+     * @param device Device
      */
     public void removeDeviceNode(Device device) {
     }
@@ -199,6 +199,10 @@ public class Gateway extends Device {
         return getGroupManager().getGroups();
     }
 
+    public AylaGroupZigbee getGroupByName(String name) {
+        return getGroupManager().getByName(name);
+    }
+
     private ZigbeeBindingManager _bindingManager;
 
     public ZigbeeBindingManager getBindingManager() {
@@ -206,6 +210,14 @@ public class Gateway extends Device {
             _bindingManager = new ZigbeeBindingManager(this);
         }
         return _bindingManager;
+    }
+
+    public List<AylaBindingZigbee> getBindings() {
+        return getBindingManager().getBindings();
+    }
+
+    public AylaBindingZigbee getBindingByName(String name) {
+        return getBindingManager().getByName(name);
     }
 
     private ZigbeeSceneManager _sceneManager;

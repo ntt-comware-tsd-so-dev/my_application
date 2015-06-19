@@ -47,6 +47,7 @@ public class ZigbeeBindingManager {
 
     /**
      * Default constructor
+     * @param gateway Gateway
      */
     public ZigbeeBindingManager(Gateway gateway) {
         _gateway = gateway;

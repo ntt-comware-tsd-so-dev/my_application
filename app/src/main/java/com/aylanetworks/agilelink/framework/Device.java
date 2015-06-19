@@ -693,7 +693,7 @@ public class Device implements Comparable<Device> {
      * Returns a boolean value for the AylaProperty of the given name,
      * or false if no property was found.
      *
-     * @param propertyName
+     * @param propertyName String property name
      * @return Boolean value of property
      */
     public boolean getPropertyBoolean(String propertyName) {

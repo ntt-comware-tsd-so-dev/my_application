@@ -8,7 +8,6 @@ package com.aylanetworks.agilelink.device;
  */
 
 import android.os.Message;
-import android.text.TextUtils;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -21,7 +20,6 @@ import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 
 import java.util.ArrayDeque;
-import java.util.List;
 
 public class ZigbeeTriggerDevice extends Device  {
 
@@ -47,6 +45,15 @@ public class ZigbeeTriggerDevice extends Device  {
     @Override
     public int hasPostRegistrationProcessingResourceId() { return R.string.add_device_sensor_warning; }
 
+    /**
+     * Static method used for building the name of the trigger group & binding for a device.  This
+     * needs to be consistent between all operating systems.
+     *
+     * @param device Trigger device.
+     * @param open True indicates open, false indicates close.
+     * @param turnOn True indicates on, false indicates off.
+     * @return Name to use for the group or binding object.
+     */
     static public String makeGroupKeyForSensor(Device device, boolean open, boolean turnOn) {
         StringBuilder sb = new StringBuilder(512);
         sb.append(GROUP_PREFIX_TRIGGER);
@@ -57,27 +64,67 @@ public class ZigbeeTriggerDevice extends Device  {
         return sb.toString();
     }
 
+    /**
+     * Text to use for trigger on
+     * @return The text
+     */
     public String getTriggerOnName() {
         return MainActivity.getInstance().getString(R.string.trigger_on_name);
     }
 
+    /**
+     * Text to use for trigger off
+     * @return The text
+     */
     public String getTriggerOffName() {
         return MainActivity.getInstance().getString(R.string.trigger_off_name);
     }
 
+    /**
+     * Get the trigger group for the specified combination.
+     *
+     * @param open True indicates open, false indicates close.
+     * @param turnOn True indicates on, false indicates off.
+     * @return AylaGroupZigbee
+     */
     public AylaGroupZigbee getTriggerGroup(boolean open, boolean turnOn) {
-        String key = makeGroupKeyForSensor(this, open, turnOn);
-        List<AylaGroupZigbee> groups = _gateway.getGroups();
-        if ((groups != null) && (groups.size() > 0)) {
-            for (AylaGroupZigbee group : groups) {
-                if (TextUtils.equals(group.groupName, key)) {
-                    return group;
-                }
-            }
-        }
-        return null;
+        return _gateway.getGroupByName(makeGroupKeyForSensor(this, open, turnOn));
     }
 
+    /**
+     * Get the trigger group with the specified name.
+     * @param name Trigger group name constructed by makeGroupKeyForSensor
+     * @return AylaGroupZigbee
+     */
+    public AylaGroupZigbee getTriggerGroupByName(String name) {
+        return _gateway.getGroupByName(name);
+    }
+
+    /**
+     * Get the trigger binding for the specified combination
+     * @param open True indicates open, false indicates close.
+     * @param turnOn True indicates on, false indicates off.
+     * @return AylaBindingZigbee
+     */
+    public AylaBindingZigbee getTriggerBinding(boolean open, boolean turnOn) {
+        return _gateway.getBindingByName(makeGroupKeyForSensor(this, open, turnOn));
+    }
+
+    /**
+     * Get the trigger binding with the specified name.
+     * @param name Trigger binding name constructed by makeGroupKeyForSensor
+     * @return AylaBindingZigbee
+     */
+    public AylaBindingZigbee getTriggerBindingByName(String name) {
+        return _gateway.getBindingByName(name);
+    }
+
+    /**
+     * Determines if the specified device can be used as a trigger target.
+     * @param another Device
+     * @return true indicates Device is a Zigbee switched device, false indicates that it
+     * isn't a switched device.
+     */
     public boolean isTriggerTarget(Device another) {
         return (another instanceof ZigbeeSwitchedDevice);
     }
@@ -296,16 +343,20 @@ public class ZigbeeTriggerDevice extends Device  {
         Gateway _gateway;
         Device _device;
         Object _tag;
+        Object _userTag;
+        Gateway.AylaGatewayCompletionHandler _completion;
         DequeRunState _dequeRunState;
         ArrayDeque<DequeEntry> _deque;
         int countTotal;
         int countSuccess;
         int countFailure;
 
-        public DequeSet(Gateway gateway, Device device, Object tag) {
+        public DequeSet(Gateway gateway, Device device, Object tag, Object userTag, Gateway.AylaGatewayCompletionHandler completion) {
             _gateway = gateway;
             _device = device;
             _tag = tag;
+            _userTag = userTag;
+            _completion = completion;
             _dequeRunState = DequeRunState.NotRunning;
             _deque = new ArrayDeque<>();
             countTotal = countSuccess = countFailure = 0;
@@ -383,6 +434,14 @@ public class ZigbeeTriggerDevice extends Device  {
                 _deque.clear();
             }
         }
+
+        public void complete() {
+            if (_completion != null) {
+                Message msg = new Message();
+                msg.what = isSuccessful() ? AylaNetworks.AML_ERROR_OK : AylaNetworks.AML_ERROR_FAIL;
+                _completion.gatewayCompletion(_gateway, msg, _userTag);
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -400,12 +459,12 @@ public class ZigbeeTriggerDevice extends Device  {
             } else {
                 Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] failure", (String)tag, this.getDeviceDsn(), gateway.getDeviceDsn());
             }
+            dequeSet.complete();
+            _currentDequeSet = null;
         }
     }
 
-    @Override
-    public void postRegistrationForGatewayDevice(Gateway gateway) {
-
+    void setupTriggers(Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
         // make sure we have the latest info
         gateway.getGroupManager().fetchZigbeeGroups();
         gateway.getBindingManager().fetchZigbeeBindings();
@@ -417,7 +476,7 @@ public class ZigbeeTriggerDevice extends Device  {
         synchronized (_currentDequeSetLock) {
             // it would be null, since we are just starting
             if (_currentDequeSet == null) {
-                _currentDequeSet = new DequeSet(gateway, this, "initializeSensor");
+                _currentDequeSet = new DequeSet(gateway, this, "initializeSensor", tag, completion);
                 _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, true, true));
                 _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, true, false));
                 _currentDequeSet.addRunEntry(new AddTriggerGroupForSensor(_currentDequeSet, this, false, true));
@@ -425,6 +484,14 @@ public class ZigbeeTriggerDevice extends Device  {
                 _currentDequeSet.runIfNeeded();
             }
         }
+    }
+    @Override
+    public void postRegistrationForGatewayDevice(Gateway gateway) {
+        setupTriggers(gateway, null, null);
+    }
+
+    public void fixRegistrationForGatewayDevice(final Gateway gateway, final Object tag, final Gateway.AylaGatewayCompletionHandler completion) {
+        setupTriggers(gateway, tag, completion);
     }
 
     @Override
@@ -444,7 +511,7 @@ public class ZigbeeTriggerDevice extends Device  {
                 _currentDequeSet = null;
             }
             // queue up the removals
-            _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice");
+            _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice", null, null);
             _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, true));
             _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, false));
             _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, true));

@@ -461,7 +461,14 @@
     <string name="trigger_action_turn_on_add">Add On</string>
     <string name="trigger_action_turn_off_add">Add Off</string>
     <string name="trigger_action_turn_on_remove">Remove On</string>
-    <string name="triger_action_turn_off_remove">Remove Off</string>
+    <string name="trigger_action_turn_off_remove">Remove Off</string>
+    <string name="trigger_setup_error">Issue found with device setup. Make sure device has good batteries and is active, then press the Fix button.</string>
+    <string name="trigger_setup_error_again">Issue found with device setup. Factory reset the device and then Add Device again.</string>
+    <string name="trigger_action_fix">Fix</string>
+    <string name="trigger_action_fix_title">Fix Triggers</string>
+    <string name="trigger_action_fix_body">Updating triggers for device</string>
+    <string name="trigger_action_fix_complete">Fix Triggers Complete</string>
+    <string name="trigger_action_fix_failure">Fix Triggers Failed</string>
 
 
 </resources>
