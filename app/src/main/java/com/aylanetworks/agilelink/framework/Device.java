@@ -28,6 +28,7 @@ import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
 import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
+import com.aylanetworks.agilelink.fragments.TriggerFragment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -1063,6 +1064,10 @@ public class Device implements Comparable<Device> {
      */
     public Fragment getRemoteFragment() {
         return RemoteFragment.newInstance(this);
+    }
+
+    public Fragment getTriggerFragment() {
+        return TriggerFragment.newInstance(this);
     }
 
     @Override

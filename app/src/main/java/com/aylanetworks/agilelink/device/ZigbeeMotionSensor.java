@@ -47,6 +47,16 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
     }
 
     @Override
+    public String getTriggerOnName() {
+        return MainActivity.getInstance().getString(R.string.motion_trigger_on_name);
+    }
+
+    @Override
+    public String getTriggerOffName() {
+        return MainActivity.getInstance().getString(R.string.motion_trigger_off_name);
+    }
+
+    @Override
     public String deviceTypeName() {
         return "Motion Sensor";
     }

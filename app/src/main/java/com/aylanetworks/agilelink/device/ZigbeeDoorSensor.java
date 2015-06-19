@@ -43,6 +43,16 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     }
 
     @Override
+    public String getTriggerOnName() {
+        return MainActivity.getInstance().getString(R.string.door_trigger_on_name);
+    }
+
+    @Override
+    public String getTriggerOffName() {
+        return MainActivity.getInstance().getString(R.string.door_trigger_off_name);
+    }
+
+    @Override
     public String deviceTypeName() {
         return "Door Sensor";
     }

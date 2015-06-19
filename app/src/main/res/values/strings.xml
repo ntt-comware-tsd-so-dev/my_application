@@ -442,4 +442,26 @@
     <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
     <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
     <string name="terms_and_condition_link">http://www.kidde.com/home-safety/en/us/privacy/terms-and-conditions/</string>
+
+    <string name="trigger_on_name">On</string>
+    <string name="trigger_off_name">Off</string>
+    <string name="motion_trigger_on_name">Motion is detected</string>
+    <string name="motion_trigger_off_name">Motion has stopped</string>
+    <string name="door_trigger_on_name">Door opens</string>
+    <string name="door_trigger_off_name">Door closes</string>
+
+    <string name="trigger_devices_on_title">Select devices to turn on</string>
+    <string name="trigger_devices_off_title">Select devices to turn off</string>
+    <string name="trigger_devices_remove_title">Select devices to remove</string>
+    <string name="trigger_update_title">Update Trigger</string>
+    <string name="trigger_update_body">Updating devices in trigger group</string>
+    <string name="trigger_update_complete">Update Trigger Complete</string>
+    <string name="trigger_settings">Trigger Settings</string>
+    <string name="trigger_devices">Devices</string>
+    <string name="trigger_action_turn_on_add">Add On</string>
+    <string name="trigger_action_turn_off_add">Add Off</string>
+    <string name="trigger_action_turn_on_remove">Remove On</string>
+    <string name="triger_action_turn_off_remove">Remove Off</string>
+
+
 </resources>

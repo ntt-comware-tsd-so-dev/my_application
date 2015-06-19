@@ -37,6 +37,7 @@ import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
+import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
@@ -144,12 +145,18 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
         triggerButton.setOnClickListener(this);
-        triggerButton.setVisibility(View.GONE);
 
         if (_device.isDeviceNode()) {
             _identifySwitch.setVisibility(View.VISIBLE);
-
             Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+
+            if (_device instanceof ZigbeeTriggerDevice) {
+                Logger.logDebug(LOG_TAG, "we are a trigger device.");
+                triggerButton.setVisibility(View.VISIBLE);
+            } else {
+                triggerButton.setVisibility(View.GONE);
+            }
+
             if (_device instanceof RemoteSwitchDevice) {
                 Logger.logDebug(LOG_TAG, "rm: we are a remote.");
             } else {
@@ -179,6 +186,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             }
         } else {
             remoteButton.setVisibility(View.GONE);
+            triggerButton.setVisibility(View.GONE);
             _identifySwitch.setVisibility(View.GONE);
         }
 
@@ -561,8 +569,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void remoteClicked() {
-        // we could do a fragment... or what?
         Fragment frag = _device.getRemoteFragment();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    private void triggerClicked() {
+        Fragment frag = _device.getTriggerFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -587,9 +599,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _device.getDevice().dsn);
             gateway.identifyDeviceNode(_device, false, 0, null, null);
         }
-    }
-
-    private void triggerClicked() {
     }
 
     private void sharingClicked() {
@@ -696,12 +705,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 remoteClicked();
                 break;
 
-            case R.id.identify_button:
-                identifyClicked(v);
-                break;
-
             case R.id.trigger_button:
                 triggerClicked();
+                break;
+
+            case R.id.identify_button:
+                identifyClicked(v);
                 break;
 
             case R.id.sharing_button:

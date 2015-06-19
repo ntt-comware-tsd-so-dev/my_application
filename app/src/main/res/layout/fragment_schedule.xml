@@ -93,7 +93,7 @@
                         style="@android:style/TextAppearance.Medium"
                         android:padding="8dp"
                         android:layout_marginBottom="4dp"
-                        android:textColor="@color/button_fg"
+                        android:textColor="@drawable/button_fg"
                         android:textStyle="italic"
                         android:text="@string/schedule_properties_description"/>
 

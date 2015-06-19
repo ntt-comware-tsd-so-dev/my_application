@@ -31,7 +31,6 @@ import android.widget.Toast;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
-import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -86,6 +85,7 @@ public class AddDeviceFragment extends Fragment
         return new AddDeviceFragment();
     }
 
+    private Button _registerButton;
     private TextView _spinnerRegistrationTypeLabel;
     private Spinner _spinnerRegistrationType;
     private Spinner _spinnerGatewaySelection;
@@ -217,8 +217,8 @@ public class AddDeviceFragment extends Fragment
         scanButton.setOnClickListener(this);
 
         // Hook up the "Register" button
-        Button registerButton = (Button) view.findViewById(R.id.register_button);
-        registerButton.setOnClickListener(this);
+        _registerButton = (Button) view.findViewById(R.id.register_button);
+        _registerButton.setOnClickListener(this);
 
         // Stop polling
         SessionManager.deviceManager().stopPolling();
@@ -309,6 +309,7 @@ public class AddDeviceFragment extends Fragment
                 }
                     break;
             }
+            _registerButton.setVisibility(showGateways ? View.GONE : View.VISIBLE);
             _descriptionTextView.setText(Html.fromHtml(getActivity().getResources().getString(textId)));
             _spinnerRegistrationTypeLabel.setText(getString(showGateways ? R.string.select_gateway : R.string.registration_type));
             _spinnerRegistrationTypeLabel.setVisibility(spinnerVisible);
