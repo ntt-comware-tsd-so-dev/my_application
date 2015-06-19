@@ -470,5 +470,34 @@
     <string name="trigger_action_fix_complete">Fix Triggers Complete</string>
     <string name="trigger_action_fix_failure">Fix Triggers Failed</string>
 
+    <string name="drawer_scenes">Scenes</string>
+    <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
+    <string name="add_scene">Add Scene</string>
+    <string name="add_scene_title">Add a Scene</string>
+    <string name="add_scene_message">Input the name for your new scene</string>
+    <string name="delete_scene">Delete this scene</string>
+    <string name="no_devices_in_scene">Tap the add button to add devices to this scene</string>
+    <string name="scene_empty_text">Tap the add button to create a new scene</string>
+    <string name="add_device_or_scene_title">Add Device or Scene</string>
+    <!-- Add device or scene menu items -->
+    <string-array name="device_or_scene_items">
+        <item>Manage devices in this scene</item>
+        <item>Create a new device scene</item>
+    </string-array>
+    <string name="choose_scene_devices">Select which devices you wish to have in this scene</string>
+    <string name="scene_create_title">Create Scene</string>
+    <string name="scene_create_body">Creating scene.</string>
+    <string name="scene_create_complete">Create Scene Complete</string>
+    <string name="scene_update_title">Update Scene</string>
+    <string name="scene_update_body">Updating scene device list.</string>
+    <string name="scene_update_complete">Update Scene Complete</string>
+    <string name="scene_add_info">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene.</string>
+    <string name="scene_add_info_multiple_gateway">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene. All devices must be attached to the same gateway.</string>
+    <string name="confirm_delete_scene_body" formatted="false">Do you wish to remove the scene \"%s\"?</string>
+    <string name="confirm_delete_scene">Delete Scene?</string>
+    <string name="scene_delete_title">Delete Scene</string>
+    <string name="scene_delete_body">Deleting scene device list.</string>
+    <string name="scene_delete_complete">Delete Scene Complete</string>
+    <string name="scene_name_hint">Unique Scene Name</string>
 
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_add_scene"
+          android:title="@string/add_scene"
+          android:orderInCategory="200"/>
+
+    <item android:id="@+id/action_delete_scene"
+          android:title="@string/delete_scene"
+          android:orderInCategory="201"/>
+
+</menu>
