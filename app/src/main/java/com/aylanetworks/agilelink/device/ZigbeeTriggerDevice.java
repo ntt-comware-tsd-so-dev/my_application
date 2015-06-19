@@ -82,10 +82,6 @@ public class ZigbeeTriggerDevice extends Device  {
         return (another instanceof ZigbeeSwitchedDevice);
     }
 
-    public void addDevicesToTriggerGroup(AylaGroupZigbee group, List<Device> devices, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
-        _gateway.updateGroup(group, tag, completion);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     enum DequeRunState {
