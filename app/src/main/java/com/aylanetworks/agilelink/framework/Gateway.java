@@ -181,7 +181,7 @@ public class Gateway extends Device {
     /**
      * Called when a unregisterDevice is called on a DeviceNode
      *
-     * @param device
+     * @param device Device
      */
     public void removeDeviceNode(Device device) {
     }

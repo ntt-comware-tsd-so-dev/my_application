@@ -59,6 +59,7 @@ public class ZigbeeSceneManager {
 
     /**
      * Default constructor
+     * @param gateway Gateway
      */
     public ZigbeeSceneManager(Gateway gateway) {
         _gateway = gateway;

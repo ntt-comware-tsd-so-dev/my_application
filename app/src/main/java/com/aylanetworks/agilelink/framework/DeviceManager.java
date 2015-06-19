@@ -82,7 +82,7 @@ public class DeviceManager implements DeviceStatusListener {
     /** The one and only device that is currently LAN-mode enabled. */
     private Device _lanModeEnabledDevice;
 
-    /** Public Helper Methods */
+    // Public Helper Methods //
 
     static public boolean isDsnInAylaDeviceNodeList(String dsn, List<AylaDeviceNode> devices) {
         if (devices == null || devices.size() == 0)

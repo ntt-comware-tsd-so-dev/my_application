@@ -58,6 +58,7 @@ public class ZigbeeGroupManager {
 
     /**
      * Default constructor
+     * @param gateway Gateway
      */
     public ZigbeeGroupManager(Gateway gateway) {
         _gateway = gateway;
