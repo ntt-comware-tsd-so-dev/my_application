@@ -101,7 +101,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 break;
 
             case R.id.action_delete_scene:
-                onDeleteGroup();
+                onDeleteScene();
                 break;
 
             case R.id.action_add_device:
@@ -419,8 +419,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         });
     }
 
-    protected void onDeleteGroup() {
-        Log.d(LOG_TAG, "onDeleteGroup");
+    protected void onDeleteScene() {
+        Log.d(LOG_TAG, "onDeleteScene");
         String msg = getResources().getString(R.string.confirm_delete_scene_body, _selectedScene.sceneName);
         new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.confirm_delete_scene)
