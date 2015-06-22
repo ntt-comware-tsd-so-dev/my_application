@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.agilelink.R;
@@ -222,8 +221,9 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
             // Put up a menu to see if they want to add a device or a group.
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(R.string.add_device_or_group_title);
-            builder.setItems(R.array.device_or_group_items, new DialogInterface.OnClickListener() {
+            builder.setIcon(R.drawable.ic_launcher)
+            .setTitle(R.string.add_device_or_group_title)
+            .setItems(R.array.device_or_group_items, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     if (which == 0) {
@@ -233,8 +233,8 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                         onAddGroup();
                     }
                 }
-            });
-            builder.create().show();
+            })
+            .create().show();
         } else {
             super.onClick(v);
         }
@@ -259,6 +259,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         }
 
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.choose_group_devices)
                 .setMultiChoiceItems(deviceNames, isGroupMember, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
@@ -286,13 +287,16 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     protected void onAddGroup() {
-        final EditText et = new EditText(getActivity());
         final GroupManager gm = SessionManager.deviceManager().getGroupManager();
 
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        final View alertView = inflater.inflate(R.layout.dialog_add_group, null);
+        final EditText et = (EditText)alertView.findViewById(R.id.group_name);
+
         AlertDialog dlg = new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.add_group_title)
-                .setMessage(R.string.add_group_message)
-                .setView(et)
+                .setView(alertView)
                 .setPositiveButton(R.string.add_group, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -323,6 +327,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         Log.d(LOG_TAG, "onDeleteGroup");
         String msg = getResources().getString(R.string.confirm_delete_group_body, _selectedGroup.getGroupName());
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_group)
                 .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

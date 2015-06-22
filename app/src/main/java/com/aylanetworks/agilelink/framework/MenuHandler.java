@@ -15,13 +15,14 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
-import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
+import com.aylanetworks.agilelink.fragments.DeviceScenesFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
+import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 
 import org.json.JSONException;
@@ -56,6 +57,10 @@ public class MenuHandler {
 
             case R.id.action_device_groups:
                 handleDeviceGroups();
+                break;
+
+            case R.id.action_device_scenes:
+                handleDeviceScenes();
                 break;
 
             case R.id.action_add_device:
@@ -110,6 +115,13 @@ public class MenuHandler {
 
     public static void handleDeviceGroups() {
         Fragment frag = DeviceGroupsFragment.newInstance();
+        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
+        MainActivity.getInstance().popBackstackToRoot();
+        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+    }
+
+    public static void handleDeviceScenes() {
+        Fragment frag = DeviceScenesFragment.newInstance();
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();

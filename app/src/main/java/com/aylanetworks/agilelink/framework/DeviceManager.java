@@ -84,6 +84,12 @@ public class DeviceManager implements DeviceStatusListener {
 
     // Public Helper Methods //
 
+    /**
+     * Checks to see if the specified DSN is in the provided AylaDeviceNode list.
+     * @param dsn Device DSN
+     * @param devices List of AylaDeviceNode devices.
+     * @return Returns true if the DSN is in the list, false if the DSN is not in the list.
+     */
     static public boolean isDsnInAylaDeviceNodeList(String dsn, List<AylaDeviceNode> devices) {
         if (devices == null || devices.size() == 0)
             return false;
@@ -95,6 +101,12 @@ public class DeviceManager implements DeviceStatusListener {
         return false;
     }
 
+    /**
+     * Checks to see if the specified DSN is in the provided Device list.
+     * @param dsn Device DSN
+     * @param devices List of Device devices.
+     * @return Returns true if the DSN is in the list, false if the DSN is not in the list.
+     */
     static public boolean isDsnInDeviceList(String dsn, List<Device> devices) {
         if (devices == null || devices.size() == 0)
             return false;
