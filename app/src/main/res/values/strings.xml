@@ -474,6 +474,7 @@
     <string name="drawer_scenes">Scenes</string>
     <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
     <string name="add_scene">Add Scene</string>
+    <string name="activate_scene">Activate Scene</string>
     <string name="add_scene_title">Add a Scene</string>
     <string name="add_scene_message">Input the name for your new scene</string>
     <string name="delete_scene">Delete this scene</string>
@@ -491,15 +492,20 @@
     <string name="scene_create_complete">Create Scene Complete</string>
     <string name="scene_create_failed">Create Scene Failed</string>
     <string name="scene_update_title">Update Scene</string>
-    <string name="scene_update_body">Updating scene device list.</string>
+    <string name="scene_update_body">Updating scene...</string>
     <string name="scene_update_complete">Update Scene Complete</string>
     <string name="scene_add_info">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene.</string>
     <string name="scene_add_info_multiple_gateway">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene. All devices must be attached to the same gateway.</string>
     <string name="confirm_delete_scene_body" formatted="false">Do you wish to remove the scene \"%s\"?</string>
     <string name="confirm_delete_scene">Delete Scene?</string>
+    <string name="scene_recall_title">Recall Scene</string>
+    <string name="scene_recall_body">Recall scene...</string>
+    <string name="scene_recall_complete">Recall Scene Complete</string>
+    <string name="scene_recall_failed">Recall Scene Failed</string>
     <string name="scene_delete_title">Delete Scene</string>
-    <string name="scene_delete_body">Deleting scene device list.</string>
+    <string name="scene_delete_body">Deleting scene...</string>
     <string name="scene_delete_complete">Delete Scene Complete</string>
+    <string name="scene_delete_failed">Delete Scene Failed</string>
     <string name="scene_name_hint">Unique Scene Name</string>
 
 </resources>

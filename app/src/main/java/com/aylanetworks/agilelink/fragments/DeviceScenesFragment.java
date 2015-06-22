@@ -92,7 +92,6 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         if ( addItem != null ) {
             addItem.setTitle(R.string.action_manage_devices_in_scene);
         }
-
         super.onPrepareOptionsMenu(menu);
     }
 
@@ -101,6 +100,10 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         switch (item.getItemId()) {
             case R.id.action_add_scene:
                 onAddScene();
+                break;
+
+            case R.id.action_activate_scene:
+                onActivateScene();
                 break;
 
             case R.id.action_delete_scene:
@@ -367,7 +370,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             return;
         }
         MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
-        gateway.createScene(name, null, null, this, new Gateway.AylaGatewayCompletionHandler() {
+        gateway.createScene(name, null, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
             public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
@@ -383,6 +386,9 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             }
         });
     }
+
+    // Should show only the allowed characters in the soft keyboard too
+    // http://www.infiniterecursion.us/2011/02/android-activity-custom-keyboard.html
 
     // These are the only characters allowed in a Scene name.
     InputFilter acceptedFilter = new InputFilter() {
@@ -427,6 +433,23 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
 
     }
 
+    protected void onActivateScene() {
+        if ((_selectedSceneGateway != null) && (_selectedScene != null)) {
+            MainActivity.getInstance().showWaitDialog(R.string.scene_recall_title, R.string.scene_recall_body);
+            _selectedSceneGateway.recallScene(_selectedScene, this, new Gateway.AylaGatewayCompletionHandler() {
+                @Override
+                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                    MainActivity.getInstance().dismissWaitDialog();
+                    if (AylaNetworks.succeeded(msg)) {
+                        Toast.makeText(getActivity(), R.string.scene_recall_complete, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getActivity(), R.string.scene_recall_failed, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+        }
+    }
+
     void deleteScene(AylaSceneZigbee scene) {
         MainActivity.getInstance().showWaitDialog(R.string.scene_delete_title, R.string.scene_delete_body);
         _selectedSceneGateway.deleteScene(scene, this, new Gateway.AylaGatewayCompletionHandler() {
@@ -434,7 +457,11 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
                 updateDeviceList();
-                Toast.makeText(getActivity(), R.string.scene_delete_complete, Toast.LENGTH_LONG).show();
+                if (AylaNetworks.succeeded(msg)) {
+                    Toast.makeText(getActivity(), R.string.scene_delete_complete, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getActivity(), R.string.scene_delete_failed, Toast.LENGTH_LONG).show();
+                }
                 List<AylaSceneZigbee> scenes = getScenes();
                 if (scenes.isEmpty()) {
                     _selectedScene = null;
