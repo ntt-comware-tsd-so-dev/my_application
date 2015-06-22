@@ -164,6 +164,7 @@
     <string name="add_device_or_group_title">Add Device or Group</string>
     <string name="add_group_title">Add a Group or Room</string>
     <string name="add_group_message">Input the name for your new group or room</string>
+    <string name="group_name_hint">Unique Group or Room Name</string>
     <string name="add_group">Add Group</string>
     <string name="choose_group_devices">Select which devices you wish to have in this group</string>
     <string name="resend_confirmation_message">Please enter the email address associated with your account. If your account is valid, a new confirmation will be sent to you.</string>
@@ -488,6 +489,7 @@
     <string name="scene_create_title">Create Scene</string>
     <string name="scene_create_body">Creating scene.</string>
     <string name="scene_create_complete">Create Scene Complete</string>
+    <string name="scene_create_failed">Create Scene Failed</string>
     <string name="scene_update_title">Update Scene</string>
     <string name="scene_update_body">Updating scene device list.</string>
     <string name="scene_update_complete">Update Scene Complete</string>

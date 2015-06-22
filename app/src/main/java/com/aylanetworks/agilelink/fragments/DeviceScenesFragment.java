@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Message;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -22,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -243,19 +246,21 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
 
             // Put up a menu to see if they want to add a device or a scene.
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(R.string.add_device_or_scene_title);
-            builder.setItems(R.array.device_or_scene_items, new DialogInterface.OnClickListener() {
+            builder.setIcon(R.drawable.ic_launcher)
+                .setTitle(R.string.add_device_or_scene_title)
+                .setItems(R.array.device_or_scene_items, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    if (which == 0) {
-                        // Add a device to this group
-                        onAddDeviceToScene();
-                    } else {
-                        onAddScene();
+                        if (which == 0) {
+                            // Add a device to this group
+                            onAddDeviceToScene();
+                        } else {
+                            onAddScene();
+                        }
                     }
-                }
-            });
-            builder.create().show();
+                })
+                .create()
+                .show();
         } else {
             super.onClick(v);
         }
@@ -299,6 +304,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
 
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.choose_scene_devices)
                 .setMultiChoiceItems(deviceNames, isSceneMember, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
@@ -365,14 +371,32 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             @Override
             public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
                 MainActivity.getInstance().dismissWaitDialog();
-                Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
-                _selectedScene = gateway.getSceneByName(name);
-                _selectedSceneGateway = gateway;
-                updateDeviceList();
-                onAddDeviceToScene();
+                if (AylaNetworks.succeeded(msg)) {
+                    Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+                    _selectedScene = gateway.getSceneByName(name);
+                    _selectedSceneGateway = gateway;
+                    updateDeviceList();
+                    onAddDeviceToScene();
+                } else {
+                    Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
+
+    // These are the only characters allowed in a Scene name.
+    InputFilter acceptedFilter = new InputFilter() {
+        @Override
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+            if (source.equals("")) {
+                return source;
+            }
+            if (source.toString().matches("[a-zA-Z0-9[-_\\/\\(\\)\\{\\}\\[\\]\\#\\@\\$]]*")) {
+                return source;
+            }
+            return "";
+        }
+    };
 
     protected void onAddScene() {
         // need to select which gateway if there are multiple
@@ -381,11 +405,15 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         if (gateway == null) {
             return;
         }
-        final EditText et = new EditText(getActivity());
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        final View alertView = inflater.inflate(R.layout.dialog_add_scene, null);
+        final EditText et = (EditText)alertView.findViewById(R.id.scene_name);
+        et.setFilters(new InputFilter[] { acceptedFilter});
+
         AlertDialog dlg = new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.add_scene_title)
-                .setMessage(R.string.add_scene_message)
-                .setView(et)
+                .setView(alertView)
                 .setPositiveButton(R.string.add_scene, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -423,6 +451,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         Log.d(LOG_TAG, "onDeleteScene");
         String msg = getResources().getString(R.string.confirm_delete_scene_body, _selectedScene.sceneName);
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_scene)
                 .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
