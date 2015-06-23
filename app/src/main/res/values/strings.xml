@@ -507,5 +507,7 @@
     <string name="scene_delete_complete">Delete Scene Complete</string>
     <string name="scene_delete_failed">Delete Scene Failed</string>
     <string name="scene_name_hint">Unique Scene Name</string>
+    <string name="no_devices">No Devices</string>
+    <string name="no_gateway">No Gateway</string>
 
 </resources>
