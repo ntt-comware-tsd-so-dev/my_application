@@ -20,6 +20,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:inputType="textCapWords"
+        android:imeOptions="actionDone"
         android:hint="@string/scene_name_hint"
         />
 

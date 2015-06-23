@@ -241,8 +241,6 @@ public class ZigbeeSceneManager {
     }
 
     public void deleteScene(AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
-        scene.nodeDsns = null;
-        scene.nodes = null;
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.deleteScene(new DeleteHandler(this, scene.sceneName, tag, handler), scene, callParams, false);
