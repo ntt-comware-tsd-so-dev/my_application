@@ -50,6 +50,12 @@ import java.util.Set;
  * Additional instances of the DeviceManager should not be created.
  */
 public class DeviceManager implements DeviceStatusListener {
+
+    private final static String LOG_TAG = "DeviceManager";
+
+    private int _deviceListPollInterval = 30000;
+    private int _deviceStatusPollInterval = 5000;
+
     private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
 
     /** Interfaces */
@@ -351,7 +357,7 @@ public class DeviceManager implements DeviceStatusListener {
      * Starts polling for device list and status changes
      */
     public void startPolling() {
-        Logger.logDebug(LOG_TAG, "rn: startPolling");
+        Logger.logDebug(LOG_TAG, "poll: startPolling");
         stopPollingWithLog(false);
         _pollingStopped = false;
         _deviceListTimerRunnable.run();
@@ -369,7 +375,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     private void stopPollingWithLog(boolean verbose) {
         if (verbose) {
-            Logger.logDebug(LOG_TAG, "rn: stopPolling");
+            Logger.logDebug(LOG_TAG, "poll: stopPolling");
         }
         _pollingStopped = true;
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
@@ -633,8 +639,6 @@ public class DeviceManager implements DeviceStatusListener {
 
      /** Private members */
 
-    private final static String LOG_TAG = "DeviceManager";
-
     private List<Device> _deviceList;
     private Set<DeviceListListener> _deviceListListeners;
     private Set<DeviceStatusListener> _deviceStatusListeners;
@@ -642,9 +646,6 @@ public class DeviceManager implements DeviceStatusListener {
     // This is set to true while we are attempting to enable LAN mode.
     // Device queries should be disabled while this is true.
     private boolean _startingLANMode = false;
-
-    private int _deviceListPollInterval = 30000;
-    private int _deviceStatusPollInterval = 5000;
 
     // Default comparator uses the device's compareTo method. Can be updated with setComparator().
     private Comparator<Device> _deviceComparator = new Comparator<Device>() {
@@ -814,15 +815,14 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void run() {
             if (_pollingStopped) {
-                Logger.logDebug(LOG_TAG, "rn: polling stopped.");
+                Logger.logDebug(LOG_TAG, "poll:d polling stopped.");
                 return;
             }
-            Log.v(LOG_TAG, "Device List Timer");
-
             if ( _startingLANMode ) {
-                Log.i(LOG_TAG, "Not querying device list while entering LAN mode");
+                Logger.logInfo(LOG_TAG, "poll:d Not querying device list while entering LAN mode");
                 return;
             }
+            Logger.logVerbose(LOG_TAG, "poll:Device List Timer");
 
             fetchDeviceList();
             getGroupManager().fetchDeviceGroups();
@@ -832,7 +832,7 @@ public class DeviceManager implements DeviceStatusListener {
                 _deviceListTimerHandler.removeCallbacksAndMessages(null);
                 _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
             } else {
-                Log.d(LOG_TAG, "Device List Timer: Nobody listening or in LAN mode");
+                Logger.logDebug(LOG_TAG, "poll:Device List Timer: Nobody listening or in LAN mode");
             }
         }
     };
@@ -843,31 +843,29 @@ public class DeviceManager implements DeviceStatusListener {
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
-            Log.v(LOG_TAG, "Device Status Timer");
-
             if ( _pollingStopped ) {
-                Log.d(LOG_TAG, "Polling manually stopped- not polling");
+                Logger.logDebug(LOG_TAG, "poll:s polling stopped");
                 return;
             }
-
             // If we're in the process of entering LAN mode, don't query devices yet.
             if ( _startingLANMode ) {
-                Log.i(LOG_TAG, "Not querying device status while entering LAN mode");
+                Logger.logInfo(LOG_TAG, "poll:s Not querying device status while entering LAN mode");
                 return;
             }
+            Logger.logVerbose(LOG_TAG, "poll:Device Status Timer");
 
             // Update each device via the service. We need to do this one device at a time; the
             // library does not handle a series of requests all at once at this time.
             if ( _devicesToPoll == null ) {
                 if ( _deviceList != null ) {
-                    _devicesToPoll = new ArrayList<Device>(_deviceList);
+                    _devicesToPoll = new ArrayList<>(_deviceList);
                 }
                 updateNextDeviceStatus();
             } else {
-                Log.d(LOG_TAG, "Still not done polling from the last timer event.");
-                Log.v(LOG_TAG, "Current queue is:");
+                Logger.logDebug(LOG_TAG, "poll:s Still not done polling from the last timer event.");
+                Logger.logVerbose(LOG_TAG, "poll:s Current queue is:");
                 for ( Device d : _devicesToPoll ) {
-                    Log.v(LOG_TAG, d.getDevice().getProductName());
+                    Logger.logVerbose(LOG_TAG, d.getDevice().getProductName());
                 }
                 updateNextDeviceStatus();
             }
@@ -877,27 +875,27 @@ public class DeviceManager implements DeviceStatusListener {
                 _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
                 _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
             } else {
-                Log.d(LOG_TAG, "Device Status Timer: Nobody listening.");
+                Logger.logDebug(LOG_TAG, "poll:Device Status Timer: Nobody listening.");
             }
         }
     };
 
     private void updateNextDeviceStatus() {
-        Log.v(LOG_TAG, "updateNextDeviceStatus");
+        Logger.logVerbose(LOG_TAG, "updateNextDeviceStatus");
         if ( _startingLANMode ) {
-            Log.d(LOG_TAG, "Not updating status while entering LAN mode");
+            Logger.logDebug(LOG_TAG, "Not updating status while entering LAN mode");
             return;
         }
 
         if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
             // We're done.
             _devicesToPoll = null;
-            Log.v(LOG_TAG, "No more devices to poll");
+            Logger.logVerbose(LOG_TAG, "No more devices to poll");
             return;
         }
 
         Device d = _devicesToPoll.remove(0);
-        Log.v(LOG_TAG, "Updating status for " + d.getDevice().productName);
+        Logger.logVerbose(LOG_TAG, "poll: device status [" + d.getDeviceDsn() + ":" + d.getDevice().productName + "]");
         if ( _devicesToPoll.size() == 0 ) {
             _devicesToPoll = null;
         }

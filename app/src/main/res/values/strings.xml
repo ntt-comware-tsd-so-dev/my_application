@@ -494,7 +494,7 @@
     <string name="scene_update_title">Update Scene</string>
     <string name="scene_update_body">Updating scene...</string>
     <string name="scene_update_complete">Update Scene Complete</string>
-    <string name="scene_add_info">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene.</string>
+    <string name="scene_add_info">Select the devices that you want in the scene.  Set up the devices in the state that you want the scene set.</string>
     <string name="scene_add_info_multiple_gateway">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene. All devices must be attached to the same gateway.</string>
     <string name="confirm_delete_scene_body" formatted="false">Do you wish to remove the scene \"%s\"?</string>
     <string name="confirm_delete_scene">Delete Scene?</string>
