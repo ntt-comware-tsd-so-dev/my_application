@@ -967,36 +967,39 @@ public class Device implements Comparable<Device> {
             h._deviceStatusTextView.setText(getDeviceState());
         }
 
-        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+        if ( h._sceneDeviceEntity != null) {
+            h._spinner.setVisibility(View.GONE);
+        } else {
+            h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
 
-        if ( h._expandedLayout != null ) {
-            h._expandedLayout.setVisibility(h.getPosition() == GenericDeviceViewHolder._expandedIndex ? View.VISIBLE : View.GONE);
-            // Set up handlers for the buttons in the expanded view
-            h._notificationsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(Device.this));
-                }
-            });
-            h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+            if ( h._expandedLayout != null ) {
+                h._expandedLayout.setVisibility(h.getPosition() == GenericDeviceViewHolder._expandedIndex ? View.VISIBLE : View.GONE);
+                // Set up handlers for the buttons in the expanded view
+                h._notificationsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(Device.this));
+                    }
+                });
+                h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
 
-            h._scheduleButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(ScheduleContainerFragment.newInstance(Device.this));
-                }
-            });
-            h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+                h._scheduleButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance().pushFragment(ScheduleContainerFragment.newInstance(Device.this));
+                    }
+                });
+                h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
 
-            h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.card_text), PorterDuff.Mode.SRC_ATOP);
-            h._detailsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(DeviceDetailFragment.newInstance(Device.this));
-                }
-            });
+                h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.card_text), PorterDuff.Mode.SRC_ATOP);
+                h._detailsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance().pushFragment(DeviceDetailFragment.newInstance(Device.this));
+                    }
+                });
+            }
         }
-
 
         // Is this a shared device?
         Resources res = MainActivity.getInstance().getResources();

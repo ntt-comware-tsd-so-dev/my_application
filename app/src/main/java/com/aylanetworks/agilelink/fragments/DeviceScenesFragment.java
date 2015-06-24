@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.fragments;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Message;
@@ -9,6 +10,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,11 +19,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
@@ -30,6 +35,8 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
+import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceListAdapter;
+import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceSelectionAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
@@ -50,10 +57,12 @@ import java.util.List;
 public class DeviceScenesFragment extends AllDevicesFragment implements DeviceManager.GetDeviceComparable {
     private static final String LOG_TAG = "DeviceScenesFragment";
 
-    private HorizontalScrollView _buttonScrollView;
+    // TODO: we need a way to select gateway
 
-    private AylaSceneZigbee _selectedScene;
-    private Gateway _selectedSceneGateway;
+    protected HorizontalScrollView _buttonScrollView;
+
+    protected AylaSceneZigbee _selectedScene;
+    protected Gateway _selectedSceneGateway;
 
     public static DeviceScenesFragment newInstance() {
         return new DeviceScenesFragment();
@@ -121,7 +130,32 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         return true;
     }
 
-    List<AylaSceneZigbee> getScenes() {
+    @Override
+    public DeviceListAdapter getDeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
+        return new SceneDeviceListAdapter(_selectedSceneGateway, _selectedScene, listener);
+    }
+
+    @Override
+    public void updateDeviceList() {
+        _adapter = new SceneDeviceListAdapter(_selectedSceneGateway, _selectedScene, this);
+        _recyclerView.setAdapter(_adapter);
+        if (_selectedScene != null) {
+            if (_adapter.getItemCount() == 0) {
+                _emptyView.setText(R.string.no_devices_in_scene);
+                _recyclerView.setVisibility(View.GONE);
+                _emptyView.setVisibility(View.VISIBLE);
+            } else {
+                _recyclerView.setVisibility(View.VISIBLE);
+                _emptyView.setVisibility(View.GONE);
+            }
+        } else {
+            _recyclerView.setVisibility(View.GONE);
+            _emptyView.setText(R.string.scene_empty_text);
+            _emptyView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    protected List<AylaSceneZigbee> getScenes() {
         List<AylaSceneZigbee> scenes = new ArrayList<>();
         if (SessionManager.deviceManager() != null) {
             // get the scenes for all the gateways
@@ -134,28 +168,6 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             }
         }
         return scenes;
-    }
-
-    protected void updateDeviceList() {
-        if (_selectedScene != null) {
-            List<Device> selectedGroupDeviceList = _selectedSceneGateway.getDevicesForScene(_selectedScene);
-            _adapter = new DeviceListAdapter(selectedGroupDeviceList, this);
-            _recyclerView.setAdapter(_adapter);
-            if ( selectedGroupDeviceList.isEmpty() ) {
-                _emptyView.setText(R.string.no_devices_in_scene);
-                _recyclerView.setVisibility(View.GONE);
-                _emptyView.setVisibility(View.VISIBLE);
-            } else {
-                _recyclerView.setVisibility(View.VISIBLE);
-                _emptyView.setVisibility(View.GONE);
-            }
-        } else {
-            _adapter = new DeviceListAdapter(null, this);
-            _recyclerView.setAdapter(_adapter);
-            _recyclerView.setVisibility(View.GONE);
-            _emptyView.setText(R.string.scene_empty_text);
-            _emptyView.setVisibility(View.VISIBLE);
-        }
     }
 
     protected void createSceneButtonHeader() {
@@ -276,7 +288,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         updateDeviceList();
     }
 
-    void updateSceneDevices(List<Device> newSceneList) {
+    protected void updateSceneDevices(List<Device> newSceneList) {
         MainActivity.getInstance().showWaitDialog(R.string.scene_update_title, R.string.scene_update_body);
         _selectedSceneGateway.updateSceneDevices(_selectedScene, newSceneList, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
@@ -296,49 +308,126 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     protected void onAddDeviceToScene() {
         // only devices for this gateway
         List<Device> sceneDevices = _selectedSceneGateway.getDevicesForScene(_selectedScene);
-        final List<Device> allDevices = _selectedSceneGateway.getDevicesOfComparableType(this);
-        final String deviceNames[] = new String[allDevices.size()];
-        final boolean isSceneMember[] = new boolean[allDevices.size()];
+        if ((sceneDevices != null) && (sceneDevices.size() > 0)) {
+            final List<Device> allDevices = _selectedSceneGateway.getDevicesOfComparableType(this);
+            final String deviceNames[] = new String[allDevices.size()];
+            final boolean isSceneMember[] = new boolean[allDevices.size()];
 
-        for (int i = 0; i < allDevices.size(); i++) {
-            Device d = allDevices.get(i);
-            deviceNames[i] = d.toString();
-            isSceneMember[i] = DeviceManager.isDsnInDeviceList(d.getDeviceDsn(), sceneDevices);
-        }
+            for (int i = 0; i < allDevices.size(); i++) {
+                Device d = allDevices.get(i);
+                deviceNames[i] = d.toString();
+                isSceneMember[i] = DeviceManager.isDsnInDeviceList(d.getDeviceDsn(), sceneDevices);
+            }
 
-        new AlertDialog.Builder(getActivity())
-                .setIcon(R.drawable.ic_launcher)
-                .setTitle(R.string.choose_scene_devices)
-                .setMultiChoiceItems(deviceNames, isSceneMember, new DialogInterface.OnMultiChoiceClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                        isSceneMember[which] = isChecked;
-                    }
-                })
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        List<Device> newSceneList = new ArrayList<>();
-                        for (int i = 0; i < allDevices.size(); i++) {
-                            Device d = allDevices.get(i);
-                            if (isSceneMember[i]) {
-                                newSceneList.add(d);
-                            }
+            new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.choose_scene_devices)
+                    .setMultiChoiceItems(deviceNames, isSceneMember, new DialogInterface.OnMultiChoiceClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                            isSceneMember[which] = isChecked;
                         }
-                        updateSceneDevices(newSceneList);
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .create().show();
+                    })
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            List<Device> newSceneList = new ArrayList<>();
+                            for (int i = 0; i < allDevices.size(); i++) {
+                                Device d = allDevices.get(i);
+                                if (isSceneMember[i]) {
+                                    newSceneList.add(d);
+                                }
+                            }
+                            updateSceneDevices(newSceneList);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create().show();
+        } else {
+            Toast.makeText(getActivity(), R.string.no_devices, Toast.LENGTH_SHORT).show();
+        }
     }
 
-    void addSceneAdvanced() {
+    protected SceneDeviceSelectionAdapter newSceneDeviceListAdapter(List<Device> list) {
+        Device[] objects = new Device[list.size()];
+        list.toArray(objects);
+        return new SceneDeviceSelectionAdapter(getActivity(), objects);
+    }
+
+    protected void addScene(final Gateway gateway, final String name, final List<Device> devices) {
+        if (TextUtils.isEmpty(name)) {
+            Logger.logError(LOG_TAG, "zs: no name entered!");
+            return;
+        }
+        MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
+        gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+            @Override
+            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if (AylaNetworks.succeeded(msg)) {
+                    Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+                    _selectedScene = gateway.getSceneByName(name);
+                    _selectedSceneGateway = gateway;
+                    deviceListChanged();
+                    if ((devices == null) || (devices.size() == 0)) {
+                        onAddDeviceToScene();
+                    }
+                } else {
+                    Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    // Should show only the allowed characters in the soft keyboard too
+    // http://www.infiniterecursion.us/2011/02/android-activity-custom-keyboard.html
+
+    // These are the only characters allowed in a Scene name.
+    protected InputFilter acceptedFilter = new InputFilter() {
+        @Override
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+            if (source.equals("")) {
+                return source;
+            }
+            if (source.toString().matches("[a-zA-Z0-9[-_\\/\\(\\)\\{\\}\\[\\]\\#\\@\\$]]*")) {
+                return source;
+            }
+            return "";
+        }
+    };
+
+    protected class DoneOnEditorActionListener implements TextView.OnEditorActionListener {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                InputMethodManager imm = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    protected void onAddSceneAdvanced() {
+        // TODO: need to select which gateway if there are multiple
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        final Gateway gateway = gateways.isEmpty() ? null: gateways.get(0);
+        if (gateway == null) {
+            Toast.makeText(getActivity(), R.string.no_gateway, Toast.LENGTH_SHORT).show();
+            return;
+        }
         // Instruct the user to setup the scene the way that they want it... with the lights
         // and plugs in the state that they want.
         LayoutInflater inflater = LayoutInflater.from(getActivity());
-        final View alertView = inflater.inflate(R.layout.dialog_add_scene, null);
-        ListView list = (ListView)alertView.findViewById(R.id.list);
+        final View alertView = inflater.inflate(R.layout.dialog_add_scene_list, null);
+        final EditText et = (EditText)alertView.findViewById(R.id.scene_name);
+        et.setFilters(new InputFilter[] { acceptedFilter});
+        et.setOnEditorActionListener(new DoneOnEditorActionListener());
+        final List<Device> devices = gateway.getDevicesOfComparableType(this);
+        final SceneDeviceSelectionAdapter adapter = newSceneDeviceListAdapter(devices);
+        ListView listView = (ListView)alertView.findViewById(R.id.list);
+        listView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
 
         final AlertDialog dlg = new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -357,6 +446,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
 
                     @Override
                     public void onClick(View view) {
+                        String name = et.getText().toString();
+                        if (TextUtils.isEmpty(name)) {
+                            et.requestFocus();
+                        } else {
+                            addScene(gateway, name, adapter.getSelectedDevices());
+                            dlg.dismiss();
+                        }
                     }
                 });
             }
@@ -364,51 +460,12 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         dlg.show();
     }
 
-    void addScene(final Gateway gateway, final String name) {
-        if (TextUtils.isEmpty(name)) {
-            Logger.logError(LOG_TAG, "zs: no name entered!");
-            return;
-        }
-        MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
-        gateway.createScene(name, null, this, new Gateway.AylaGatewayCompletionHandler() {
-            @Override
-            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                MainActivity.getInstance().dismissWaitDialog();
-                if (AylaNetworks.succeeded(msg)) {
-                    Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
-                    _selectedScene = gateway.getSceneByName(name);
-                    _selectedSceneGateway = gateway;
-                    updateDeviceList();
-                    onAddDeviceToScene();
-                } else {
-                    Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-    }
-
-    // Should show only the allowed characters in the soft keyboard too
-    // http://www.infiniterecursion.us/2011/02/android-activity-custom-keyboard.html
-
-    // These are the only characters allowed in a Scene name.
-    InputFilter acceptedFilter = new InputFilter() {
-        @Override
-        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-            if (source.equals("")) {
-                return source;
-            }
-            if (source.toString().matches("[a-zA-Z0-9[-_\\/\\(\\)\\{\\}\\[\\]\\#\\@\\$]]*")) {
-                return source;
-            }
-            return "";
-        }
-    };
-
-    protected void onAddScene() {
+    protected void onAddSceneSimple() {
         // need to select which gateway if there are multiple
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         final Gateway gateway = gateways.isEmpty() ? null: gateways.get(0);
         if (gateway == null) {
+            Toast.makeText(getActivity(), R.string.no_gateway, Toast.LENGTH_SHORT).show();
             return;
         }
         LayoutInflater inflater = LayoutInflater.from(getActivity());
@@ -423,14 +480,18 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 .setPositiveButton(R.string.add_scene, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        addScene(gateway, et.getText().toString());
+                        addScene(gateway, et.getText().toString(), null);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
         dlg.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         dlg.show();
+    }
 
+    protected void onAddScene() {
+        onAddSceneAdvanced();
+        //onAddSceneSimple();
     }
 
     protected void onActivateScene() {
@@ -450,7 +511,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
     }
 
-    void deleteScene(AylaSceneZigbee scene) {
+    protected void deleteScene(AylaSceneZigbee scene) {
         MainActivity.getInstance().showWaitDialog(R.string.scene_delete_title, R.string.scene_delete_body);
         _selectedSceneGateway.deleteScene(scene, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override

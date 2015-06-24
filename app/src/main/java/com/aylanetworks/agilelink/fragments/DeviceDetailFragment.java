@@ -65,7 +65,10 @@ import java.util.TimeZone;
  */
 
 public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener, Gateway.AylaGatewayCompletionHandler {
+
     public final static String LOG_TAG = "DeviceDetailFragment";
+
+    public final static int FRAGMENT_RESOURCE_ID = R.layout.fragment_device_detail;
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
 
@@ -108,7 +111,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_device_detail, container, false);
+        View view = inflater.inflate(FRAGMENT_RESOURCE_ID, container, false);
 
         _listView = (ListView)view.findViewById(R.id.listView);
         _titleView = (TextView)view.findViewById(R.id.device_name);

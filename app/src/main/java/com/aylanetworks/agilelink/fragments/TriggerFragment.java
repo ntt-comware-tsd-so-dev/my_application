@@ -60,6 +60,8 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     AylaBindingZigbee _closeTurnOffBinding;
     int _setupErrors;
     int _fixCount;
+    View _errorContainer;
+    TextView _errorMessage;
 
     ListView _listView;
     ArrayAdapter<String> _adapter;
@@ -72,9 +74,6 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     Button _turnOff;
     Button _removeOn;
     Button _removeOff;
-
-    View _errorContainer;
-    TextView _errorMessage;
 
     public static TriggerFragment newInstance(Device device) {
         TriggerFragment frag = new TriggerFragment();
@@ -108,6 +107,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         } else {
             _gateway = Gateway.getGatewayForDeviceNode(_device);
 
+            // group/binding error message area
             _errorContainer = view.findViewById(R.id.error_container);
             Button errorButton = (Button)view.findViewById(R.id.error_fix);
             errorButton.setOnClickListener(this);
@@ -414,7 +414,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
                 .create().show();
     }
 
-    private void fixTriggersClicked() {
+    private void fixGroupBindingClicked() {
         MainActivity.getInstance().showWaitDialog(R.string.trigger_action_fix_title, R.string.trigger_action_fix_body);
         _device.fixRegistrationForGatewayDevice(_gateway, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
@@ -453,7 +453,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
                 break;
 
             case R.id.error_fix:
-                fixTriggersClicked();
+                fixGroupBindingClicked();
                 break;
         }
     }

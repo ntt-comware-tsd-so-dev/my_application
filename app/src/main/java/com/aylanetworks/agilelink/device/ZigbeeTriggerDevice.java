@@ -451,16 +451,18 @@ public class ZigbeeTriggerDevice extends Device  {
 
     void dequeSetComplete(DequeSet dequeSet, Object tag) {
 
-        // make sure we still care...
-        if (_currentDequeSet == dequeSet) {
-            Gateway gateway = dequeSet.getGateway();
-            if (dequeSet.isSuccessful()) {
-                Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] success", (String)tag, this.getDeviceDsn(), gateway.getDeviceDsn());
-            } else {
-                Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] failure", (String)tag, this.getDeviceDsn(), gateway.getDeviceDsn());
+        synchronized (_currentDequeSetLock) {
+            // make sure we still care...
+            if (_currentDequeSet == dequeSet) {
+                Gateway gateway = dequeSet.getGateway();
+                if (dequeSet.isSuccessful()) {
+                    Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] success", (String) tag, this.getDeviceDsn(), gateway.getDeviceDsn());
+                } else {
+                    Logger.logInfo(LOG_TAG, "zg: %s [%s] on gateway [%s] failure", (String) tag, this.getDeviceDsn(), gateway.getDeviceDsn());
+                }
+                dequeSet.complete();
+                _currentDequeSet = null;
             }
-            dequeSet.complete();
-            _currentDequeSet = null;
         }
     }
 
@@ -485,6 +487,7 @@ public class ZigbeeTriggerDevice extends Device  {
             }
         }
     }
+
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
         setupTriggers(gateway, null, null);

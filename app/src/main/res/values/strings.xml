@@ -433,6 +433,11 @@
     <string name="remote_unpair_body">Are you sure you want to unpair from remote?</string>
     <string name="remote_unpair_toast">Unpair Complete</string>
 
+    <string name="remote_action_fix_title">Fix Remote</string>
+    <string name="remote_action_fix_body">Updating group/binding for device</string>
+    <string name="remote_action_fix_complete">Fix Remote Complete</string>
+    <string name="remote_action_fix_failure">Fix Remote Failed</string>
+
     <string name="help">Help</string>
     <string name="about_amap">About AMAP</string>
     <string name="get_started">Getting Started</string>
@@ -494,7 +499,7 @@
     <string name="scene_update_title">Update Scene</string>
     <string name="scene_update_body">Updating scene...</string>
     <string name="scene_update_complete">Update Scene Complete</string>
-    <string name="scene_add_info">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene.</string>
+    <string name="scene_add_info">Select the devices that you want in the scene.  Set up the devices in the state that you want the scene set.</string>
     <string name="scene_add_info_multiple_gateway">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene. All devices must be attached to the same gateway.</string>
     <string name="confirm_delete_scene_body" formatted="false">Do you wish to remove the scene \"%s\"?</string>
     <string name="confirm_delete_scene">Delete Scene?</string>
@@ -507,5 +512,7 @@
     <string name="scene_delete_complete">Delete Scene Complete</string>
     <string name="scene_delete_failed">Delete Scene Failed</string>
     <string name="scene_name_hint">Unique Scene Name</string>
+    <string name="no_devices">No Devices</string>
+    <string name="no_gateway">No Gateway</string>
 
 </resources>

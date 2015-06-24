@@ -106,7 +106,8 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         return true;
     }
 
-    protected void updateDeviceList() {
+    @Override
+    public void updateDeviceList() {
         if (_selectedGroup != null) {
             List<Device> selectedGroupDeviceList = _selectedGroup.getDevices();
             _adapter = new DeviceListAdapter(selectedGroupDeviceList, this);
@@ -249,41 +250,45 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     protected void onAddDeviceToGroup() {
         final List<Device> allDevices = SessionManager.deviceManager().deviceList();
-        final String deviceNames[] = new String[allDevices.size()];
-        final boolean isGroupMember[] = new boolean[allDevices.size()];
+        if ((allDevices != null) && (allDevices.size() > 0)) {
+            final String deviceNames[] = new String[allDevices.size()];
+            final boolean isGroupMember[] = new boolean[allDevices.size()];
 
-        for (int i = 0; i < allDevices.size(); i++) {
-            Device d = allDevices.get(i);
-            deviceNames[i] = d.toString();
-            isGroupMember[i] = (_selectedGroup.isDeviceInGroup(d));
-        }
+            for (int i = 0; i < allDevices.size(); i++) {
+                Device d = allDevices.get(i);
+                deviceNames[i] = d.toString();
+                isGroupMember[i] = (_selectedGroup.isDeviceInGroup(d));
+            }
 
-        new AlertDialog.Builder(getActivity())
-                .setIcon(R.drawable.ic_launcher)
-                .setTitle(R.string.choose_group_devices)
-                .setMultiChoiceItems(deviceNames, isGroupMember, new DialogInterface.OnMultiChoiceClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                        isGroupMember[which] = isChecked;
-                    }
-                })
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        List<Device> newGroupList = new ArrayList<>();
-                        for (int i = 0; i < allDevices.size(); i++) {
-                            Device d = allDevices.get(i);
-                            if (isGroupMember[i]) {
-                                newGroupList.add(d);
-                            }
+            new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.choose_group_devices)
+                    .setMultiChoiceItems(deviceNames, isGroupMember, new DialogInterface.OnMultiChoiceClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                            isGroupMember[which] = isChecked;
                         }
-                        _selectedGroup.setDevices(newGroupList);
-                        _selectedGroup.pushToServer();
-                        updateDeviceList();
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .create().show();
+                    })
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            List<Device> newGroupList = new ArrayList<>();
+                            for (int i = 0; i < allDevices.size(); i++) {
+                                Device d = allDevices.get(i);
+                                if (isGroupMember[i]) {
+                                    newGroupList.add(d);
+                                }
+                            }
+                            _selectedGroup.setDevices(newGroupList);
+                            _selectedGroup.pushToServer();
+                            updateDeviceList();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create().show();
+        } else {
+            Toast.makeText(getActivity(), R.string.no_devices, Toast.LENGTH_SHORT).show();
+        }
     }
 
     protected void onAddGroup() {
