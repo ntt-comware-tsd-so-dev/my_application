@@ -96,8 +96,12 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         return c.getResources().getDrawable(R.drawable.smart_plug);
     }
 
-    public Drawable getSwitchedDrawable(Resources res) {
-        return res.getDrawable(isOn() ? R.drawable.ic_power_on : R.drawable.ic_power_off);
+    public Drawable getSwitchedDrawable(Resources res, boolean isOn) {
+        return res.getDrawable(isOn ? R.drawable.ic_power_on : R.drawable.ic_power_off);
+    }
+
+    protected Drawable getSwitchedDrawable(Resources res) {
+        return getSwitchedDrawable(res, isOn());
     }
 
     public Drawable getSwitchedPendingDrawable(Resources res) {

@@ -44,8 +44,8 @@ public class ZigbeeLightDevice extends ZigbeeSwitchedDevice implements View.OnCl
     }
 
     @Override
-    public Drawable getSwitchedDrawable(Resources res) {
-        return res.getDrawable(isOn() ? R.drawable.ic_light_on : R.drawable.ic_light_off);
+    public Drawable getSwitchedDrawable(Resources res, boolean isOn) {
+        return res.getDrawable(isOn ? R.drawable.ic_light_on : R.drawable.ic_light_off);
     }
 
     @Override

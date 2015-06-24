@@ -1,148 +1,65 @@
 package com.aylanetworks.agilelink.fragments.adapters;
-/* 
- * SceneDeviceListAdapter
- * com.aylanetworks.agilelink.fragments.adapters
- * Agile_Link_Android
- *
- * Created by David N. Junod on 6/23/15.
- * Copyright (c) 2015 Ayla Networks. All rights reserved.
- */
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.Switch;
-import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaDatapoint;
-import com.aylanetworks.aaml.AylaProperty;
-import com.aylanetworks.agilelink.R;
+import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
+import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.Gateway;
+import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SceneDeviceListAdapter extends ArrayAdapter<Device> {
+/*
+ * DeviceListAdapter.java
+ * AgileLink Application Framework
+ *
+ * Created by David N. Junod on 06/23/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
+ */
 
-    final static String LOG_TAG = "SceneDeviceListAdapter";
+public class SceneDeviceListAdapter extends DeviceListAdapter {
+    private final static String LOG_TAG = "SceneDeviceListAdapter";
 
-    Device[] _devices;
-    boolean[] _checks;
+    Gateway _gateway;
+    AylaSceneZigbee _scene;
 
-    public SceneDeviceListAdapter(Context c, Device[] devices) {
-        super(c, R.layout.device_check_property, R.id.device_name, devices);
-        _devices = devices;
-        _checks = new boolean[devices.length];
+    private static List<Device> getDeviceList(Gateway gateway, AylaSceneZigbee scene) {
+        if ((gateway != null) && (scene != null)) {
+            return gateway.getDevicesForScene(scene);
+        }
+        return new ArrayList<Device>();
     }
 
-    public List<Device> getSelectedDevices() {
-        List<Device> list = new ArrayList<>();
-        for (int i = 0; i < _checks.length; i++) {
-            if (_checks[i]) {
-                list.add(_devices[i]);
-            }
-        }
-        return list;
+    public SceneDeviceListAdapter(Gateway gateway, AylaSceneZigbee scene, View.OnClickListener listener) {
+        super(getDeviceList(gateway, scene), listener);
+        _gateway = gateway;
+        _scene = scene;
     }
 
-    private static class CreateDatapointHandler extends Handler {
-        private WeakReference<Device> _device;
-        private AylaProperty _property;
-        private View _view;
-        private SceneDeviceListAdapter _listener;
-
-        public CreateDatapointHandler(Device device, AylaProperty property, View view, SceneDeviceListAdapter listener) {
-            _device = new WeakReference<Device>(device);
-            _property = property;
-            _view = view;
-            _listener = listener;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "zs: toggleValue");
-            SessionManager.deviceManager().statusUpdated(_device.get(), false);
-            if ( _listener != null ) {
-                _listener.updateView(_view);
+    public AylaSceneZigbeeNodeEntity getDeviceEntity(Device device) {
+        String dsn = device.getDeviceDsn();
+        for (AylaSceneZigbeeNodeEntity nodeEntity : _scene.nodes) {
+            if (TextUtils.equals(dsn, nodeEntity.dsn)) {
+                return nodeEntity;
             }
         }
-    }
-
-    void updateView(View view) {
-        Switch sv = (Switch)view.findViewById(R.id.device_property);
-        Device device = (Device)sv.getTag();
-        AylaProperty prop = device.getProperty(device.getObservablePropertyName());
-        if (prop != null) {
-            sv.setVisibility(View.VISIBLE);
-            boolean value = false;
-            try {
-                value = (prop.value != null && Integer.parseInt(prop.value) != 0);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            sv.setChecked(value);
-        } else {
-            sv.setVisibility(View.GONE);
-        }
+        return null;
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
-        final View view = super.getView(position, convertView, parent);
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
+        Device d = _deviceList.get(position);
+        h._sceneDeviceEntity = getDeviceEntity(d);
 
-        CheckBox cv = (CheckBox)view.findViewById(R.id.device_selected);
-        TextView tv = (TextView)view.findViewById(R.id.device_name);
-        Switch sv = (Switch)view.findViewById(R.id.device_property);
-
-        Device device = getItem(position);
-        view.setTag(device);
-        cv.setTag(device);
-        tv.setTag(device);
-        sv.setTag(device);
-
-        cv.setChecked(_checks[position]);
-        cv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                _checks[position] = ((CheckBox)v).isChecked();
-            }
-        });
-        tv.setText(device.getDevice().productName);
-
-        AylaProperty prop = device.getProperty(device.getObservablePropertyName());
-        if (prop != null) {
-            sv.setVisibility(View.VISIBLE);
-            boolean value = false;
-            try {
-                value = (prop.value != null && Integer.parseInt(prop.value) != 0);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            sv.setChecked(value);
-            sv.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Device device = (Device)v.getTag();
-                    AylaProperty prop = device.getProperty(device.getObservablePropertyName());
-                    Boolean newValue = "0".equals(prop.value);
-                    AylaDatapoint datapoint = new AylaDatapoint();
-                    datapoint.nValue(newValue ? 1 : 0);
-                    prop.value = newValue ? "1" : "0";
-                    final CreateDatapointHandler handler = new CreateDatapointHandler(device, prop, view, SceneDeviceListAdapter.this);
-                    prop.createDatapoint(handler, datapoint);
-                }
-            });
-        } else {
-            sv.setVisibility(View.GONE);
-        }
-
-        return view;
+        // Set the onClickListener for this view and set the index as the tag so we can
+        // retrieve it later
+        holder.itemView.setOnClickListener(_onClickListener);
+        holder.itemView.setTag(position);
+        d.bindViewHolder(holder);
     }
 }

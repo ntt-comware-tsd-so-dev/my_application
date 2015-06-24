@@ -36,6 +36,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceListAdapter;
+import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceSelectionAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
@@ -58,10 +59,10 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
 
     // TODO: we need a way to select gateway
 
-    HorizontalScrollView _buttonScrollView;
+    protected HorizontalScrollView _buttonScrollView;
 
-    AylaSceneZigbee _selectedScene;
-    Gateway _selectedSceneGateway;
+    protected AylaSceneZigbee _selectedScene;
+    protected Gateway _selectedSceneGateway;
 
     public static DeviceScenesFragment newInstance() {
         return new DeviceScenesFragment();
@@ -129,7 +130,32 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         return true;
     }
 
-    List<AylaSceneZigbee> getScenes() {
+    @Override
+    public DeviceListAdapter getDeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
+        return new SceneDeviceListAdapter(_selectedSceneGateway, _selectedScene, listener);
+    }
+
+    @Override
+    public void updateDeviceList() {
+        _adapter = new SceneDeviceListAdapter(_selectedSceneGateway, _selectedScene, this);
+        _recyclerView.setAdapter(_adapter);
+        if (_selectedScene != null) {
+            if (_adapter.getItemCount() == 0) {
+                _emptyView.setText(R.string.no_devices_in_scene);
+                _recyclerView.setVisibility(View.GONE);
+                _emptyView.setVisibility(View.VISIBLE);
+            } else {
+                _recyclerView.setVisibility(View.VISIBLE);
+                _emptyView.setVisibility(View.GONE);
+            }
+        } else {
+            _recyclerView.setVisibility(View.GONE);
+            _emptyView.setText(R.string.scene_empty_text);
+            _emptyView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    protected List<AylaSceneZigbee> getScenes() {
         List<AylaSceneZigbee> scenes = new ArrayList<>();
         if (SessionManager.deviceManager() != null) {
             // get the scenes for all the gateways
@@ -142,28 +168,6 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             }
         }
         return scenes;
-    }
-
-    protected void updateDeviceList() {
-        if (_selectedScene != null) {
-            List<Device> selectedGroupDeviceList = _selectedSceneGateway.getDevicesForScene(_selectedScene);
-            _adapter = new DeviceListAdapter(selectedGroupDeviceList, this);
-            _recyclerView.setAdapter(_adapter);
-            if ( selectedGroupDeviceList.isEmpty() ) {
-                _emptyView.setText(R.string.no_devices_in_scene);
-                _recyclerView.setVisibility(View.GONE);
-                _emptyView.setVisibility(View.VISIBLE);
-            } else {
-                _recyclerView.setVisibility(View.VISIBLE);
-                _emptyView.setVisibility(View.GONE);
-            }
-        } else {
-            _adapter = new DeviceListAdapter(null, this);
-            _recyclerView.setAdapter(_adapter);
-            _recyclerView.setVisibility(View.GONE);
-            _emptyView.setText(R.string.scene_empty_text);
-            _emptyView.setVisibility(View.VISIBLE);
-        }
     }
 
     protected void createSceneButtonHeader() {
@@ -284,7 +288,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         updateDeviceList();
     }
 
-    void updateSceneDevices(List<Device> newSceneList) {
+    protected void updateSceneDevices(List<Device> newSceneList) {
         MainActivity.getInstance().showWaitDialog(R.string.scene_update_title, R.string.scene_update_body);
         _selectedSceneGateway.updateSceneDevices(_selectedScene, newSceneList, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
@@ -344,13 +348,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
     }
 
-    SceneDeviceListAdapter newSceneDeviceListAdapter(List<Device> list) {
+    protected SceneDeviceSelectionAdapter newSceneDeviceListAdapter(List<Device> list) {
         Device[] objects = new Device[list.size()];
         list.toArray(objects);
-        return new SceneDeviceListAdapter(getActivity(), objects);
+        return new SceneDeviceSelectionAdapter(getActivity(), objects);
     }
 
-    void addScene(final Gateway gateway, final String name, final List<Device> devices) {
+    protected void addScene(final Gateway gateway, final String name, final List<Device> devices) {
         if (TextUtils.isEmpty(name)) {
             Logger.logError(LOG_TAG, "zs: no name entered!");
             return;
@@ -379,7 +383,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     // http://www.infiniterecursion.us/2011/02/android-activity-custom-keyboard.html
 
     // These are the only characters allowed in a Scene name.
-    InputFilter acceptedFilter = new InputFilter() {
+    protected InputFilter acceptedFilter = new InputFilter() {
         @Override
         public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
             if (source.equals("")) {
@@ -392,7 +396,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
     };
 
-    class DoneOnEditorActionListener implements TextView.OnEditorActionListener {
+    protected class DoneOnEditorActionListener implements TextView.OnEditorActionListener {
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -404,7 +408,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
     }
 
-    void onAddSceneAdvanced() {
+    protected void onAddSceneAdvanced() {
         // TODO: need to select which gateway if there are multiple
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         final Gateway gateway = gateways.isEmpty() ? null: gateways.get(0);
@@ -420,7 +424,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         et.setFilters(new InputFilter[] { acceptedFilter});
         et.setOnEditorActionListener(new DoneOnEditorActionListener());
         final List<Device> devices = gateway.getDevicesOfComparableType(this);
-        final SceneDeviceListAdapter adapter = newSceneDeviceListAdapter(devices);
+        final SceneDeviceSelectionAdapter adapter = newSceneDeviceListAdapter(devices);
         ListView listView = (ListView)alertView.findViewById(R.id.list);
         listView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
@@ -456,7 +460,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         dlg.show();
     }
 
-    void onAddSceneSimple() {
+    protected void onAddSceneSimple() {
         // need to select which gateway if there are multiple
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         final Gateway gateway = gateways.isEmpty() ? null: gateways.get(0);
@@ -485,7 +489,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         dlg.show();
     }
 
-    void onAddScene() {
+    protected void onAddScene() {
         onAddSceneAdvanced();
         //onAddSceneSimple();
     }
@@ -507,7 +511,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
     }
 
-    void deleteScene(AylaSceneZigbee scene) {
+    protected void deleteScene(AylaSceneZigbee scene) {
         MainActivity.getInstance().showWaitDialog(R.string.scene_delete_title, R.string.scene_delete_body);
         _selectedSceneGateway.deleteScene(scene, this, new Gateway.AylaGatewayCompletionHandler() {
             @Override
