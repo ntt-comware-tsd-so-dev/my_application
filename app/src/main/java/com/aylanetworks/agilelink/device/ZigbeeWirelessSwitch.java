@@ -186,16 +186,18 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
 
     void setupRemoteComplete(InitializeRemote current) {
 
-        // make sure we still care...
-        if (_current == current) {
-            Gateway gateway = current.getGateway();
-            if (current.isSuccessful()) {
-                Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] success", this.getDeviceDsn(), gateway.getDeviceDsn());
-            } else {
-                Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] failure", this.getDeviceDsn(), gateway.getDeviceDsn());
+        synchronized (_currentLock) {
+            // make sure we still care...
+            if (_current == current) {
+                Gateway gateway = current.getGateway();
+                if (current.isSuccessful()) {
+                    Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] success", this.getDeviceDsn(), gateway.getDeviceDsn());
+                } else {
+                    Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s] failure", this.getDeviceDsn(), gateway.getDeviceDsn());
+                }
+                current.complete();
+                _current = null;
             }
-            current.complete();
-            _current = null;
         }
     }
 
