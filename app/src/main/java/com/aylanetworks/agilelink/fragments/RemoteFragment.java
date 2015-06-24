@@ -26,6 +26,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
+import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
@@ -43,6 +46,8 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
 
     public final static String LOG_TAG = "RemoteFragment";
 
+    private final static int FRAGMENT_RESOURCE_ID = R.layout.fragment_remote_detail;
+
     private static final String ARG_DSN = "dsn";
 
     Device _device;
@@ -50,9 +55,15 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     ListView _listView;
     SimpleDeviceListAdapter _adapter;
     TextView _titleView;
+    TextView _dsnView;
     ImageView _imageView;
     Button _addButton;
     Button _removeButton;
+
+    int _setupErrors;
+    int _fixCount;
+    View _errorContainer;
+    TextView _errorMessage;
 
     class SimpleDeviceListAdapter extends ArrayAdapter<Device> {
 
@@ -102,7 +113,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_remote_detail, container, false);
+        View view = inflater.inflate(FRAGMENT_RESOURCE_ID, container, false);
 
         if (( _device == null) || !_device.isDeviceNode()) {
             Log.e(LOG_TAG, "Unable to find device!");
@@ -112,8 +123,15 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
         } else {
             _gateway = Gateway.getGatewayForDeviceNode(_device);
 
+            // group/binding error message area
+            _errorContainer = view.findViewById(R.id.error_container);
+            Button errorButton = (Button)view.findViewById(R.id.error_fix);
+            errorButton.setOnClickListener(this);
+            _errorMessage = (TextView)view.findViewById(R.id.error_message);
+
             _listView = (ListView) view.findViewById(R.id.listView);
             _titleView = (TextView) view.findViewById(R.id.device_name);
+            _dsnView = (TextView) view.findViewById(R.id.device_dsn);
             _imageView = (ImageView) view.findViewById(R.id.device_image);
 
             _addButton = (Button) view.findViewById(R.id.add_button);
@@ -144,10 +162,64 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 }
             }
 
-            updateUI();
+            updateGroups();
         }
 
         return view;
+    }
+
+    void updateGroups() {
+        int errors = 0;
+
+        AylaBindingZigbee binding;
+        AylaGroupZigbee group;
+
+        if (_device instanceof RemoteSwitchDevice) {
+            // we are a remote
+            if (_device instanceof ZigbeeWirelessSwitch) {
+                ZigbeeWirelessSwitch remote = (ZigbeeWirelessSwitch)_device;
+                group = remote.getRemoteGroup();
+                if (group == null) {
+                    Logger.logError(LOG_TAG, "rm: no group found for [%s]", remote.getDeviceDsn());
+                    errors++;
+                }
+                binding = remote.getRemoteBinding();
+                if (binding == null) {
+                    Logger.logError(LOG_TAG, "rm: no binding found for [%s]", remote.getDeviceDsn());
+                    errors++;
+                }
+            }
+        } else {
+            // we are a device
+            List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+            for (Device device : remotes) {
+                if (device instanceof ZigbeeWirelessSwitch) {
+                    ZigbeeWirelessSwitch remote = (ZigbeeWirelessSwitch) device;
+                    group = remote.getRemoteGroup();
+                    if (group == null) {
+                        Logger.logError(LOG_TAG, "rm: no group found for [%s]", remote.getDeviceDsn());
+                        errors++;
+                    }
+                    binding = remote.getRemoteBinding();
+                    if (binding == null) {
+                        Logger.logError(LOG_TAG, "rm: no binding found for [%s]", remote.getDeviceDsn());
+                        errors++;
+                    }
+                }
+            }
+        }
+
+        if (errors > 0 && _fixCount > 0) {
+            // Which one?
+            // if fixing it doesn't create the group & bindings again, usually a factory
+            // reset will help.
+            _errorMessage.setText(getString(R.string.trigger_setup_error_again));
+        }
+
+        _errorContainer.setVisibility((errors > 0) ? View.VISIBLE : View.GONE);
+        _setupErrors = errors;
+
+        updateUI();
     }
 
     void updateList() {
@@ -184,16 +256,11 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     }
 
     void updateUI() {
-        if ( _device == null ) {
-            Log.e(LOG_TAG, "Unable to find device!");
-            getFragmentManager().popBackStack();
-            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
-        } else {
-            // Set the device title and image
-            _titleView.setText(_device.toString());
-            _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
-            updateList();
-        }
+        // Set the device title and image
+        _titleView.setText(_device.toString());
+        _dsnView.setText(_device.getDeviceDsn());
+        _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
+        updateList();
     }
 
     @Override
@@ -410,6 +477,57 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
         }
     }
 
+    private void fixGroupBindingClicked() {
+        MainActivity.getInstance().showWaitDialog(R.string.remote_action_fix_title, R.string.remote_action_fix_body);
+
+        if (_device instanceof RemoteSwitchDevice) {
+            // we are a remote
+            if (_device instanceof ZigbeeWirelessSwitch) {
+                ZigbeeWirelessSwitch remote = (ZigbeeWirelessSwitch)_device;
+                remote.fixRegistrationForGatewayDevice(_gateway, this, new Gateway.AylaGatewayCompletionHandler() {
+                    @Override
+                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        _fixCount++;
+                        updateGroups();
+                        Toast.makeText(getActivity(), AylaNetworks.succeeded(msg) ? R.string.remote_action_fix_complete : R.string.remote_action_fix_failure, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        } else {
+            // we are a device
+            List<Device> remotes = _gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
+            for (Device device : remotes) {
+                if (device instanceof ZigbeeWirelessSwitch) {
+                    ZigbeeWirelessSwitch remote = (ZigbeeWirelessSwitch) device;
+                    int errors = 0;
+                    AylaGroupZigbee group = remote.getRemoteGroup();
+                    if (group == null) {
+                        Logger.logError(LOG_TAG, "rm: no group found for [%s]", remote.getDeviceDsn());
+                        errors++;
+                    }
+                    AylaBindingZigbee binding = remote.getRemoteBinding();
+                    if (binding == null) {
+                        Logger.logError(LOG_TAG, "rm: no binding found for [%s]", remote.getDeviceDsn());
+                        errors++;
+                    }
+                    if (errors > 0) {
+                        remote.fixRegistrationForGatewayDevice(_gateway, this, new Gateway.AylaGatewayCompletionHandler() {
+                            @Override
+                            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                                MainActivity.getInstance().dismissWaitDialog();
+                                _fixCount++;
+                                updateGroups();
+                                Toast.makeText(getActivity(), AylaNetworks.succeeded(msg) ? R.string.remote_action_fix_complete : R.string.remote_action_fix_failure, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -419,6 +537,10 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
 
             case R.id.remove_button:
                 removeButtonClicked();
+                break;
+
+            case R.id.error_fix:
+                fixGroupBindingClicked();
                 break;
         }
     }

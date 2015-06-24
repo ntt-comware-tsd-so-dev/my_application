@@ -433,6 +433,11 @@
     <string name="remote_unpair_body">Are you sure you want to unpair from remote?</string>
     <string name="remote_unpair_toast">Unpair Complete</string>
 
+    <string name="remote_action_fix_title">Fix Remote</string>
+    <string name="remote_action_fix_body">Updating group/binding for device</string>
+    <string name="remote_action_fix_complete">Fix Remote Complete</string>
+    <string name="remote_action_fix_failure">Fix Remote Failed</string>
+
     <string name="help">Help</string>
     <string name="about_amap">About AMAP</string>
     <string name="get_started">Getting Started</string>

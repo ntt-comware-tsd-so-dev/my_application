@@ -485,6 +485,7 @@ public class ZigbeeTriggerDevice extends Device  {
             }
         }
     }
+
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
         setupTriggers(gateway, null, null);
