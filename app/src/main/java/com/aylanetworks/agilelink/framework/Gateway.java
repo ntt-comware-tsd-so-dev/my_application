@@ -742,10 +742,19 @@ public class Gateway extends Device {
                     if (TextUtils.isEmpty(node.gatewayDsn)) {
                         node.gatewayDsn = gatewayDsn;
                     }
+
+                    // be sure to show a recognizable product name.
+                    boolean setname = false;
                     if (TextUtils.equals(node.productName, node.dsn)) {
+                        setname = true;
+                    } else if (!TextUtils.isEmpty(node.productName) && node.productName.startsWith("VR00ZN")) {
+                        setname = true;
+                    }
+                    if (setname) {
                         Device fakeDevice = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(node);
                         node.productName = fakeDevice.deviceTypeName();
                     }
+
                     Logger.logInfo(LOG_TAG, "rn: candidate DSN:%s amOwner:%s", node.dsn, amOwnerStr);
                     Logger.logDebug(LOG_TAG, "rn: candidate [%s]", node);
                     list.add(node);
