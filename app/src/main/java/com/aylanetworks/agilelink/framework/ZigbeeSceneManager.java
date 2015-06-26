@@ -56,6 +56,75 @@ public class ZigbeeSceneManager {
     }
 
     /**
+     * Get the device list for a given scene name.
+     * @param sceneName Scene name
+     * @return Device list across all Gateways.
+     */
+    public static List<Device> getDevicesForSceneName(String sceneName) {
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        List<Device> devices = new ArrayList<>();
+        if ((gateways != null) && (gateways.size() > 0)) {
+            for (Gateway gateway : gateways) {
+                AylaSceneZigbee scene = gateway.getSceneByName(sceneName);
+                if (scene != null) {
+                    devices.addAll(gateway.getDevicesForScene(scene));
+                }
+            }
+        }
+        return devices;
+    }
+
+    /**
+     * Get the AylaSceneZigbeeNodeEntity for a device.
+     * @param sceneName Scene name.
+     * @param device Device to search for.
+     * @return AylaSceneZigbeeNodeEntity for the device.
+     */
+    public static AylaSceneZigbeeNodeEntity getDeviceEntity(String sceneName, Device device) {
+        String dsn = device.getDeviceDsn();
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        if ((gateways != null) && (gateways.size() > 0)) {
+            for (Gateway gateway : gateways) {
+                AylaSceneZigbee scene = gateway.getSceneByName(sceneName);
+                if (scene != null) {
+                    // need the node entities...
+                    if (scene.nodes != null) {
+                        for (AylaSceneZigbeeNodeEntity nodeEntity : scene.nodes) {
+                            if (TextUtils.equals(dsn, nodeEntity.dsn)) {
+                                return nodeEntity;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the complete list of scene names across all gateways.
+     *
+     * @return List of scene names
+     */
+    public static List<String> getSceneNames() {
+        List<String> list = new ArrayList<>();
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        for (Gateway gateway : gateways) {
+            List<AylaSceneZigbee> scenes = gateway.getScenes();
+            if ((scenes != null) && (scenes.size() > 0)) {
+                for (AylaSceneZigbee scene : scenes) {
+                    // Not case-sensitive
+                    if (!list.contains(scene.sceneName)) {
+                        list.add(scene.sceneName);
+                    }
+                }
+            }
+        }
+        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        return list;
+    }
+
+    /**
      * Default constructor
      * @param gateway Gateway
      */

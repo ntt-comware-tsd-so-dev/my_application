@@ -79,9 +79,13 @@ public class ZigbeeDimmableLightDevice extends ZigbeeLightDevice {
             h._switchButton.setOnClickListener(null);
             for (AylaSceneZigbeeNodeProperty prop : h._sceneDeviceEntity.properties) {
                 if (TextUtils.equals("1_in_0x0006_0x0000", prop.name)) {
-                    onOff = "1".equals(prop.value);
+                    try {
+                        onOff = "1".equals(prop.value);
+                    } catch (Exception ex) {}
                 } else if (TextUtils.equals(PROPERTY_ZB_DIMMABLE_LIGHT, prop.name)) {
-                    value = Integer.parseInt(prop.value);
+                    try {
+                        value = Integer.parseInt(prop.value);
+                    } catch (Exception ex) {}
                 }
 
             }

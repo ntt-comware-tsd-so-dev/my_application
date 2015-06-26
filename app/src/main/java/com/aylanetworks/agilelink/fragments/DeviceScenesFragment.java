@@ -18,7 +18,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -34,7 +33,6 @@ import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;
-import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceSelectionAdapter;
 import com.aylanetworks.agilelink.framework.Device;
@@ -42,6 +40,7 @@ import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ZigbeeSceneManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,19 +56,14 @@ import java.util.List;
 public class DeviceScenesFragment extends AllDevicesFragment implements DeviceManager.GetDeviceComparable {
     private static final String LOG_TAG = "DeviceScenesFragment";
 
-    // TODO: we need a way to select gateway
-
     protected HorizontalScrollView _buttonScrollView;
-
-    protected AylaSceneZigbee _selectedScene;
-    protected Gateway _selectedSceneGateway;
+    protected String _selectedSceneName;
 
     public static DeviceScenesFragment newInstance() {
         return new DeviceScenesFragment();
     }
 
-    public DeviceScenesFragment() {
-    }
+    public DeviceScenesFragment() { }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -129,15 +123,15 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     }
 
     @Override
-    public DeviceListAdapter getDeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
-        return new SceneDeviceListAdapter(_selectedSceneGateway, _selectedScene, listener);
+    public boolean isDeviceComparableType(Device another) {
+        return (another instanceof ZigbeeSwitchedDevice);
     }
 
     @Override
     public void updateDeviceList() {
-        _adapter = new SceneDeviceListAdapter(_selectedSceneGateway, _selectedScene, this);
+        _adapter = new SceneDeviceListAdapter(_selectedSceneName, this);
         _recyclerView.setAdapter(_adapter);
-        if (_selectedScene != null) {
+        if (_selectedSceneName != null) {
             if (_adapter.getItemCount() == 0) {
                 _emptyView.setText(R.string.no_devices_in_scene);
                 _recyclerView.setVisibility(View.GONE);
@@ -153,28 +147,12 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
     }
 
-    protected List<AylaSceneZigbee> getScenes() {
-        List<AylaSceneZigbee> scenes = new ArrayList<>();
-        if (SessionManager.deviceManager() != null) {
-            // get the scenes for all the gateways
-            List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-            for (Gateway gateway : gateways) {
-                List<AylaSceneZigbee> gs = gateway.getScenes();
-                if ((gs != null) && (gs.size() > 0)) {
-                    scenes.addAll(gs);
-                }
-            }
-        }
-        return scenes;
-    }
-
     protected void createSceneButtonHeader() {
-        List<AylaSceneZigbee> scenes = getScenes();
-        if (_selectedScene == null && scenes.size() > 0) {
-            _selectedScene = scenes.get(0);
-            _selectedSceneGateway =  Gateway.getGatewayForScene(_selectedScene);
+        List<String> sceneNames = ZigbeeSceneManager.getSceneNames();
+        if (TextUtils.isEmpty(_selectedSceneName) && !sceneNames.isEmpty()) {
+            _selectedSceneName = sceneNames.get(0);
         }
-        Logger.logDebug(LOG_TAG, "zs: " + scenes.size() + " scenes");
+        Logger.logDebug(LOG_TAG, "zs: " + sceneNames.size() + " scenes");
 
         int headerMargin = (int)getResources().getDimension(R.dimen.group_header_margin);
         int buttonMargin = (int)getResources().getDimension(R.dimen.group_button_margin);
@@ -190,8 +168,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         layout.setLayoutParams(layoutParams);
 
-        for (AylaSceneZigbee scene : scenes) {
-            Logger.logDebug(LOG_TAG, "zs: scene " + scene);
+        for (String name : sceneNames) {
+            Logger.logDebug(LOG_TAG, "zs: scene " + name);
 
             Button b = new Button(getActivity());
 
@@ -203,8 +181,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             b.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
             b.setPadding(buttonPadding, buttonPadding, buttonPadding, buttonPadding);
 
-            b.setText(scene.sceneName);
-            b.setTag(scene);
+            b.setText(name);
+            b.setTag(name);
             b.setLayoutParams(layoutParams);
             b.setBackground(getResources().getDrawable(R.drawable.toggle_button_bg));
 
@@ -216,7 +194,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                         l.getChildAt(i).setSelected(false);
                     }
                     v.setSelected(true);
-                    onSceneSelected((AylaSceneZigbee) v.getTag());
+                    onSceneSelected((String) v.getTag());
                 }
             });
 
@@ -228,19 +206,18 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 }
             });
 
-            // could have loaded a new scene...
-            if (TextUtils.equals(_selectedScene.sceneName, scene.sceneName)) {
-                _selectedScene = scene;
-                b.setSelected(true);
-            } else {
-                b.setSelected(false);
-            }
-
+            b.setSelected(TextUtils.equals(_selectedSceneName, name));
             layout.addView(b);
         }
 
         _buttonScrollView.removeAllViews();
         _buttonScrollView.addView(layout);
+    }
+
+    protected SceneDeviceSelectionAdapter newSceneDeviceSelectionAdapter(List<Device> list) {
+        Device[] objects = new Device[list.size()];
+        list.toArray(objects);
+        return new SceneDeviceSelectionAdapter(getActivity(), objects);
     }
 
     Object fetchLock = new Object();
@@ -253,6 +230,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     }
 
     void fetchScenes() {
+        // TODO: should do this in a way that checks if we have actually gotten the scenes
         if (SessionManager.deviceManager() == null) {
             Log.d(LOG_TAG, "Not yet ready to create scene buttons...");
             return;
@@ -290,7 +268,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.add_button) {
-            if ( _selectedScene == null ) {
+            if (TextUtils.isEmpty(_selectedSceneName)) {
                 // There is no scene yet. We need to offer to add one.
                 onAddScene();
                 return;
@@ -325,95 +303,208 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         updateDeviceList();
     }
 
-    protected void updateSceneDevices(List<Device> newSceneList) {
-        MainActivity.getInstance().showWaitDialog(R.string.scene_update_title, R.string.scene_update_body);
-        _selectedSceneGateway.updateSceneDevices(_selectedScene, newSceneList, this, new Gateway.AylaGatewayCompletionHandler() {
-            @Override
-            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                MainActivity.getInstance().dismissWaitDialog();
-                updateDeviceList();
-                Toast.makeText(getActivity(), R.string.scene_update_complete, Toast.LENGTH_LONG).show();
+    class SceneAction implements Gateway.AylaGatewayCompletionHandler {
+
+        List<Gateway> gateways;
+        int index;
+
+        int countTotal;
+        int countDone;
+        int countSuccess;
+
+        Object _tag;
+        Gateway.AylaGatewayActionHandler _handler;
+
+        public SceneAction(Object tag, Gateway.AylaGatewayActionHandler handler) {
+            gateways = SessionManager.deviceManager().getGatewayDevices();
+            countTotal = gateways.size();
+            countDone = countSuccess = 0;
+            _tag = tag;
+            _handler = handler;
+            start();
+        }
+
+        public void start() {
+            index = 0;
+            process();
+        }
+
+        public void actionComplete(Message msg) {
+            if (AylaNetworks.succeeded(msg)) {
+                countSuccess++;
             }
-        });
+            countDone++;
+            if (countDone == countTotal) {
+                complete();
+            } else {
+                process();
+            }
+        }
+
+        void process() {
+            Gateway gateway = gateways.get(index++);
+            _handler.performAction(this, gateway, _tag);
+        }
+
+        void complete() {
+            Message msg = new Message();
+            msg.what = (countSuccess == countTotal) ? AylaNetworks.AML_ERROR_OK : AylaNetworks.AML_ERROR_FAIL;
+            _handler.complete(this, msg, _tag);
+        }
+
+        @Override
+        public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+            actionComplete(msg);
+        }
     }
 
-    @Override
-    public boolean isDeviceComparableType(Device another) {
-        return (another instanceof ZigbeeSwitchedDevice);
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // update scene
+
+    int updateSceneGatewayCount;
+    int updateSceneGatewayDone;
+    int updateSceneGatewaySuccess;
+
+    protected void updateSceneComplete(final String name, final List<Device> sceneDevices) {
+        MainActivity.getInstance().dismissWaitDialog();
+        if (updateSceneGatewaySuccess == updateSceneGatewayCount) {
+            Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+            deviceListChanged();
+        } else {
+            Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    protected void updateSceneDevices(final String name, final List<Device> sceneDevices) {
+        MainActivity.getInstance().showWaitDialog(R.string.scene_update_title, R.string.scene_update_body);
+
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        updateSceneGatewayCount = gateways.size();
+        updateSceneGatewayDone = updateSceneGatewaySuccess = 0;
+
+        for (Gateway gateway : gateways) {
+            List<Device> devices = gateway.filterDeviceList(sceneDevices);
+            AylaSceneZigbee scene = gateway.getSceneByName(name);
+            if (scene == null) {
+                gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+                    @Override
+                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                        if (AylaNetworks.succeeded(msg)) {
+                            updateSceneGatewaySuccess++;
+                        }
+                        updateSceneGatewayDone++;
+                        if (updateSceneGatewayDone == updateSceneGatewayCount) {
+                            updateSceneComplete(name, sceneDevices);
+                        }
+                    }
+                });
+            } else {
+                gateway.updateSceneDevices(scene, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+                    @Override
+                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                        if (AylaNetworks.succeeded(msg)) {
+                            updateSceneGatewaySuccess++;
+                        }
+                        updateSceneGatewayDone++;
+                        if (updateSceneGatewayDone == updateSceneGatewayCount) {
+                            updateSceneComplete(name, sceneDevices);
+                        }
+                    }
+                });
+            }
+        }
     }
 
     protected void onAddDeviceToScene() {
-        // only devices for this gateway
-        List<Device> sceneDevices = _selectedSceneGateway.getDevicesForScene(_selectedScene);
-        if ((sceneDevices != null) && (sceneDevices.size() > 0)) {
-            final List<Device> allDevices = _selectedSceneGateway.getDevicesOfComparableType(this);
-            final String deviceNames[] = new String[allDevices.size()];
-            final boolean isSceneMember[] = new boolean[allDevices.size()];
 
-            for (int i = 0; i < allDevices.size(); i++) {
-                Device d = allDevices.get(i);
-                deviceNames[i] = d.toString();
-                isSceneMember[i] = DeviceManager.isDsnInDeviceList(d.getDeviceDsn(), sceneDevices);
-            }
-
-            new AlertDialog.Builder(getActivity())
-                    .setIcon(R.drawable.ic_launcher)
-                    .setTitle(R.string.choose_scene_devices)
-                    .setMultiChoiceItems(deviceNames, isSceneMember, new DialogInterface.OnMultiChoiceClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                            isSceneMember[which] = isChecked;
-                        }
-                    })
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            List<Device> newSceneList = new ArrayList<>();
-                            for (int i = 0; i < allDevices.size(); i++) {
-                                Device d = allDevices.get(i);
-                                if (isSceneMember[i]) {
-                                    newSceneList.add(d);
-                                }
-                            }
-                            updateSceneDevices(newSceneList);
-                        }
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .create().show();
-        } else {
+        // get a list of available devices
+        final List<Device> allDevices = SessionManager.deviceManager().getDevicesOfComparableType(this);
+        if (allDevices.isEmpty()) {
             Toast.makeText(getActivity(), R.string.no_devices, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    protected SceneDeviceSelectionAdapter newSceneDeviceListAdapter(List<Device> list) {
-        Device[] objects = new Device[list.size()];
-        list.toArray(objects);
-        return new SceneDeviceSelectionAdapter(getActivity(), objects);
-    }
-
-    protected void addScene(final Gateway gateway, final String name, final List<Device> devices) {
-        if (TextUtils.isEmpty(name)) {
-            Logger.logError(LOG_TAG, "zs: no name entered!");
             return;
         }
-        MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
-        gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
-            @Override
-            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                MainActivity.getInstance().dismissWaitDialog();
-                if (AylaNetworks.succeeded(msg)) {
-                    Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
-                    _selectedScene = gateway.getSceneByName(name);
-                    _selectedSceneGateway = gateway;
-                    deviceListChanged();
-                    if ((devices == null) || (devices.size() == 0)) {
-                        onAddDeviceToScene();
+
+        // get a list of current devices in the scenee
+        List<Device> sceneDevices = ZigbeeSceneManager.getDevicesForSceneName(_selectedSceneName);
+
+        final String deviceNames[] = new String[allDevices.size()];
+        final boolean isSceneMember[] = new boolean[allDevices.size()];
+
+        for (int i = 0; i < allDevices.size(); i++) {
+            Device d = allDevices.get(i);
+            deviceNames[i] = d.toString();
+            isSceneMember[i] = DeviceManager.isDsnInDeviceList(d.getDeviceDsn(), sceneDevices);
+        }
+
+        // TODO: needs to use newSceneDeviceSelectionAdapter
+
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(R.string.choose_scene_devices)
+                .setMultiChoiceItems(deviceNames, isSceneMember, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                        isSceneMember[which] = isChecked;
                     }
-                } else {
-                    Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+                })
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        List<Device> newSceneList = new ArrayList<>();
+                        for (int i = 0; i < allDevices.size(); i++) {
+                            Device d = allDevices.get(i);
+                            if (isSceneMember[i]) {
+                                newSceneList.add(d);
+                            }
+                        }
+                        updateSceneDevices(_selectedSceneName, newSceneList);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create().show();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // add scene
+
+    int addSceneGatewayCount;
+    int addSceneGatewayDone;
+    int addSceneGatewaySuccess;
+
+    protected void addSceneComplete(final String name, final List<Device> sceneDevices) {
+        MainActivity.getInstance().dismissWaitDialog();
+        if (addSceneGatewaySuccess == addSceneGatewayCount) {
+            Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+            _selectedSceneName = name;
+            deviceListChanged();
+        } else {
+            Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // Create the scene across all gateways, regardless of whether any devices are selected
+    protected void addScene(final String name, final List<Device> sceneDevices) {
+        MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
+
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        addSceneGatewayCount = gateways.size();
+        addSceneGatewayDone = addSceneGatewaySuccess = 0;
+
+        for (Gateway gateway : gateways) {
+            List<Device> devices = gateway.filterDeviceList(sceneDevices);
+            gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+                @Override
+                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                    if (AylaNetworks.succeeded(msg)) {
+                        addSceneGatewaySuccess++;
+                    }
+                    addSceneGatewayDone++;
+                    if (addSceneGatewayDone == addSceneGatewayCount) {
+                        addSceneComplete(name, sceneDevices);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     // Should show only the allowed characters in the soft keyboard too
@@ -446,22 +537,20 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     }
 
     protected void onAddSceneAdvanced() {
-        // TODO: need to select which gateway if there are multiple
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        final Gateway gateway = gateways.isEmpty() ? null: gateways.get(0);
-        if (gateway == null) {
-            Toast.makeText(getActivity(), R.string.no_gateway, Toast.LENGTH_SHORT).show();
+        // we are going to create scenes across gateways
+        final List<Device> devices = SessionManager.deviceManager().getDevicesOfComparableType(this);
+        if (devices.isEmpty()) {
+            Toast.makeText(getActivity(), R.string.no_devices, Toast.LENGTH_SHORT).show();
             return;
         }
-        // Instruct the user to setup the scene the way that they want it... with the lights
-        // and plugs in the state that they want.
+
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         final View alertView = inflater.inflate(R.layout.dialog_add_scene_list, null);
         final EditText et = (EditText)alertView.findViewById(R.id.scene_name);
         et.setFilters(new InputFilter[] { acceptedFilter});
         et.setOnEditorActionListener(new DoneOnEditorActionListener());
-        final List<Device> devices = gateway.getDevicesOfComparableType(this);
-        final SceneDeviceSelectionAdapter adapter = newSceneDeviceListAdapter(devices);
+
+        final SceneDeviceSelectionAdapter adapter = newSceneDeviceSelectionAdapter(devices);
         ListView listView = (ListView)alertView.findViewById(R.id.list);
         listView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
@@ -487,7 +576,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                         if (TextUtils.isEmpty(name)) {
                             et.requestFocus();
                         } else {
-                            addScene(gateway, name, adapter.getSelectedDevices());
+                            addScene(name, adapter.getSelectedDevices());
                             dlg.dismiss();
                         }
                     }
@@ -497,84 +586,77 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         dlg.show();
     }
 
-    protected void onAddSceneSimple() {
-        // need to select which gateway if there are multiple
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        final Gateway gateway = gateways.isEmpty() ? null: gateways.get(0);
-        if (gateway == null) {
-            Toast.makeText(getActivity(), R.string.no_gateway, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        LayoutInflater inflater = LayoutInflater.from(getActivity());
-        final View alertView = inflater.inflate(R.layout.dialog_add_scene, null);
-        final EditText et = (EditText)alertView.findViewById(R.id.scene_name);
-        et.setFilters(new InputFilter[] { acceptedFilter});
-
-        AlertDialog dlg = new AlertDialog.Builder(getActivity())
-                .setIcon(R.drawable.ic_launcher)
-                .setTitle(R.string.add_scene_title)
-                .setView(alertView)
-                .setPositiveButton(R.string.add_scene, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        addScene(gateway, et.getText().toString(), null);
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .create();
-        dlg.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        dlg.show();
-    }
-
     protected void onAddScene() {
         onAddSceneAdvanced();
-        //onAddSceneSimple();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // recall scene
+
+    SceneAction actionActivate;
+
     protected void onActivateScene() {
-        if ((_selectedSceneGateway != null) && (_selectedScene != null)) {
-            MainActivity.getInstance().showWaitDialog(R.string.scene_recall_title, R.string.scene_recall_body);
-            _selectedSceneGateway.recallScene(_selectedScene, this, new Gateway.AylaGatewayCompletionHandler() {
-                @Override
-                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                    MainActivity.getInstance().dismissWaitDialog();
-                    if (AylaNetworks.succeeded(msg)) {
-                        Toast.makeText(getActivity(), R.string.scene_recall_complete, Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getActivity(), R.string.scene_recall_failed, Toast.LENGTH_LONG).show();
+        if (!TextUtils.isEmpty(_selectedSceneName)) {
+            if (actionActivate == null) {
+                MainActivity.getInstance().showWaitDialog(R.string.scene_recall_title, R.string.scene_recall_body);
+                actionActivate = new SceneAction(_selectedSceneName, new Gateway.AylaGatewayActionHandler() {
+                    @Override
+                    public void performAction(Object action, Gateway gateway, Object tag) {
+                        AylaSceneZigbee scene = gateway.getSceneByName((String)tag);
+                        gateway.recallScene(scene, this, (SceneAction)action);
                     }
-                }
-            });
+
+                    @Override
+                    public void complete(Object action, Message msg, Object tag) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        if (AylaNetworks.succeeded(msg)) {
+                            Toast.makeText(getActivity(), R.string.scene_recall_complete, Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getActivity(), R.string.scene_recall_failed, Toast.LENGTH_LONG).show();
+                        }
+                        actionActivate = null;
+                    }
+                });
+            }
         }
     }
 
-    protected void deleteScene(AylaSceneZigbee scene) {
-        MainActivity.getInstance().showWaitDialog(R.string.scene_delete_title, R.string.scene_delete_body);
-        _selectedSceneGateway.deleteScene(scene, this, new Gateway.AylaGatewayCompletionHandler() {
-            @Override
-            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                MainActivity.getInstance().dismissWaitDialog();
-                updateDeviceList();
-                if (AylaNetworks.succeeded(msg)) {
-                    Toast.makeText(getActivity(), R.string.scene_delete_complete, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(getActivity(), R.string.scene_delete_failed, Toast.LENGTH_LONG).show();
-                }
-                List<AylaSceneZigbee> scenes = getScenes();
-                if (scenes.isEmpty()) {
-                    _selectedScene = null;
-                } else {
-                    _selectedScene = scenes.get(0);
-                    _selectedSceneGateway = Gateway.getGatewayForScene(_selectedScene);
-                }
-                deviceListChanged();
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // delete scene
+
+    SceneAction actionDelete;
+
+    protected void deleteScene(final String sceneName) {
+        if (!TextUtils.isEmpty(sceneName)) {
+            if (actionDelete == null) {
+                MainActivity.getInstance().showWaitDialog(R.string.scene_delete_title, R.string.scene_delete_body);
+                actionDelete = new SceneAction(sceneName, new Gateway.AylaGatewayActionHandler() {
+                    @Override
+                    public void performAction(Object action, Gateway gateway, Object tag) {
+                        AylaSceneZigbee scene = gateway.getSceneByName((String)tag);
+                        gateway.deleteScene(scene, this, (SceneAction) action);
+                    }
+
+                    @Override
+                    public void complete(Object action, Message msg, Object tag) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        if (AylaNetworks.succeeded(msg)) {
+                            Toast.makeText(getActivity(), R.string.scene_delete_complete, Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getActivity(), R.string.scene_delete_failed, Toast.LENGTH_LONG).show();
+                        }
+                        _selectedSceneName = null;
+                        deviceListChanged();
+                        actionDelete = null;
+                    }
+                });
             }
-        });
+        }
     }
 
     protected void onDeleteScene() {
         Log.d(LOG_TAG, "onDeleteScene");
-        String msg = getResources().getString(R.string.confirm_delete_scene_body, _selectedScene.sceneName);
+        String msg = getResources().getString(R.string.confirm_delete_scene_body, _selectedSceneName);
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_scene)
@@ -582,17 +664,16 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        deleteScene(_selectedScene);
+                        deleteScene(_selectedSceneName);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .create().show();
     }
 
-    protected void onSceneSelected(AylaSceneZigbee scene) {
-        Log.d(LOG_TAG, "Selected scene: " + scene);
-        _selectedScene = scene;
-        _selectedSceneGateway =  Gateway.getGatewayForScene(_selectedScene);
+    protected void onSceneSelected(String sceneName) {
+        Log.d(LOG_TAG, "Selected scene: " + sceneName);
+        _selectedSceneName = sceneName;
         updateDeviceList();
     }
 }

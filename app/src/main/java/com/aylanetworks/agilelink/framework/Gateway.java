@@ -55,6 +55,13 @@ public class Gateway extends Device {
         public void gatewayCompletion(Gateway gateway, Message msg, Object tag);
     }
 
+    public interface AylaGatewayActionHandler {
+
+        public void performAction(Object action, Gateway gateway, Object tag);
+
+        public void complete(Object action, Message msg, Object tag);
+    }
+
     /**
      * Interface used when scanning for and registering a gateway's device nodes
      */
