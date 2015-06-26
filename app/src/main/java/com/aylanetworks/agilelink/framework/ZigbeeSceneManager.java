@@ -155,32 +155,26 @@ public class ZigbeeSceneManager {
 
     public void fetchZigbeeScenesIfNeeded() {
         if ((_scenes == null) || (_scenes.size() == 0)) {
-            fetchZigbeeScenes();
+            fetchZigbeeScenes(null, null);
         }
     }
 
     /**
      * Fetches the list of scenes from the server. Listeners will be notified when the call is
      * complete by being called with zigbeeSceneListChanged() if the scene list has changed.
+     * @param tag Optional user tag for completion handler.
+     * @param completion Optional completion handler.
      */
-    public void fetchZigbeeScenes() {
+    public void fetchZigbeeScenes(Object tag, Gateway.AylaGatewayCompletionHandler completion) {
         Map<String, Object> callParams = new HashMap<>();
         callParams.put(AylaNetworksZigbee.kAylaZigbeeNodeParamDetail, "true");          // default is "false"
         callParams.put(AylaNetworksZigbee.kAylaZigbeeNodeParamStatusFilter, "active");  // default is "active"
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
-        gateway.getScenes(new GetScenesHandler(this), callParams, false);
+        gateway.getScenes(new GetScenesHandler(this, _gateway, tag, completion), callParams, false);
     }
 
     public List<AylaSceneZigbee> getScenes() {
-        List<AylaSceneZigbee> scenes = new ArrayList<>(_scenes);
-        Collections.sort(scenes, new Comparator<AylaSceneZigbee>() {
-            @Override
-            public int compare(AylaSceneZigbee lhs, AylaSceneZigbee rhs) {
-                return lhs.sceneName.compareToIgnoreCase(rhs.sceneName);
-            }
-        });
-
-        return scenes;
+        return sortSceneSet(_scenes);
     }
 
     /**
@@ -249,10 +243,16 @@ public class ZigbeeSceneManager {
     // Internal Handlers
 
     static class GetScenesHandler extends Handler {
-        private WeakReference<ZigbeeSceneManager> _manager;
+        WeakReference<ZigbeeSceneManager> _manager;
+        Gateway _gateway;
+        Object _tag;
+        Gateway.AylaGatewayCompletionHandler _completion;
 
-        GetScenesHandler(ZigbeeSceneManager manager) {
-            _manager = new WeakReference<ZigbeeSceneManager>(manager);
+        GetScenesHandler(ZigbeeSceneManager manager, Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+            _manager = new WeakReference<>(manager);
+            _gateway = gateway;
+            _tag = tag;
+            _completion = completion;
         }
 
         @Override
@@ -273,6 +273,9 @@ public class ZigbeeSceneManager {
                     }
                 }
                 _manager.get().setScenes(set);
+            }
+            if (_completion != null) {
+                _completion.gatewayCompletion(_gateway, msg, _tag);
             }
         }
     }
@@ -442,9 +445,72 @@ public class ZigbeeSceneManager {
 
     // Internal Methods
 
+    private List<AylaSceneZigbee> sortSceneSet(Set<AylaSceneZigbee> sceneSet) {
+        List<AylaSceneZigbee> scenes = new ArrayList<>(sceneSet);
+        Collections.sort(scenes, new Comparator<AylaSceneZigbee>() {
+            @Override
+            public int compare(AylaSceneZigbee lhs, AylaSceneZigbee rhs) {
+                return lhs.sceneName.compareToIgnoreCase(rhs.sceneName);
+            }
+        });
+        return scenes;
+    }
+
+    /**
+     * Compare two scenes to see if they are the same
+     * @param scene1 AylaSceneZigbee
+     * @param scene2 AylaSceneZigbee
+     * @return Returns
+     */
+    public static boolean isSceneSame(AylaSceneZigbee scene1, AylaSceneZigbee scene2) {
+        if (!TextUtils.equals(scene1.sceneHexId, scene2.sceneHexId)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.sceneName, scene2.sceneName)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.action, scene2.action)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.status, scene2.status)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.toString(), scene2.toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean sceneListChanged(Set<AylaSceneZigbee> newSceneSet) {
+        if ((_scenes == null) && (newSceneSet == null)) {
+            return false;
+        }
+        if ((_scenes == null) && (newSceneSet != null)) {
+            return true;
+        }
+        if ((_scenes != null) && (newSceneSet == null)) {
+            return true;
+        }
+        if (_scenes.size() != newSceneSet.size()) {
+            return true;
+        }
+        List<AylaSceneZigbee> scenes1 = sortSceneSet(_scenes);
+        List<AylaSceneZigbee> scenes2 = sortSceneSet(_scenes);
+        for (int i = 0; i < scenes1.size(); i++) {
+            AylaSceneZigbee scene1 = scenes1.get(i);
+            AylaSceneZigbee scene2 = scenes2.get(i);
+            if (!isSceneSame(scene1, scene2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void setScenes(Set<AylaSceneZigbee> set) {
-        _scenes = set;
-        notifyListChanged();
+        if (sceneListChanged(set)) {
+            _scenes = set;
+            notifyListChanged();
+        }
     }
 
     private void addScene(AylaSceneZigbee scene) {

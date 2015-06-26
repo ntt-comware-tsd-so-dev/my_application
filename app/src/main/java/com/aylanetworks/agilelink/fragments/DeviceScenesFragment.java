@@ -83,8 +83,6 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         LinearLayout l = (LinearLayout) root.findViewById(R.id.button_tray);
         l.setVisibility(View.VISIBLE);
         _buttonScrollView = (HorizontalScrollView) root.findViewById(R.id.button_scroll_view);
-        createSceneButtonHeader();
-        updateDeviceList();
         return root;
     }
 
@@ -171,11 +169,6 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     }
 
     protected void createSceneButtonHeader() {
-        if (SessionManager.deviceManager() == null) {
-            Log.d(LOG_TAG, "Not yet ready to create scene buttons...");
-            return;
-        }
-
         List<AylaSceneZigbee> scenes = getScenes();
         if (_selectedScene == null && scenes.size() > 0) {
             _selectedScene = scenes.get(0);
@@ -235,7 +228,14 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 }
             });
 
-            b.setSelected(scene.equals(_selectedScene));
+            // could have loaded a new scene...
+            if (TextUtils.equals(_selectedScene.sceneName, scene.sceneName)) {
+                _selectedScene = scene;
+                b.setSelected(true);
+            } else {
+                b.setSelected(false);
+            }
+
             layout.addView(b);
         }
 
@@ -243,11 +243,48 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         _buttonScrollView.addView(layout);
     }
 
+    Object fetchLock = new Object();
+    int fetchCount;
+    int fetchDone;
+
+    void fetchScenesComplete() {
+        createSceneButtonHeader();
+        updateDeviceList();
+    }
+
+    void fetchScenes() {
+        if (SessionManager.deviceManager() == null) {
+            Log.d(LOG_TAG, "Not yet ready to create scene buttons...");
+            return;
+        }
+
+        synchronized (fetchLock) {
+            // get the scenes for all the gateways
+            final List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+            if ((gateways != null) && (gateways.size() > 0)) {
+                fetchCount = gateways.size();
+                fetchDone = 0;
+                for (Gateway gateway : gateways) {
+                    gateway.fetchScenes(this, new Gateway.AylaGatewayCompletionHandler() {
+                        @Override
+                        public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                            fetchDone++;
+                            if (fetchDone == fetchCount) {
+                                fetchScenesComplete();
+                            }
+                        }
+                    });
+                }
+            } else {
+                fetchScenesComplete();
+            }
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        createSceneButtonHeader();
-        updateDeviceList();
+        fetchScenes();
     }
 
     @Override

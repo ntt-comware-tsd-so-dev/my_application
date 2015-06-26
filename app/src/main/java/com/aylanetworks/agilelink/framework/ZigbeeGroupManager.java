@@ -247,15 +247,7 @@ public class ZigbeeGroupManager {
     }
 
     public List<AylaGroupZigbee> getGroups() {
-        List<AylaGroupZigbee> groups = new ArrayList<>(_groups);
-        Collections.sort(groups, new Comparator<AylaGroupZigbee>() {
-            @Override
-            public int compare(AylaGroupZigbee lhs, AylaGroupZigbee rhs) {
-                return lhs.groupName.compareToIgnoreCase(rhs.groupName);
-            }
-        });
-
-        return groups;
+        return sortGroupSet(_groups);
     }
 
     /**
@@ -482,6 +474,17 @@ public class ZigbeeGroupManager {
     }
 
     // Internal Methods
+
+    private List<AylaGroupZigbee> sortGroupSet(Set<AylaGroupZigbee> groupSet) {
+        List<AylaGroupZigbee> groups = new ArrayList<>(groupSet);
+        Collections.sort(groups, new Comparator<AylaGroupZigbee>() {
+            @Override
+            public int compare(AylaGroupZigbee lhs, AylaGroupZigbee rhs) {
+                return lhs.groupName.compareToIgnoreCase(rhs.groupName);
+            }
+        });
+        return groups;
+    }
 
     private void setGroups(Set<AylaGroupZigbee> groupSet) {
         _groups = groupSet;

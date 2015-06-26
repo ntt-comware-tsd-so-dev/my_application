@@ -143,7 +143,6 @@ public class DeviceManager implements DeviceStatusListener {
         if ( _deviceList == null ) {
             return null;
         }
-
         return new ArrayList<>(_deviceList);
     }
 
@@ -1009,28 +1008,23 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Returns true if newDeviceList differs from our previous version (_deviceList) */
     private boolean deviceListChanged(List<Device>newDeviceList) {
-        if ( newDeviceList != null ) {
-            // Sort the new list of devices
-            Collections.sort(newDeviceList, _deviceComparator);
-        }
-
         if ( _deviceList == null && newDeviceList != null ) {
             return true;
         }
-
         if ( newDeviceList == null && _deviceList != null ) {
             return true;
         }
-
         if ( newDeviceList == null && _deviceList == null ) {
             return false;
         }
-
         if ( newDeviceList.size() != _deviceList.size() ) {
             return true;
         }
 
-
+        if ( newDeviceList != null ) {
+            // Sort the new list of devices
+            Collections.sort(newDeviceList, _deviceComparator);
+        }
         // See if any of the devices have changed.
         for ( int i = 0; i < _deviceList.size(); i++ ) {
             Device dev1 = _deviceList.get(i);
