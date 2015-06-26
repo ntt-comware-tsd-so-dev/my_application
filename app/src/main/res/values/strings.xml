@@ -475,6 +475,8 @@
     <string name="trigger_action_fix_body">Updating triggers for device</string>
     <string name="trigger_action_fix_complete">Fix Triggers Complete</string>
     <string name="trigger_action_fix_failure">Fix Triggers Failed</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 
     <string name="drawer_scenes">Scenes</string>
     <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
