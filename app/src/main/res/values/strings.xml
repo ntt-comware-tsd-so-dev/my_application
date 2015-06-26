@@ -514,5 +514,8 @@
     <string name="scene_name_hint">Unique Scene Name</string>
     <string name="no_devices">No Devices</string>
     <string name="no_gateway">No Gateway</string>
+    <string name="switched_on_name">On</string>
+    <string name="switched_off_name">Off</string>
+    <string name="no_property">No Property</string>
 
 </resources>
