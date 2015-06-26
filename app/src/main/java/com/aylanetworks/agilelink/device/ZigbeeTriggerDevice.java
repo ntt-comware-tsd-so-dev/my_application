@@ -468,8 +468,8 @@ public class ZigbeeTriggerDevice extends Device  {
 
     void setupTriggers(Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
         // make sure we have the latest info
-        gateway.getGroupManager().fetchZigbeeGroups();
-        gateway.getBindingManager().fetchZigbeeBindings();
+        gateway.getGroupManager().fetchZigbeeGroups(null, null);
+        gateway.getBindingManager().fetchZigbeeBindings(null, null);
 
         // create 4 bindings & 4 groups
         Logger.logInfo(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
@@ -501,8 +501,8 @@ public class ZigbeeTriggerDevice extends Device  {
     public void preUnregistrationForGatewayDevice(Gateway gateway) {
 
         // make sure we have the latest info
-        gateway.getGroupManager().fetchZigbeeGroups();
-        gateway.getBindingManager().fetchZigbeeBindings();
+        gateway.getGroupManager().fetchZigbeeGroups(null, null);
+        gateway.getBindingManager().fetchZigbeeBindings(null, null);
 
         // remove 4 bindings & 4 groups
         Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());

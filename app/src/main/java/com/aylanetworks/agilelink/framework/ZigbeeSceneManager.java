@@ -460,7 +460,7 @@ public class ZigbeeSceneManager {
      * Compare two scenes to see if they are the same
      * @param scene1 AylaSceneZigbee
      * @param scene2 AylaSceneZigbee
-     * @return Returns
+     * @return Returns true if they are the same, false if they are not
      */
     public static boolean isSceneSame(AylaSceneZigbee scene1, AylaSceneZigbee scene2) {
         if (!TextUtils.equals(scene1.sceneHexId, scene2.sceneHexId)) {
@@ -495,7 +495,7 @@ public class ZigbeeSceneManager {
             return true;
         }
         List<AylaSceneZigbee> scenes1 = sortSceneSet(_scenes);
-        List<AylaSceneZigbee> scenes2 = sortSceneSet(_scenes);
+        List<AylaSceneZigbee> scenes2 = sortSceneSet(newSceneSet);
         for (int i = 0; i < scenes1.size(); i++) {
             AylaSceneZigbee scene1 = scenes1.get(i);
             AylaSceneZigbee scene2 = scenes2.get(i);
