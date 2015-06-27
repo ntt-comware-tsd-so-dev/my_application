@@ -203,8 +203,8 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
 
     void setupRemote(Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
         // make sure we have the latest info
-        gateway.getGroupManager().fetchZigbeeGroups();
-        gateway.getBindingManager().fetchZigbeeBindings();
+        gateway.getGroupManager().fetchZigbeeGroups(null, null);
+        gateway.getBindingManager().fetchZigbeeBindings(null, null);
 
         // we need to create 1 group & 1 binding
         Logger.logInfo(LOG_TAG, "zg: initializeRemote [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());

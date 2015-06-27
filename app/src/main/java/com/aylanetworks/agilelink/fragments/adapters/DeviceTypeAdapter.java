@@ -44,7 +44,7 @@ public class DeviceTypeAdapter extends ArrayAdapter<Device> {
         iv.setImageDrawable(d.getDeviceDrawable(getContext()));
 
         TextView name = (TextView)spinner.findViewById(R.id.device_name);
-        name.setText(useProductName ? d.getDevice().productName : d.deviceTypeName());
+        name.setText(useProductName ? d.getProductName() : d.deviceTypeName());
 
         return spinner;
     }

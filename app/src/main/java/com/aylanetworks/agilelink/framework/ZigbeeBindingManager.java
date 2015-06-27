@@ -36,15 +36,6 @@ public class ZigbeeBindingManager {
     private Set<ZigbeeBindingManagerListener> _listeners;
     protected Set<AylaBindingZigbee> _bindings;
 
-    public interface ZigbeeBindingManagerListener {
-
-        void zigbeeBindingListChanged(Gateway gateway);
-
-        void zigbeeCreateBindingCompleted(Gateway gateway, String name, Message msg, AylaBindingZigbee binding);
-
-        void zigbeeDeleteBindingCompleted(Gateway gateway, String name, Message msg);
-    }
-
     /**
      * Default constructor
      * @param gateway Gateway
@@ -57,42 +48,89 @@ public class ZigbeeBindingManager {
 
     // Listeners
 
+    /**
+     * Interface to notify of changes to the binding list or bindings within the list.
+     */
+    public interface ZigbeeBindingManagerListener {
+
+        /**
+         * Binding list has changed.
+         * @param gateway Gateway
+         */
+        void zigbeeBindingListChanged(Gateway gateway);
+
+        /**
+         * Binding has been created.
+         * @param gateway Gateway
+         * @param name Binding name.
+         * @param msg Ayla Message
+         * @param binding AylaBindingZigbee
+         */
+        void zigbeeCreateBindingCompleted(Gateway gateway, String name, Message msg, AylaBindingZigbee binding);
+
+        /**
+         * Binding has been deleted.
+         * @param gateway Gateway
+         * @param name Binding name.
+         * @param msg Ayla Message
+         */
+        void zigbeeDeleteBindingCompleted(Gateway gateway, String name, Message msg);
+    }
+
+    /**
+     * Add a listener for observing changes to the ZigbeeBindingManager.
+     * @param listener ZigbeeBindingManagerListener to add.
+     */
     public void addListener(ZigbeeBindingManagerListener listener) {
         _listeners.add(listener);
     }
 
+    /**
+     * Remove a formerly added observer.
+     * @param listener ZigbeeBindingManagerListener to remove.
+     */
     public void removeListener(ZigbeeBindingManagerListener listener) {
         _listeners.remove(listener);
     }
 
     // Public Methods
 
+    /**
+     * Fetch the binding list if it hasn't been fetched before.
+     */
     public void fetchZigbeeBindingsIfNeeded() {
         if ((_bindings == null) || (_bindings.size() == 0)) {
-            fetchZigbeeBindings();
+            fetchZigbeeBindings(null, null);
         }
     }
 
-    public void fetchZigbeeBindings() {
+    /**
+     * Fetches the list of bindings from the server. Listeners will be notified when the call is
+     * complete by being called with zigbeeBindingListChanged() if the binding list has changed.
+     * @param tag Optional user tag for completion handler.
+     * @param completion Optional completion handler.
+     */
+    public void fetchZigbeeBindings(Object tag, Gateway.AylaGatewayCompletionHandler completion) {
         Map<String, Object> callParams = new HashMap<String, Object>();
         callParams.put(AylaNetworksZigbee.kAylaZigbeeNodeParamDetail, "true");          // default is "false"
         callParams.put(AylaNetworksZigbee.kAylaZigbeeNodeParamStatusFilter, "active");  // default is "active"
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
-        gateway.getBindings(new GetHandler(this), callParams, false);
+        gateway.getBindings(new GetHandler(this, _gateway, tag, completion), callParams, false);
     }
 
+    /**
+     * Get the current list of all the AylaBindingZigbee objects.
+     * @return List of AylaBindingZigbee objects.
+     */
     public List<AylaBindingZigbee> getBindings() {
-        List<AylaBindingZigbee> groups = new ArrayList<>(_bindings);
-        Collections.sort(groups, new Comparator<AylaBindingZigbee>() {
-            @Override
-            public int compare(AylaBindingZigbee lhs, AylaBindingZigbee rhs) {
-                return lhs.bindingName.compareToIgnoreCase(rhs.bindingName);
-            }
-        });
-
-        return groups;
+        return sortBindingSet(_bindings);
     }
 
+    /**
+     * Get the AylaBindingZigbee binding with the specified name.
+     * @param name String name of the binding to locate
+     * @return AylaBindingZigbee matching the name
+     */
     public AylaBindingZigbee getByName(String name) {
         if ((_bindings != null) && (_bindings.size() > 0)) {
             for (AylaBindingZigbee binding : _bindings) {
@@ -104,14 +142,51 @@ public class ZigbeeBindingManager {
         return null;
     }
 
+    /**
+     * Compare two bindings to see if they are the same
+     * @param binding1 AylaBindingZigbee
+     * @param binding2 AylaBindingZigbee
+     * @return Returns true if they are the same, false if they are not
+     */
+    public static boolean isBindingSame(AylaBindingZigbee binding1, AylaBindingZigbee binding2) {
+        if (binding1.id != binding2.id) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.bindingName, binding2.bindingName)) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.action, binding2.action)) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.status, binding2.status)) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.toString(), binding2.toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Create the specified AylaBindingZigbee object.
+     * @param binding AylaBindingZigbee to create.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler
+     */
     public void createBinding(AylaBindingZigbee binding, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
-        Map<String, Object> callParams = new HashMap<String, Object>();
+        Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.createBinding(new CreateHandler(this, binding.bindingName, tag, handler), binding, callParams, false);
     }
 
+    /**
+     * Delete the specified AylaBindingZigbee object.
+     * @param binding AylaBindingZigbee object to delete.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void deleteBinding(AylaBindingZigbee binding, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
-        Map<String, Object> callParams = new HashMap<String, Object>();
+        Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.deleteBinding(new DeleteHandler(this, binding.bindingName, tag, handler), binding, callParams, false);
     }
@@ -120,9 +195,15 @@ public class ZigbeeBindingManager {
 
     static class GetHandler extends Handler {
         private WeakReference<ZigbeeBindingManager> _manager;
+        Gateway _gateway;
+        Object _tag;
+        Gateway.AylaGatewayCompletionHandler _completion;
 
-        GetHandler(ZigbeeBindingManager manager) {
+        GetHandler(ZigbeeBindingManager manager, Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
             _manager = new WeakReference<ZigbeeBindingManager>(manager);
+            _gateway = gateway;
+            _tag = tag;
+            _completion = completion;
         }
 
         @Override
@@ -143,6 +224,9 @@ public class ZigbeeBindingManager {
                     }
                 }
                 _manager.get().setBindings(set);
+            }
+            if (_completion != null) {
+                _completion.gatewayCompletion(_gateway, msg, _tag);
             }
         }
     }
@@ -229,9 +313,47 @@ public class ZigbeeBindingManager {
 
     // Internal Methods
 
+    private List<AylaBindingZigbee> sortBindingSet(Set<AylaBindingZigbee> bindingSet) {
+        List<AylaBindingZigbee> bindings = new ArrayList<>(bindingSet);
+        Collections.sort(bindings, new Comparator<AylaBindingZigbee>() {
+            @Override
+            public int compare(AylaBindingZigbee lhs, AylaBindingZigbee rhs) {
+                return lhs.bindingName.compareToIgnoreCase(rhs.bindingName);
+            }
+        });
+        return bindings;
+    }
+
+    private boolean bindingListChanged(Set<AylaBindingZigbee> newBindingSet) {
+        if ((_bindings == null) && (newBindingSet == null)) {
+            return false;
+        }
+        if ((_bindings == null) && (newBindingSet != null)) {
+            return true;
+        }
+        if ((_bindings != null) && (newBindingSet == null)) {
+            return true;
+        }
+        if (_bindings.size() != newBindingSet.size()) {
+            return true;
+        }
+        List<AylaBindingZigbee> bindings1 = sortBindingSet(_bindings);
+        List<AylaBindingZigbee> bindings2 = sortBindingSet(newBindingSet);
+        for (int i = 0; i < bindings1.size(); i++) {
+            AylaBindingZigbee binding1 = bindings1.get(i);
+            AylaBindingZigbee binding2 = bindings2.get(i);
+            if (!isBindingSame(binding1, binding2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void setBindings(Set<AylaBindingZigbee> set) {
-        _bindings = set;
-        notifyListChanged();
+        if (bindingListChanged(set)) {
+            _bindings = set;
+            notifyListChanged();
+        }
     }
 
     private void addBinding(AylaBindingZigbee binding) {

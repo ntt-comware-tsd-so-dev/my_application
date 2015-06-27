@@ -100,7 +100,7 @@ public class Device implements Comparable<Device> {
     @Override
     public int compareTo(Device another) {
         // Base class just compares DSNs.
-        return this.getDevice().dsn.compareTo(another.getDevice().dsn);
+        return this.getDeviceDsn().compareTo(another.getDeviceDsn());
     }
 
     /**
@@ -115,7 +115,7 @@ public class Device implements Comparable<Device> {
      */
     public boolean isDeviceChanged(Device other) {
         return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
-                (!getDevice().dsn.equals(other.getDevice().dsn) ||
+                (!getDeviceDsn().equals(other.getDeviceDsn()) ||
                 !toString().equals(other.toString()));
     }
 
@@ -139,7 +139,21 @@ public class Device implements Comparable<Device> {
      * @return String DSN
      */
     public String getDeviceDsn() {
-        return _device.dsn;
+        if (_device != null) {
+            return _device.dsn;
+        }
+        return "";
+    }
+
+    /**
+     * Handy method for obtaining the device ProductName
+     * @return String ProductName
+     */
+    public String getProductName() {
+        if (_device != null){
+            return _device.getProductName();
+        }
+        return "";
     }
 
     /**
@@ -222,7 +236,7 @@ public class Device implements Comparable<Device> {
                 public void complete(Message msg, List<Device> list, Object tag) {
                     ResetTag frt = (ResetTag) tag;
                     Device device = frt._device;
-                    String dsn = device.getDevice().dsn;
+                    String dsn = device.getDeviceDsn();
                     boolean found = false;
                     Logger.logMessage(LOG_TAG, msg, "fr: ResetTag got devices");
                     if (AylaNetworks.succeeded(msg)) {
@@ -921,8 +935,19 @@ public class Device implements Comparable<Device> {
         return false;
     }
 
+    /**
+     * Returns true if this device is not a device at all, just an UI element.
+     * @return True if this device just an UI element, or false if a real device.
+     */
+    public boolean isIcon() {
+        return false;
+    }
+
     public boolean isOnline() {
-        return STATUS_ONLINE.equals(getDevice().connectionStatus);
+        if (_device != null) {
+            return STATUS_ONLINE.equals(getDevice().connectionStatus);
+        }
+        return false;
     }
 
     /**
@@ -962,13 +987,17 @@ public class Device implements Comparable<Device> {
      */
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        h._deviceNameTextView.setText(getDevice().getProductName());
+        h._deviceNameTextView.setText(getProductName());
         if ( h._deviceStatusTextView != null ) {
             h._deviceStatusTextView.setText(getDeviceState());
         }
 
-        if ( h._sceneDeviceEntity != null) {
+        Resources res = MainActivity.getInstance().getResources();
+        int color;
+
+        if (isIcon() || (h._sceneDeviceEntity != null)) {
             h._spinner.setVisibility(View.GONE);
+            color = res.getColor(R.color.card_text);
         } else {
             h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
 
@@ -999,14 +1028,13 @@ public class Device implements Comparable<Device> {
                     }
                 });
             }
-        }
 
-        // Is this a shared device?
-        Resources res = MainActivity.getInstance().getResources();
-        int color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
-        if (!getDevice().amOwner()) {
-            // Yes, this device is shared.
-            color = res.getColor(R.color.card_shared_text);
+            // Is this a shared device?
+            color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
+            if (!getDevice().amOwner()) {
+                // Yes, this device is shared.
+                color = res.getColor(R.color.card_shared_text);
+            }
         }
         h._deviceNameTextView.setTextColor(color);
         h._currentDevice = this;
@@ -1075,7 +1103,7 @@ public class Device implements Comparable<Device> {
 
     @Override
     public String toString() {
-        return getDevice().getProductName();
+        return getProductName();
     }
 
     /**

@@ -97,7 +97,7 @@ public class AllDevicesFragment extends Fragment
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
         if (dm != null) {
-            _adapter = getDeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
+            _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
         }
     }
 
@@ -155,10 +155,6 @@ public class AllDevicesFragment extends Fragment
         return view;
     }
 
-    public DeviceListAdapter getDeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
-        return new DeviceListAdapter(deviceList, listener);
-    }
-
     public void updateDeviceList() {
         List<Device> deviceList = null;
         if ( SessionManager.deviceManager() != null ) {
@@ -178,7 +174,7 @@ public class AllDevicesFragment extends Fragment
             if ( _emptyView != null ) {
                 _emptyView.setVisibility(View.GONE);
                 _recyclerView.setVisibility(View.VISIBLE);
-                _adapter = getDeviceListAdapter(deviceList, this);
+                _adapter = new DeviceListAdapter(deviceList, this);
                 _recyclerView.setAdapter(_adapter);
             }
         }
@@ -226,7 +222,7 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
-            Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
+            Log.i(LOG_TAG, "Device " + device.getProductName() + " changed");
             _recyclerView.setAdapter(_adapter);
         }
     }

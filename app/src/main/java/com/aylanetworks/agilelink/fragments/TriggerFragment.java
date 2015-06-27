@@ -78,7 +78,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     public static TriggerFragment newInstance(Device device) {
         TriggerFragment frag = new TriggerFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDevice().dsn);
+        args.putString(ARG_DSN, device.getDeviceDsn());
         frag.setArguments(args);
 
         return frag;
@@ -235,11 +235,11 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             List<Device> onDevs = _gateway.getGroupManager().getDevices(turnOn);
             List<Device> ofDevs = _gateway.getGroupManager().getDevices(turnOff);
             for (Device device : onDevs) {
-                values.add("Turn on " + device.getDevice().getProductName());
+                values.add("Turn on " + device.getProductName());
                 enableRemOn = true;
             }
             for (Device device : ofDevs) {
-                values.add("Turn off " + device.getDevice().getProductName());
+                values.add("Turn off " + device.getProductName());
                 enableRemOff = true;
             }
             _adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, values);
@@ -339,8 +339,8 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         for ( int i = 0; i < list.size(); i++ ) {
             isSelectedArray[i] = true;
             Device d = list.get(i);
-            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
-            apNames[i] = d.getDevice().productName;
+            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
+            apNames[i] = d.getProductName();
             selected.add(d);
         }
         new AlertDialog.Builder(getActivity())
@@ -349,7 +349,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                         Device d = list.get(which);
-                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
+                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
                         if (isChecked) {
                             selected.add(d);
                         } else {
@@ -385,8 +385,8 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         for ( int i = 0; i < list.size(); i++ ) {
             isSelectedArray[i] = true;
             Device d = list.get(i);
-            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
-            apNames[i] = d.getDevice().productName;
+            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
+            apNames[i] = d.getProductName();
             selected.add(d);
         }
         new AlertDialog.Builder(getActivity())
@@ -395,7 +395,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                         Device d = list.get(which);
-                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
+                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
                         if (isChecked) {
                             selected.add(d);
                         } else {

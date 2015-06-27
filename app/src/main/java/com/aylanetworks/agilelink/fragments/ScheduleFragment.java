@@ -96,7 +96,7 @@ public class ScheduleFragment extends Fragment {
 
     public static ScheduleFragment newInstance(Device device, int scheduleIndex) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
+        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
         args.putInt(ARG_SCHEDULE_INDEX, scheduleIndex);
         ScheduleFragment frag = new ScheduleFragment();
         frag.setArguments(args);
