@@ -75,7 +75,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     public static PropertyNotificationFragment newInstance(Device device, AylaPropertyTrigger triggerToEdit) {
         PropertyNotificationFragment frag = new PropertyNotificationFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDevice().dsn);
+        args.putString(ARG_DSN, device.getDeviceDsn());
         if ( triggerToEdit != null ) {
             args.putString(ARG_TRIGGER, triggerToEdit.deviceNickname);
         }

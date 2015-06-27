@@ -113,7 +113,7 @@ public class SceneDeviceSelectionAdapter extends ArrayAdapter<Device> {
                 _checks[position] = ((CheckBox)v).isChecked();
             }
         });
-        tv.setText(device.getDevice().productName);
+        tv.setText(device.getProductName());
 
         AylaProperty prop = device.getProperty(device.getObservablePropertyName());
         if (prop != null) {

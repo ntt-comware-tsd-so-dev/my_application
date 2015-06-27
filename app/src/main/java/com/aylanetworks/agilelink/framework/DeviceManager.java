@@ -117,7 +117,7 @@ public class DeviceManager implements DeviceStatusListener {
         if (devices == null || devices.size() == 0)
             return false;
         for (Device d : devices) {
-            if (TextUtils.equals(dsn, d.getDevice().dsn)) {
+            if (TextUtils.equals(dsn, d.getDeviceDsn())) {
                 return true;
             }
         }
@@ -170,7 +170,7 @@ public class DeviceManager implements DeviceStatusListener {
         if ((_deviceList != null) && (_deviceList.size() > 0)) {
             for (Device gateway : _deviceList) {
                 if (gateway.isGateway()) {
-                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDeviceDsn() + "]");
                     list.add((Gateway) gateway);
                 }
             }
@@ -246,7 +246,7 @@ public class DeviceManager implements DeviceStatusListener {
     public Device deviceByDSN(String dsn) {
         if (_deviceList != null) {
             for (Device d : _deviceList) {
-                if (d.getDevice().dsn.compareTo(dsn) == 0) {
+                if (d.getDeviceDsn().compareTo(dsn) == 0) {
                     return d;
                 }
             }
@@ -433,7 +433,7 @@ public class DeviceManager implements DeviceStatusListener {
         // Save the last LAN mode device in user settings so we can re-enable it next time
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         if ( device != null ) {
-            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
+            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDeviceDsn()).apply();
         } else {
             prefs.edit().remove(PREF_LAST_LAN_MODE_DEVICE);
         }
@@ -447,7 +447,7 @@ public class DeviceManager implements DeviceStatusListener {
     public boolean isLastLanModeDevice(Device device) {
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
-        return lastDSN != null && device.getDevice().dsn != null && device.getDevice().dsn.equals(lastDSN);
+        return lastDSN != null && device.getDeviceDsn() != null && device.getDeviceDsn().equals(lastDSN);
     }
 
     /**
@@ -711,7 +711,7 @@ public class DeviceManager implements DeviceStatusListener {
                             // Notify listeners listening for this device
                             for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                                 LANModeListener listener = iter.next();
-                                if ( listener.getDevice().getDevice().dsn.equals(dsn)) {
+                                if ( listener.getDevice().getDeviceDsn().equals(dsn)) {
                                     // Notify the listener that LAN mode has been enabled
                                     listener.lanModeResult(true);
                                     iter.remove();
@@ -864,7 +864,7 @@ public class DeviceManager implements DeviceStatusListener {
                 Logger.logDebug(LOG_TAG, "poll:s Still not done polling from the last timer event.");
                 Logger.logVerbose(LOG_TAG, "poll:s Current queue is:");
                 for ( Device d : _devicesToPoll ) {
-                    Logger.logVerbose(LOG_TAG, d.getDevice().getProductName());
+                    Logger.logVerbose(LOG_TAG, d.getProductName());
                 }
                 updateNextDeviceStatus();
             }
@@ -894,7 +894,7 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         Device d = _devicesToPoll.remove(0);
-        Logger.logVerbose(LOG_TAG, "poll: device status [" + d.getDeviceDsn() + ":" + d.getDevice().productName + "]");
+        Logger.logVerbose(LOG_TAG, "poll: device status [" + d.getDeviceDsn() + ":" + d.getProductName() + "]");
         if ( _devicesToPoll.size() == 0 ) {
             _devicesToPoll = null;
         }
@@ -923,9 +923,9 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         private Device getDeviceFromList(List<Device> list, Device device) {
-            String dsn = device.getDevice().dsn;
+            String dsn = device.getDeviceDsn();
             for (Device d : list) {
-                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                if (TextUtils.equals(d.getDeviceDsn(), dsn)) {
                     return d;
                 }
             }

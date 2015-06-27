@@ -222,7 +222,7 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
-            Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
+            Log.i(LOG_TAG, "Device " + device.getProductName() + " changed");
             _recyclerView.setAdapter(_adapter);
         }
     }

@@ -242,7 +242,7 @@ public class ZigbeeGroupManager {
      * @return Return true if the device is in the group, false if it isn't.
      */
     static public boolean isDeviceInGroup(Device device, AylaGroupZigbee group) {
-        String dsn = device.getDevice().dsn;
+        String dsn = device.getDeviceDsn();
         // always try the String array first
         if (group.nodeDsns != null) {
             for (String nodeDsn : group.nodeDsns) {
@@ -346,7 +346,7 @@ public class ZigbeeGroupManager {
         if ((deviceList != null) && (deviceList.size() > 0)) {
             group.nodeDsns = new String[deviceList.size()];
             for (int i = 0; i < deviceList.size(); i++) {
-                group.nodeDsns[i] = deviceList.get(i).getDevice().dsn;
+                group.nodeDsns[i] = deviceList.get(i).getDeviceDsn();
             }
         }
         Map<String, Object> callParams = new HashMap<String, Object>();
@@ -431,7 +431,7 @@ public class ZigbeeGroupManager {
                         if (prefix != null) {
                             add = false;
                             for (Device device : devices) {
-                                String key = prefix + device.getDevice().dsn;
+                                String key = prefix + device.getDeviceDsn();
                                 if (group.groupName.startsWith(key)) {
                                     add = true;
                                     break;

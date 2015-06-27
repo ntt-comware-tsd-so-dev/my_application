@@ -197,13 +197,13 @@ public class Gateway extends Device {
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
         if (oldDevice != null) {
-            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDevice().dsn);
+            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDeviceDsn());
             Gateway gateway = (Gateway)oldDevice;
             _groupManager = gateway._groupManager;
             _bindingManager = gateway._bindingManager;
             _sceneManager = gateway._sceneManager;
         } else {
-            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDevice().dsn);
+            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDeviceDsn());
          }
         getGroupManager().fetchZigbeeGroupsIfNeeded();
         getBindingManager().fetchZigbeeBindingsIfNeeded();
@@ -444,7 +444,7 @@ public class Gateway extends Device {
                 if (TextUtils.equals(d.getDeviceDsn(), dsn)) {
                     continue;
                 }
-                if (TextUtils.equals(d.getDevice().productName, name)) {
+                if (TextUtils.equals(d.getProductName(), name)) {
                     existsName = true;
                 }
             }
@@ -452,7 +452,7 @@ public class Gateway extends Device {
                 name = name + " " + (nameIteration++);
             }
         } while (existsName);
-        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s:%s] to [%s]", dsn, device.getDevice().productName, name);
+        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s:%s] to [%s]", dsn, device.getProductName(), name);
         Map<String, String> params = new HashMap<>();
         params.put("productName", name);
         device.getDevice().update(new UpdateHandler(device, name, tag), params);
@@ -530,7 +530,7 @@ public class Gateway extends Device {
         }
 
         void updateComplete(Device device, Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDeviceDsn(), device.getDevice().productName);
+            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDeviceDsn(), device.getProductName());
             this.device = device;
             device.postRegistrationForGatewayDevice(gateway);
             if (currentIndex < list.size() - 1) {

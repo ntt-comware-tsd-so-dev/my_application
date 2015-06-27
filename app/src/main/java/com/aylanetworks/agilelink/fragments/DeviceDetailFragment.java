@@ -84,7 +84,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
+        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
         frag.setArguments(args);
 
         return frag;
@@ -173,8 +173,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                         RemoteSwitchDevice remote = (RemoteSwitchDevice) device;
                         if (remote.isPairableDevice(_device)) {
                             Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
-                                    _device.getDevice().dsn, _device.getClass().getSimpleName(),
-                                    device.getDevice().dsn, device.getClass().getSimpleName());
+                                    _device.getDeviceDsn(), _device.getClass().getSimpleName(),
+                                    device.getDeviceDsn(), device.getClass().getSimpleName());
                             pairable = true;
                         }
                     }
@@ -412,7 +412,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     void unregisterDeviceTimeout() {
-        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _device.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _device.getDeviceDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -492,7 +492,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     void factoryResetDeviceTimeout() {
-        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _device.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _device.getDeviceDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -516,7 +516,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private FactoryResetDeviceHandler _factoryResetDeviceHandler = new FactoryResetDeviceHandler(this);
 
     void factoryResetDevice() {
-        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _device.getDevice().dsn);
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _device.getDeviceDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -584,14 +584,14 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
         Switch control = (Switch)tag;
         control.setEnabled(true);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _device.getDevice().dsn, (control.isChecked() ? "ON" : "OFF"));
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _device.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
     }
 
     private void identifyClicked(View v) {
         Switch control = (Switch)v;
         control.setEnabled(false);
         Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _device.getDevice().dsn, (control.isChecked() ? "ON" : "OFF"));
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _device.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
         gateway.identifyDeviceNode(_device, control.isChecked(), 255, v, this);
     }
 
@@ -599,7 +599,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         if ((_device != null) && _device.isDeviceNode()) {
             Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
             // we don't care about the results
-            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _device.getDevice().dsn);
+            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _device.getDeviceDsn());
             gateway.identifyDeviceNode(_device, false, 0, null, null);
         }
     }

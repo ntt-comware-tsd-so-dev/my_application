@@ -252,7 +252,7 @@ public class ZigbeeSceneManager {
      * @return Return true if the device is in the scene, false if it isn't.
      */
     static public boolean isDeviceInScene(Device device, AylaSceneZigbee scene) {
-        String dsn = device.getDevice().dsn;
+        String dsn = device.getDeviceDsn();
         if (scene.nodes != null) {
             for (AylaSceneZigbeeNodeEntity dn : scene.nodes) {
                 if (dn == null) {

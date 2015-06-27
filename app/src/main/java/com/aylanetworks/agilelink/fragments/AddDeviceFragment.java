@@ -318,7 +318,7 @@ public class AddDeviceFragment extends Fragment
         } else if (parent.getId() == R.id.spinner_gateway_selection) {
             Gateway gateway = (Gateway) parent.getAdapter().getItem(position);
             if (gateway != null) {
-                Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDevice().dsn + "]");
+                Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDeviceDsn() + "]");
                 _nodeRegistrationGateway = gateway;
             } else {
                 Logger.logError(LOG_TAG, "rn: no gateway");
@@ -421,7 +421,7 @@ public class AddDeviceFragment extends Fragment
 
     public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
         Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDevice().dsn, device.getDevice().productName);
+        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDeviceDsn(), device.getProductName());
 
         /*
         int resourceId = device.hasPostRegistrationProcessingResourceId();
@@ -555,7 +555,7 @@ public class AddDeviceFragment extends Fragment
                 MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title),
                         getString(R.string.scanning_for_gateway_devices_message), this);
 
-                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
+                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDeviceDsn() + "]");
                 _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
             }
         } else {

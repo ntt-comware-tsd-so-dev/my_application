@@ -57,7 +57,7 @@ public class ZigbeeTriggerDevice extends Device  {
     static public String makeGroupKeyForSensor(Device device, boolean open, boolean turnOn) {
         StringBuilder sb = new StringBuilder(512);
         sb.append(GROUP_PREFIX_TRIGGER);
-        sb.append(device.getDevice().dsn);
+        sb.append(device.getDeviceDsn());
         // don't localize these words
         sb.append(open ? "Open" : "Close");
         sb.append(turnOn ? "On" : "Off");

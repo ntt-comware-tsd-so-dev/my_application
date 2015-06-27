@@ -225,8 +225,10 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     int fetchDone;
 
     void fetchScenesComplete() {
-        createSceneButtonHeader();
-        updateDeviceList();
+        if (isAdded()) {
+            createSceneButtonHeader();
+            updateDeviceList();
+        }
     }
 
     void fetchScenes() {
@@ -292,7 +294,14 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 .create()
                 .show();
         } else {
-            super.onClick(v);
+            int itemIndex = (int)v.getTag();
+            final Device d = _adapter.getItem(itemIndex);
+            if (d.isIcon()) {
+                // recall scene
+                onActivateScene();
+            } else {
+                super.onClick(v);
+            }
         }
     }
 

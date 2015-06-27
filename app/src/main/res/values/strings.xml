@@ -517,5 +517,6 @@
     <string name="switched_on_name">On</string>
     <string name="switched_off_name">Off</string>
     <string name="no_property">No Property</string>
+    <string name="activate_scene_icon" formatted="false">Activate %s</string>
 
 </resources>
