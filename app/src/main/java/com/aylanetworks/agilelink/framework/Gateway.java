@@ -47,16 +47,32 @@ public class Gateway extends Device {
 
     private final static long SCAN_TIMEOUT = (30 * 1000);
 
-    // We need a simple, generic completion handler to use when performing a lot of different
-    // steps that do not need notification along the way to anybody but the one performing
-    // the steps.
+    /**
+     * Generic Gateway completion handler
+     */
     public interface AylaGatewayCompletionHandler {
 
+        /**
+         * Indicate that the action has completed.
+         * @param gateway Gateway that the action was performed on.
+         * @param msg Ayla Message
+         * @param tag Optional user data tag.
+         */
         public void gatewayCompletion(Gateway gateway, Message msg, Object tag);
     }
 
+    /**
+     * Generic Gateway action and completion handler
+     */
     public interface AylaGatewayActionHandler {
 
+        /**
+         * Perform an action using the specified Gateway. Used to perform the same action across
+         * all the gateways.
+         * @param action User specified Object
+         * @param gateway Gateway
+         * @param tag Optional user data tag.
+         */
         public void performAction(Object action, Gateway gateway, Object tag);
 
         public void complete(Object action, Message msg, Object tag);

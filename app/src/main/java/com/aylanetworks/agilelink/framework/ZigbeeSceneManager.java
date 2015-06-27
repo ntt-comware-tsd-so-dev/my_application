@@ -38,25 +38,30 @@ public class ZigbeeSceneManager {
     protected Set<AylaSceneZigbee> _scenes;
 
     /**
-     * Interface to notify of changes to the scene list or scenes within the list
+     * Static method to get the complete list of scene names across all gateways.
+     *
+     * @return List of scene names
      */
-    public interface ZigbeeSceneManagerListener {
-
-        void zigbeeSceneListChanged(Gateway gateway);
-
-        void zigbeeSceneMembersChanged(Gateway gateway, AylaSceneZigbee scene);
-
-        void zigbeeCreateSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
-
-        void zigbeeUpdateSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
-
-        void zigbeeRecallSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
-
-        void zigbeeDeleteSceneCompleted(Gateway gateway, String name, Message msg);
+    public static List<String> getSceneNames() {
+        List<String> list = new ArrayList<>();
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        for (Gateway gateway : gateways) {
+            List<AylaSceneZigbee> scenes = gateway.getScenes();
+            if ((scenes != null) && (scenes.size() > 0)) {
+                for (AylaSceneZigbee scene : scenes) {
+                    // Not case-sensitive
+                    if (!list.contains(scene.sceneName)) {
+                        list.add(scene.sceneName);
+                    }
+                }
+            }
+        }
+        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        return list;
     }
 
     /**
-     * Get the device list for a given scene name.
+     * Static method to get the device list for a given scene name from across all Gateways.
      * @param sceneName Scene name
      * @return Device list across all Gateways.
      */
@@ -75,7 +80,7 @@ public class ZigbeeSceneManager {
     }
 
     /**
-     * Get the AylaSceneZigbeeNodeEntity for a device.
+     * Static method to get the AylaSceneZigbeeNodeEntity for a device.
      * @param sceneName Scene name.
      * @param device Device to search for.
      * @return AylaSceneZigbeeNodeEntity for the device.
@@ -102,29 +107,6 @@ public class ZigbeeSceneManager {
     }
 
     /**
-     * Get the complete list of scene names across all gateways.
-     *
-     * @return List of scene names
-     */
-    public static List<String> getSceneNames() {
-        List<String> list = new ArrayList<>();
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        for (Gateway gateway : gateways) {
-            List<AylaSceneZigbee> scenes = gateway.getScenes();
-            if ((scenes != null) && (scenes.size() > 0)) {
-                for (AylaSceneZigbee scene : scenes) {
-                    // Not case-sensitive
-                    if (!list.contains(scene.sceneName)) {
-                        list.add(scene.sceneName);
-                    }
-                }
-            }
-        }
-        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
-        return list;
-    }
-
-    /**
      * Default constructor
      * @param gateway Gateway
      */
@@ -136,10 +118,72 @@ public class ZigbeeSceneManager {
 
     // Listeners
 
+    /**
+     * Interface to notify of changes to the scene list or scenes within the list
+     */
+    public interface ZigbeeSceneManagerListener {
+
+        /**
+         * Scene list has changed.
+         * @param gateway Gateway
+         */
+        void zigbeeSceneListChanged(Gateway gateway);
+
+        /**
+         * Scene members have changed.
+         * @param gateway Gateway
+         * @param scene AylaSceneZigbee that the members have changed in.
+         */
+        void zigbeeSceneMembersChanged(Gateway gateway, AylaSceneZigbee scene);
+
+        /**
+         * Scene has been created
+         * @param gateway Gateway
+         * @param name Name of the scene
+         * @param msg Ayla Message
+         * @param scene AylaSceneZigbee
+         */
+        void zigbeeCreateSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
+
+        /**
+         * Scene has been updated.
+         * @param gateway Gateway
+         * @param name Name of the scene
+         * @param msg Ayla Message
+         * @param scene AylaSceneZigbee
+         */
+        void zigbeeUpdateSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
+
+        /**
+         * Scene has been recalled
+         * @param gateway Gateway
+         * @param name Name of the scene.
+         * @param msg Ayla Message
+         * @param scene AylaSceneZigbee
+         */
+        void zigbeeRecallSceneCompleted(Gateway gateway, String name, Message msg, AylaSceneZigbee scene);
+
+        /**
+         * Scene has been deleted.
+         * @param gateway Gateway
+         * @param name Name of the scene.
+         * @param msg Ayla Message.
+         */
+        void zigbeeDeleteSceneCompleted(Gateway gateway, String name, Message msg);
+    }
+
+    /**
+     * Add a listener for observing changes to the ZigbeeSceneManager
+     * @param listener ZigbeeSceneManagerListener to add.
+     */
     public void addListener(ZigbeeSceneManagerListener listener) {
         _listeners.add(listener);
     }
 
+    /**
+     * Remove a formerly added observer.
+     * @param listener ZigbeeSceneManagerListener to remove.
+     */
     public void removeListener(ZigbeeSceneManagerListener listener) {
         _listeners.remove(listener);
     }
@@ -222,6 +266,9 @@ public class ZigbeeSceneManager {
         return false;
     }
 
+    /**
+     * Fetch the scene list if it hasn't been fetched before
+     */
     public void fetchZigbeeScenesIfNeeded() {
         if ((_scenes == null) || (_scenes.size() == 0)) {
             fetchZigbeeScenes(null, null);
@@ -242,6 +289,10 @@ public class ZigbeeSceneManager {
         gateway.getScenes(new GetScenesHandler(this, _gateway, tag, completion), callParams, false);
     }
 
+    /**
+     * Get the current list of all the AylaSceneZigbee objects.
+     * @return List of AylaSceneZigbee objects.
+     */
     public List<AylaSceneZigbee> getScenes() {
         return sortSceneSet(_scenes);
     }
@@ -262,6 +313,37 @@ public class ZigbeeSceneManager {
         return null;
     }
 
+    /**
+     * Compare two scenes to see if they are the same
+     * @param scene1 AylaSceneZigbee
+     * @param scene2 AylaSceneZigbee
+     * @return Returns true if they are the same, false if they are not
+     */
+    public static boolean isSceneSame(AylaSceneZigbee scene1, AylaSceneZigbee scene2) {
+        if (!TextUtils.equals(scene1.sceneHexId, scene2.sceneHexId)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.sceneName, scene2.sceneName)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.action, scene2.action)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.status, scene2.status)) {
+            return false;
+        }
+        if (!TextUtils.equals(scene1.toString(), scene2.toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Update the AylaSceneZigbee scene with the specified list of Devices. Just updates the scene's
+     * nodeDsns field in preparation for saving with createScene or updateScene.
+     * @param scene AylaSceneZigbee to update.
+     * @param devices List of Devices for the scene.
+     */
     void updateSceneWithDevices(AylaSceneZigbee scene, List<Device> devices) {
         scene.nodes = null;
         if ((devices != null) && (devices.size() > 0)) {
@@ -274,6 +356,14 @@ public class ZigbeeSceneManager {
         }
     }
 
+    /**
+     * Create a AylaSceneZigbee with the specified name and device list. The current state of the devices
+     * in the device list will be captured with the scene.
+     * @param name Name for the scene.
+     * @param devices List of Devices for the scene.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void createScene(String name, List<Device> devices, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         AylaSceneZigbee scene = new AylaSceneZigbee();
         scene.sceneName = name;
@@ -284,12 +374,27 @@ public class ZigbeeSceneManager {
         gateway.createScene(new CreateHandler(this, name, tag, handler), scene, callParams, false);
     }
 
+    /**
+     * Create the specified AylaSceneZigbee. The current state of the devices in the nodeDsns list will be
+     * captured with the scene.
+     * @param scene AylaSceneZigbee to create.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void createScene(AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.createScene(new CreateHandler(this, scene.sceneName, tag, handler), scene, callParams, false);
     }
 
+    /**
+     * Update the specified AylaSceneZigbee with the device list. The current state of the devices in
+     * the device list will be captured with the scene.
+     * @param scene AylaSceneZigbee to update.
+     * @param devices List of Devices
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void updateScene(AylaSceneZigbee scene, List<Device> devices, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         updateSceneWithDevices(scene, devices);
         Map<String, Object> callParams = new HashMap<>();
@@ -297,12 +402,25 @@ public class ZigbeeSceneManager {
         gateway.updateScene(new UpdateHandler(this, scene, tag, handler), scene, callParams, false);
     }
 
+    /**
+     * Recall the specified AylaSceneZigbee.  The current state of the devices will be updated to reflect
+     * the state in the scene's nodes list.
+     * @param scene AylaSceneZigbee to recall
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void recallScene(AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.recallScene(new RecallHandler(this, scene, tag, handler), scene, callParams, false);
     }
 
+    /**
+     * Delete the specified AylaSceneZigbee.
+     * @param scene AylaSceneZigbee to delete
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void deleteScene(AylaSceneZigbee scene, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
@@ -523,31 +641,6 @@ public class ZigbeeSceneManager {
             }
         });
         return scenes;
-    }
-
-    /**
-     * Compare two scenes to see if they are the same
-     * @param scene1 AylaSceneZigbee
-     * @param scene2 AylaSceneZigbee
-     * @return Returns true if they are the same, false if they are not
-     */
-    public static boolean isSceneSame(AylaSceneZigbee scene1, AylaSceneZigbee scene2) {
-        if (!TextUtils.equals(scene1.sceneHexId, scene2.sceneHexId)) {
-            return false;
-        }
-        if (!TextUtils.equals(scene1.sceneName, scene2.sceneName)) {
-            return false;
-        }
-        if (!TextUtils.equals(scene1.action, scene2.action)) {
-            return false;
-        }
-        if (!TextUtils.equals(scene1.status, scene2.status)) {
-            return false;
-        }
-        if (!TextUtils.equals(scene1.toString(), scene2.toString())) {
-            return false;
-        }
-        return true;
     }
 
     private boolean sceneListChanged(Set<AylaSceneZigbee> newSceneSet) {

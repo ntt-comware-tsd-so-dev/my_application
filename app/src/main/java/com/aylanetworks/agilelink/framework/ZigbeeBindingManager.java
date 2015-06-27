@@ -36,15 +36,6 @@ public class ZigbeeBindingManager {
     private Set<ZigbeeBindingManagerListener> _listeners;
     protected Set<AylaBindingZigbee> _bindings;
 
-    public interface ZigbeeBindingManagerListener {
-
-        void zigbeeBindingListChanged(Gateway gateway);
-
-        void zigbeeCreateBindingCompleted(Gateway gateway, String name, Message msg, AylaBindingZigbee binding);
-
-        void zigbeeDeleteBindingCompleted(Gateway gateway, String name, Message msg);
-    }
-
     /**
      * Default constructor
      * @param gateway Gateway
@@ -57,16 +48,56 @@ public class ZigbeeBindingManager {
 
     // Listeners
 
+    /**
+     * Interface to notify of changes to the binding list or bindings within the list.
+     */
+    public interface ZigbeeBindingManagerListener {
+
+        /**
+         * Binding list has changed.
+         * @param gateway Gateway
+         */
+        void zigbeeBindingListChanged(Gateway gateway);
+
+        /**
+         * Binding has been created.
+         * @param gateway Gateway
+         * @param name Binding name.
+         * @param msg Ayla Message
+         * @param binding AylaBindingZigbee
+         */
+        void zigbeeCreateBindingCompleted(Gateway gateway, String name, Message msg, AylaBindingZigbee binding);
+
+        /**
+         * Binding has been deleted.
+         * @param gateway Gateway
+         * @param name Binding name.
+         * @param msg Ayla Message
+         */
+        void zigbeeDeleteBindingCompleted(Gateway gateway, String name, Message msg);
+    }
+
+    /**
+     * Add a listener for observing changes to the ZigbeeBindingManager.
+     * @param listener ZigbeeBindingManagerListener to add.
+     */
     public void addListener(ZigbeeBindingManagerListener listener) {
         _listeners.add(listener);
     }
 
+    /**
+     * Remove a formerly added observer.
+     * @param listener ZigbeeBindingManagerListener to remove.
+     */
     public void removeListener(ZigbeeBindingManagerListener listener) {
         _listeners.remove(listener);
     }
 
     // Public Methods
 
+    /**
+     * Fetch the binding list if it hasn't been fetched before.
+     */
     public void fetchZigbeeBindingsIfNeeded() {
         if ((_bindings == null) || (_bindings.size() == 0)) {
             fetchZigbeeBindings(null, null);
@@ -87,10 +118,19 @@ public class ZigbeeBindingManager {
         gateway.getBindings(new GetHandler(this, _gateway, tag, completion), callParams, false);
     }
 
+    /**
+     * Get the current list of all the AylaBindingZigbee objects.
+     * @return List of AylaBindingZigbee objects.
+     */
     public List<AylaBindingZigbee> getBindings() {
         return sortBindingSet(_bindings);
     }
 
+    /**
+     * Get the AylaBindingZigbee binding with the specified name.
+     * @param name String name of the binding to locate
+     * @return AylaBindingZigbee matching the name
+     */
     public AylaBindingZigbee getByName(String name) {
         if ((_bindings != null) && (_bindings.size() > 0)) {
             for (AylaBindingZigbee binding : _bindings) {
@@ -102,14 +142,51 @@ public class ZigbeeBindingManager {
         return null;
     }
 
+    /**
+     * Compare two bindings to see if they are the same
+     * @param binding1 AylaBindingZigbee
+     * @param binding2 AylaBindingZigbee
+     * @return Returns true if they are the same, false if they are not
+     */
+    public static boolean isBindingSame(AylaBindingZigbee binding1, AylaBindingZigbee binding2) {
+        if (binding1.id != binding2.id) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.bindingName, binding2.bindingName)) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.action, binding2.action)) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.status, binding2.status)) {
+            return false;
+        }
+        if (!TextUtils.equals(binding1.toString(), binding2.toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Create the specified AylaBindingZigbee object.
+     * @param binding AylaBindingZigbee to create.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler
+     */
     public void createBinding(AylaBindingZigbee binding, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
-        Map<String, Object> callParams = new HashMap<String, Object>();
+        Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.createBinding(new CreateHandler(this, binding.bindingName, tag, handler), binding, callParams, false);
     }
 
+    /**
+     * Delete the specified AylaBindingZigbee object.
+     * @param binding AylaBindingZigbee object to delete.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void deleteBinding(AylaBindingZigbee binding, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
-        Map<String, Object> callParams = new HashMap<String, Object>();
+        Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.deleteBinding(new DeleteHandler(this, binding.bindingName, tag, handler), binding, callParams, false);
     }
@@ -245,31 +322,6 @@ public class ZigbeeBindingManager {
             }
         });
         return bindings;
-    }
-
-    /**
-     * Compare two bindings to see if they are the same
-     * @param binding1 AylaBindingZigbee
-     * @param binding2 AylaBindingZigbee
-     * @return Returns true if they are the same, false if they are not
-     */
-    public static boolean isBindingSame(AylaBindingZigbee binding1, AylaBindingZigbee binding2) {
-        if (binding1.id != binding2.id) {
-            return false;
-        }
-        if (!TextUtils.equals(binding1.bindingName, binding2.bindingName)) {
-            return false;
-        }
-        if (!TextUtils.equals(binding1.action, binding2.action)) {
-            return false;
-        }
-        if (!TextUtils.equals(binding1.status, binding2.status)) {
-            return false;
-        }
-        if (!TextUtils.equals(binding1.toString(), binding2.toString())) {
-            return false;
-        }
-        return true;
     }
 
     private boolean bindingListChanged(Set<AylaBindingZigbee> newBindingSet) {

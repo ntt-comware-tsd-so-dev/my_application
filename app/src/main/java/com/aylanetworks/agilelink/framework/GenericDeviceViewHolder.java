@@ -38,6 +38,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
 
         _currentDevice = null;
+        _sceneDeviceEntity = null;
         _deviceNameTextView = (TextView)itemView.findViewById(R.id.device_name);
         _deviceStatusTextView = (TextView)itemView.findViewById(R.id.device_state);
         _spinner = (ProgressBar)itemView.findViewById(R.id.spinner);

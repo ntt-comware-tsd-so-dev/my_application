@@ -33,6 +33,11 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
 
+    /**
+     * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
+     * @param aylaDevice The AylaDevice object to be wrapped
+     * @return Device
+     */
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
         if (aylaDevice.oemModel == null) {

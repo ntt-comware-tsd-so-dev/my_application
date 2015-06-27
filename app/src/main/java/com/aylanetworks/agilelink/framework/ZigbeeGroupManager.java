@@ -39,22 +39,6 @@ public class ZigbeeGroupManager {
     protected Set<AylaGroupZigbee> _groups;
 
     /**
-     * Interface to notify of changes to the group list or groups within the list
-     */
-    public interface ZigbeeGroupManagerListener {
-
-        void zigbeeGroupListChanged(Gateway gateway);
-
-        void zigbeeGroupMembersChanged(Gateway gateway, AylaGroupZigbee group);
-
-        void zigbeeCreateGroupCompleted(Gateway gateway, String name, Message msg, AylaGroupZigbee group);
-
-        void zigbeeUpdateGroupCompleted(Gateway gateway, String name, Message msg, AylaGroupZigbee group);
-
-        void zigbeeDeleteGroupCompleted(Gateway gateway, String name, Message msg);
-    }
-
-    /**
      * Default constructor
      * @param gateway Gateway
      */
@@ -66,10 +50,63 @@ public class ZigbeeGroupManager {
 
     // Listeners
 
+    /**
+     * Interface to notify of changes to the group list or groups within the list
+     */
+    public interface ZigbeeGroupManagerListener {
+
+        /**
+         * Group list has changed.
+         * @param gateway Gateway
+         */
+        void zigbeeGroupListChanged(Gateway gateway);
+
+        /**
+         * Group members have changed.
+         * @param gateway Gateway
+         * @param group AylaGroupZigbee
+         */
+        void zigbeeGroupMembersChanged(Gateway gateway, AylaGroupZigbee group);
+
+        /**
+         * Group has been created.
+         * @param gateway Gateway
+         * @param name Group name.
+         * @param msg Ayla Message
+         * @param group AylaGroupZigbee
+         */
+        void zigbeeCreateGroupCompleted(Gateway gateway, String name, Message msg, AylaGroupZigbee group);
+
+        /**
+         * Group has been updated.
+         * @param gateway Gateway
+         * @param name Group name.
+         * @param msg Ayla Message
+         * @param group AylaGroupZigbee
+         */
+        void zigbeeUpdateGroupCompleted(Gateway gateway, String name, Message msg, AylaGroupZigbee group);
+
+        /**
+         * Group has been deleted.
+         * @param gateway Gateway
+         * @param name Group name.
+         * @param msg Ayla Message
+         */
+        void zigbeeDeleteGroupCompleted(Gateway gateway, String name, Message msg);
+    }
+
+    /**
+     * Add a listener for observing changes to the ZigbeeGroupManager
+     * @param listener ZigbeeGroupManagerListener to add
+     */
     public void addListener(ZigbeeGroupManagerListener listener) {
         _listeners.add(listener);
     }
 
+    /**
+     *  Remove a formerly added observer.
+     * @param listener ZigbeeGroupManagerListener to remove
+     */
     public void removeListener(ZigbeeGroupManagerListener listener) {
         _listeners.remove(listener);
     }
@@ -246,6 +283,10 @@ public class ZigbeeGroupManager {
         gateway.getGroups(new GetGroupsHandler(this, _gateway, tag, completion), callParams, false);
     }
 
+    /**
+     * Get the current list of all the AylaGroupZigbee objects.
+     * @return List of AylaGroupZigbee objects.
+     */
     public List<AylaGroupZigbee> getGroups() {
         return sortGroupSet(_groups);
     }
@@ -266,6 +307,38 @@ public class ZigbeeGroupManager {
         return null;
     }
 
+    /**
+     * Compare two groups to see if they are the same.
+     * @param group1 AylaGroupZigbee
+     * @param group2 AylaGroupZigbee
+     * @return Returns true if they are the same, false if they are not
+     */
+    public static boolean isGroupSame(AylaGroupZigbee group1, AylaGroupZigbee group2) {
+        if (!TextUtils.equals(group1.groupHexId, group2.groupHexId)) {
+            return false;
+        }
+        if (!TextUtils.equals(group1.groupName, group2.groupName)) {
+            return false;
+        }
+        if (!TextUtils.equals(group1.action, group2.action)) {
+            return false;
+        }
+        if (!TextUtils.equals(group1.status, group2.status)) {
+            return false;
+        }
+        if (!TextUtils.equals(group1.toString(), group2.toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Create a AylaGroupZigbee object.
+     * @param name Name of the group.
+     * @param deviceList Device list for the group.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void createGroup(String name, List<Device>deviceList, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         AylaGroupZigbee group = new AylaGroupZigbee();
         group.groupName = name;
@@ -281,18 +354,36 @@ public class ZigbeeGroupManager {
         gateway.createGroup(new CreateHandler(this, name, tag, handler), group, callParams, false);
     }
 
+    /**
+     * Create the specified AylaGroupZigbee object.
+     * @param group AylaGroupZigbee to create.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void createGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         Map<String, Object> callParams = new HashMap<String, Object>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.createGroup(new CreateHandler(this, group.groupName, tag, handler), group, callParams, false);
     }
 
+    /**
+     * Update the specified AylaGroupZigbee object.
+     * @param group AylaGroupZigbee to update.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void updateGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         Map<String, Object> callParams = new HashMap<String, Object>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
         gateway.updateGroup(new UpdateHandler(this, group, tag, handler), group, callParams, false);
     }
 
+    /**
+     * Delete the specified AylaGroupZigbee object.
+     * @param group AylaGroupZigbee object to delete.
+     * @param tag Optional user data.
+     * @param handler Optional completion handler.
+     */
     public void deleteGroup(AylaGroupZigbee group, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
         Map<String, Object> callParams = new HashMap<String, Object>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
@@ -495,31 +586,6 @@ public class ZigbeeGroupManager {
             }
         });
         return groups;
-    }
-
-    /**
-     * Compare two groups to see if they are the same.
-     * @param group1 AylaGroupZigbee
-     * @param group2 AylaGroupZigbee
-     * @return Returns true if they are the same, false if they are not
-     */
-    public static boolean isGroupSame(AylaGroupZigbee group1, AylaGroupZigbee group2) {
-        if (!TextUtils.equals(group1.groupHexId, group2.groupHexId)) {
-            return false;
-        }
-        if (!TextUtils.equals(group1.groupName, group2.groupName)) {
-            return false;
-        }
-        if (!TextUtils.equals(group1.action, group2.action)) {
-            return false;
-        }
-        if (!TextUtils.equals(group1.status, group2.status)) {
-            return false;
-        }
-        if (!TextUtils.equals(group1.toString(), group2.toString())) {
-            return false;
-        }
-        return true;
     }
 
     private boolean groupListChanged(Set<AylaGroupZigbee> newGroupSet) {
