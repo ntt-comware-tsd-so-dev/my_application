@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/app_theme_window_background"
+    android:clickable="true">
+
+    <TextView
+        android:id="@+id/page_header"
+        style="@style/PageHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/gateway_ready"/>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/setup_guide_text_2"
+        android:padding="30dp" />
+    <FrameLayout android:paddingTop="10dp" android:paddingBottom="10dp" android:layout_height="wrap_content" android:layout_width="match_parent">
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayledsmain" android:layout_gravity="center" />
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds1on"  android:layout_gravity="center"/>
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds2on" android:id="@+id/greenled1"  android:layout_gravity="center"/>
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds3on" android:id="@+id/redled1" android:layout_gravity="center"/>
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds4on"  android:layout_gravity="center"/>
+    </FrameLayout>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/setup_guide_text_3"
+        android:padding="30dp" />
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="20dp">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gateway_ready_2"
+            android:id="@+id/btn_ready"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
+    </LinearLayout>
+
+</LinearLayout>
