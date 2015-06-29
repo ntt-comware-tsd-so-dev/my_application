@@ -447,7 +447,7 @@
     <string name="about_amap_link">https://www.aylanetworks.com/company/ayla</string>
     <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
     <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
-    <string name="terms_and_condition_link">http://www.kidde.com/home-safety/en/us/privacy/terms-and-conditions/</string>
+    <string name="terms_and_condition_link">https://www.aylanetworks.com/company/ayla</string>
 
     <string name="trigger_on_name">On</string>
     <string name="trigger_off_name">Off</string>
@@ -518,5 +518,21 @@
     <string name="switched_off_name">Off</string>
     <string name="no_property">No Property</string>
     <string name="activate_scene_icon" formatted="false">Activate %s</string>
+
+    <!-- Welcome and SEtup Guide Page -->
+    <string name="welcome_text">Welcome to AMAP!</string>
+    <string name="click_here">Click here to set\n up gateway</string>
+    <string name="setup_guide">Setup Gateway</string>
+    <string name="gateway_ready">Gateway Ready?</string>
+    <string name="gateway_ready_2">The gateway is ready</string>
+    <string name="setup_guide_header">Setup Guide</string>
+    <string name="setup_guide_text_1">Plug your gateway into a power outlet using the included AC adapter.\n\nConnect one end of the included network cable to the gateway\'s Ethernet port and the other end to a LAN port on your WiFi Router.</string>
+    <string name="setup_guide_text_2">The gateway\'s Cloud LED should be blinking slowly, indicating that is ready to be registered.</string>
+    <string name="setup_guide_text_3">If you don\'t see this, please go back and review again the power cable is connected, the network cable is also connected and the WiFi is working.</string>
+    <string name="connected_cables">I\'ve connected all the cables</string>
+    <string name="setup_connect_gateway">Register Gateway</string>
+    <string name="setup_connect_gateway_text">Push the "Reg" button on the back of the gateway.</string>
+    <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
+    <!-- -->
 
 </resources>
