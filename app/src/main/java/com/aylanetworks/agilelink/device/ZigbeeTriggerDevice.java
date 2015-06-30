@@ -46,7 +46,7 @@ public class ZigbeeTriggerDevice extends Device  {
     public int hasPostRegistrationProcessingResourceId() { return R.string.add_device_sensor_warning; }
 
     /**
-     * Static method used for building the name of the trigger group & binding for a device.  This
+     * Static method used for building the name of the trigger group and binding for a device.  This
      * needs to be consistent between all operating systems.
      *
      * @param device Trigger device.

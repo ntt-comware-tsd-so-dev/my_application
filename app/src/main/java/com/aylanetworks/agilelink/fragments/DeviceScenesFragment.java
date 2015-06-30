@@ -312,7 +312,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         updateDeviceList();
     }
 
-    class SceneAction implements Gateway.AylaGatewayCompletionHandler {
+    static class SceneAction implements Gateway.AylaGatewayCompletionHandler {
+
+        enum SceneActionStartMode {
+            None,
+            Sync,
+            Async,
+        }
 
         List<Gateway> gateways;
         int index;
@@ -324,18 +330,30 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         Object _tag;
         Gateway.AylaGatewayActionHandler _handler;
 
-        public SceneAction(Object tag, Gateway.AylaGatewayActionHandler handler) {
+        public SceneAction(Object tag, Gateway.AylaGatewayActionHandler handler, SceneActionStartMode mode) {
             gateways = SessionManager.deviceManager().getGatewayDevices();
             countTotal = gateways.size();
             countDone = countSuccess = 0;
             _tag = tag;
             _handler = handler;
-            start();
+            if (mode == SceneActionStartMode.Async) {
+                startAll();
+            } else if (mode == SceneActionStartMode.Sync) {
+                startSync();
+            }
         }
 
-        public void start() {
+        public void startSync() {
             index = 0;
             process();
+        }
+
+        public void startAll() {
+            index = countTotal;
+            for (int i = 0; i < countTotal; i++) {
+                Gateway gateway = gateways.get(i);
+                _handler.performAction(this, gateway, _tag);
+            }
         }
 
         public void actionComplete(Message msg) {
@@ -351,8 +369,10 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
 
         void process() {
-            Gateway gateway = gateways.get(index++);
-            _handler.performAction(this, gateway, _tag);
+            if (index < countTotal) {
+                Gateway gateway = gateways.get(index++);
+                _handler.performAction(this, gateway, _tag);
+            }
         }
 
         void complete() {
@@ -625,7 +645,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                         }
                         actionActivate = null;
                     }
-                });
+                }, SceneAction.SceneActionStartMode.Async);
             }
         }
     }
@@ -658,7 +678,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                         deviceListChanged();
                         actionDelete = null;
                     }
-                });
+                }, SceneAction.SceneActionStartMode.Async);
             }
         }
     }
