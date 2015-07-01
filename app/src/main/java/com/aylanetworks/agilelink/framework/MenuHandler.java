@@ -24,6 +24,7 @@ import com.aylanetworks.agilelink.fragments.DeviceScenesFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
+import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -130,6 +131,11 @@ public class MenuHandler {
     public static void handleAddDevice() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    public static void handleGatewayWelcome() {
+        WelcomeFragment frag = WelcomeFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 

@@ -24,6 +24,10 @@ public class WelcomeFragment extends Fragment implements View.OnClickListener {
 
     private View mView;
 
+    public static WelcomeFragment newInstance() {
+        return new WelcomeFragment();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.fragment_welcome, container, false);
