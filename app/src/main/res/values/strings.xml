@@ -131,6 +131,7 @@
     <string name="enter_wifi_password">Please select the WiFi access point you wish your device to connect to and enter the WiFI password, if necessary.</string>
     <string name="connect">Connect</string>
     <string name="wifi_password">WiFi Network Password</string>
+    <string name="wifi_show_password">Show password</string>
     <string name="connect_device">Connect Device</string>
     <string name="connect_to_service_success">Service connection successful</string>
     <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
