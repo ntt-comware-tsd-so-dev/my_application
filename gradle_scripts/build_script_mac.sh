@@ -1,9 +1,10 @@
 #!/bin/bash
 echo ' checkout git repo'
+# if AYLA_BUILD_BRANCH not set, then set to master
+: ${AYLA_BUILD_BRANCH=master}
 echo Building from branch $AYLA_BUILD_BRANCH
 
 cd ..
-git checkout -b $AYLA_BUILD_BRANCH origin/$AYLA_BUILD_BRANCH
 
 rm -rf libraries
 mkdir libraries
@@ -11,10 +12,6 @@ mkdir libraries
 cd libraries
 git clone https://github.com/AylaNetworks/Android_AylaLibrary.git
 git clone https://github.com/AylaNetworks/Android_AylaZigbeeLibrary.git
-
-cd Android_AylaZigbeeLibrary
-git checkout -b $AYLA_BUILD_BRANCH origin/$AYLA_BUILD_BRANCH
-cd ..
 
 export ZIGBEE_PATH=$PWD
 cd Android_AylaLibrary
