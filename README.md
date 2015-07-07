@@ -10,6 +10,7 @@ Building in Android Studio
 Requires gradle version 2.1.+                                                                                         
 git clone https://github.com/AylaNetworks/Agile_Link_Android.git                                                    
 cd Agile_Link_Android/gradle_scripts                                                                                
+Set environment variable AYLA_BUILD_BRANCH to the branch to be built                                                                                                                             
 gradle -q execTasks                                                                                                  
 Open Android Studio -> Import Project -> Select build.gradle file in project folder(Agile_Link_Android)                
 To build the project in Android Studio, click 'Build' and select 'Make Project'
