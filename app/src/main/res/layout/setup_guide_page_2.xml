@@ -6,16 +6,18 @@
     android:orientation="vertical"
     android:background="@color/app_theme_window_background"
     android:clickable="true">
-
     <TextView
         android:id="@+id/page_header"
         style="@style/PageHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/gateway_ready"/>
-
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/setup_guide_text_2"
-        android:padding="30dp" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_guide_text_2"
+        style="@style/SetupText"
+        android:padding="8dp" />
     <FrameLayout android:paddingTop="10dp" android:paddingBottom="10dp" android:layout_height="wrap_content" android:layout_width="match_parent">
         <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayledsmain" android:layout_gravity="center" />
         <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds1on"  android:layout_gravity="center"/>
@@ -23,26 +25,26 @@
         <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds3on" android:id="@+id/redled1" android:layout_gravity="center"/>
         <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds4on"  android:layout_gravity="center"/>
     </FrameLayout>
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/setup_guide_text_3"
-        android:padding="30dp" />
-
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_guide_text_3"
+        style="@style/SetupText"
+        android:padding="8dp" />
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="20dp">
-
+        android:paddingBottom="8dp">
         <Button
+            android:id="@+id/btn_ready"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/gateway_ready_2"
-            android:id="@+id/btn_ready"
             android:layout_gravity="bottom"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp" />
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
     </LinearLayout>
-
 </LinearLayout>

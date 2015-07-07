@@ -12,26 +12,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/setup_guide"/>
-
     <ImageView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:src="@drawable/gatewaydiagram"
         android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp" />
-
+        android:layout_marginRight="8dp" />
     <TextView android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/setup_guide_text_1"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:layout_marginTop="20dp" />
-
+        android:layout_marginTop="8dp" />
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_marginBottom="20dp">
-
+        android:layout_marginBottom="8dp">
         <Button
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -40,9 +36,7 @@
             android:layout_gravity="bottom"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp" />
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
     </LinearLayout>
-
-
 </LinearLayout>

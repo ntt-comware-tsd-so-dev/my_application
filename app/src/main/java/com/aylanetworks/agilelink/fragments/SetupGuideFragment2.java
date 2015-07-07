@@ -5,11 +5,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
 import java.util.Timer;
@@ -32,11 +33,8 @@ public class SetupGuideFragment2 extends Fragment implements View.OnClickListene
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.setup_guide_page_2, container, false);
-
-
         mReady = (Button)mView.findViewById(R.id.btn_ready);
         mReady.setOnClickListener(this);
-
         return mView;
     }
 
@@ -44,15 +42,8 @@ public class SetupGuideFragment2 extends Fragment implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_ready:
-            {
-                ConnectGatewayFragment frag = new ConnectGatewayFragment();
-                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                        R.anim.abc_fade_in, R.anim.abc_fade_out);
-                // For the pager navigation, we push the fragment
-                ft.add(android.R.id.content, frag).addToBackStack(null).commit();
+                MainActivity.getInstance().pushFragment(new ConnectGatewayFragment());
                 break;
-            }
         }
     }
 

@@ -46,6 +46,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -161,6 +162,8 @@ public class AddDeviceFragment extends Fragment
         super.onPrepareOptionsMenu(menu);
     }
 
+    Spinner _spinnerProductType;
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_device, container, false);
@@ -183,8 +186,8 @@ public class AddDeviceFragment extends Fragment
         _spinnerRegistrationTypeLabel.setText(getString(R.string.registration_type));
 
         // Populate the spinners for product type & registration type
-        Spinner s = (Spinner) view.findViewById(R.id.spinner_product_type);
-        s.setAdapter(createProductTypeAdapter());
+        _spinnerProductType = (Spinner) view.findViewById(R.id.spinner_product_type);
+        _spinnerProductType.setAdapter(createProductTypeAdapter());
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         if ((gateways != null) && (gateways.size() > 0)) {
             // If they have a gateway, then default to Zigbee Node
@@ -194,24 +197,24 @@ public class AddDeviceFragment extends Fragment
                 if (c.getSimpleName().equals("ZigbeeNodeDevice")) {
                     _nodeRegistrationGateway = gateways.get(0);
                     _registrationType = REG_TYPE_NODE;
-                    s.setSelection(index);
+                    _spinnerProductType.setSelection(index);
                     break;
                 }
                 index++;
             }
         }
-        s.setOnItemSelectedListener(this);
+        _spinnerProductType.setOnItemSelectedListener(this);
 
-        s = _spinnerRegistrationType = (Spinner)view.findViewById(R.id.spinner_registration_type);
+        _spinnerRegistrationType = (Spinner)view.findViewById(R.id.spinner_registration_type);
         ArrayAdapter<CharSequence>  adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        s.setSelection(_registrationType);
-        s.setOnItemSelectedListener(this);
-        s.setAdapter(adapter);
+        _spinnerRegistrationType.setSelection(_registrationType);
+        _spinnerRegistrationType.setOnItemSelectedListener(this);
+        _spinnerRegistrationType.setAdapter(adapter);
 
-        s = _spinnerGatewaySelection = (Spinner)view.findViewById(R.id.spinner_gateway_selection);
-        s.setOnItemSelectedListener(this);
-        s.setAdapter(createGatewayAdapter());
+        _spinnerGatewaySelection = (Spinner)view.findViewById(R.id.spinner_gateway_selection);
+        _spinnerGatewaySelection.setOnItemSelectedListener(this);
+        _spinnerGatewaySelection.setAdapter(createGatewayAdapter());
 
         final Button scanButton = (Button) view.findViewById(R.id.scan_button);
         scanButton.setOnClickListener(this);
@@ -356,7 +359,10 @@ public class AddDeviceFragment extends Fragment
 
     private void registerButtonClick() {
         // Register button clicked
-        if (_registrationType == REG_TYPE_NODE) {
+        Device d = (Device)_spinnerProductType.getSelectedItem();
+        if (d.isGateway()) {
+            MenuHandler.handleGatewayWelcome();
+        } else if (_registrationType == REG_TYPE_NODE) {
             // we need something to register...
             Logger.logError(LOG_TAG, "rn: Register node no device node to register!");
             Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_no_device, Toast.LENGTH_LONG).show();
@@ -366,6 +372,15 @@ public class AddDeviceFragment extends Fragment
             AylaDevice newDevice = new AylaDevice();
             newDevice.registrationType = getSelectedRegistrationType();
             registerNewDevice(newDevice);
+        }
+    }
+
+    private void scanButtonClick() {
+        Device d = (Device)_spinnerProductType.getSelectedItem();
+        if (d.isGateway()) {
+            MenuHandler.handleGatewayWelcome();
+        } else {
+            doScan();
         }
     }
 
@@ -379,7 +394,7 @@ public class AddDeviceFragment extends Fragment
                 break;
 
             case R.id.scan_button:
-                doScan();
+                scanButtonClick();
                 break;
         }
     }
@@ -548,8 +563,7 @@ public class AddDeviceFragment extends Fragment
     private void doScan() {
         if (_registrationType==REG_TYPE_NODE) {
             if (_nodeRegistrationGateway == null) {
-                Logger.logError(LOG_TAG, "rn: Register node has no gateway!");
-                Toast.makeText(MainActivity.getInstance(), R.string.error_no_gateway, Toast.LENGTH_LONG).show();
+                MenuHandler.handleGatewayWelcome();
             } else {
                 // Put up a progress dialog
                 MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title),
@@ -637,6 +651,9 @@ public class AddDeviceFragment extends Fragment
                         int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
                         SessionManager.deviceManager().refreshDeviceList();
+                        if (error == AylaNetworks.AML_ERROR_OK) {
+                            MenuHandler.handleAllDevices();
+                        }
                     }
                 });
 

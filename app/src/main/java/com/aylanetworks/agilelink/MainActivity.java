@@ -230,6 +230,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if ( _noDevicesMode ) {
             SessionManager.deviceManager().stopPolling();
             setContentView(R.layout.activity_main_no_devices);
+            MenuHandler.handleAddDevice();
         } else {
             initUI();
         }
@@ -706,8 +707,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      */
     public void pushFragment(Fragment frag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                R.anim.abc_fade_in, R.anim.abc_fade_out);
+        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out, R.anim.abc_fade_in, R.anim.abc_fade_out);
         if ( getUIConfig()._navStyle == UIConfig.NavStyle.Pager ) {
             // For the pager navigation, we push the fragment
             ft.add(android.R.id.content, frag).addToBackStack(null).commit();
@@ -716,7 +716,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             ft.replace(R.id.content_frame, frag).addToBackStack(null).commit();
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -29,6 +29,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -54,10 +55,8 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.fragment_connect_gateway, container, false);
-
         btnGateway = (Button)mView.findViewById(R.id.register_btn);
         btnGateway.setOnClickListener(this);
-
         return mView;
     }
 
@@ -111,6 +110,9 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                         int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
                         SessionManager.deviceManager().refreshDeviceList();
+                        if (error == AylaNetworks.AML_ERROR_OK) {
+                            MenuHandler.handleAllDevices();
+                        }
                     }
                 });
 
@@ -166,7 +168,6 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     }
 
     private void initializeTimer(){
-
         frame =0;
         timerTask = new TimerTask() {
 
@@ -179,7 +180,6 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                         updateLEDs();
                     }
                 });
-
             }
         };
     }
@@ -187,11 +187,8 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     private int frame;
 
     private void updateLEDs(){
-
         Activity activity = getActivity();
-
         frame = (++frame)%36;
-
         if(frame%4 == 0){
             if(activity.findViewById(R.id.redled2) != null){
                 activity.findViewById(R.id.redled2).setVisibility(activity.findViewById(R.id.redled2).getVisibility() == View.VISIBLE?View.GONE:View.VISIBLE);
@@ -202,10 +199,6 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
             if(activity.findViewById(R.id.greenled2) != null){
                 activity.findViewById(R.id.greenled2).setVisibility(activity.findViewById(R.id.greenled2).getVisibility() == View.VISIBLE?View.GONE:View.VISIBLE);
             }
-
         }
     }
-
-
-
 }
