@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDatum;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
@@ -182,7 +181,7 @@ public class DeviceGroup {
      * @return true if the device was added to the group, or false if the device already existed in the group
      */
     public boolean addDevice(Device device) {
-        if (_deviceDSNs.add(device.getDevice().dsn)) {
+        if (_deviceDSNs.add(device.getDeviceDsn())) {
             _isDirty = true;
             return true;
         }
@@ -196,7 +195,7 @@ public class DeviceGroup {
      * @return true if the device was removed, or false if the device did not exist in the group
      */
     public boolean removeDevice(Device device) {
-        if (_deviceDSNs.remove(device.getDevice().dsn)) {
+        if (_deviceDSNs.remove(device.getDeviceDsn())) {
             _isDirty = true;
             return true;
         }
@@ -221,7 +220,7 @@ public class DeviceGroup {
      * @return true if the device is in the group, or false if not
      */
     public boolean isDeviceInGroup(Device device) {
-        String deviceDSN = device.getDevice().dsn;
+        String deviceDSN = device.getDeviceDsn();
         return _deviceDSNs.contains(deviceDSN);
     }
 
@@ -260,7 +259,7 @@ public class DeviceGroup {
     public void setDevices(List<Device> devices) {
         _deviceDSNs.clear();
         for ( Device d : devices ) {
-            _deviceDSNs.add(d.getDevice().dsn);
+            _deviceDSNs.add(d.getDeviceDsn());
         }
         _isDirty = true;
     }

@@ -155,27 +155,7 @@ public class AllDevicesFragment extends Fragment
         return view;
     }
 
-    protected void startListening() {
-        SessionManager.addSessionListener(this);
-
-        DeviceManager deviceManager = SessionManager.deviceManager();
-        if (deviceManager != null) {
-            SessionManager.deviceManager().addDeviceListListener(this);
-            SessionManager.deviceManager().addDeviceStatusListener(this);
-        }
-    }
-
-    protected void stopListening() {
-        SessionManager.removeSessionListener(this);
-
-        DeviceManager deviceManager = SessionManager.deviceManager();
-        if (deviceManager != null) {
-            SessionManager.deviceManager().removeDeviceListListener(this);
-            SessionManager.deviceManager().removeDeviceStatusListener(this);
-        }
-    }
-
-    protected void updateDeviceList() {
+    public void updateDeviceList() {
         List<Device> deviceList = null;
         if ( SessionManager.deviceManager() != null ) {
             deviceList = SessionManager.deviceManager().deviceList();
@@ -194,11 +174,29 @@ public class AllDevicesFragment extends Fragment
             if ( _emptyView != null ) {
                 _emptyView.setVisibility(View.GONE);
                 _recyclerView.setVisibility(View.VISIBLE);
-
                 _adapter = new DeviceListAdapter(deviceList, this);
-
                 _recyclerView.setAdapter(_adapter);
             }
+        }
+    }
+
+    protected void startListening() {
+        SessionManager.addSessionListener(this);
+
+        DeviceManager deviceManager = SessionManager.deviceManager();
+        if (deviceManager != null) {
+            SessionManager.deviceManager().addDeviceListListener(this);
+            SessionManager.deviceManager().addDeviceStatusListener(this);
+        }
+    }
+
+    protected void stopListening() {
+        SessionManager.removeSessionListener(this);
+
+        DeviceManager deviceManager = SessionManager.deviceManager();
+        if (deviceManager != null) {
+            SessionManager.deviceManager().removeDeviceListListener(this);
+            SessionManager.deviceManager().removeDeviceStatusListener(this);
         }
     }
 
@@ -224,7 +222,7 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
-            Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
+            Log.i(LOG_TAG, "Device " + device.getProductName() + " changed");
             _recyclerView.setAdapter(_adapter);
         }
     }

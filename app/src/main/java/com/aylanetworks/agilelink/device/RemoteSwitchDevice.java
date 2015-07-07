@@ -8,7 +8,9 @@ package com.aylanetworks.agilelink.device;
  */
 
 import android.os.Message;
+
 import com.aylanetworks.agilelink.framework.Device;
+
 import java.util.List;
 
 public interface RemoteSwitchDevice {

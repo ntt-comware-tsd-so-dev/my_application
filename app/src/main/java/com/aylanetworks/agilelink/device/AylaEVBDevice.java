@@ -165,7 +165,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
         AylaEVBDeviceViewHolder h = (AylaEVBDeviceViewHolder) holder;
         Resources res = MainActivity.getInstance().getResources();
         
-        h._deviceNameTextView.setText(getDevice().getProductName());
+        h._deviceNameTextView.setText(getProductName());
 
         // Blue button state
         int imageId = isBlueButtonPressed() ? R.drawable.buttondown : R.drawable.buttonup;

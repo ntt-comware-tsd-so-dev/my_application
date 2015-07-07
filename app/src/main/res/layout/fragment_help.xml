@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:background="@color/app_theme_window_background"
+              android:clickable="true"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/page_header"
+        style="@style/PageHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/help"/>
+
+    <RelativeLayout
+        android:id="@+id/version_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+        <TextView
+            android:id="@+id/version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="8dp"
+            android:text="#.#.#"
+            android:textStyle="bold"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/help_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:background="@color/card_background">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/black"
+            android:orientation="horizontal" />
+
+        <RelativeLayout
+            android:id="@+id/about_amap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/about_amap_glyph"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/dot" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/about_amap_glyph"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:text="@string/about_amap"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                />
+
+            <ImageView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_action_right" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginLeft="64dp"
+            android:background="@android:color/black"
+            android:orientation="horizontal" />
+
+        <RelativeLayout
+            android:id="@+id/get_started"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/faqs_glyph"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/dot" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/faqs_glyph"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:text="@string/get_started"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                />
+
+            <ImageView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_action_right" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginLeft="64dp"
+            android:background="@android:color/black"
+            android:orientation="horizontal" />
+
+        <RelativeLayout
+            android:id="@+id/guides_videos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/user_guides_glyph"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/dot" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/user_guides_glyph"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:text="@string/guides_videos"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                />
+
+            <ImageView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_action_right" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginLeft="64dp"
+            android:background="@android:color/black"
+            android:orientation="horizontal" />
+
+        <RelativeLayout
+            android:id="@+id/terms_and_condition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/terms_and_condition_glyph"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/dot" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/terms_and_condition_glyph"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:text="@string/terms_and_condition"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                 />
+
+            <ImageView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_action_right" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/black"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+</LinearLayout>

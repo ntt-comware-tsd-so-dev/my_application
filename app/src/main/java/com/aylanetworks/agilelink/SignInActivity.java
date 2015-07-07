@@ -155,6 +155,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         _loginButton.setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
+                                                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                                                imm.hideSoftInputFromWindow(_loginButton.getWindowToken(), 0);
                                                 showSigningInDialog();
                                                 SessionManager.startSession(_username.getText().toString(), _password.getText().toString());
                                             }

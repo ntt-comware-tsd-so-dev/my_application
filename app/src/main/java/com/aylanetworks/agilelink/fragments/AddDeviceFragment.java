@@ -38,6 +38,7 @@ import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
@@ -45,6 +46,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
@@ -84,6 +86,7 @@ public class AddDeviceFragment extends Fragment
         return new AddDeviceFragment();
     }
 
+    private Button _registerButton;
     private TextView _spinnerRegistrationTypeLabel;
     private Spinner _spinnerRegistrationType;
     private Spinner _spinnerGatewaySelection;
@@ -110,26 +113,13 @@ public class AddDeviceFragment extends Fragment
         Logger.logVerbose(LOG_TAG, "onResume");
         super.onResume();
 
-        /*
-        if (_nodeRegistrationGateway != null) {
-            // not sure this is the right thing to do...
-            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_nodeRegistrationGateway));
-        }
-        AylaLanMode.pause(true);
-        */
-
+        // Stop polling & LAN mode
+        SessionManager.getInstance().setForeground(false);
         if ( SessionManager.deviceManager() != null ) {
             SessionManager.deviceManager().stopPolling();
         }
-
-        /*
-        // TODO: The following two hacks are there so that I can get consistent behavior.  Need to
-        // TODO: the real problems here...
-
-        // TODO: quick hack... remove this
-        // TODO: Nothing I do seems to disable LAN mode, except for this.
-        AylaLanMode.device = null;
-        */
+        // Can't do the AylaLanMode.pause as we NEVER find anything...
+        //AylaLanMode.pause(false);
 
         // TODO: quick hack... remove this
         // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
@@ -150,15 +140,16 @@ public class AddDeviceFragment extends Fragment
             _nodeRegistrationGateway.cleanupRegistrationScan();
         }
 
-        SessionManager.sessionParameters().enableLANMode = _enableLANMode;
+        // make sure we are still in the foreground
+        if (AgileLinkApplication.getLifeCycleState() == AgileLinkApplication.LifeCycleState.Foreground) {
 
-        if ( SessionManager.deviceManager() != null ) {
-            SessionManager.deviceManager().startPolling();
+            // Restart polling & LAN mode
+            if ( SessionManager.deviceManager() != null ) {
+                SessionManager.deviceManager().startPolling();
+            }
+            SessionManager.getInstance().setForeground(true);
+            //AylaLanMode.resume();
         }
-
-        /*
-        AylaLanMode.resume();
-        */
     }
 
     @Override
@@ -170,6 +161,8 @@ public class AddDeviceFragment extends Fragment
 
         super.onPrepareOptionsMenu(menu);
     }
+
+    Spinner _spinnerProductType;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -193,8 +186,8 @@ public class AddDeviceFragment extends Fragment
         _spinnerRegistrationTypeLabel.setText(getString(R.string.registration_type));
 
         // Populate the spinners for product type & registration type
-        Spinner s = (Spinner) view.findViewById(R.id.spinner_product_type);
-        s.setAdapter(createProductTypeAdapter());
+        _spinnerProductType = (Spinner) view.findViewById(R.id.spinner_product_type);
+        _spinnerProductType.setAdapter(createProductTypeAdapter());
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         if ((gateways != null) && (gateways.size() > 0)) {
             // If they have a gateway, then default to Zigbee Node
@@ -204,31 +197,31 @@ public class AddDeviceFragment extends Fragment
                 if (c.getSimpleName().equals("ZigbeeNodeDevice")) {
                     _nodeRegistrationGateway = gateways.get(0);
                     _registrationType = REG_TYPE_NODE;
-                    s.setSelection(index);
+                    _spinnerProductType.setSelection(index);
                     break;
                 }
                 index++;
             }
         }
-        s.setOnItemSelectedListener(this);
+        _spinnerProductType.setOnItemSelectedListener(this);
 
-        s = _spinnerRegistrationType = (Spinner)view.findViewById(R.id.spinner_registration_type);
+        _spinnerRegistrationType = (Spinner)view.findViewById(R.id.spinner_registration_type);
         ArrayAdapter<CharSequence>  adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        s.setSelection(_registrationType);
-        s.setOnItemSelectedListener(this);
-        s.setAdapter(adapter);
+        _spinnerRegistrationType.setSelection(_registrationType);
+        _spinnerRegistrationType.setOnItemSelectedListener(this);
+        _spinnerRegistrationType.setAdapter(adapter);
 
-        s = _spinnerGatewaySelection = (Spinner)view.findViewById(R.id.spinner_gateway_selection);
-        s.setOnItemSelectedListener(this);
-        s.setAdapter(createGatewayAdapter());
+        _spinnerGatewaySelection = (Spinner)view.findViewById(R.id.spinner_gateway_selection);
+        _spinnerGatewaySelection.setOnItemSelectedListener(this);
+        _spinnerGatewaySelection.setAdapter(createGatewayAdapter());
 
         final Button scanButton = (Button) view.findViewById(R.id.scan_button);
         scanButton.setOnClickListener(this);
 
         // Hook up the "Register" button
-        Button registerButton = (Button) view.findViewById(R.id.register_button);
-        registerButton.setOnClickListener(this);
+        _registerButton = (Button) view.findViewById(R.id.register_button);
+        _registerButton.setOnClickListener(this);
 
         // Stop polling
         SessionManager.deviceManager().stopPolling();
@@ -319,6 +312,7 @@ public class AddDeviceFragment extends Fragment
                 }
                     break;
             }
+            _registerButton.setVisibility(showGateways ? View.GONE : View.VISIBLE);
             _descriptionTextView.setText(Html.fromHtml(getActivity().getResources().getString(textId)));
             _spinnerRegistrationTypeLabel.setText(getString(showGateways ? R.string.select_gateway : R.string.registration_type));
             _spinnerRegistrationTypeLabel.setVisibility(spinnerVisible);
@@ -327,7 +321,7 @@ public class AddDeviceFragment extends Fragment
         } else if (parent.getId() == R.id.spinner_gateway_selection) {
             Gateway gateway = (Gateway) parent.getAdapter().getItem(position);
             if (gateway != null) {
-                Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDevice().dsn + "]");
+                Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDeviceDsn() + "]");
                 _nodeRegistrationGateway = gateway;
             } else {
                 Logger.logError(LOG_TAG, "rn: no gateway");
@@ -365,7 +359,10 @@ public class AddDeviceFragment extends Fragment
 
     private void registerButtonClick() {
         // Register button clicked
-        if (_registrationType == REG_TYPE_NODE) {
+        Device d = (Device)_spinnerProductType.getSelectedItem();
+        if (d.isGateway()) {
+            MenuHandler.handleGatewayWelcome();
+        } else if (_registrationType == REG_TYPE_NODE) {
             // we need something to register...
             Logger.logError(LOG_TAG, "rn: Register node no device node to register!");
             Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_no_device, Toast.LENGTH_LONG).show();
@@ -375,6 +372,15 @@ public class AddDeviceFragment extends Fragment
             AylaDevice newDevice = new AylaDevice();
             newDevice.registrationType = getSelectedRegistrationType();
             registerNewDevice(newDevice);
+        }
+    }
+
+    private void scanButtonClick() {
+        Device d = (Device)_spinnerProductType.getSelectedItem();
+        if (d.isGateway()) {
+            MenuHandler.handleGatewayWelcome();
+        } else {
+            doScan();
         }
     }
 
@@ -388,7 +394,7 @@ public class AddDeviceFragment extends Fragment
                 break;
 
             case R.id.scan_button:
-                doScan();
+                scanButtonClick();
                 break;
         }
     }
@@ -415,21 +421,22 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void showMessage(int resourceId){
-        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-        alertDialog.setTitle(getString(R.string.attention));
-        alertDialog.setMessage(getString(resourceId));
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(getString(R.string.attention))
+                .setMessage(getString(resourceId))
+                .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                });
-        alertDialog.show();
+                })
+                .create()
+                .show();
     }
 
     public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
         Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDevice().dsn, device.getDevice().productName);
+        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDeviceDsn(), device.getProductName());
 
         /*
         int resourceId = device.hasPostRegistrationProcessingResourceId();
@@ -479,8 +486,15 @@ public class AddDeviceFragment extends Fragment
             selected.add(adn);
         }
 
+        /* Quicky test to see if Identify will work on the AylaDeviceNode candidate...
+        if (list != null && list.size() > 0) {
+            _nodeRegistrationGateway.identifyAylaDeviceNode(list.get(0), true, 255, this, null);
+        }
+        */
+
         if (_useSingleSelect) {
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
@@ -498,6 +512,7 @@ public class AddDeviceFragment extends Fragment
                     .create().show();
         } else {
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
@@ -548,14 +563,13 @@ public class AddDeviceFragment extends Fragment
     private void doScan() {
         if (_registrationType==REG_TYPE_NODE) {
             if (_nodeRegistrationGateway == null) {
-                Logger.logError(LOG_TAG, "rn: Register node has no gateway!");
-                Toast.makeText(MainActivity.getInstance(), R.string.error_no_gateway, Toast.LENGTH_LONG).show();
+                MenuHandler.handleGatewayWelcome();
             } else {
                 // Put up a progress dialog
                 MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title),
                         getString(R.string.scanning_for_gateway_devices_message), this);
 
-                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDevice().dsn + "]");
+                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDeviceDsn() + "]");
                 _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
             }
         } else {
@@ -661,6 +675,7 @@ public class AddDeviceFragment extends Fragment
             }
 
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.choose_new_device)
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
@@ -670,7 +685,8 @@ public class AddDeviceFragment extends Fragment
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
-                    .create().show();
+                    .create()
+                    .show();
         }
     }
 

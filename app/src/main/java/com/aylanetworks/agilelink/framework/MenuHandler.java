@@ -20,8 +20,11 @@ import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
+import com.aylanetworks.agilelink.fragments.DeviceScenesFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
+import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
+import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,6 +60,10 @@ public class MenuHandler {
                 handleDeviceGroups();
                 break;
 
+            case R.id.action_device_scenes:
+                handleDeviceScenes();
+                break;
+
             case R.id.action_add_device:
                 handleAddDevice();
                 break;
@@ -85,6 +92,10 @@ public class MenuHandler {
                 signOut();
                 break;
 
+            case R.id.action_help:
+                help();
+                break;
+
             case R.id.action_about:
                 about();
                 break;
@@ -110,9 +121,21 @@ public class MenuHandler {
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
     }
 
+    public static void handleDeviceScenes() {
+        Fragment frag = DeviceScenesFragment.newInstance();
+        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
+        MainActivity.getInstance().popBackstackToRoot();
+        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+    }
+
     public static void handleAddDevice() {
         // Bring up the Add Device UI
         AddDeviceFragment frag = AddDeviceFragment.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    public static void handleGatewayWelcome() {
+        WelcomeFragment frag = WelcomeFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -211,6 +234,11 @@ public class MenuHandler {
 
     public static void about() {
         AboutFragment frag = new AboutFragment();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    public static void help() {
+        HelpFragment frag = new HelpFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 

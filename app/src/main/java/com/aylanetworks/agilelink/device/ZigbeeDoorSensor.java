@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 
 /*
  * ZigbeeDoorSensor.java
@@ -16,7 +15,7 @@ import com.aylanetworks.agilelink.framework.Device;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class ZigbeeDoorSensor extends Device {
+public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
 
     private final static String LOG_TAG = "ZigbeeDoorSensor";
 
@@ -44,6 +43,16 @@ public class ZigbeeDoorSensor extends Device {
     }
 
     @Override
+    public String getTriggerOnName() {
+        return MainActivity.getInstance().getString(R.string.door_trigger_on_name);
+    }
+
+    @Override
+    public String getTriggerOffName() {
+        return MainActivity.getInstance().getString(R.string.door_trigger_off_name);
+    }
+
+    @Override
     public String deviceTypeName() {
         return "Door Sensor";
     }
@@ -52,13 +61,4 @@ public class ZigbeeDoorSensor extends Device {
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.ic_door_red);
     }
-
-    @Override
-    public boolean isDeviceNode() {
-        return true;
-    }
-
-    @Override
-    public int hasPostRegistrationProcessingResourceId() { return R.string.add_device_sensor_warning; }
-
 }

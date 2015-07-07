@@ -2,10 +2,10 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -17,6 +17,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -25,6 +27,9 @@ import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.agilelink.R;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /*
@@ -50,11 +55,23 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         void choseAccessPoint(String accessPoint, String security, String password);
     }
 
-    public static ChooseAPDialog newInstance(AylaModuleScanResults[] scanResults) {
+    public static ChooseAPDialog newInstance(AylaModuleScanResults[] scanArray) {
+
+        // show highest strength signal first
+        List<AylaModuleScanResults> scanResults = new ArrayList<>(Arrays.asList(scanArray));
+        Collections.sort(scanResults, new Comparator<AylaModuleScanResults>() {
+            @Override
+            public int compare(AylaModuleScanResults lhs, AylaModuleScanResults rhs) {
+                if (lhs.signal == rhs.signal) {
+                    return lhs.ssid.compareToIgnoreCase(rhs.ssid);
+                }
+                return rhs.signal - lhs.signal;
+            }
+        });
+
         // Convert scanResults into something parcelable that we can pass as arguments
         ArrayList<String>ssids = new ArrayList<>();
         ArrayList<String>keyMgmt = new ArrayList<>();
-
         for ( AylaModuleScanResults result : scanResults ) {
             ssids.add(result.ssid);
             keyMgmt.add(result.security);
@@ -71,6 +88,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
 
     private List<String> _ssidList;
     private List<String> _securityList;
+    private View _passwordContainer;
     private EditText _passwordEditText;
     private TextView _textView;
     private Button _connectButton;
@@ -81,7 +99,6 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
 
         View root = inflater.inflate(R.layout.dialog_choose_ap, container, false);
         final ListView listView = (ListView)root.findViewById(R.id.ap_list);
-
         final ChooseAPResults listener = (ChooseAPResults)getTargetFragment();
 
         Button b = (Button)root.findViewById(R.id.button_cancel);
@@ -95,6 +112,8 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
             }
         });
 
+        _passwordContainer = root.findViewById(R.id.password_container);
+
         _textView = (TextView)root.findViewById(R.id.choose_ap_textview);
         _connectButton = (Button)root.findViewById(R.id.button_connect);
         _connectButton.setEnabled(false);
@@ -103,7 +122,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
             public void onClick(View v) {
                 Log.d(LOG_TAG, "AP selected");
                 dismiss();
-                if ( listener != null ) {
+                if (listener != null) {
                     listener.choseAccessPoint(_selectedSSID, _selectedSecurity, _passwordEditText.getText().toString());
                 }
             }
@@ -113,6 +132,18 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         _passwordEditText.setEnabled(false);
         _passwordEditText.addTextChangedListener(this);
         _passwordEditText.setOnEditorActionListener(this);
+
+        CheckBox cb = (CheckBox)root.findViewById(R.id.wifi_show_password);
+        cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    _passwordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                } else {
+                    _passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                }
+            }
+        });
 
         // Get our arguments and set up the listview
         Bundle args = getArguments();
@@ -145,10 +176,10 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
 
         if ( _selectedSecurity.equals(SECURITY_OPEN) ) {
             // No need for the password field
-            _passwordEditText.setVisibility(View.GONE);
+            _passwordContainer.setVisibility(View.GONE);
             _connectButton.setEnabled(true);
         } else {
-            _passwordEditText.setVisibility(View.VISIBLE);
+            _passwordContainer.setVisibility(View.VISIBLE);
             _passwordEditText.setText("");
             _passwordEditText.setEnabled(true);
             _connectButton.setEnabled(false);

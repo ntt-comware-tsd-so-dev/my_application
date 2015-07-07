@@ -31,7 +31,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
+    public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
 
+    /**
+     * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
+     * @param aylaDevice The AylaDevice object to be wrapped
+     * @return Device
+     */
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
         if (aylaDevice.oemModel == null) {
@@ -113,6 +119,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                                 R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_DIMMABLE:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_dimmable_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_dimmable_device_expandable :
+                                R.layout.cardview_dimmable_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new DimmableLightViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_generic_device_grid :

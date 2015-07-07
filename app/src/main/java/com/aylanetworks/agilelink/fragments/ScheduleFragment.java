@@ -4,7 +4,6 @@ package com.aylanetworks.agilelink.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -27,7 +26,6 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaSchedule;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
@@ -35,7 +33,6 @@ import com.aylanetworks.agilelink.framework.Schedule;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +96,7 @@ public class ScheduleFragment extends Fragment {
 
     public static ScheduleFragment newInstance(Device device, int scheduleIndex) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
+        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
         args.putInt(ARG_SCHEDULE_INDEX, scheduleIndex);
         ScheduleFragment frag = new ScheduleFragment();
         frag.setArguments(args);
@@ -409,7 +406,7 @@ public class ScheduleFragment extends Fragment {
                 nSelected++;
             }
             cb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
-            cb.setTextColor(getResources().getColor(R.color.button_fg));
+            cb.setTextColor(getResources().getColor(R.color.enabled_text));
             cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

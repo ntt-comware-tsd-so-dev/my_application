@@ -320,17 +320,15 @@
 
     <!-- Text color indicating "disabled" -->
     <color name="disabled_text">@color/grey_600</color>
-
+    <color name="enabled_text">@android:color/white</color>
 
     <!-- Default button background gradients -->
     <color name="button_start">@color/app_theme_primary_light</color>
     <color name="button_end">@color/app_theme_primary</color>
     <color name="button_selected_start">@color/app_theme_primary_medium_light</color>
     <color name="button_selected_end">@color/app_theme_primary_medium_dark</color>
-
-    <!-- Button foreground (text) color. Background is @drawable/button_bg -->
-    <color name="button_fg">@android:color/white</color>
-
+    <color name="button_disabled_start">@color/grey_500</color>
+    <color name="button_disabled_end">@color/grey_600</color>
 
     <!-- Colors for normal or selected list items -->
     <color name="list_bg_normal">@android:color/white</color>
@@ -367,4 +365,11 @@
     <!-- Color of the link text on the login screen -->
     <color name="link">#00688B</color>
 
- </resources>
+    <!-- Color of device power on/off -->
+    <color name="device_on_bg">@color/green_500</color>
+    <color name="device_off_bg">@color/grey_500</color>
+    <color name="device_pending_bg">@color/yellow_500</color>
+    <color name="device_offline_bg">@color/grey_700</color>
+    <color name="device_onoff_fg">@android:color/white</color>
+
+</resources>

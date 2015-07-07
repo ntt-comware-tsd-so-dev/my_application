@@ -18,7 +18,9 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
+import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
+import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -46,6 +48,73 @@ public class Gateway extends Device {
     private final static long SCAN_TIMEOUT = (30 * 1000);
 
     /**
+     * Generic Gateway completion handler
+     */
+    public interface AylaGatewayCompletionHandler {
+
+        /**
+         * Indicate that the action has completed.
+         * @param gateway Gateway that the action was performed on.
+         * @param msg Ayla Message
+         * @param tag Optional user data tag.
+         */
+        public void gatewayCompletion(Gateway gateway, Message msg, Object tag);
+    }
+
+    /**
+     * Generic Gateway action and completion handler
+     */
+    public interface AylaGatewayActionHandler {
+
+        /**
+         * Perform an action using the specified Gateway. Used to perform the same action across
+         * all the gateways.
+         * @param action User specified Object
+         * @param gateway Gateway
+         * @param tag Optional user data tag.
+         */
+        public void performAction(Object action, Gateway gateway, Object tag);
+
+        public void complete(Object action, Message msg, Object tag);
+    }
+
+    /**
+     * Interface used when scanning for and registering a gateway's device nodes
+     */
+    public interface GatewayNodeRegistrationListener {
+
+        /**
+         * Notify that a registration candidate has been successfully registered as a device.
+         *
+         * @param device Device
+         * @param moreComing When register
+         * @param tag Optional user specified data.
+         */
+        public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag);
+
+        /**
+         * Notify that registration candidates are available, the UI is then
+         * given a chance to allow the user to select which devices to actually
+         * register.  Then call back to gateway.registerCandidates
+         *
+         * @param list List of AylaDeviceNode objects
+         * @param tag Optional user specified data.
+         */
+        public void gatewayRegistrationCandidates(List<AylaDeviceNode> list, Object tag);
+
+        /**
+         * Notify that the the processs of scanning and registering a gateway's
+         * device nodes has completed.
+         *
+         * @param msg The final Message.
+         * @param messageResourceId String resource id to display a toast to the user.
+         * @param tag Optional user specified data.
+         */
+        public void gatewayRegistrationComplete(Message msg, int messageResourceId, Object tag);
+
+    }
+
+    /**
      * Get the gateway for a device node.
      *
      * @param device The Device to get the gateway for.
@@ -55,6 +124,18 @@ public class Gateway extends Device {
         if (device.isDeviceNode()) {
             AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
             return (Gateway)SessionManager.deviceManager().deviceByDSN(adn.gatewayDsn);
+        }
+        return null;
+    }
+
+    /**
+     * Get the gateway for a AylaSceneZigbee
+     * @param scene AylaSceneZigbee
+     * @return Gateway. Null if scene is null or does not have a gatewayDsn
+     */
+    public static Gateway getGatewayForScene(AylaSceneZigbee scene) {
+        if (scene != null) {
+            return (Gateway)SessionManager.deviceManager().deviceByDSN(scene.gatewayDsn);
         }
         return null;
     }
@@ -108,51 +189,6 @@ public class Gateway extends Device {
         return filterDeviceList(SessionManager.deviceManager().getDevicesOfComparableType(comparable));
     }
 
-
-    /**
-     * Interface used when scanning for and registering a gateway's device nodes
-     */
-    public interface GatewayNodeRegistrationListener {
-
-        /**
-         * Notify that a registration candidate has been successfully registered as a device.
-         *
-         * @param device Device
-         * @param moreComing When register
-         * @param tag Optional user specified data.
-         */
-        public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag);
-
-        /**
-         * Notify that registration candidates are available, the UI is then
-         * given a chance to allow the user to select which devices to actually
-         * register.  Then call back to gateway.registerCandidates
-         *
-         * @param list List of AylaDeviceNode objects
-         * @param tag Optional user specified data.
-         */
-        public void gatewayRegistrationCandidates(List<AylaDeviceNode> list, Object tag);
-
-        /**
-         * Notify that the the processs of scanning and registering a gateway's
-         * device nodes has completed.
-         *
-         * @param msg The final Message.
-         * @param messageResourceId String resource id to display a toast to the user.
-         * @param tag Optional user specified data.
-         */
-        public void gatewayRegistrationComplete(Message msg, int messageResourceId, Object tag);
-
-    }
-
-    // We need a simple, generic completion handler to use when performing a lot of different
-    // steps that do not need notification along the way to anybody but the one performing
-    // the steps.
-    public interface AylaGatewayCompletionHandler {
-
-        public void gatewayCompletion(Gateway gateway, Message msg, Object tag);
-    }
-
     public Gateway(AylaDevice aylaDevice) {
         super(aylaDevice);
     }
@@ -161,15 +197,17 @@ public class Gateway extends Device {
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
         if (oldDevice != null) {
-            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDevice().dsn);
+            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDeviceDsn());
             Gateway gateway = (Gateway)oldDevice;
             _groupManager = gateway._groupManager;
             _bindingManager = gateway._bindingManager;
+            _sceneManager = gateway._sceneManager;
         } else {
-            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDevice().dsn);
-        }
+            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDeviceDsn());
+         }
         getGroupManager().fetchZigbeeGroupsIfNeeded();
         getBindingManager().fetchZigbeeBindingsIfNeeded();
+        getSceneManager().fetchZigbeeScenesIfNeeded();
     }
 
     public AylaDeviceGateway getGatewayDevice() {
@@ -179,7 +217,7 @@ public class Gateway extends Device {
     /**
      * Called when a unregisterDevice is called on a DeviceNode
      *
-     * @param device
+     * @param device Device
      */
     public void removeDeviceNode(Device device) {
     }
@@ -193,6 +231,14 @@ public class Gateway extends Device {
         return _groupManager;
     }
 
+    public List<AylaGroupZigbee> getGroups() {
+        return getGroupManager().getGroups();
+    }
+
+    public AylaGroupZigbee getGroupByName(String name) {
+        return getGroupManager().getByName(name);
+    }
+
     private ZigbeeBindingManager _bindingManager;
 
     public ZigbeeBindingManager getBindingManager() {
@@ -202,12 +248,86 @@ public class Gateway extends Device {
         return _bindingManager;
     }
 
-    public void createGroup(String groupName, List<Device>deviceList, Object tag, AylaGatewayCompletionHandler handler) {
-        getGroupManager().createGroup(groupName, deviceList, tag, handler);
+    public List<AylaBindingZigbee> getBindings() {
+        return getBindingManager().getBindings();
+    }
+
+    public AylaBindingZigbee getBindingByName(String name) {
+        return getBindingManager().getByName(name);
+    }
+
+    private ZigbeeSceneManager _sceneManager;
+
+    public ZigbeeSceneManager getSceneManager() {
+        if (_sceneManager == null) {
+            _sceneManager = new ZigbeeSceneManager(this);
+        }
+        return _sceneManager;
+    }
+
+    public void fetchScenes(Object tag, AylaGatewayCompletionHandler completion) {
+        getSceneManager().fetchZigbeeScenes(tag, completion);
+    }
+
+    public List<AylaSceneZigbee> getScenes() {
+        return getSceneManager().getScenes();
+    }
+
+    public AylaSceneZigbee getSceneByName(String name) {
+        return getSceneManager().getByName(name);
+    }
+
+    public List<Device> getDevicesForScene(AylaSceneZigbee scene) {
+        return getSceneManager().getDevices(scene);
+    }
+
+    public void createGroup(String groupName, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().createGroup(groupName, devices, tag, handler);
+    }
+
+    public void createGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
+        getGroupManager().createGroup(group, tag, handler);
     }
 
     public void updateGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
         getGroupManager().updateGroup(group, tag, handler);
+    }
+
+    public void addDevicesToGroup(AylaGroupZigbee group, List<Device> list, Object tag, AylaGatewayCompletionHandler handler) {
+        List<AylaDeviceNode> devices = ZigbeeGroupManager.getDeviceNodes(group);
+        // add list to devices
+        for (Device device : list) {
+            AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+            // make sure it isn't already in the list
+            if (!DeviceManager.isDsnInAylaDeviceNodeList(adn.dsn, devices)) {
+                devices.add(adn);
+            }
+        }
+        group.nodeDsns = new String[devices.size()];
+        group.nodes = new AylaDeviceZigbeeNode[devices.size()];
+        for (int i = 0; i < devices.size(); i++) {
+            group.nodeDsns[i] = devices.get(i).dsn;
+            group.nodes[i] = (AylaDeviceZigbeeNode)devices.get(i);
+        }
+        updateGroup(group, tag, handler);
+    }
+
+    public void removeDevicesFromGroup(AylaGroupZigbee group, List<Device> list, Object tag, AylaGatewayCompletionHandler handler) {
+        // remove list from devices
+        List<AylaDeviceNode> current = ZigbeeGroupManager.getDeviceNodes(group);
+        List<AylaDeviceNode> devices = new ArrayList<AylaDeviceNode>();
+        for (AylaDeviceNode adn : current) {
+            if (!DeviceManager.isDsnInDeviceList(adn.dsn, list)) {
+                devices.add(adn);
+            }
+        }
+        group.nodeDsns = new String[devices.size()];
+        group.nodes = new AylaDeviceZigbeeNode[devices.size()];
+        for (int i = 0; i < devices.size(); i++) {
+            group.nodeDsns[i] = devices.get(i).dsn;
+            group.nodes[i] = (AylaDeviceZigbeeNode)devices.get(i);
+        }
+        updateGroup(group, tag, handler);
     }
 
     public void deleteGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
@@ -220,6 +340,30 @@ public class Gateway extends Device {
 
     public void deleteBinding(AylaBindingZigbee binding, Object tag, AylaGatewayCompletionHandler handler) {
         getBindingManager().deleteBinding(binding, tag, handler);
+    }
+
+    public void createScene(String sceneName, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().createScene(sceneName, devices, tag, handler);
+    }
+
+    public void createScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().createScene(scene, tag, handler);
+    }
+
+    public void updateScene(AylaSceneZigbee scene, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().updateScene(scene, devices, tag, handler);
+    }
+
+    public void updateSceneDevices(AylaSceneZigbee scene, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
+        updateScene(scene, devices, tag, handler);
+    }
+
+    public void recallScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().recallScene(scene, tag, handler);
+    }
+
+    public void deleteScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
+        getSceneManager().deleteScene(scene, tag, handler);
     }
 
     @Override
@@ -290,17 +434,17 @@ public class Gateway extends Device {
 
     void setDefaultName(Device device, GatewayTag tag) {
         String name = device.deviceTypeName();
-        String dsn = device.getDevice().dsn;
+        String dsn = device.getDeviceDsn();
         List<Device> devices = SessionManager.deviceManager().deviceList();
         boolean existsName = false;
         int nameIteration = 2;
         do {
             existsName = false;
             for (Device d : devices) {
-                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                if (TextUtils.equals(d.getDeviceDsn(), dsn)) {
                     continue;
                 }
-                if (TextUtils.equals(d.getDevice().productName, name)) {
+                if (TextUtils.equals(d.getProductName(), name)) {
                     existsName = true;
                 }
             }
@@ -308,7 +452,7 @@ public class Gateway extends Device {
                 name = name + " " + (nameIteration++);
             }
         } while (existsName);
-        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s:%s] to [%s]", dsn, device.getDevice().productName, name);
+        Logger.logInfo(LOG_TAG, "rn: Register node rename [%s:%s] to [%s]", dsn, device.getProductName(), name);
         Map<String, String> params = new HashMap<>();
         params.put("productName", name);
         device.getDevice().update(new UpdateHandler(device, name, tag), params);
@@ -350,7 +494,7 @@ public class Gateway extends Device {
         }
 
         void registerComplete(AylaDeviceNode node, Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, gateway.getDevice().dsn);
+            Logger.logMessage(LOG_TAG, msg, "rn: registerCandidate [%s] for [%s]", node.dsn, gateway.getDeviceDsn());
             if (AylaNetworks.succeeded(msg)) {
                 AylaDeviceNode adn = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDeviceNode.class);
                 adn.connectionStatus = "Online";
@@ -364,9 +508,9 @@ public class Gateway extends Device {
                         Logger.logMessage(LOG_TAG, msg, "rn: got devices");
                         if (AylaNetworks.succeeded(msg)) {
                             for (Device d : list) {
-                                if (d.getDevice().dsn.equals(adn.dsn)) {
+                                if (d.getDeviceDsn().equals(adn.dsn)) {
                                     // The device has successfully been added to the device list, now lets rename it.
-                                    Logger.logInfo(LOG_TAG, "rn: registered device [%s:%s]", d.getDevice().dsn, d.getDevice().model);
+                                    Logger.logInfo(LOG_TAG, "rn: registered device [%s:%s]", d.getDeviceDsn(), d.getDevice().model);
                                     Logger.logDebug(LOG_TAG, "rn: registered device [%s]", d);
                                     gateway.setDefaultName(d, GatewayTag.this);
                                     return;
@@ -386,7 +530,7 @@ public class Gateway extends Device {
         }
 
         void updateComplete(Device device, Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDevice().dsn, device.getDevice().productName);
+            Logger.logMessage(LOG_TAG, msg, "rn: update [%s:%s]", device.getDeviceDsn(), device.getProductName());
             this.device = device;
             device.postRegistrationForGatewayDevice(gateway);
             if (currentIndex < list.size() - 1) {
@@ -610,7 +754,7 @@ public class Gateway extends Device {
                 AylaDeviceNode[] nodes = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDeviceNode[].class);
                 String amOwnerStr = "";
                 String oemModel = gateway.getDevice().oemModel;
-                String gatewayDsn = gateway.getDevice().dsn;
+                String gatewayDsn = gateway.getDeviceDsn();
                 for (AylaDeviceNode node : nodes) {
                     if (node.amOwner()) {
                         amOwnerStr = "true";
@@ -624,10 +768,19 @@ public class Gateway extends Device {
                     if (TextUtils.isEmpty(node.gatewayDsn)) {
                         node.gatewayDsn = gatewayDsn;
                     }
+
+                    // be sure to show a recognizable product name.
+                    boolean setname = false;
                     if (TextUtils.equals(node.productName, node.dsn)) {
+                        setname = true;
+                    } else if (!TextUtils.isEmpty(node.productName) && node.productName.startsWith("VR00ZN")) {
+                        setname = true;
+                    }
+                    if (setname) {
                         Device fakeDevice = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(node);
                         node.productName = fakeDevice.deviceTypeName();
                     }
+
                     Logger.logInfo(LOG_TAG, "rn: candidate DSN:%s amOwner:%s", node.dsn, amOwnerStr);
                     Logger.logDebug(LOG_TAG, "rn: candidate [%s]", node);
                     list.add(node);
@@ -649,8 +802,14 @@ public class Gateway extends Device {
                         completion(getTimeoutMessage());
                     } else {
                         // invoke it again manually (412: retry open join window)
-                        state = NodeRegistrationFindState.Started;
-                        nextStep();;
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {        // don't flood gateway
+                            @Override
+                            public void run() {
+                                state = NodeRegistrationFindState.Started;
+                                nextStep();
+                            }
+                        }, 500);                                    // Delay .5 seconds
                     }
                 } else if (msg.arg1 == 404) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {
@@ -978,7 +1137,22 @@ public class Gateway extends Device {
             handler.gatewayCompletion(this, null, userTag);
             return;
         }
-        AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+        identifyAylaDeviceNode((AylaDeviceNode)device.getDevice(), on, time, userTag, handler);
+    }
+
+    /**
+     * Used to identify an AylaDeviceNode by blinking a light, making a sound, vibrating, etc.
+     * @param adn AylaDeviceNode to identify.
+     * @param on true to turn on, false to turn off.
+     * @param time Duration, in seconds, to identify device. 0 - 255.
+     * @param userTag Option user data to return with handler.
+     * @param handler AylaGatewayCompletionHandler completion handler.
+     */
+    public void identifyAylaDeviceNode(AylaDeviceNode adn, boolean on, int time, Object userTag, AylaGatewayCompletionHandler handler) {
+        if (adn == null) {
+            handler.gatewayCompletion(this, null, userTag);
+            return;
+        }
         Logger.logInfo(LOG_TAG, "adn: identifyDeviceNode start");
         Map<String, String> callParams = new HashMap<String, String>();
         //callParams.put(AylaDeviceNode.kAylaNodeParamIdentifyValue, AylaDeviceNode.kAylaNodeParamIdentifyResult);

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:background="@color/app_theme_window_background">
+
+    <TextView
+        android:id="@+id/page_header"
+        style="@style/PageHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_connect_gateway"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_connect_gateway_text"
+        android:id="@+id/instructions_txt"
+        android:gravity="center"
+        android:theme="@style/SetupText"
+        android:layout_margin="30dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/back_gateway"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/reg_button" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_connect_gateway_amap"
+        android:id="@+id/amap_header"
+        android:layout_gravity="center_horizontal"
+        android:theme="@style/SetupTitle"
+        android:layout_margin="30dp" />
+
+    <FrameLayout android:paddingTop="10dp" android:paddingBottom="10dp"  android:layout_height="wrap_content" android:layout_width="match_parent">
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayledsmain" android:layout_gravity="center" />
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds1on"  android:layout_gravity="center"/>
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds2on" android:id="@+id/greenled2"  android:layout_gravity="center"/>
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds3on" android:id="@+id/redled2" android:layout_gravity="center"/>
+        <ImageView android:layout_width="match_parent" android:layout_height="wrap_content" android:src="@drawable/gatewayleds4on"  android:layout_gravity="center"/>
+    </FrameLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="20dp">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/setup_connect_gateway"
+            android:id="@+id/register_btn"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
+    </LinearLayout>
+
+</LinearLayout>

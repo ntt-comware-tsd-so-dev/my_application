@@ -96,8 +96,12 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
         return c.getResources().getDrawable(R.drawable.smart_plug);
     }
 
-    public Drawable getSwitchedDrawable(Resources res) {
-        return res.getDrawable(isOn() ? R.drawable.ic_power_on : R.drawable.ic_power_off);
+    public Drawable getSwitchedDrawable(Resources res, boolean isOn) {
+        return res.getDrawable(isOn ? R.drawable.ic_power_on : R.drawable.ic_power_off);
+    }
+
+    protected Drawable getSwitchedDrawable(Resources res) {
+        return getSwitchedDrawable(res, isOn());
     }
 
     public Drawable getSwitchedPendingDrawable(Resources res) {
@@ -118,13 +122,13 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         super.bindViewHolder(holder);
 
-        Resources res = MainActivity.getInstance().getResources();
-
-        SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
-        Drawable buttonDrawable = getSwitchedDrawable(res);
-
-        h._switchButton.setImageDrawable(buttonDrawable);
-        h._switchButton.setOnClickListener(this);
+        if (holder instanceof SwitchedDeviceViewHolder) {
+            Resources res = MainActivity.getInstance().getResources();
+            Drawable buttonDrawable = getSwitchedDrawable(res);
+            SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
+            h._switchButton.setImageDrawable(buttonDrawable);
+            h._switchButton.setOnClickListener(this);
+        }
     }
 
 

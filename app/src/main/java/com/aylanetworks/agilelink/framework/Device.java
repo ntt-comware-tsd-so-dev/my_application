@@ -31,6 +31,7 @@ import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.PropertyNotificationFragment;
 import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
+import com.aylanetworks.agilelink.fragments.TriggerFragment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -106,7 +107,7 @@ public class Device implements Comparable<Device> {
     @Override
     public int compareTo(Device another) {
         // Base class just compares DSNs.
-        return this.getDevice().dsn.compareTo(another.getDevice().dsn);
+        return this.getDeviceDsn().compareTo(another.getDeviceDsn());
     }
 
     /**
@@ -121,7 +122,7 @@ public class Device implements Comparable<Device> {
      */
     public boolean isDeviceChanged(Device other) {
         return (!getDevice().connectionStatus.equals(other.getDevice().connectionStatus)) ||
-                (!getDevice().dsn.equals(other.getDevice().dsn) ||
+                (!getDeviceDsn().equals(other.getDeviceDsn()) ||
                 !toString().equals(other.toString()));
     }
 
@@ -152,7 +153,7 @@ public class Device implements Comparable<Device> {
                 // See if we already have the same properties
                 List<AylaProperty> theirProps = Arrays.asList(aylaDevice.properties);
                 List<AylaProperty> myProps;
-                if ( _device.properties == null ) {
+                if (_device.properties == null) {
                     myProps = new ArrayList<>();
                 } else {
                     myProps = Arrays.asList(_device.properties);
@@ -161,7 +162,7 @@ public class Device implements Comparable<Device> {
                 Comparator<AylaProperty> comp = new Comparator<AylaProperty>() {
                     @Override
                     public int compare(AylaProperty lhs, AylaProperty rhs) {
-                        if ( TextUtils.equals(lhs.name, rhs.name) ) {
+                        if (TextUtils.equals(lhs.name, rhs.name)) {
                             if (TextUtils.equals(lhs.value, rhs.value)) {
                                 if (TextUtils.equals(lhs.direction, rhs.direction)) {
                                     return 0;
@@ -180,7 +181,7 @@ public class Device implements Comparable<Device> {
                 Collections.sort(theirProps, comp);
                 Collections.sort(myProps, comp);
                 boolean needsUpdate = myProps.size() != theirProps.size();
-                if ( !needsUpdate ) {
+                if (!needsUpdate) {
                     for (int i = 0; i < myProps.size(); i++) {
                         if (!myProps.get(i).equals(theirProps.get(i))) {
                             needsUpdate = true;
@@ -189,7 +190,7 @@ public class Device implements Comparable<Device> {
                     }
                 }
 
-                if ( !needsUpdate ) {
+                if (!needsUpdate) {
                     Logger.logInfo(LOG_TAG, "Property does not need update");
                     return false;
                 }
@@ -206,6 +207,29 @@ public class Device implements Comparable<Device> {
             _device.properties = null;
         }
         return true;
+    }
+
+    /**
+     * Handy method for obtaining the device DSN
+     *
+     * @return String DSN
+     */
+    public String getDeviceDsn() {
+        if (_device != null) {
+            return _device.dsn;
+        }
+        return "";
+    }
+
+    /**
+     * Handy method for obtaining the device ProductName
+     * @return String ProductName
+     */
+    public String getProductName() {
+        if (_device != null){
+            return _device.getProductName();
+        }
+        return "";
     }
 
     /**
@@ -288,7 +312,7 @@ public class Device implements Comparable<Device> {
                 public void complete(Message msg, List<Device> list, Object tag) {
                     ResetTag frt = (ResetTag) tag;
                     Device device = frt._device;
-                    String dsn = device.getDevice().dsn;
+                    String dsn = device.getDeviceDsn();
                     boolean found = false;
                     Logger.logMessage(LOG_TAG, msg, "fr: ResetTag got devices");
                     if (AylaNetworks.succeeded(msg)) {
@@ -763,7 +787,7 @@ public class Device implements Comparable<Device> {
      * Returns a boolean value for the AylaProperty of the given name,
      * or false if no property was found.
      *
-     * @param propertyName
+     * @param propertyName String property name
      * @return Boolean value of property
      */
     public boolean getPropertyBoolean(String propertyName) {
@@ -991,8 +1015,19 @@ public class Device implements Comparable<Device> {
         return false;
     }
 
+    /**
+     * Returns true if this device is not a device at all, just an UI element.
+     * @return True if this device just an UI element, or false if a real device.
+     */
+    public boolean isIcon() {
+        return false;
+    }
+
     public boolean isOnline() {
-        return STATUS_ONLINE.equals(getDevice().connectionStatus);
+        if (_device != null) {
+            return STATUS_ONLINE.equals(getDevice().connectionStatus);
+        }
+        return false;
     }
 
     /**
@@ -1032,48 +1067,54 @@ public class Device implements Comparable<Device> {
      */
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        h._deviceNameTextView.setText(getDevice().getProductName());
+        h._deviceNameTextView.setText(getProductName());
         if ( h._deviceStatusTextView != null ) {
             h._deviceStatusTextView.setText(getDeviceState());
         }
 
-        h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
-
-        if ( h._expandedLayout != null ) {
-            h._expandedLayout.setVisibility(h.getPosition() == GenericDeviceViewHolder._expandedIndex ? View.VISIBLE : View.GONE);
-            // Set up handlers for the buttons in the expanded view
-            h._notificationsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(Device.this));
-                }
-            });
-            h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
-
-            h._scheduleButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(ScheduleContainerFragment.newInstance(Device.this));
-                }
-            });
-            h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
-
-            h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.card_text), PorterDuff.Mode.SRC_ATOP);
-            h._detailsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(DeviceDetailFragment.newInstance(Device.this));
-                }
-            });
-        }
-
-
-        // Is this a shared device?
         Resources res = MainActivity.getInstance().getResources();
-        int color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
-        if (!getDevice().amOwner()) {
-            // Yes, this device is shared.
-            color = res.getColor(R.color.card_shared_text);
+        int color;
+
+        if (isIcon() || (h._sceneDeviceEntity != null)) {
+            h._spinner.setVisibility(View.GONE);
+            color = res.getColor(R.color.card_text);
+        } else {
+            h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+
+            if ( h._expandedLayout != null ) {
+                h._expandedLayout.setVisibility(h.getPosition() == GenericDeviceViewHolder._expandedIndex ? View.VISIBLE : View.GONE);
+                // Set up handlers for the buttons in the expanded view
+                h._notificationsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(Device.this));
+                    }
+                });
+                h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+
+                h._scheduleButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance().pushFragment(ScheduleContainerFragment.newInstance(Device.this));
+                    }
+                });
+                h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+
+                h._detailsButton.setColorFilter(MainActivity.getInstance().getResources().getColor(R.color.card_text), PorterDuff.Mode.SRC_ATOP);
+                h._detailsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance().pushFragment(DeviceDetailFragment.newInstance(Device.this));
+                    }
+                });
+            }
+
+            // Is this a shared device?
+            color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
+            if (!getDevice().amOwner()) {
+                // Yes, this device is shared.
+                color = res.getColor(R.color.card_shared_text);
+            }
         }
         h._deviceNameTextView.setTextColor(color);
         h._currentDevice = this;
@@ -1136,9 +1177,13 @@ public class Device implements Comparable<Device> {
         return RemoteFragment.newInstance(this);
     }
 
+    public Fragment getTriggerFragment() {
+        return TriggerFragment.newInstance(this);
+    }
+
     @Override
     public String toString() {
-        return getDevice().getProductName();
+        return getProductName();
     }
 
     /**
@@ -1172,7 +1217,7 @@ public class Device implements Comparable<Device> {
      * Override to provide additional initialization that must be completed after registering
      * the device. notifyDeviceStatusChanged is called when complete.
      *
-     * @param gateway The gateway that the device node is linked to.
+     * @param gateway The Gateway that the device node is linked to.
      */
     public void postRegistrationForGatewayDevice(Gateway gateway) { }
 
@@ -1183,6 +1228,14 @@ public class Device implements Comparable<Device> {
      * @return String resource id.
      */
     public int hasPostRegistrationProcessingResourceId() { return 0; }
+
+    /**
+     * Override to provide addition removal that must be completed before unregistering
+     * or factory resetting the device.
+     *
+     * @param gateway The Gateway that the device node is linked to.
+     */
+    public void preUnregistrationForGatewayDevice(Gateway gateway) { }
 
     /**
      * Returns a string representing the state of the device (on, off, open, closed, etc.)

@@ -52,6 +52,12 @@ import java.util.Set;
  * Additional instances of the DeviceManager should not be created.
  */
 public class DeviceManager implements DeviceStatusListener {
+
+    private final static String LOG_TAG = "DeviceManager";
+
+    private int _deviceListPollInterval = 30000;
+    private int _deviceStatusPollInterval = 5000;
+
     private static final String PREF_LAST_LAN_MODE_DEVICE = "lastLANModeDevice";
 
     /** Interfaces */
@@ -81,8 +87,21 @@ public class DeviceManager implements DeviceStatusListener {
 
     private List<LANModeListener> _lanModeListeners = new ArrayList<>();
 
+<<<<<<< HEAD
     /** Public Helper Methods */
+=======
+    /** The one and only device that is currently LAN-mode enabled. */
+    private Device _lanModeEnabledDevice;
 
+    // Public Helper Methods //
+>>>>>>> develop
+
+    /**
+     * Checks to see if the specified DSN is in the provided AylaDeviceNode list.
+     * @param dsn Device DSN
+     * @param devices List of AylaDeviceNode devices.
+     * @return Returns true if the DSN is in the list, false if the DSN is not in the list.
+     */
     static public boolean isDsnInAylaDeviceNodeList(String dsn, List<AylaDeviceNode> devices) {
         if (devices == null || devices.size() == 0)
             return false;
@@ -94,11 +113,17 @@ public class DeviceManager implements DeviceStatusListener {
         return false;
     }
 
+    /**
+     * Checks to see if the specified DSN is in the provided Device list.
+     * @param dsn Device DSN
+     * @param devices List of Device devices.
+     * @return Returns true if the DSN is in the list, false if the DSN is not in the list.
+     */
     static public boolean isDsnInDeviceList(String dsn, List<Device> devices) {
         if (devices == null || devices.size() == 0)
             return false;
         for (Device d : devices) {
-            if (TextUtils.equals(dsn, d.getDevice().dsn)) {
+            if (TextUtils.equals(dsn, d.getDeviceDsn())) {
                 return true;
             }
         }
@@ -124,7 +149,6 @@ public class DeviceManager implements DeviceStatusListener {
         if ( _deviceList == null ) {
             return null;
         }
-
         return new ArrayList<>(_deviceList);
     }
 
@@ -152,7 +176,7 @@ public class DeviceManager implements DeviceStatusListener {
         if ((_deviceList != null) && (_deviceList.size() > 0)) {
             for (Device gateway : _deviceList) {
                 if (gateway.isGateway()) {
-                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDeviceDsn() + "]");
                     list.add((Gateway) gateway);
                 }
             }
@@ -229,7 +253,7 @@ public class DeviceManager implements DeviceStatusListener {
     public Device deviceByDSN(String dsn) {
         if (_deviceList != null) {
             for (Device d : _deviceList) {
-                if (d.getDevice().dsn.compareTo(dsn) == 0) {
+                if (d.getDeviceDsn().compareTo(dsn) == 0) {
                     return d;
                 }
             }
@@ -251,6 +275,7 @@ public class DeviceManager implements DeviceStatusListener {
             if (device.isDeviceNode()) {
                 Gateway gateway = Gateway.getGatewayForDeviceNode(device);
                 gateway.removeDeviceNode(device);
+                device.preUnregistrationForGatewayDevice(gateway);
             }
 
             // remove from the property list so that we don't try to get properties for it.
@@ -338,7 +363,7 @@ public class DeviceManager implements DeviceStatusListener {
      * Starts polling for device list and status changes
      */
     public void startPolling() {
-        Logger.logDebug(LOG_TAG, "rn: startPolling");
+        Logger.logDebug(LOG_TAG, "poll: startPolling");
         stopPollingWithLog(false);
         _pollingStopped = false;
         _deviceListTimerRunnable.run();
@@ -356,7 +381,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     private void stopPollingWithLog(boolean verbose) {
         if (verbose) {
-            Logger.logDebug(LOG_TAG, "rn: stopPolling");
+            Logger.logDebug(LOG_TAG, "poll: stopPolling");
         }
         _pollingStopped = true;
         _deviceListTimerHandler.removeCallbacksAndMessages(null);
@@ -416,7 +441,7 @@ public class DeviceManager implements DeviceStatusListener {
         // Save the last LAN mode device in user settings so we can re-enable it next time
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         if ( device != null ) {
-            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
+            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDeviceDsn()).apply();
         } else {
             prefs.edit().remove(PREF_LAST_LAN_MODE_DEVICE);
         }
@@ -430,7 +455,7 @@ public class DeviceManager implements DeviceStatusListener {
     public boolean isLastLanModeDevice(Device device) {
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
-        return lastDSN != null && device.getDevice().dsn != null && device.getDevice().dsn.equals(lastDSN);
+        return lastDSN != null && device.getDeviceDsn() != null && device.getDeviceDsn().equals(lastDSN);
     }
 
     /**
@@ -621,8 +646,6 @@ public class DeviceManager implements DeviceStatusListener {
 
      /** Private members */
 
-    private final static String LOG_TAG = "DeviceManager";
-
     private List<Device> _deviceList;
     private Set<DeviceListListener> _deviceListListeners;
     private Set<DeviceStatusListener> _deviceStatusListeners;
@@ -630,9 +653,6 @@ public class DeviceManager implements DeviceStatusListener {
     // This is set to true while we are attempting to enable LAN mode.
     // Device queries should be disabled while this is true.
     private boolean _startingLANMode = false;
-
-    private int _deviceListPollInterval = 30000;
-    private int _deviceStatusPollInterval = 5000;
 
     // Default comparator uses the device's compareTo method. Can be updated with setComparator().
     private Comparator<Device> _deviceComparator = new Comparator<Device>() {
@@ -715,6 +735,7 @@ public class DeviceManager implements DeviceStatusListener {
                             // Notify listeners listening for this device
                             for (Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                                 LANModeListener listener = iter.next();
+
                                 boolean shouldNotify = listener.getDevice().getDevice().dsn.equals(dsn);
                                 if ( !shouldNotify ) {
                                     // Check for a node / gateway
@@ -725,6 +746,7 @@ public class DeviceManager implements DeviceStatusListener {
                                 }
 
                                 if (shouldNotify) {
+
                                     // Notify the listener that LAN mode has been enabled
                                     listener.lanModeResult(true);
                                     iter.remove();
@@ -829,15 +851,14 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void run() {
             if (_pollingStopped) {
-                Logger.logDebug(LOG_TAG, "rn: polling stopped.");
+                Logger.logDebug(LOG_TAG, "poll:d polling stopped.");
                 return;
             }
-            Log.v(LOG_TAG, "Device List Timer");
-
             if ( _startingLANMode ) {
-                Log.i(LOG_TAG, "Not querying device list while entering LAN mode");
+                Logger.logInfo(LOG_TAG, "poll:d Not querying device list while entering LAN mode");
                 return;
             }
+            Logger.logVerbose(LOG_TAG, "poll:Device List Timer");
 
             fetchDeviceList();
             getGroupManager().fetchDeviceGroups();
@@ -847,7 +868,7 @@ public class DeviceManager implements DeviceStatusListener {
                 _deviceListTimerHandler.removeCallbacksAndMessages(null);
                 _deviceListTimerHandler.postDelayed(this, _deviceListPollInterval);
             } else {
-                Log.d(LOG_TAG, "Device List Timer: Nobody listening or in LAN mode");
+                Logger.logDebug(LOG_TAG, "poll:Device List Timer: Nobody listening or in LAN mode");
             }
         }
     };
@@ -880,12 +901,12 @@ public class DeviceManager implements DeviceStatusListener {
                 Log.d(LOG_TAG, "Polling manually stopped- not polling");
                 return;
             }
-
             // If we're in the process of entering LAN mode, don't query devices yet.
-            if (_startingLANMode) {
-                Log.i(LOG_TAG, "Not querying device status while entering LAN mode");
+            if ( _startingLANMode ) {
+                Logger.logInfo(LOG_TAG, "poll:s Not querying device status while entering LAN mode");
                 return;
             }
+            Logger.logVerbose(LOG_TAG, "poll:Device Status Timer");
 
             // Update each device via the service. We need to do this one device at a time; the
             // library does not handle a series of requests all at once at this time.
@@ -895,10 +916,10 @@ public class DeviceManager implements DeviceStatusListener {
                 }
                 updateNextDeviceStatus();
             } else {
-                Log.d(LOG_TAG, "Still not done polling from the last timer event.");
-                Log.v(LOG_TAG, "Current queue is:");
+                Logger.logDebug(LOG_TAG, "poll:s Still not done polling from the last timer event.");
+                Logger.logVerbose(LOG_TAG, "poll:s Current queue is:");
                 for ( Device d : _devicesToPoll ) {
-                    Log.v(LOG_TAG, d.getDevice().getProductName());
+                    Logger.logVerbose(LOG_TAG, d.getProductName());
                 }
                 updateNextDeviceStatus();
             }
@@ -906,21 +927,21 @@ public class DeviceManager implements DeviceStatusListener {
     };
 
     private void updateNextDeviceStatus() {
-        Log.v(LOG_TAG, "updateNextDeviceStatus");
+        Logger.logVerbose(LOG_TAG, "updateNextDeviceStatus");
         if ( _startingLANMode ) {
-            Log.d(LOG_TAG, "Not updating status while entering LAN mode");
+            Logger.logDebug(LOG_TAG, "Not updating status while entering LAN mode");
             return;
         }
 
         if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
             // We're done.
             _devicesToPoll = null;
-            Log.v(LOG_TAG, "No more devices to poll");
+            Logger.logVerbose(LOG_TAG, "No more devices to poll");
             return;
         }
 
         Device d = _devicesToPoll.remove(0);
-        Log.v(LOG_TAG, "Updating status for " + d.getDevice().productName);
+        Logger.logVerbose(LOG_TAG, "poll: device status [" + d.getDeviceDsn() + ":" + d.getProductName() + "]");
         if ( _devicesToPoll.size() == 0 ) {
             _devicesToPoll = null;
         }
@@ -949,9 +970,9 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         private Device getDeviceFromList(List<Device> list, Device device) {
-            String dsn = device.getDevice().dsn;
+            String dsn = device.getDeviceDsn();
             for (Device d : list) {
-                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                if (TextUtils.equals(d.getDeviceDsn(), dsn)) {
                     return d;
                 }
             }
@@ -1041,28 +1062,23 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Returns true if newDeviceList differs from our previous version (_deviceList) */
     private boolean deviceListChanged(List<Device>newDeviceList) {
-        if ( newDeviceList != null ) {
-            // Sort the new list of devices
-            Collections.sort(newDeviceList, _deviceComparator);
-        }
-
         if ( _deviceList == null && newDeviceList != null ) {
             return true;
         }
-
         if ( newDeviceList == null && _deviceList != null ) {
             return true;
         }
-
         if ( newDeviceList == null && _deviceList == null ) {
             return false;
         }
-
         if ( newDeviceList.size() != _deviceList.size() ) {
             return true;
         }
 
-
+        if ( newDeviceList != null ) {
+            // Sort the new list of devices
+            Collections.sort(newDeviceList, _deviceComparator);
+        }
         // See if any of the devices have changed.
         for ( int i = 0; i < _deviceList.size(); i++ ) {
             Device dev1 = _deviceList.get(i);

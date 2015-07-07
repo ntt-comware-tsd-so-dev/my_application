@@ -1,19 +1,15 @@
 package com.aylanetworks.agilelink.framework;
 
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 
 /*
  * GenericDeviceViewHolder.java
@@ -27,6 +23,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
     private static final String LOG_TAG = "GenericDeviceViewHolder";
 
     public Device _currentDevice;
+    public AylaSceneZigbeeNodeEntity _sceneDeviceEntity;
     public TextView _deviceNameTextView;
     public TextView _deviceStatusTextView;
     public ProgressBar _spinner;
@@ -41,6 +38,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
 
         _currentDevice = null;
+        _sceneDeviceEntity = null;
         _deviceNameTextView = (TextView)itemView.findViewById(R.id.device_name);
         _deviceStatusTextView = (TextView)itemView.findViewById(R.id.device_state);
         _spinner = (ProgressBar)itemView.findViewById(R.id.spinner);

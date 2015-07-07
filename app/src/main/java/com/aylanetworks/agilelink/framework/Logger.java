@@ -89,8 +89,8 @@ public class Logger implements Thread.UncaughtExceptionHandler {
 
     /**
      * Convert a Throwable to String for output to the log
-     * @param t
-     * @return
+     * @param t Throwable (Exception)
+     * @return String describing the exception
      */
     public static String throwableToString(Throwable t) {
         final Writer result = new StringWriter();

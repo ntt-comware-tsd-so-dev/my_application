@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 
 /*
  * ZigbeeMotionSensor.java
@@ -16,7 +15,7 @@ import com.aylanetworks.agilelink.framework.Device;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class ZigbeeMotionSensor extends Device {
+public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
 
     private final static String LOG_TAG = "ZigbeeMotionSensor";
 
@@ -48,6 +47,16 @@ public class ZigbeeMotionSensor extends Device {
     }
 
     @Override
+    public String getTriggerOnName() {
+        return MainActivity.getInstance().getString(R.string.motion_trigger_on_name);
+    }
+
+    @Override
+    public String getTriggerOffName() {
+        return MainActivity.getInstance().getString(R.string.motion_trigger_off_name);
+    }
+
+    @Override
     public String deviceTypeName() {
         return "Motion Sensor";
     }
@@ -56,13 +65,4 @@ public class ZigbeeMotionSensor extends Device {
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.ic_motionsensor_red);
     }
-
-    @Override
-    public boolean isDeviceNode() {
-        return true;
-    }
-
-    @Override
-    public int hasPostRegistrationProcessingResourceId() { return R.string.add_device_sensor_warning; }
-
 }

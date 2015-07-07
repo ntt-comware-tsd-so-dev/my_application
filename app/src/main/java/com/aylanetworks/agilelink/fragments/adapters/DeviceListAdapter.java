@@ -23,8 +23,8 @@ import java.util.List;
 public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final static String LOG_TAG = "DeviceListAdapter";
 
-    private List<Device> _deviceList;
-    private View.OnClickListener _onClickListener;
+    List<Device> _deviceList;
+    View.OnClickListener _onClickListener;
 
     public DeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
         _onClickListener = listener;
