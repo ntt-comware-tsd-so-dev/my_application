@@ -651,6 +651,9 @@ public class AddDeviceFragment extends Fragment
                         int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
                         SessionManager.deviceManager().refreshDeviceList();
+                        if (error == AylaNetworks.AML_ERROR_OK) {
+                            MenuHandler.handleAllDevices();
+                        }
                     }
                 });
 
