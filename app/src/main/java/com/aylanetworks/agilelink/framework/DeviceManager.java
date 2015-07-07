@@ -87,14 +87,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     private List<LANModeListener> _lanModeListeners = new ArrayList<>();
 
-<<<<<<< HEAD
     /** Public Helper Methods */
-=======
-    /** The one and only device that is currently LAN-mode enabled. */
-    private Device _lanModeEnabledDevice;
-
-    // Public Helper Methods //
->>>>>>> develop
 
     /**
      * Checks to see if the specified DSN is in the provided AylaDeviceNode list.
