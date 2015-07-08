@@ -11,6 +11,7 @@ import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.aaml.zigbee.AylaNetworksZigbee;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class ZigbeeGroupManager {
 
     private final static String LOG_TAG = "ZigbeeGroupManager";
 
-    private Gateway _gateway;
+    private ZigbeeGateway _gateway;
     private Set<ZigbeeGroupManagerListener> _listeners;
     protected Set<AylaGroupZigbee> _groups;
 
@@ -42,7 +43,7 @@ public class ZigbeeGroupManager {
      * Default constructor
      * @param gateway Gateway
      */
-    public ZigbeeGroupManager(Gateway gateway) {
+    public ZigbeeGroupManager(ZigbeeGateway gateway) {
         _gateway = gateway;
         _listeners = new HashSet<>();
         _groups = new HashSet<>();
@@ -394,11 +395,11 @@ public class ZigbeeGroupManager {
 
     static class GetGroupsHandler extends Handler {
         private WeakReference<ZigbeeGroupManager> _manager;
-        Gateway _gateway;
+        ZigbeeGateway _gateway;
         Object _tag;
         Gateway.AylaGatewayCompletionHandler _completion;
 
-        GetGroupsHandler(ZigbeeGroupManager manager, Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+        GetGroupsHandler(ZigbeeGroupManager manager, ZigbeeGateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
             _manager = new WeakReference<ZigbeeGroupManager>(manager);
             _gateway = gateway;
             _tag = tag;

@@ -32,6 +32,7 @@ import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -51,7 +52,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     private static final String ARG_DSN = "dsn";
 
     Device _device;
-    Gateway _gateway;
+    ZigbeeGateway _gateway;
     ListView _listView;
     SimpleDeviceListAdapter _adapter;
     TextView _titleView;
@@ -121,7 +122,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
 
         } else {
-            _gateway = Gateway.getGatewayForDeviceNode(_device);
+            _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(_device);
 
             // group/binding error message area
             _errorContainer = view.findViewById(R.id.error_container);

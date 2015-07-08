@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -130,8 +131,10 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
+                    Looper.prepare();
                     Logger.logVerbose(LOG_TAG, "calling AylaSetup.exit()...");
                     AylaSetup.exit();
+                    Looper.loop();
                     return null;
                 }
 
