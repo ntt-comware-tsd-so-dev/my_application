@@ -18,6 +18,7 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
+import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
@@ -129,18 +130,6 @@ public class Gateway extends Device {
     }
 
     /**
-     * Get the gateway for a AylaSceneZigbee
-     * @param scene AylaSceneZigbee
-     * @return Gateway. Null if scene is null or does not have a gatewayDsn
-     */
-    public static Gateway getGatewayForScene(AylaSceneZigbee scene) {
-        if (scene != null) {
-            return (Gateway)SessionManager.deviceManager().deviceByDSN(scene.gatewayDsn);
-        }
-        return null;
-    }
-
-    /**
      * Given a list of devices, returns a list containing only devices owned by this gateway.
      * @param devices List of devices.
      * @return List of devices owned by this gateway.
@@ -204,10 +193,14 @@ public class Gateway extends Device {
             _sceneManager = gateway._sceneManager;
         } else {
             Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDeviceDsn());
-         }
-        getGroupManager().fetchZigbeeGroupsIfNeeded();
-        getBindingManager().fetchZigbeeBindingsIfNeeded();
-        getSceneManager().fetchZigbeeScenesIfNeeded();
+        }
+
+        // need to move all this out, into a ZigbeeGateway class that extends GenericGateway
+        if (isZigbee()) {
+            getGroupManager().fetchZigbeeGroupsIfNeeded();
+            getBindingManager().fetchZigbeeBindingsIfNeeded();
+            getSceneManager().fetchZigbeeScenesIfNeeded();
+        }
     }
 
     public AylaDeviceGateway getGatewayDevice() {
@@ -389,6 +382,10 @@ public class Gateway extends Device {
     @Override
     public boolean isGateway() {
         return true;
+    }
+
+    public boolean isZigbee() {
+        return (getDevice() instanceof AylaDeviceZigbeeGateway);
     }
 
     @Override
