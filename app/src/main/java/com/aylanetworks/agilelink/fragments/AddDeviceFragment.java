@@ -69,7 +69,7 @@ public class AddDeviceFragment extends Fragment
         ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 
-    private static final boolean USE_WELCOME_FRAGMENT = false;
+    private static final boolean USE_WELCOME_FRAGMENT = true;
 
     private static final int REG_TYPE_SAME_LAN = 0;
     private static final int REG_TYPE_BUTTON_PUSH = 1;
