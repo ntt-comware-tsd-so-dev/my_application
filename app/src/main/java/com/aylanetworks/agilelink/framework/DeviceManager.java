@@ -535,8 +535,10 @@ public class DeviceManager implements DeviceStatusListener {
         _shuttingDown = true;
         // Clear out our list of devices, and then notify listeners that the list has changed.
         // This should cause all listeners to clear any devices they may be displaying
-        _deviceList.clear();
-        notifyDeviceListChanged();
+        if ( _deviceList != null ) {
+            _deviceList.clear();
+            notifyDeviceListChanged();
+        }
 
         // Get rid of our listeners.
         _deviceStatusListeners.clear();
