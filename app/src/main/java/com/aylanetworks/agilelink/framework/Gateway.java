@@ -17,10 +17,6 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
-import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
-import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
-import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -129,18 +125,6 @@ public class Gateway extends Device {
     }
 
     /**
-     * Get the gateway for a AylaSceneZigbee
-     * @param scene AylaSceneZigbee
-     * @return Gateway. Null if scene is null or does not have a gatewayDsn
-     */
-    public static Gateway getGatewayForScene(AylaSceneZigbee scene) {
-        if (scene != null) {
-            return (Gateway)SessionManager.deviceManager().deviceByDSN(scene.gatewayDsn);
-        }
-        return null;
-    }
-
-    /**
      * Given a list of devices, returns a list containing only devices owned by this gateway.
      * @param devices List of devices.
      * @return List of devices owned by this gateway.
@@ -193,23 +177,6 @@ public class Gateway extends Device {
         super(aylaDevice);
     }
 
-    @Override
-    public void deviceAdded(Device oldDevice) {
-        super.deviceAdded(oldDevice);
-        if (oldDevice != null) {
-            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] copy from old", getDeviceDsn());
-            Gateway gateway = (Gateway)oldDevice;
-            _groupManager = gateway._groupManager;
-            _bindingManager = gateway._bindingManager;
-            _sceneManager = gateway._sceneManager;
-        } else {
-            Logger.logDebug(LOG_TAG, "zg: deviceAdded [%s] new", getDeviceDsn());
-         }
-        getGroupManager().fetchZigbeeGroupsIfNeeded();
-        getBindingManager().fetchZigbeeBindingsIfNeeded();
-        getSceneManager().fetchZigbeeScenesIfNeeded();
-    }
-
     public AylaDeviceGateway getGatewayDevice() {
         return (AylaDeviceGateway)getDevice();
     }
@@ -220,150 +187,6 @@ public class Gateway extends Device {
      * @param device Device
      */
     public void removeDeviceNode(Device device) {
-    }
-
-    private ZigbeeGroupManager _groupManager;
-
-    public ZigbeeGroupManager getGroupManager() {
-        if (_groupManager == null) {
-            _groupManager = new ZigbeeGroupManager(this);
-        }
-        return _groupManager;
-    }
-
-    public List<AylaGroupZigbee> getGroups() {
-        return getGroupManager().getGroups();
-    }
-
-    public AylaGroupZigbee getGroupByName(String name) {
-        return getGroupManager().getByName(name);
-    }
-
-    private ZigbeeBindingManager _bindingManager;
-
-    public ZigbeeBindingManager getBindingManager() {
-        if (_bindingManager == null) {
-            _bindingManager = new ZigbeeBindingManager(this);
-        }
-        return _bindingManager;
-    }
-
-    public List<AylaBindingZigbee> getBindings() {
-        return getBindingManager().getBindings();
-    }
-
-    public AylaBindingZigbee getBindingByName(String name) {
-        return getBindingManager().getByName(name);
-    }
-
-    private ZigbeeSceneManager _sceneManager;
-
-    public ZigbeeSceneManager getSceneManager() {
-        if (_sceneManager == null) {
-            _sceneManager = new ZigbeeSceneManager(this);
-        }
-        return _sceneManager;
-    }
-
-    public void fetchScenes(Object tag, AylaGatewayCompletionHandler completion) {
-        getSceneManager().fetchZigbeeScenes(tag, completion);
-    }
-
-    public List<AylaSceneZigbee> getScenes() {
-        return getSceneManager().getScenes();
-    }
-
-    public AylaSceneZigbee getSceneByName(String name) {
-        return getSceneManager().getByName(name);
-    }
-
-    public List<Device> getDevicesForScene(AylaSceneZigbee scene) {
-        return getSceneManager().getDevices(scene);
-    }
-
-    public void createGroup(String groupName, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
-        getGroupManager().createGroup(groupName, devices, tag, handler);
-    }
-
-    public void createGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
-        getGroupManager().createGroup(group, tag, handler);
-    }
-
-    public void updateGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
-        getGroupManager().updateGroup(group, tag, handler);
-    }
-
-    public void addDevicesToGroup(AylaGroupZigbee group, List<Device> list, Object tag, AylaGatewayCompletionHandler handler) {
-        List<AylaDeviceNode> devices = ZigbeeGroupManager.getDeviceNodes(group);
-        // add list to devices
-        for (Device device : list) {
-            AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
-            // make sure it isn't already in the list
-            if (!DeviceManager.isDsnInAylaDeviceNodeList(adn.dsn, devices)) {
-                devices.add(adn);
-            }
-        }
-        group.nodeDsns = new String[devices.size()];
-        group.nodes = new AylaDeviceZigbeeNode[devices.size()];
-        for (int i = 0; i < devices.size(); i++) {
-            group.nodeDsns[i] = devices.get(i).dsn;
-            group.nodes[i] = (AylaDeviceZigbeeNode)devices.get(i);
-        }
-        updateGroup(group, tag, handler);
-    }
-
-    public void removeDevicesFromGroup(AylaGroupZigbee group, List<Device> list, Object tag, AylaGatewayCompletionHandler handler) {
-        // remove list from devices
-        List<AylaDeviceNode> current = ZigbeeGroupManager.getDeviceNodes(group);
-        List<AylaDeviceNode> devices = new ArrayList<AylaDeviceNode>();
-        for (AylaDeviceNode adn : current) {
-            if (!DeviceManager.isDsnInDeviceList(adn.dsn, list)) {
-                devices.add(adn);
-            }
-        }
-        group.nodeDsns = new String[devices.size()];
-        group.nodes = new AylaDeviceZigbeeNode[devices.size()];
-        for (int i = 0; i < devices.size(); i++) {
-            group.nodeDsns[i] = devices.get(i).dsn;
-            group.nodes[i] = (AylaDeviceZigbeeNode)devices.get(i);
-        }
-        updateGroup(group, tag, handler);
-    }
-
-    public void deleteGroup(AylaGroupZigbee group, Object tag, AylaGatewayCompletionHandler handler) {
-        getGroupManager().deleteGroup(group, tag, handler);
-    }
-
-    public void createBinding(AylaBindingZigbee binding, Object tag, AylaGatewayCompletionHandler handler) {
-        getBindingManager().createBinding(binding, tag, handler);
-    }
-
-    public void deleteBinding(AylaBindingZigbee binding, Object tag, AylaGatewayCompletionHandler handler) {
-        getBindingManager().deleteBinding(binding, tag, handler);
-    }
-
-    public void createScene(String sceneName, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
-        getSceneManager().createScene(sceneName, devices, tag, handler);
-    }
-
-    public void createScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
-        getSceneManager().createScene(scene, tag, handler);
-    }
-
-    public void updateScene(AylaSceneZigbee scene, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
-        getSceneManager().updateScene(scene, devices, tag, handler);
-    }
-
-    public void updateSceneDevices(AylaSceneZigbee scene, List<Device> devices, Object tag, AylaGatewayCompletionHandler handler) {
-        updateScene(scene, devices, tag, handler);
-    }
-
-    public void recallScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
-        getSceneManager().recallScene(scene, tag, handler);
-    }
-
-    public void deleteScene(AylaSceneZigbee scene, Object tag, AylaGatewayCompletionHandler handler) {
-        getSceneManager().deleteScene(scene, tag, handler);
     }
 
     @Override
@@ -391,14 +214,18 @@ public class Gateway extends Device {
         return true;
     }
 
+    public boolean isZigbeeGateway() {
+        return false;
+    }
+
     @Override
     public String deviceTypeName() {
-        return "Zigbee Gateway";
+        return "Generic Gateway";
     }
 
     @Override
     public Drawable getDeviceDrawable(Context c) {
-        return c.getResources().getDrawable(R.drawable.ic_zigbee);
+        return c.getResources().getDrawable(R.drawable.ic_generic_gateway_red);
     }
 
     @Override

@@ -32,6 +32,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceSelectionAdapter;
@@ -244,16 +245,19 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             if ((gateways != null) && (gateways.size() > 0)) {
                 fetchCount = gateways.size();
                 fetchDone = 0;
-                for (Gateway gateway : gateways) {
-                    gateway.fetchScenes(this, new Gateway.AylaGatewayCompletionHandler() {
-                        @Override
-                        public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                            fetchDone++;
-                            if (fetchDone == fetchCount) {
-                                fetchScenesComplete();
+                for (Gateway g : gateways) {
+                    if (g.isZigbeeGateway()) {
+                        ZigbeeGateway gateway = (ZigbeeGateway)g;
+                        gateway.fetchScenes(this, new Gateway.AylaGatewayCompletionHandler() {
+                            @Override
+                            public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                                fetchDone++;
+                                if (fetchDone == fetchCount) {
+                                    fetchScenesComplete();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             } else {
                 fetchScenesComplete();
@@ -411,35 +415,38 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         updateSceneGatewayCount = gateways.size();
         updateSceneGatewayDone = updateSceneGatewaySuccess = 0;
 
-        for (Gateway gateway : gateways) {
-            List<Device> devices = gateway.filterDeviceList(sceneDevices);
-            AylaSceneZigbee scene = gateway.getSceneByName(name);
-            if (scene == null) {
-                gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
-                    @Override
-                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        if (AylaNetworks.succeeded(msg)) {
-                            updateSceneGatewaySuccess++;
+        for (Gateway g : gateways) {
+            if (g.isZigbeeGateway()) {
+                ZigbeeGateway gateway = (ZigbeeGateway)g;
+                List<Device> devices = gateway.filterDeviceList(sceneDevices);
+                AylaSceneZigbee scene = gateway.getSceneByName(name);
+                if (scene == null) {
+                    gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+                        @Override
+                        public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                            if (AylaNetworks.succeeded(msg)) {
+                                updateSceneGatewaySuccess++;
+                            }
+                            updateSceneGatewayDone++;
+                            if (updateSceneGatewayDone == updateSceneGatewayCount) {
+                                updateSceneComplete(name, sceneDevices);
+                            }
                         }
-                        updateSceneGatewayDone++;
-                        if (updateSceneGatewayDone == updateSceneGatewayCount) {
-                            updateSceneComplete(name, sceneDevices);
+                    });
+                } else {
+                    gateway.updateSceneDevices(scene, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+                        @Override
+                        public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                            if (AylaNetworks.succeeded(msg)) {
+                                updateSceneGatewaySuccess++;
+                            }
+                            updateSceneGatewayDone++;
+                            if (updateSceneGatewayDone == updateSceneGatewayCount) {
+                                updateSceneComplete(name, sceneDevices);
+                            }
                         }
-                    }
-                });
-            } else {
-                gateway.updateSceneDevices(scene, devices, this, new Gateway.AylaGatewayCompletionHandler() {
-                    @Override
-                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        if (AylaNetworks.succeeded(msg)) {
-                            updateSceneGatewaySuccess++;
-                        }
-                        updateSceneGatewayDone++;
-                        if (updateSceneGatewayDone == updateSceneGatewayCount) {
-                            updateSceneComplete(name, sceneDevices);
-                        }
-                    }
-                });
+                    });
+                }
             }
         }
     }
@@ -519,20 +526,23 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         addSceneGatewayCount = gateways.size();
         addSceneGatewayDone = addSceneGatewaySuccess = 0;
 
-        for (Gateway gateway : gateways) {
-            List<Device> devices = gateway.filterDeviceList(sceneDevices);
-            gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
-                @Override
-                public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                    if (AylaNetworks.succeeded(msg)) {
-                        addSceneGatewaySuccess++;
+        for (Gateway g : gateways) {
+            if (g.isZigbeeGateway()) {
+                ZigbeeGateway gateway = (ZigbeeGateway)g;
+                List<Device> devices = gateway.filterDeviceList(sceneDevices);
+                gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
+                    @Override
+                    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+                        if (AylaNetworks.succeeded(msg)) {
+                            addSceneGatewaySuccess++;
+                        }
+                        addSceneGatewayDone++;
+                        if (addSceneGatewayDone == addSceneGatewayCount) {
+                            addSceneComplete(name, sceneDevices);
+                        }
                     }
-                    addSceneGatewayDone++;
-                    if (addSceneGatewayDone == addSceneGatewayCount) {
-                        addSceneComplete(name, sceneDevices);
-                    }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -630,7 +640,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 MainActivity.getInstance().showWaitDialog(R.string.scene_recall_title, R.string.scene_recall_body);
                 actionActivate = new SceneAction(_selectedSceneName, new Gateway.AylaGatewayActionHandler() {
                     @Override
-                    public void performAction(Object action, Gateway gateway, Object tag) {
+                    public void performAction(Object action, Gateway g, Object tag) {
+                        ZigbeeGateway gateway = (ZigbeeGateway)g;
                         AylaSceneZigbee scene = gateway.getSceneByName((String)tag);
                         gateway.recallScene(scene, this, (SceneAction)action);
                     }
@@ -661,7 +672,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 MainActivity.getInstance().showWaitDialog(R.string.scene_delete_title, R.string.scene_delete_body);
                 actionDelete = new SceneAction(sceneName, new Gateway.AylaGatewayActionHandler() {
                     @Override
-                    public void performAction(Object action, Gateway gateway, Object tag) {
+                    public void performAction(Object action, Gateway g, Object tag) {
+                        ZigbeeGateway gateway = (ZigbeeGateway)g;
                         AylaSceneZigbee scene = gateway.getSceneByName((String)tag);
                         gateway.deleteScene(scene, this, (SceneAction) action);
                     }
