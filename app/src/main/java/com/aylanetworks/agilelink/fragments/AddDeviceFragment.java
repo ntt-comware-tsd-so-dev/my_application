@@ -69,6 +69,8 @@ public class AddDeviceFragment extends Fragment
         ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener {
     private static final String LOG_TAG = "AddDeviceFragment";
 
+    private static final boolean USE_WELCOME_FRAGMENT = false;
+
     private static final int REG_TYPE_SAME_LAN = 0;
     private static final int REG_TYPE_BUTTON_PUSH = 1;
     private static final int REG_TYPE_DISPLAY = 2;
@@ -328,7 +330,6 @@ public class AddDeviceFragment extends Fragment
                 _nodeRegistrationGateway = null;
             }
         }
-
         Logger.logInfo(LOG_TAG, "Selected " + position);
     }
 
@@ -360,7 +361,7 @@ public class AddDeviceFragment extends Fragment
     private void registerButtonClick() {
         // Register button clicked
         Device d = (Device)_spinnerProductType.getSelectedItem();
-        if (d.isGateway()) {
+        if (USE_WELCOME_FRAGMENT && d.isGateway()) {
             MenuHandler.handleGatewayWelcome();
         } else if (_registrationType == REG_TYPE_NODE) {
             // we need something to register...
@@ -376,9 +377,13 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void scanButtonClick() {
-        Device d = (Device)_spinnerProductType.getSelectedItem();
-        if (d.isGateway()) {
-            MenuHandler.handleGatewayWelcome();
+        if (USE_WELCOME_FRAGMENT) {
+            Device d = (Device) _spinnerProductType.getSelectedItem();
+            if (d.isGateway()) {
+                MenuHandler.handleGatewayWelcome();
+            } else {
+                doScan();
+            }
         } else {
             doScan();
         }
@@ -460,6 +465,9 @@ public class AddDeviceFragment extends Fragment
         });
         */
 
+        if (!moreComing) {
+            MenuHandler.handleAllDevices();
+        }
     }
 
     /**

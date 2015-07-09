@@ -225,8 +225,7 @@ public class Gateway extends Device {
 
     @Override
     public Drawable getDeviceDrawable(Context c) {
-        // TODO: return the generic gateway icon
-        return c.getResources().getDrawable(R.drawable.ic_zigbee);
+        return c.getResources().getDrawable(R.drawable.ic_generic_gateway_red);
     }
 
     @Override
