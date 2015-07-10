@@ -385,18 +385,25 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     public void enterLANMode(LANModeListener listener) {
-        if ( !SessionManager.getInstance().lanModePermitted() ) {
+        Device device = listener.getDevice();
+        if (_registrationMode) {
+            Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] registration mode");
+            listener.lanModeResult(false);
+            return;
+        }
+        if (!SessionManager.getInstance().lanModePermitted()) {
             // We can't enter LAN mode for any devices.
+            Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] not permitted");
             listener.lanModeResult(false);
         } else {
-            Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
             if ( _lanModeEnabledDevice == listener._device ) {
-                Log.d(LOG_TAG, listener._device + " is already in LAN mode");
+                Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] already in LAN mode.");
                 listener.lanModeResult(true);
             } else {
                 _startingLANMode = true;
                 _lanModeListeners.add(listener);
-                listener.getDevice().getDevice().lanModeEnable();
+                Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] lanModeEnable");
+                device.getDevice().lanModeEnable();
             }
         }
     }
@@ -416,8 +423,14 @@ public class DeviceManager implements DeviceStatusListener {
 
         // _lanModeListeners.add(listener);
         // listener.getDevice().getDevice().lanModeDisable();
+
+        Device device = _lanModeEnabledDevice;
+        Logger.logDebug(LOG_TAG, "lm: [" + ((device == null) ? "null" : device.getDeviceDsn()) + "] exitLANMode.");
         _lanModeEnabledDevice = null;
         listener.lanModeResult(false);
+        if (device != null) {
+            deviceChanged(device);
+        }
 
         // Start polling our device status again so we include this device
         startPolling();
@@ -498,6 +511,12 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         public void updateNextDevice() {
+            if (_registrationMode) {
+                Log.d(LOG_TAG, "rn: updateNextDevice - ignoring in registration mode");
+                _devicesToUpdate.clear();
+                return;
+            }
+
             if ( _devicesToUpdate.isEmpty() ) {
                 // We're done!
                 _listener.notificationsUpdated(true, null);
@@ -642,6 +661,40 @@ public class DeviceManager implements DeviceStatusListener {
     private Set<DeviceListListener> _deviceListListeners;
     private Set<DeviceStatusListener> _deviceStatusListeners;
 
+    // This is set to true while we are attempting to added nodes
+    private static boolean _registrationMode = false;
+
+    public void setRegistrationMode(boolean value) {
+        _registrationMode = value;
+        if (value) {
+            if (_startingLANMode) {
+            }
+            if (_lanModeEnabledDevice != null) {
+                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode true - disable lan mode [" + _lanModeEnabledDevice.getDeviceDsn() + "]");
+                _lanModeEnabledDevice.getDevice().lanModeDisable();
+            } else {
+                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode true - no lan mode device");
+            }
+            /*
+            if (AylaLanMode.lanModeState != AylaNetworks.lanMode.DISABLED) {
+                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode true - pause lan mode");
+                AylaLanMode.pause(true);
+            } else {
+                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode true - lan mode " + AylaLanMode.lanModeState);
+            }
+            */
+        } else {
+            /*
+            if (AylaLanMode.lanModeState != AylaNetworks.lanMode.DISABLED) {
+                AylaLanMode.resume();
+                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode false - resume lan mode");
+            } else {
+                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode false - lan mode " + AylaLanMode.lanModeState);
+            }
+            */
+        }
+    }
+
     // This is set to true while we are attempting to enable LAN mode.
     // Device queries should be disabled while this is true.
     private boolean _startingLANMode = false;
@@ -686,6 +739,8 @@ public class DeviceManager implements DeviceStatusListener {
                     _deviceManager.get().notifyLANModeChange();
 
                     // Nobody is in LAN mode now.
+                    Logger.logDebug(LOG_TAG, "lm: [null] handleMessage FAILED " + msg);
+                    Device device = _deviceManager.get()._lanModeEnabledDevice;
                     _deviceManager.get()._lanModeEnabledDevice = null;
 
                     // Notify our listeners, if any, and clear our list
@@ -694,12 +749,16 @@ public class DeviceManager implements DeviceStatusListener {
                         listener.lanModeResult(false);
                         iter.remove();
                     }
+                    if (device != null) {
+                        _deviceManager.get().deviceChanged(device);
+                    }
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
                         _deviceManager.get()._lanModeEnabledDevice = device;
                         _deviceManager.get().setLastLanModeDevice(device);
+                        Logger.logDebug(LOG_TAG, "lm: [" + device.getDeviceDsn() + "] handleMessage ENABLED " + msg);
 
                         if ( device != null ) {
                             // Remove the LAN-mode-enabled device from the list of devices to poll
@@ -717,6 +776,7 @@ public class DeviceManager implements DeviceStatusListener {
                                     iter.remove();
                                 }
                             }
+                            _deviceManager.get().deviceChanged(device);
                         } else {
                             Log.e(LOG_TAG, "Unknown device [" + dsn + "] has entered LAN mode???");
                         }
@@ -783,7 +843,6 @@ public class DeviceManager implements DeviceStatusListener {
 
     private void enterLANMode() {
         Log.d(LOG_TAG, "enterLANMode");
-
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
         if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
@@ -817,8 +876,12 @@ public class DeviceManager implements DeviceStatusListener {
                 Logger.logDebug(LOG_TAG, "poll:d polling stopped.");
                 return;
             }
-            if ( _startingLANMode ) {
+            if (_startingLANMode) {
                 Logger.logInfo(LOG_TAG, "poll:d Not querying device list while entering LAN mode");
+                return;
+            }
+            if (_registrationMode) {
+                Log.d(LOG_TAG, "rn: deviceListTimer - ignoring in registration mode");
                 return;
             }
             Logger.logVerbose(LOG_TAG, "poll:Device List Timer");
@@ -842,13 +905,17 @@ public class DeviceManager implements DeviceStatusListener {
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
-            if ( _pollingStopped ) {
+            if (_pollingStopped) {
                 Logger.logDebug(LOG_TAG, "poll:s polling stopped");
                 return;
             }
             // If we're in the process of entering LAN mode, don't query devices yet.
-            if ( _startingLANMode ) {
+            if (_startingLANMode) {
                 Logger.logInfo(LOG_TAG, "poll:s Not querying device status while entering LAN mode");
+                return;
+            }
+            if (_registrationMode) {
+                Log.d(LOG_TAG, "rn: deviceStatusTimer - ignoring in registration mode");
                 return;
             }
             Logger.logVerbose(LOG_TAG, "poll:Device Status Timer");
@@ -880,6 +947,10 @@ public class DeviceManager implements DeviceStatusListener {
     };
 
     private void updateNextDeviceStatus() {
+        if (_registrationMode) {
+            Log.d(LOG_TAG, "rn: updateNextDeviceStatus - ignoring in registration mode");
+            return;
+        }
         Logger.logVerbose(LOG_TAG, "updateNextDeviceStatus");
         if ( _startingLANMode ) {
             Logger.logDebug(LOG_TAG, "Not updating status while entering LAN mode");

@@ -29,6 +29,7 @@ import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -47,7 +48,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
 
     private static final String ARG_DSN = "dsn";
 
-    Gateway _gateway;
+    ZigbeeGateway _gateway;
     ZigbeeTriggerDevice _device;
 
     AylaGroupZigbee _openTurnOnGroup;
@@ -105,7 +106,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             getFragmentManager().popBackStack();
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
         } else {
-            _gateway = Gateway.getGatewayForDeviceNode(_device);
+            _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(_device);
 
             // group/binding error message area
             _errorContainer = view.findViewById(R.id.error_container);

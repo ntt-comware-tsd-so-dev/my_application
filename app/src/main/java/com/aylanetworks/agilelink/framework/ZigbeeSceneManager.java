@@ -10,6 +10,7 @@ import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaNetworksZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class ZigbeeSceneManager {
 
     private final static String LOG_TAG = "ZigbeeSceneManager";
 
-    private Gateway _gateway;
+    private ZigbeeGateway _gateway;
     private Set<ZigbeeSceneManagerListener> _listeners;
     protected Set<AylaSceneZigbee> _scenes;
 
@@ -45,13 +46,16 @@ public class ZigbeeSceneManager {
     public static List<String> getSceneNames() {
         List<String> list = new ArrayList<>();
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        for (Gateway gateway : gateways) {
-            List<AylaSceneZigbee> scenes = gateway.getScenes();
-            if ((scenes != null) && (scenes.size() > 0)) {
-                for (AylaSceneZigbee scene : scenes) {
-                    // Not case-sensitive
-                    if (!list.contains(scene.sceneName)) {
-                        list.add(scene.sceneName);
+        for (Gateway g : gateways) {
+            if (g.isZigbeeGateway()) {
+                ZigbeeGateway gateway = (ZigbeeGateway)g;
+                List<AylaSceneZigbee> scenes = gateway.getScenes();
+                if ((scenes != null) && (scenes.size() > 0)) {
+                    for (AylaSceneZigbee scene : scenes) {
+                        // Not case-sensitive
+                        if (!list.contains(scene.sceneName)) {
+                            list.add(scene.sceneName);
+                        }
                     }
                 }
             }
@@ -69,10 +73,13 @@ public class ZigbeeSceneManager {
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         List<Device> devices = new ArrayList<>();
         if ((gateways != null) && (gateways.size() > 0)) {
-            for (Gateway gateway : gateways) {
-                AylaSceneZigbee scene = gateway.getSceneByName(sceneName);
-                if (scene != null) {
-                    devices.addAll(gateway.getDevicesForScene(scene));
+            for (Gateway g : gateways) {
+                if (g.isZigbeeGateway()) {
+                    ZigbeeGateway gateway = (ZigbeeGateway)g;
+                    AylaSceneZigbee scene = gateway.getSceneByName(sceneName);
+                    if (scene != null) {
+                        devices.addAll(gateway.getDevicesForScene(scene));
+                    }
                 }
             }
         }
@@ -89,14 +96,17 @@ public class ZigbeeSceneManager {
         String dsn = device.getDeviceDsn();
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
         if ((gateways != null) && (gateways.size() > 0)) {
-            for (Gateway gateway : gateways) {
-                AylaSceneZigbee scene = gateway.getSceneByName(sceneName);
-                if (scene != null) {
-                    // need the node entities...
-                    if (scene.nodes != null) {
-                        for (AylaSceneZigbeeNodeEntity nodeEntity : scene.nodes) {
-                            if (TextUtils.equals(dsn, nodeEntity.dsn)) {
-                                return nodeEntity;
+            for (Gateway g : gateways) {
+                if (g.isZigbeeGateway()) {
+                    ZigbeeGateway gateway = (ZigbeeGateway)g;
+                    AylaSceneZigbee scene = gateway.getSceneByName(sceneName);
+                    if (scene != null) {
+                        // need the node entities...
+                        if (scene.nodes != null) {
+                            for (AylaSceneZigbeeNodeEntity nodeEntity : scene.nodes) {
+                                if (TextUtils.equals(dsn, nodeEntity.dsn)) {
+                                    return nodeEntity;
+                                }
                             }
                         }
                     }
@@ -110,7 +120,7 @@ public class ZigbeeSceneManager {
      * Default constructor
      * @param gateway Gateway
      */
-    public ZigbeeSceneManager(Gateway gateway) {
+    public ZigbeeSceneManager(ZigbeeGateway gateway) {
         _gateway = gateway;
         _listeners = new HashSet<>();
         _scenes = new HashSet<>();
@@ -431,11 +441,11 @@ public class ZigbeeSceneManager {
 
     static class GetScenesHandler extends Handler {
         WeakReference<ZigbeeSceneManager> _manager;
-        Gateway _gateway;
+        ZigbeeGateway _gateway;
         Object _tag;
         Gateway.AylaGatewayCompletionHandler _completion;
 
-        GetScenesHandler(ZigbeeSceneManager manager, Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+        GetScenesHandler(ZigbeeSceneManager manager, ZigbeeGateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
             _manager = new WeakReference<>(manager);
             _gateway = gateway;
             _tag = tag;

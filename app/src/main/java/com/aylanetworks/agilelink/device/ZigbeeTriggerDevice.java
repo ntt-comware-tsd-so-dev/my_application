@@ -31,7 +31,7 @@ public class ZigbeeTriggerDevice extends Device  {
     public final static String ZB_IAS_CLOSE_TURN_OFF = "5_out_0x0006_0x0000";
 
     public final static String GROUP_PREFIX_TRIGGER = "sensor-";
-    Gateway _gateway;
+    ZigbeeGateway _gateway;
 
     public ZigbeeTriggerDevice(AylaDevice device) {
         super(device);
@@ -340,7 +340,7 @@ public class ZigbeeTriggerDevice extends Device  {
 
     public class DequeSet {
 
-        Gateway _gateway;
+        ZigbeeGateway _gateway;
         Device _device;
         Object _tag;
         Object _userTag;
@@ -351,7 +351,7 @@ public class ZigbeeTriggerDevice extends Device  {
         int countSuccess;
         int countFailure;
 
-        public DequeSet(Gateway gateway, Device device, Object tag, Object userTag, Gateway.AylaGatewayCompletionHandler completion) {
+        public DequeSet(ZigbeeGateway gateway, Device device, Object tag, Object userTag, Gateway.AylaGatewayCompletionHandler completion) {
             _gateway = gateway;
             _device = device;
             _tag = tag;
@@ -466,7 +466,7 @@ public class ZigbeeTriggerDevice extends Device  {
         }
     }
 
-    void setupTriggers(Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+    void setupTriggers(ZigbeeGateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
         // make sure we have the latest info
         gateway.getGroupManager().fetchZigbeeGroups(null, null);
         gateway.getBindingManager().fetchZigbeeBindings(null, null);
@@ -490,43 +490,50 @@ public class ZigbeeTriggerDevice extends Device  {
 
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
-        setupTriggers(gateway, null, null);
+        if (gateway.isZigbeeGateway()) {
+            setupTriggers((ZigbeeGateway)gateway, null, null);
+        }
     }
 
     public void fixRegistrationForGatewayDevice(final Gateway gateway, final Object tag, final Gateway.AylaGatewayCompletionHandler completion) {
-        setupTriggers(gateway, tag, completion);
+        if (gateway.isZigbeeGateway()) {
+            setupTriggers((ZigbeeGateway)gateway, tag, completion);
+        }
     }
 
     @Override
-    public void preUnregistrationForGatewayDevice(Gateway gateway) {
+    public void preUnregistrationForGatewayDevice(Gateway g) {
+        if (g.isZigbeeGateway()) {
+            ZigbeeGateway gateway = (ZigbeeGateway)g;
 
-        // make sure we have the latest info
-        gateway.getGroupManager().fetchZigbeeGroups(null, null);
-        gateway.getBindingManager().fetchZigbeeBindings(null, null);
+            // make sure we have the latest info
+            gateway.getGroupManager().fetchZigbeeGroups(null, null);
+            gateway.getBindingManager().fetchZigbeeBindings(null, null);
 
-        // remove 4 bindings & 4 groups
-        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+            // remove 4 bindings & 4 groups
+            Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
 
-        synchronized (_currentDequeSetLock) {
-            if (_currentDequeSet != null) {
-                // stop any add that may be going on...
-                _currentDequeSet.clearDeque();
-                _currentDequeSet = null;
+            synchronized (_currentDequeSetLock) {
+                if (_currentDequeSet != null) {
+                    // stop any add that may be going on...
+                    _currentDequeSet.clearDeque();
+                    _currentDequeSet = null;
+                }
+                // queue up the removals
+                _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice", null, null);
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, true));
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, false));
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, true));
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, false));
+                _currentDequeSet.runIfNeeded();
             }
-            // queue up the removals
-            _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice", null, null);
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, true));
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, false));
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, true));
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, false));
-            _currentDequeSet.runIfNeeded();
         }
     }
 
     @Override
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
-        _gateway = Gateway.getGatewayForDeviceNode(this);
+        _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(this);
         Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
     }
 

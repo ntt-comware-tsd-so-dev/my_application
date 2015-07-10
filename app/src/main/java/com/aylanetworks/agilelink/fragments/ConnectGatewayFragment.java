@@ -2,14 +2,12 @@ package com.aylanetworks.agilelink.fragments;
 
 
 import android.app.Activity;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,23 +15,19 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDevice;
-
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
-
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
-
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -130,8 +124,10 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
+                    //Looper.prepare();
                     Logger.logVerbose(LOG_TAG, "calling AylaSetup.exit()...");
                     AylaSetup.exit();
+                    //Looper.loop();
                     return null;
                 }
 

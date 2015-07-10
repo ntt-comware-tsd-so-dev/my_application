@@ -16,6 +16,7 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaNetworksZigbee;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class ZigbeeBindingManager {
     private final static String LOG_TAG = "ZigbeeBindingManager";
     private boolean _isDirty;
 
-    private Gateway _gateway;
+    private ZigbeeGateway _gateway;
     private Set<ZigbeeBindingManagerListener> _listeners;
     protected Set<AylaBindingZigbee> _bindings;
 
@@ -40,7 +41,7 @@ public class ZigbeeBindingManager {
      * Default constructor
      * @param gateway Gateway
      */
-    public ZigbeeBindingManager(Gateway gateway) {
+    public ZigbeeBindingManager(ZigbeeGateway gateway) {
         _gateway = gateway;
         _listeners = new HashSet<>();
         _bindings = new HashSet<>();
@@ -195,11 +196,11 @@ public class ZigbeeBindingManager {
 
     static class GetHandler extends Handler {
         private WeakReference<ZigbeeBindingManager> _manager;
-        Gateway _gateway;
+        ZigbeeGateway _gateway;
         Object _tag;
         Gateway.AylaGatewayCompletionHandler _completion;
 
-        GetHandler(ZigbeeBindingManager manager, Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+        GetHandler(ZigbeeBindingManager manager, ZigbeeGateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
             _manager = new WeakReference<ZigbeeBindingManager>(manager);
             _gateway = gateway;
             _tag = tag;
