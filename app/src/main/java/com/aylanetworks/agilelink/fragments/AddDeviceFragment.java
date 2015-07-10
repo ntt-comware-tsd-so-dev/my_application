@@ -37,7 +37,6 @@ import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
-import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
@@ -537,6 +536,7 @@ public class AddDeviceFragment extends Fragment
 
     Gateway.AylaGatewayScanCancelHandler _scanTag;
 
+    DeviceScanHandler _deviceScanHandler;
     private void doScan() {
         if (_registrationType==REG_TYPE_NODE) {
             if (_nodeRegistrationGateway == null) {
@@ -551,7 +551,8 @@ public class AddDeviceFragment extends Fragment
             // Put up a progress dialog
             MainActivity.getInstance().showWaitDialog(getString(R.string.scanning_for_devices_title), getString(R.string.scanning_for_devices_message));
             Logger.logVerbose(LOG_TAG, "rn: returnHostScanForNewDevices");
-            AylaSetup.returnHostScanForNewDevices(new DeviceScanHandler(this));
+            _deviceScanHandler = new DeviceScanHandler(this);
+            AylaSetup.returnHostScanForNewDevices(_deviceScanHandler);
         }
     }
 
@@ -602,7 +603,7 @@ public class AddDeviceFragment extends Fragment
         private WeakReference<AddDeviceFragment> _addDeviceFragment;
 
         public RegisterHandler(AddDeviceFragment addDeviceFragment) {
-            _addDeviceFragment = new WeakReference<AddDeviceFragment>(addDeviceFragment);
+            _addDeviceFragment = new WeakReference<>(addDeviceFragment);
         }
 
         @Override
@@ -666,22 +667,25 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
+    ConnectHandler _connectHandler;
     private void connectToAP(AylaHostScanResults scanResult) {
         AylaSetup.newDevice.hostScanResults = scanResult;
         AylaSetup.lanSsid = scanResult.ssid;
         AylaSetup.lanSecurityType = scanResult.keyMgmt;
 
         // Connect to the device
-        MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title),
-                getString(R.string.connecting_to_device_body));
+        MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body));
         Logger.logVerbose(LOG_TAG, "rn: calling connectToNewDevice: ssid = " + scanResult.ssid + " key mgt: " + scanResult.keyMgmt);
-        AylaSetup.connectToNewDevice(new ConnectHandler(this));
+        _connectHandler = new ConnectHandler(this);
+        AylaSetup.connectToNewDevice(_connectHandler);
     }
 
+    RegisterHandler _registerHandler;
     private void registerNewDevice(AylaDevice device) {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
         Logger.logVerbose(LOG_TAG, "rn: Calling registerNewDevice...");
-        device.registerNewDevice(new RegisterHandler(this));
+        _registerHandler = new RegisterHandler(this);
+        device.registerNewDevice(_registerHandler);
     }
 
     private AylaModuleScanResults _savedScanResults[];
@@ -754,6 +758,7 @@ public class AddDeviceFragment extends Fragment
      */
     static class ConnectHandler extends Handler {
         private WeakReference<AddDeviceFragment> _fragment;
+        ScanForAPsHandler _scanForAPsHandler;
 
         public ConnectHandler(AddDeviceFragment frag) {
             _fragment = new WeakReference<>(frag);
@@ -776,7 +781,8 @@ public class AddDeviceFragment extends Fragment
 
                 AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
                 Logger.logVerbose(LOG_TAG, "rn: calling getNewDeviceScanForAPs. newDevice = " + AylaSetup.newDevice);
-                AylaSetup.getNewDeviceScanForAPs(new ScanForAPsHandler(_fragment.get()));
+                _scanForAPsHandler = new ScanForAPsHandler(_fragment.get());
+                AylaSetup.getNewDeviceScanForAPs(_scanForAPsHandler);
                 activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title), activity.getString(R.string.scanning_for_aps_body));
             } else {
                 Logger.logError(LOG_TAG, "rn: Connect handler error: " + msg);
@@ -788,6 +794,7 @@ public class AddDeviceFragment extends Fragment
 
     static class ConfirmNewDeviceHandler extends Handler {
         private WeakReference<AddDeviceFragment> _frag;
+        GetNewDeviceWiFiStatusHandler _getNewDeviceWiFiStatusHandler;
 
         public ConfirmNewDeviceHandler(AddDeviceFragment frag) {
             _frag = new WeakReference<AddDeviceFragment>(frag);
@@ -822,7 +829,8 @@ public class AddDeviceFragment extends Fragment
                 if ( msg.arg1 == AylaNetworks.AML_ERROR_NOT_FOUND ) {
                     // The service did not find the new device. Check with the device to see why.
                     MainActivity.getInstance().showWaitDialog(R.string.reconnecting_device_title, R.string.reconnecting_device_message);
-                    AylaSetup.getNewDeviceWiFiStatus(new GetNewDeviceWiFiStatusHandler(_frag.get()));
+                    _getNewDeviceWiFiStatusHandler = new GetNewDeviceWiFiStatusHandler(_frag.get());
+                    AylaSetup.getNewDeviceWiFiStatus(_getNewDeviceWiFiStatusHandler);
                 } else {
                     String message = (String) msg.obj;
                     if (TextUtils.isEmpty(message)) {
@@ -864,6 +872,7 @@ public class AddDeviceFragment extends Fragment
 
     static class ConnectToServiceHandler extends Handler {
         private WeakReference<AddDeviceFragment> _frag;
+        ConfirmNewDeviceHandler _confirmNewDeviceHandler;
         public ConnectToServiceHandler(AddDeviceFragment frag) {
             _frag = new WeakReference<AddDeviceFragment>(frag);
         }
@@ -877,7 +886,8 @@ public class AddDeviceFragment extends Fragment
                 // to register it.
                 MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
                 Logger.logVerbose(LOG_TAG, "rn: calling confirmNewDeviceToServiceConnection...");
-                AylaSetup.confirmNewDeviceToServiceConnection(new ConfirmNewDeviceHandler(_frag.get()));
+                _confirmNewDeviceHandler = new ConfirmNewDeviceHandler(_frag.get());
+                AylaSetup.confirmNewDeviceToServiceConnection(_confirmNewDeviceHandler);
             } else {
                 // Check for invalid key present in the error message
                 String emsg = (String) msg.obj;
