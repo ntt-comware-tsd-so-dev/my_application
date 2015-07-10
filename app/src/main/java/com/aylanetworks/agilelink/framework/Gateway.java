@@ -231,12 +231,18 @@ public class Gateway extends Device {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         super.bindViewHolder(holder);
+
+        final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         try {
             CardView cardView = (CardView) holder.itemView;
             cardView.setCardBackgroundColor(MainActivity.getInstance().getResources().getColor(R.color.card_background_gateway));
+
         } catch (ClassCastException e) {
             // This is not a cardview. Just set the background color of the view.
             holder.itemView.setBackgroundColor(MainActivity.getInstance().getResources().getColor(R.color.card_background_gateway));
+        }
+        if (h._deviceStatusTextView != null) {
+            h._deviceStatusTextView.setTextColor(MainActivity.getInstance().getResources().getColor(R.color.card_gateway_text));
         }
     }
 

@@ -23,6 +23,7 @@ import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
@@ -284,11 +285,12 @@ public class AllDevicesFragment extends Fragment
             } else {
                 // Put the device into LAN mode before pushing the detail fragment
                 MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
+                Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] enterLANMode");
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
                     @Override
                     public void lanModeResult(boolean isInLANMode) {
+                        Logger.logDebug(LOG_TAG, "lm: [" + getDevice().getDeviceDsn() + "] lanModeResult " + isInLANMode);
                         MainActivity.getInstance().dismissWaitDialog();
-                        Log.d(LOG_TAG, "Pushing details page, lanModeResult for " + getDevice() + ": " + isInLANMode);
                         Fragment frag = d.getDetailsFragment();
                         MainActivity.getInstance().pushFragment(frag);
                     }
