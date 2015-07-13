@@ -160,6 +160,7 @@ public class MenuHandler {
     public static void deleteAccount() {
         // First confirm
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
                 .setMessage(R.string.confirm_delete_account_message)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -220,6 +221,7 @@ public class MenuHandler {
     public static void signOut() {
         // Confirm
         new AlertDialog.Builder(MainActivity.getInstance())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_sign_out)
                 .setMessage(R.string.confirm_sign_out_message)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

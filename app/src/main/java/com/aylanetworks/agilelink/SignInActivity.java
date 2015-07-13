@@ -238,7 +238,15 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
         String title = getResources().getString(R.string.signIn);
         String message = getResources().getString(R.string.signingIn);
-        _progressDialog = ProgressDialog.show(SignInActivity.this, title, message);
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle(title);
+        dialog.setIcon(R.drawable.ic_launcher);
+        dialog.setMessage(message);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        dialog.setOnCancelListener(null);
+        dialog.show();
+        _progressDialog = dialog;
     }
 
     @Override
@@ -286,6 +294,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         final EditText emailEditText = new EditText(this);
         emailEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         Dialog dlg = new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.resend_confirmation)
                 .setMessage(R.string.resend_confirmation_message)
                 .setView(emailEditText)
@@ -351,8 +360,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private void onForgotPassword() {
         final EditText emailEditText = new EditText(this);
         emailEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-
         final Dialog dlg = new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.forgot_password_title)
                 .setMessage(R.string.forgot_password_message)
                 .setView(emailEditText)
@@ -533,6 +542,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 }
 
                 AlertDialog.Builder ad = new AlertDialog.Builder(MainActivity.getInstance());
+                ad.setIcon(R.drawable.ic_launcher);
                 ad.setTitle(R.string.error_sign_up_title);
                 ad.setMessage(resID);
                 ad.setPositiveButton(android.R.string.ok, null);

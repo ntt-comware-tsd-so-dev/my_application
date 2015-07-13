@@ -129,6 +129,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         int messageID = amOwner ? R.string.confirm_remove_share_message : R.string.confirm_remove_shared_device_message;
         String formattedMessage = getActivity().getString(messageID, deviceName, email);
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_remove_share_title)
                 .setMessage(formattedMessage)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

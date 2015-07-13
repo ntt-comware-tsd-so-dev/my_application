@@ -345,6 +345,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             selected.add(d);
         }
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(turnOn ? R.string.trigger_devices_on_title : R.string.trigger_devices_off_title)
                 .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
@@ -391,6 +392,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             selected.add(d);
         }
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.trigger_devices_remove_title)
                 .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
