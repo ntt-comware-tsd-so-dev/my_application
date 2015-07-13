@@ -270,6 +270,7 @@
 
                             <Button
                                 android:id="@+id/button_turn_on"
+                                style="@style/AgileLinkButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
@@ -278,6 +279,7 @@
 
                             <Button
                                 android:id="@+id/button_turn_off"
+                                style="@style/AgileLinkButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
@@ -315,6 +317,7 @@
 
                         <Button
                             android:id="@+id/timer_turn_on_button"
+                            style="@style/AgileLinkButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
@@ -323,6 +326,7 @@
 
                         <Button
                             android:id="@+id/timer_turn_off_button"
+                            style="@style/AgileLinkButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
@@ -346,6 +350,7 @@
 
     <Button
         android:id="@id/save_schedule"
+        style="@style/AgileLinkButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

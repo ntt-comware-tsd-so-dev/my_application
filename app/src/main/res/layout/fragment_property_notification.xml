@@ -177,6 +177,7 @@
 
     <Button
         android:id="@+id/save_notifications"
+        style="@style/AgileLinkButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
