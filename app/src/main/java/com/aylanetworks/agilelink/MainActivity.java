@@ -110,6 +110,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     ProgressDialog _progressDialog;
+    long _progressDialogStart;
 
     /**
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
@@ -122,12 +123,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if (_progressDialog != null) {
             dismissWaitDialog();
         }
-
         if (title == null) {
-            title = getResources().getString(R.string.please_wait);
+            title = getString(R.string.please_wait);
         }
-
-        _progressDialog = ProgressDialog.show(this, title, message, true);
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle(title);
+        dialog.setIcon(R.drawable.ic_launcher);
+        dialog.setMessage(message);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        dialog.setOnCancelListener(null);
+        dialog.show();
+        _progressDialog = dialog;
+        _progressDialogStart = System.currentTimeMillis();
     }
 
     /**
@@ -143,12 +151,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if (_progressDialog != null) {
             dismissWaitDialog();
         }
-
         if (title == null) {
-            title = getResources().getString(R.string.please_wait);
+            title = getString(R.string.please_wait);
         }
-
-        _progressDialog = ProgressDialog.show(this, title, message, true, true, cancelListener);
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle(title);
+        dialog.setIcon(R.drawable.ic_launcher);
+        dialog.setMessage(message);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(true);
+        dialog.setOnCancelListener(cancelListener);
+        dialog.show();
+        _progressDialog = dialog;
+        _progressDialogStart = System.currentTimeMillis();
     }
 
     /**
@@ -171,8 +186,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         // Put the orientation back to what it was before we messed with it
         if (_progressDialog != null) {
             _progressDialog.dismiss();
-            _progressDialog = null;
         }
+        _progressDialog = null;
+        _progressDialogStart = 0;
     }
 
     /**

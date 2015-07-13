@@ -1,4 +1,5 @@
 #!/bin/bash
+# export AYLA_BUILD_BRANCH=release_410 
 echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
 : ${MASTER=master}
