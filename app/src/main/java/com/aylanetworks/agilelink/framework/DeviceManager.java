@@ -400,7 +400,6 @@ public class DeviceManager implements DeviceStatusListener {
                 Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] already in LAN mode.");
                 listener.lanModeResult(true);
             } else {
-                _startingLANMode = true;
                 _lanModeListeners.add(listener);
                 Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] lanModeEnable");
                 device.getDevice().lanModeEnable();
@@ -664,24 +663,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     public void setRegistrationMode(boolean value) {
         _registrationMode = value;
-        if (value) {
-            if (_startingLANMode) {
-            }
-        } else {
-            /*
-            if (AylaLanMode.lanModeState != AylaNetworks.lanMode.DISABLED) {
-                AylaLanMode.resume();
-                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode false - resume lan mode");
-            } else {
-                Logger.logDebug(LOG_TAG, "rn: setRegistrationMode false - lan mode " + AylaLanMode.lanModeState);
-            }
-            */
-        }
     }
-
-    // This is set to true while we are attempting to enable LAN mode.
-    // Device queries should be disabled while this is true.
-    private boolean _startingLANMode = false;
 
     // Default comparator uses the device's compareTo method. Can be updated with setComparator().
     private Comparator<Device> _deviceComparator = new Comparator<Device>() {
@@ -704,8 +686,6 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
-            _deviceManager.get()._startingLANMode = false;
 
             String notifyResults = (String) msg.obj;
             AylaNotify notify = AylaSystemUtils.gson.fromJson(notifyResults, AylaNotify.class);
@@ -863,11 +843,9 @@ public class DeviceManager implements DeviceStatusListener {
                 gateway.getGatewayDevice().getNodes(_getNodesHandler, null);
             } else {
                 Log.i(LOG_TAG, "LAN mode: No gateway found");
-                _startingLANMode = false;
             }
         } else {
             Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.lanModeState + " - not entering LAN mode");
-            _startingLANMode = false;
         }
     }
 
@@ -881,10 +859,6 @@ public class DeviceManager implements DeviceStatusListener {
         public void run() {
             if (_pollingStopped) {
                 Logger.logDebug(LOG_TAG, "poll:d polling stopped.");
-                return;
-            }
-            if (_startingLANMode) {
-                Logger.logInfo(LOG_TAG, "poll:d Not querying device list while entering LAN mode");
                 return;
             }
             if (_registrationMode) {
@@ -934,11 +908,6 @@ public class DeviceManager implements DeviceStatusListener {
                 Logger.logDebug(LOG_TAG, "poll:s polling stopped");
                 return;
             }
-            // If we're in the process of entering LAN mode, don't query devices yet.
-            if (_startingLANMode) {
-                Logger.logInfo(LOG_TAG, "poll:s Not querying device status while entering LAN mode");
-                return;
-            }
             if (_registrationMode) {
                 Log.d(LOG_TAG, "rn: deviceStatusTimer - ignoring in registration mode");
                 return;
@@ -969,11 +938,6 @@ public class DeviceManager implements DeviceStatusListener {
             return;
         }
         Logger.logVerbose(LOG_TAG, "updateNextDeviceStatus");
-        if ( _startingLANMode ) {
-            Logger.logDebug(LOG_TAG, "Not updating status while entering LAN mode");
-            return;
-        }
-
         if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
             // We're done.
             _devicesToPoll = null;
