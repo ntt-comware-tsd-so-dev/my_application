@@ -230,6 +230,10 @@ public class AddDeviceFragment extends Fragment
         if (parent.getId() == R.id.spinner_product_type) {
             // Update the product type. We will set the appropriate value on the registration
             // type when this is selected.
+            if ( getView() == null ) {
+                Logger.logError(LOG_TAG, "No view!!!");
+                return;
+            }
             Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
 
             Device d = (Device) parent.getAdapter().getItem(position);

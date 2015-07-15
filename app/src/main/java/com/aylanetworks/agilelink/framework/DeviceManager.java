@@ -744,10 +744,9 @@ public class DeviceManager implements DeviceStatusListener {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
                         _deviceManager.get().setLastLanModeDevice(device);
-                        Logger.logDebug(LOG_TAG, "lm: [" + device.getDeviceDsn() + "] handleMessage ENABLED " + msg);
-
 
                         if (device != null) {
+                            Logger.logDebug(LOG_TAG, "lm: [" + device.getDeviceDsn() + "] handleMessage ENABLED " + msg);
                             Log.d(LOG_TAG, "LAN mode enabled on " + device.toString());
                             // Update the properties on this device to the AylaDeviceManager's properties
                             device.syncLanProperties();
