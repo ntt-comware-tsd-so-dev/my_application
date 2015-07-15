@@ -52,16 +52,6 @@
             android:text="@string/now"
             />
 
-
-        <TextView
-            android:id="@+id/text_ending_on"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_margin="8dp"
-            android:layout_toLeftOf="@+id/button_ending_on"
-            android:text="@string/ending_on"/>
-
         <Button
             android:id="@+id/button_ending_on"
             style="@style/AgileLinkButton"
@@ -70,13 +60,21 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="24dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="24dp"
+            android:layout_margin="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
             android:text="@string/never"
             />
+
+        <TextView
+            android:id="@+id/text_ending_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:gravity="right"
+            android:layout_margin="8dp"
+            android:layout_toLeftOf="@id/button_ending_on"
+            android:text="@string/ending_on"/>
 
     </RelativeLayout>
 

@@ -227,8 +227,8 @@
     <string name="once">Single Event</string>
     <string name="repeating">Daily Schedule</string>
     <string name="timer">Timer</string>
-    <string name="starting_on">Starting on:</string>
-    <string name="ending_on">Ending on:</string>
+    <string name="starting_on">Starting:</string>
+    <string name="ending_on">Ending:</string>
     <string name="schedule_chooose_days_help">Select the days you want the schedule to be active below:</string>
     <string name="save_schedule">Save Schedule</string>
     <string name="end_time">End Time</string>
