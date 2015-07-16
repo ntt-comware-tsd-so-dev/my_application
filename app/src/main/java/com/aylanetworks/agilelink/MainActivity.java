@@ -14,15 +14,19 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.internal.view.menu.MenuBuilder;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -32,6 +36,7 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
@@ -106,7 +111,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     static {
         _uiConfig = new UIConfig();
         _uiConfig._listStyle = UIConfig.ListStyle.Grid;
-        _uiConfig._navStyle = UIConfig.NavStyle.Drawer;
+        _uiConfig._navStyle = UIConfig.NavStyle.Material;
     }
 
     ProgressDialog _progressDialog;
@@ -360,12 +365,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         } else {
             Log.i("BOOL", "portrait_only: false");
         }
-
         _theInstance = this;
         AylaNetworks.appContext = this;
-
+        setUITheme();
         super.onCreate(savedInstanceState);
-
         initUI();
 
         // Set up the session manager with our session parameters
@@ -386,6 +389,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onDestroy();
     }
 
+    private void setUITheme() {
+        switch ( getUIConfig()._navStyle ) {
+            case Pager:
+            case Drawer:
+                setTheme(R.style.AppTheme);
+                break;
+
+            case Material:
+                setTheme(R.style.AppMaterialTheme);
+                break;
+        }
+    }
+
     private void initUI() {
         switch ( getUIConfig()._navStyle ) {
             case Pager:
@@ -394,6 +410,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
             case Drawer:
                 initDrawer();
+                break;
+
+            case Material:
+                initMaterial();
                 break;
         }
     }
@@ -410,15 +430,87 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         mViewPager.setAdapter(mSectionsPagerAdapter);
     }
 
-    private DrawerLayout _drawerLayout;
     private ExpandableListView _drawerList;
-    private ActionBarDrawerToggle _drawerToggle;
     private Menu _drawerMenu;
+
+    private DrawerLayout _drawerLayout;
+    private ActionBarDrawerToggle _drawerToggle;
+
+    // AppBar
+    // http://www.android4devs.com/2014/12/how-to-make-material-design-app.html
+    // Colors
+    // http://www.sankk.in/material-mixer/
+
+    private Toolbar _toolbar;
+    private NavigationView _navigationView;
+    private TextView _userView;
+    private TextView _emailView;
+
+    private void initMaterial() {
+        Log.d(LOG_TAG, "initMaterial");
+        setContentView(R.layout.activity_main_material);
+
+        _toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(_toolbar);
+        final ActionBar ab = getSupportActionBar();
+        //ab.setHomeAsUpIndicator(R.drawable.men);
+        ab.setIcon(R.drawable.ic_launcher);
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setHomeButtonEnabled(true);
+
+        _drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                AylaUser currentUser = AylaUser.getCurrent();
+                StringBuilder sb = new StringBuilder(64);
+                if (!TextUtils.isEmpty(currentUser.firstname)) {
+                    sb.append(currentUser.firstname);
+                }
+                if (sb.length() > 0) {
+                    sb.append(" ");
+                }
+                if (!TextUtils.isEmpty(currentUser.lastname)) {
+                    sb.append(currentUser.lastname);
+                }
+                _userView.setText(sb.toString());
+                _emailView.setText(currentUser.email);
+                MainActivity.this.onDrawerOpened(drawerView);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                MainActivity.this.onDrawerClosed(drawerView);
+            }
+        };
+
+        _drawerLayout.setDrawerListener(_drawerToggle); // Drawer Listener set to the Drawer toggle
+        _drawerToggle.syncState();
+
+        _navigationView = (NavigationView) findViewById(R.id.nav_view);
+        if (_navigationView != null) {
+            _navigationView.setNavigationItemSelectedListener(
+                    new NavigationView.OnNavigationItemSelectedListener() {
+                        @Override
+                        public boolean onNavigationItemSelected(MenuItem menuItem) {
+                            menuItem.setChecked(true);
+                            closeDrawer();
+                            MenuHandler.handleMenuItem(menuItem);
+                            return true;
+                        }
+                    });
+            _drawerMenu = _navigationView.getMenu();
+            _userView = (TextView)_navigationView.findViewById(R.id.username);
+            _emailView = (TextView)_navigationView.findViewById(R.id.email);
+            onDrawerItemClicked(_drawerMenu.getItem(0));
+        }
+    }
 
     private void initDrawer() {
         Log.d(LOG_TAG, "initDrawer");
 
         setContentView(R.layout.activity_main_drawer);
+
         // Load the drawer menu resource. We will be using the menu items in our listview.
         _drawerMenu = new MenuBuilder(this);
         MenuInflater inflater = new MenuInflater(this);
@@ -485,15 +577,23 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     public void openDrawer() {
         if ( _drawerLayout != null ) {
-            _drawerLayout.openDrawer(_drawerList);
+            if (_drawerList != null) {
+                _drawerLayout.openDrawer(_drawerList);
+            } else {
+                _drawerLayout.openDrawer(GravityCompat.START);
+            }
         }
     }
 
     public void closeDrawer() {
         if ( _drawerLayout != null ) {
-            _drawerLayout.closeDrawer(_drawerList);
-            for ( int i = 0; i < _drawerList.getAdapter().getCount(); i++ ) {
-                _drawerList.collapseGroup(i);
+            if (_drawerList != null) {
+                _drawerLayout.closeDrawer(_drawerList);
+                for (int i = 0; i < _drawerList.getAdapter().getCount(); i++) {
+                    _drawerList.collapseGroup(i);
+                }
+            } else {
+                _drawerLayout.closeDrawers();
             }
         }
     }
@@ -502,8 +602,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if ( _drawerLayout == null ) {
             return false;
         }
-
-        return _drawerLayout.isDrawerOpen(_drawerList);
+        if (_drawerList != null) {
+            return _drawerLayout.isDrawerOpen(_drawerList);
+        }
+        return _drawerLayout.isDrawerOpen(GravityCompat.START);
     }
 
     private void onDrawerOpened(View drawerView) {
@@ -742,7 +844,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if ( _drawerLayout != null && _drawerLayout.isDrawerOpen(_drawerList)) {
+        if ( _drawerLayout != null && _drawerList != null && _drawerLayout.isDrawerOpen(_drawerList)) {
             menu.clear();
         }
         return super.onPrepareOptionsMenu(menu);

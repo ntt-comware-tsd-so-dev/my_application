@@ -18,7 +18,7 @@ public class UIConfig {
     public enum ListStyle { List, Grid, ExpandingList }
 
     /** Enumeration of navigation styles the app can be configured with */
-    public enum NavStyle { Pager, Drawer }
+    public enum NavStyle { Pager, Drawer, Material }
 
     /** Style for all devices / device group list views */
     public ListStyle _listStyle = ListStyle.List;

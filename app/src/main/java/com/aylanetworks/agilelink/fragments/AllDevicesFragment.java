@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -65,29 +64,6 @@ public class AllDevicesFragment extends Fragment
     public AllDevicesFragment() {
     }
 
-    private void addDevice() {
-        Log.i(LOG_TAG, "Add Device called");
-
-        // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_all_devices, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_add_device) {
-            addDevice();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,18 +78,8 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
-    // This method is called when the fragment is paged in to view
     @Override
-    public void setMenuVisibility(boolean menuVisible) {
-        super.setMenuVisibility(menuVisible);
-        if ( menuVisible ) {
-            updateDeviceList();
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
         _emptyView = (TextView) view.findViewById(R.id.empty);
 
@@ -154,6 +120,38 @@ public class AllDevicesFragment extends Fragment
         b.setOnClickListener(this);
 
         return view;
+    }
+
+    private void addDevice() {
+        Log.i(LOG_TAG, "Add Device called");
+
+        // Bring up the Add Device UI
+        AddDeviceFragment frag = AddDeviceFragment.newInstance();
+        MainActivity.getInstance().pushFragment(frag);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_all_devices, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_add_device) {
+            addDevice();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // This method is called when the fragment is paged in to view
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if ( menuVisible ) {
+            updateDeviceList();
+        }
     }
 
     public void updateDeviceList() {

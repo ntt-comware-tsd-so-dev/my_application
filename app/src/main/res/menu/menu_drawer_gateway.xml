@@ -3,6 +3,6 @@
     <group android:id="@+id/gateway_group"
         android:visible="false">
         <item android:id="@+id/action_device_scenes"
-            android:title="@string/drawer_scenes"/>
+            android:title="@string/scenes"/>
     </group>
 </menu>

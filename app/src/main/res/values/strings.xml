@@ -161,7 +161,11 @@
     <string name="error_sign_up_title">Sign-up Error</string>
     <string name="network_not_reachable">Unable to connect to the network</string>
     <string name="wlan_signin">Successful WLAN sign-in</string>
+    <string name="dashboard">Dashboard</string>
     <string name="groups">Groups</string>
+    <string name="scenes">Scenes</string>
+    <string name="gateways">Gateways</string>
+    <string name="account">Account</string>
     <string name="add_device_or_group_title">Add Device or Group</string>
     <string name="add_group_title">Add a Group or Room</string>
     <string name="add_group_message">Input the name for your new group or room</string>
@@ -477,7 +481,6 @@
     <string name="trigger_action_fix_complete">Fix Triggers Complete</string>
     <string name="trigger_action_fix_failure">Fix Triggers Failed</string>
 
-    <string name="drawer_scenes">Scenes</string>
     <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
     <string name="add_scene">Add Scene</string>
     <string name="activate_scene">Activate Scene</string>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_all_devices"
+        android:checked="false"
+        android:icon="@drawable/ic_dashboard_icon_gray40"
+        android:title="@string/dashboard"/>
+
+    <item
+        android:id="@+id/action_device_groups"
+        android:checked="false"
+        android:icon="@drawable/ic_groups_icon_gray40"
+        android:title="@string/groups"/>
+
+    <item
+        android:id="@+id/action_device_scenes"
+        android:checked="false"
+        android:icon="@drawable/ic_scenes_icon_gray40"
+        android:title="@string/scenes"/>
+
+    <item
+        android:id="@+id/action_gateways"
+        android:checked="false"
+        android:icon="@drawable/ic_gateways_icon_gray40"
+        android:title="@string/gateways"/>
+
+    <item
+        android:id="@+id/action_shares"
+        android:checked="false"
+        android:icon="@drawable/ic_shares_icon_gray40"
+        android:title="@string/shares"/>
+
+    <item
+        android:id="@+id/action_account"
+        android:checked="false"
+        android:icon="@drawable/ic_account_icon_gray40"
+        android:title="@string/account"/>
+
+    <item
+        android:id="@+id/action_contact_list"
+        android:checked="false"
+        android:icon="@drawable/ic_contacts_icon_gray40"
+        android:title="@string/contact_list"/>
+
+    <item
+        android:id="@+id/action_help"
+        android:checked="false"
+        android:icon="@drawable/ic_help_icon_gray40"
+        android:title="@string/help"/>
+
+    <item
+        android:id="@+id/action_about"
+        android:checked="false"
+        android:icon="@drawable/ic_about_icon_gray40"
+        android:title="@string/about"/>
+
+</menu>
