@@ -493,7 +493,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                     new NavigationView.OnNavigationItemSelectedListener() {
                         @Override
                         public boolean onNavigationItemSelected(MenuItem menuItem) {
-                            menuItem.setChecked(true);
                             closeDrawer();
                             MenuHandler.handleMenuItem(menuItem);
                             return true;
@@ -515,8 +514,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         _drawerMenu = new MenuBuilder(this);
         MenuInflater inflater = new MenuInflater(this);
         inflater.inflate(R.menu.menu_drawer, _drawerMenu);
-        inflater.inflate(R.menu.menu_drawer_gateway, _drawerMenu);
-        inflater.inflate(R.menu.menu_settings, _drawerMenu);
         _drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         Log.d(LOG_TAG, "_drawerLayout: " + _drawerLayout);
 
