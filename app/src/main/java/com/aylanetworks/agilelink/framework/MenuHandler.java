@@ -25,6 +25,7 @@ import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,6 +65,10 @@ public class MenuHandler {
                 handleDeviceScenes();
                 break;
 
+            case R.id.action_gateways:
+                handleGateways();
+                break;
+
             case R.id.action_add_device:
                 handleAddDevice();
                 break;
@@ -76,6 +81,7 @@ public class MenuHandler {
                 handleNotifications();
                 break;
 
+            case R.id.action_account:
             case R.id.action_edit_profile:
                 updateProfile();
                 break;
@@ -109,6 +115,13 @@ public class MenuHandler {
 
     public static void handleAllDevices() {
         Fragment frag = AllDevicesFragment.newInstance();
+        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
+        MainActivity.getInstance().popBackstackToRoot();
+        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+    }
+
+    public static void handleGateways() {
+        Fragment frag = GatewayDevicesFragment.newInstance();
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
