@@ -14,6 +14,9 @@ import android.view.View;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceManager;
+import com.aylanetworks.aaml.AylaDeviceNode;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSchedule;
@@ -32,7 +35,11 @@ import com.aylanetworks.agilelink.fragments.TriggerFragment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -131,6 +138,75 @@ public class Device implements Comparable<Device> {
      */
     public AylaDevice getDevice() {
         return _device;
+    }
+
+    /**
+     * Updates the device's property array to match that of the AylaDeviceManager's device's properties.
+     * @return true if the properties were updated, false if the properties were already the same
+     */
+    public boolean syncLanProperties() {
+        AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.dsn);
+        if (aylaDevice != null) {
+            // Update the properties on this device to match those of the AylaDeviceManager
+            if (aylaDevice.properties != null) {
+
+                // See if we already have the same properties
+                List<AylaProperty> theirProps = Arrays.asList(aylaDevice.properties);
+                List<AylaProperty> myProps;
+                if (_device.properties == null) {
+                    myProps = new ArrayList<>();
+                } else {
+                    myProps = Arrays.asList(_device.properties);
+                }
+
+                Comparator<AylaProperty> comp = new Comparator<AylaProperty>() {
+                    @Override
+                    public int compare(AylaProperty lhs, AylaProperty rhs) {
+                        if (TextUtils.equals(lhs.name, rhs.name)) {
+                            if (TextUtils.equals(lhs.value, rhs.value)) {
+                                if (TextUtils.equals(lhs.direction, rhs.direction)) {
+                                    return 0;
+                                } else {
+                                    return lhs.direction.compareTo(rhs.direction);
+                                }
+                            } else {
+                                return lhs.value.compareTo(rhs.value);
+                            }
+                        } else {
+                            return lhs.name.compareTo(rhs.name);
+                        }
+                    }
+                };
+
+                Collections.sort(theirProps, comp);
+                Collections.sort(myProps, comp);
+                boolean needsUpdate = myProps.size() != theirProps.size();
+                if (!needsUpdate) {
+                    for (int i = 0; i < myProps.size(); i++) {
+                        if (!myProps.get(i).equals(theirProps.get(i))) {
+                            needsUpdate = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!needsUpdate) {
+                    Logger.logInfo(LOG_TAG, "Property does not need update");
+                    return false;
+                }
+
+                Logger.logDebug(LOG_TAG, "Copying properties for " + _device + "old: " + _device.properties + " new: " + aylaDevice.properties);
+                _device.properties = new AylaProperty[aylaDevice.properties.length];
+                System.arraycopy(aylaDevice.properties, 0, _device.properties, 0, aylaDevice.properties.length);
+            } else {
+                Logger.logError(LOG_TAG, "syncLanProperties: AylaDevice has null properties for " + _device.dsn);
+                _device.properties = null;
+            }
+        } else {
+            Logger.logError(LOG_TAG, "syncLanProperties: No AylaDevice found for " + _device.dsn);
+            _device.properties = null;
+        }
+        return true;
     }
 
     /**
@@ -324,6 +400,12 @@ public class Device implements Comparable<Device> {
         getDevice().factoryReset(new ResetHandler(_resetTag), null);
     }
 
+    /**
+     * Override to provide additional actions that must be performed when unregistering a device.
+     * Always invoke the super
+     *
+     * @param handler
+     */
     public void unregisterDevice(Handler handler) {
 
         Logger.logInfo(LOG_TAG, "fr: unregisterDevice start");
@@ -356,10 +438,6 @@ public class Device implements Comparable<Device> {
     public void updateStatus(final DeviceStatusListener listener) {
         Map<String, String> getPropertyArguments = getPropertyArgumentMap();
 
-        // NOTE: The library will crash if the device's properties are null.
-        if (getDevice().properties == null) {
-            getDevice().properties = new AylaProperty[0];
-        }
         getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
     }
 
@@ -602,7 +680,9 @@ public class Device implements Comparable<Device> {
      * determine if a device change event should be sent.
      */
     protected boolean setProperties(AylaProperty[] newProperties) {
-        boolean hasChanged = (newProperties.length != getDevice().properties.length);
+        boolean hasChanged = (newProperties == null || getDevice().properties == null) ||
+                (newProperties.length != getDevice().properties.length);
+
         if (!hasChanged) {
             for (AylaProperty prop : newProperties) {
                 AylaProperty myProperty = getProperty(prop.name());
@@ -664,8 +744,8 @@ public class Device implements Comparable<Device> {
                 // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
-                if ( dm != null && dm.isLastLanModeDevice(_device.get())) {
-                    Logger.logDebug(LOG_TAG, "Entering LAN mode (I was the last LAN mode device): " + _device.get());
+                if ( dm != null && AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
+                    Logger.logDebug(LOG_TAG, "Entering LAN mode: " + _device.get());
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
 
@@ -1164,7 +1244,7 @@ public class Device implements Comparable<Device> {
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
-        if ( SessionManager.deviceManager().isLastLanModeDevice(this) ) {
+        if ( isInLanMode() ) {
             return MainActivity.getInstance().getString(R.string.lan_mode_enabled);
         }
         if ( isOnline() ) {
@@ -1172,6 +1252,13 @@ public class Device implements Comparable<Device> {
         } else {
             return MainActivity.getInstance().getString(R.string.offline);
         }
+    }
+
+    public boolean isInLanMode() {
+        // Get the AylaDevice from the DeviceManager. This has the actual LAN mode properties.
+        String dsn = _device.dsn;
+        AylaDevice lanDevice = AylaDeviceManager.sharedManager().endpointForDSN(dsn);
+        return lanDevice != null && lanDevice.isLanModeActive();
     }
 
     /**
