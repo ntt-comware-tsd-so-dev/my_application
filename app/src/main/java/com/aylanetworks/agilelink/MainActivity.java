@@ -453,8 +453,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         _toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(_toolbar);
         final ActionBar ab = getSupportActionBar();
-        //ab.setHomeAsUpIndicator(R.drawable.men);
-        ab.setIcon(R.drawable.ic_launcher);
+        //ab.setIcon(R.drawable.ic_launcher);
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setHomeButtonEnabled(true);
 
