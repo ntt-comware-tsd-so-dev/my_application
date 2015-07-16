@@ -157,7 +157,15 @@ public class AllDevicesFragment extends Fragment
     public void updateDeviceList() {
         List<Device> deviceList = null;
         if ( SessionManager.deviceManager() != null ) {
-            deviceList = SessionManager.deviceManager().deviceList();
+            List<Device> all = SessionManager.deviceManager().deviceList();
+            if (all != null) {
+                deviceList = new ArrayList<>();
+                for (Device d : all) {
+                    if (!d.isGateway()) {
+                        deviceList.add(d);
+                    }
+                }
+            }
         }
 
         if ( deviceList != null ) {
