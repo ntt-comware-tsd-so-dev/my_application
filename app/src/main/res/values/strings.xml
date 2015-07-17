@@ -296,7 +296,7 @@
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
     <string name="fill_from_contact">Add new from address book</string>
     <string name="choose_ap_details" formatted="false">Enter the password for the \"%s\" access point</string>
-    <string name="shares">Device Shares</string>
+    <string name="shares">Shares</string>
     <string name="devices_i_share">Devices I am sharing with others</string>
     <string name="devices_shared_with_me">Devices shared with me</string>
     <string name="fetching_shares_title">Fetching Shares</string>

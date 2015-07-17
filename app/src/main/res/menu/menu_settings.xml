@@ -14,10 +14,6 @@
         android:title="@string/notifications"/>
 
     <item
-        android:id="@+id/action_shares"
-        android:title="@string/shares"/>
-
-    <item
         android:id="@+id/action_help"
         android:title="@string/help"/>
 

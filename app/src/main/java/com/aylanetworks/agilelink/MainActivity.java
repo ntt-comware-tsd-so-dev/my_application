@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -44,10 +45,13 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
 import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
+import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
@@ -70,21 +74,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     // request IDs for intents we want results from
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    ViewPager mViewPager;
 
     private static MainActivity _theInstance;
 
@@ -391,6 +380,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     private void setUITheme() {
         switch ( getUIConfig()._navStyle ) {
+            case Tabbed:
             case Pager:
             case Drawer:
                 setTheme(R.style.AppTheme);
@@ -404,6 +394,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     private void initUI() {
         switch ( getUIConfig()._navStyle ) {
+            case Tabbed:
+                initTab();
+                break;
+
             case Pager:
                 initPager();
                 break;
@@ -418,16 +412,37 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
     }
 
+    SectionsPagerAdapter _sectionsPagerAdapter;
+    ViewPager _viewPager;
+
+    private void initTab() {
+        setContentView(R.layout.activity_main_tabbed);
+
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        _sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        _viewPager = (ViewPager) findViewById(R.id.pager);
+        _viewPager.setAdapter(_sectionsPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(_viewPager);
+    }
+
     private void initPager() {
          setContentView(R.layout.activity_main_pager);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        _sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        _viewPager = (ViewPager) findViewById(R.id.pager);
+        _viewPager.setAdapter(_sectionsPagerAdapter);
+
+        AylaPagerTabStrip tabLayout = (AylaPagerTabStrip) findViewById(R.id.pager_tab_strip);
+        tabLayout.setupWithViewPager(_viewPager);
     }
 
     private ExpandableListView _drawerList;
@@ -718,8 +733,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
 
         // We always want to show the "All Devices" page first
-        if ( mViewPager != null ) {
-            mViewPager.setCurrentItem(0);
+        if ( _viewPager != null ) {
+            _viewPager.setCurrentItem(0);
         }
         popBackstackToRoot();
 
@@ -911,13 +926,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             switch (position) {
-                case 0:
+                case 0: // Dashboard
                     return AllDevicesFragment.newInstance();
 
-                case 1:
+                case 1: // Groups
                     return DeviceGroupsFragment.newInstance();
 
-                case 2:
+                case 2: // Gateways
+                    return GatewayDevicesFragment.newInstance();
+
+                case 3: // Shares
+                    return SharesFragment.newInstance();
+
+                case 4: // Settings
                     return SettingsFragment.newInstance();
 
                 default:
@@ -927,20 +948,26 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         @Override
         public int getCount() {
-            // Show 3 pages (for now).
-            return 3;
+            // Show 5 pages (for now).
+            return 5;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
-                case 0:
-                    return getString(R.string.all_devices);
+                case 0: // Dashboard
+                    return getString(R.string.dashboard);
 
-                case 1:
+                case 1: // Groups
                     return getString(R.string.groups);
 
-                case 2:
+                case 2: // Gateways
+                    return getString(R.string.gateways);
+
+                case 3: // Shares
+                    return getString(R.string.shares);
+
+                case 4: // Settings
                     return getString(R.string.settings);
                 default:
                     return null;
