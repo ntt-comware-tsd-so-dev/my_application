@@ -449,10 +449,10 @@
     <string name="guides_videos">Guides &amp; Videos</string>
     <string name="terms_and_condition">Terms &amp; Conditions</string>
     <!--  Links for help page option -->
-    <string name="about_amap_link">https://www.aylanetworks.com/company/ayla</string>
-    <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
-    <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
-    <string name="terms_and_condition_link">https://www.aylanetworks.com/company/ayla</string>
+    <string name="about_amap_link">http://www.aylanetworks.com/company/ayla</string>
+    <string name="get_started_link">http://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
+    <string name="guides_videos_link">http://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
+    <string name="terms_and_condition_link">http://www.aylanetworks.com/company/ayla</string>
 
     <string name="trigger_on_name">On</string>
     <string name="trigger_off_name">Off</string>

@@ -14,4 +14,7 @@
     <!-- Space scrollable at the bottom of the All Devices / Groups views so the user can
     scroll up from the + button without obscuring the last item in a long list -->
     <dimen name="device_list_padding">80dp</dimen>
+
+    <dimen name="card_margin">8dp</dimen>
+
 </resources>
