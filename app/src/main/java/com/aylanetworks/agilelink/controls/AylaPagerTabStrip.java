@@ -1,11 +1,10 @@
 package com.aylanetworks.agilelink.controls;
 /* 
  * AylaPagerTabStrip
- * com.aylanetworks.agilelink.controls
- * Agile_Link_Android
+ * AgileLink Application Framework
  *
  * Created by David N. Junod on 7/17/15.
- * Copyright (c) 2015 Reality Check, Inc. All rights reserved.
+ * Copyright (c) 2015 Ayla Networks. All rights reserved.
  */
 
 import android.content.Context;
