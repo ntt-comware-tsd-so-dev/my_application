@@ -7,17 +7,10 @@ package com.aylanetworks.agilelink.fragments;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
 
 import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -35,21 +28,6 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
     }
 
     public GatewayDevicesFragment() { }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-        ImageButton b = (ImageButton) view.findViewById(R.id.add_button);
-        if (b != null) {
-            b.setVisibility(View.GONE);
-        }
-        return view;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // no menu...
-    }
 
     @Override
     public void updateDeviceList() {
