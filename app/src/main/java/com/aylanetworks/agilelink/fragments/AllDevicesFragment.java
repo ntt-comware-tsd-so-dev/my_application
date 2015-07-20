@@ -230,7 +230,13 @@ public class AllDevicesFragment extends Fragment
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
             Log.i(LOG_TAG, "Device " + device.getProductName() + " changed");
-            _recyclerView.setAdapter(_adapter);
+            for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
+                Device d = _adapter.getItem(i);
+                if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
+                    _adapter.notifyItemChanged(i);
+                    break;
+                }
+            }
         }
     }
 
