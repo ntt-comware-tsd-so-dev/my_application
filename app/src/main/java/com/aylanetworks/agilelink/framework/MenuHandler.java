@@ -52,7 +52,7 @@ public class MenuHandler {
      * @return true if handled, false if not handled
      */
     public static boolean handleMenuItem(MenuItem menuItem) {
-        menuItem.setChecked(true);
+        MainActivity.getInstance().activateMenuItem(menuItem);
         switch ( menuItem.getItemId() ) {
             case R.id.action_all_devices:
                 handleAllDevices();

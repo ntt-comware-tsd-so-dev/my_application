@@ -67,7 +67,7 @@ import com.google.gson.annotations.Expose;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener {
+public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener {
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -460,6 +460,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     private NavigationView _navigationView;
     private TextView _userView;
     private TextView _emailView;
+    private View _sideBarView;
 
     private void initMaterial() {
         Log.d(LOG_TAG, "initMaterial");
@@ -471,6 +472,20 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         //ab.setIcon(R.drawable.ic_launcher);
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setHomeButtonEnabled(true);
+
+        _sideBarView = findViewById(R.id.action_sidebar);
+        if (_sideBarView != null) {
+            findViewById(R.id.action_all_devices).setOnClickListener(this);
+            findViewById(R.id.action_device_groups).setOnClickListener(this);
+            findViewById(R.id.action_device_scenes).setOnClickListener(this);
+            findViewById(R.id.action_gateways).setOnClickListener(this);
+            findViewById(R.id.action_shares).setOnClickListener(this);
+            findViewById(R.id.action_notifications).setOnClickListener(this);
+            findViewById(R.id.action_account).setOnClickListener(this);
+            findViewById(R.id.action_contact_list).setOnClickListener(this);
+            findViewById(R.id.action_help).setOnClickListener(this);
+            findViewById(R.id.action_about).setOnClickListener(this);
+        }
 
         _drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
@@ -516,6 +531,30 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             _userView = (TextView)_navigationView.findViewById(R.id.username);
             _emailView = (TextView)_navigationView.findViewById(R.id.email);
             onDrawerItemClicked(_drawerMenu.getItem(0));
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        Menu menu = _navigationView.getMenu();
+        MenuItem item = menu.findItem(v.getId());
+        if (item != null) {
+            MenuHandler.handleMenuItem(item);
+        }
+    }
+
+    ImageView _sideBarIcon;
+
+    public void activateMenuItem(MenuItem menuItem) {
+        menuItem.setChecked(true);
+        if (_sideBarView != null) {
+            if (_sideBarIcon != null) {
+                _sideBarIcon.clearColorFilter();
+            }
+            _sideBarIcon = (ImageView)findViewById(menuItem.getItemId());
+            if (_sideBarIcon != null) {
+                _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
+            }
         }
     }
 
