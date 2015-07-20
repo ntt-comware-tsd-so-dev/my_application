@@ -120,6 +120,7 @@ public class AddDeviceFragment extends Fragment
 
         // Start polling
         SessionManager.getInstance().setRegistrationMode(false);
+        SessionManager.deviceManager().startPolling();
     }
 
     @Override
