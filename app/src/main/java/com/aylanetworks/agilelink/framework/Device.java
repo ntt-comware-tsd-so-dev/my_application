@@ -535,13 +535,20 @@ public class Device implements Comparable<Device> {
      * overrides this method to return "Switch" when refering to the "outlet1" property used to
      * control the switch.
      *
-     * The default behavior is to return the actual property name.
+     * The default behavior is to return the property's displayName, if present, or the property name.
      *
      * @param propertyName Property name to translate into something presentable to the user
      * @return The friendly name for the property
      */
     public String friendlyNameForPropertyName(String propertyName) {
-        return propertyName;
+        AylaProperty prop = getProperty(propertyName);
+        if ( prop == null ) {
+            return propertyName;
+        }
+        if ( prop.displayName != null ) {
+            return prop.displayName;
+        }
+        return prop.name;
     }
 
     /**
