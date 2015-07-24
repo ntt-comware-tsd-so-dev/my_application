@@ -147,6 +147,14 @@ public class Device implements Comparable<Device> {
     public boolean syncLanProperties() {
         AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.dsn);
         if (aylaDevice != null) {
+            // Let the library know we've handled this property change. Normally the next call
+            // to getProperties will clear the notifyAcknowledge flag, but we are not
+            // calling getProperties, but rather updating the properties directly from the
+            // AylaDeviceManager, who already has them up-to-date.
+            if ( aylaDevice.getLanModule() != null ) {
+                aylaDevice.getLanModule().getSession().setNotifyOutstanding(false);
+            }
+
             // Update the properties on this device to match those of the AylaDeviceManager
             if (aylaDevice.properties != null) {
 
