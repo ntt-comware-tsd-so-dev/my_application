@@ -734,8 +734,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if ( _drawerToggle != null &&
                 !_noDevicesMode &&
                 getSupportFragmentManager().getBackStackEntryCount() == 0 &&
-                !isDrawerOpen() ) {
-            openDrawer();
+                isDrawerOpen() ) {
+            closeDrawer();
             return;
         }
         super.onBackPressed();
