@@ -33,8 +33,12 @@
     <string name="forgot"><u>Forgot Password</u></string>
     <string name="resend_confirmation"><u>Re-send Email Confirmation</u></string>
     <string name="signIn">Sign In</string>
+    <string name="userInformation">User Information</string>
     <string name="emailAddress">Email Address</string>
     <string name="passwordHint">Password</string>
+    <string name="currentPassword">Current Password</string>
+    <string name="newPassword">New Password</string>
+    <string name="newPasswordConfirm">Confirm New Password</string>
     <string name="signingIn">Signing in...</string>
     <string name="signingUp">Signing up...</string>
     <string name="confirmPassword">confirm password</string>
@@ -42,10 +46,14 @@
     <string name="country">Country</string>
     <string name="firstName">First Name</string>
     <string name="phoneNumber">Phone Number</string>
+    <string name="phoneCountryCode">Phone Country Code</string>
     <string name="evbNumber">EVB Number</string>
     <string name="zip">Zip</string>
     <string name="signUp">Sign up</string>
+    <string name="update">Update</string>
+    <string name="change">Change</string>
     <string name="password_required">A password is required</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
     <string name="password_no_match">The password you entered does not match the confirmed password entry</string>
     <string name="registraion_email_subject">Ayla Sign-up Confirmation</string>
     <string name="registration_email_body_html"><![CDATA[

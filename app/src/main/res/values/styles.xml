@@ -32,6 +32,15 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="AgileLinkDestructiveButton" parent="android:style/Widget.Button">
+        <item name="android:background">@color/destructive_bg</item>
+        <item name="android:textColor">@color/destructive_fg</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:fontFamily">@string/font_family</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
     <!-- Style for text views in list items that show the device name -->
     <style name="DeviceListItemTextView" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">center_vertical</item>
