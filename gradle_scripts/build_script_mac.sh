@@ -4,11 +4,13 @@ echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
 : ${MASTER=master}
 : ${AYLA_BUILD_BRANCH=master}
+: ${AYLA_REMOTE=origin}
 echo Building from branch $AYLA_BUILD_BRANCH
 
 cd ..
-git checkout -b $AYLA_BUILD_BRANCH origin/$AYLA_BUILD_BRANCH
-git pull
+git fetch $AYLA_REMOTE
+git branch $AYLA_BUILD_BRANCH $AYLA_REMOTE/$AYLA_BUILD_BRANCH
+git checkout $AYLA_BUILD_BRANCH
 rm -rf libraries
 mkdir libraries
 cd libraries
