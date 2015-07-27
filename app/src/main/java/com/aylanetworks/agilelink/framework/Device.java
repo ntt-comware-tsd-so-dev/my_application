@@ -711,6 +711,13 @@ public class Device implements Comparable<Device> {
 
         // Keep the new list of properties
         getDevice().properties = newProperties;
+
+        // Update AylaDeviceManager's properties too
+        AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(getDeviceDsn());
+        if ( aylaDevice != null ) {
+            aylaDevice.properties = newProperties;
+        }
+
         return hasChanged;
     }
 
@@ -911,8 +918,28 @@ public class Device implements Comparable<Device> {
             if (AylaNetworks.succeeded(msg)) {
                 // Set the value of the property
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
-                _property.datapoint = dp;
-                _property.value = dp.value();
+                Device device = SessionManager.deviceManager().deviceByDSN(_device.get().getDeviceDsn());
+                if ( device == null ) {
+                    Logger.logError(LOG_TAG, "Failed to find device with DSN: " + _device.get().getDeviceDsn());
+                    _listener.setDatapointComplete(false, null);
+                    return;
+                }
+
+                AylaProperty prop = device.getProperty(_property.name);
+                if ( prop != null ) {
+                    prop.datapoint = dp;
+                    prop.value = dp.value();
+                }
+
+                // Update the AylaDeviceManager's property as well
+                AylaDevice aylaDevice = AylaDeviceManager.sharedManager().deviceWithDSN(_device.get().getDeviceDsn());
+                if ( aylaDevice != null ) {
+                    prop = aylaDevice.findProperty(_property.name);
+                    if ( prop != null ) {
+                        prop.datapoint = dp;
+                        prop.value = dp.value();
+                    }
+                }
                 Logger.logDebug("CDP", "Datapoint " + _property.name + " set to " + _property.value);
                 if ( _listener != null ) {
                     _listener.setDatapointComplete(true, dp);
