@@ -11,6 +11,7 @@ cd ..
 git fetch $AYLA_REMOTE
 git branch $AYLA_BUILD_BRANCH $AYLA_REMOTE/$AYLA_BUILD_BRANCH
 git checkout $AYLA_BUILD_BRANCH
+git pull
 rm -rf libraries
 mkdir libraries
 cd libraries
