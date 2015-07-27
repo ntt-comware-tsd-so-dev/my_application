@@ -642,8 +642,12 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                     @Override
                     public void performAction(Object action, Gateway g, Object tag) {
                         ZigbeeGateway gateway = (ZigbeeGateway)g;
-                        AylaSceneZigbee scene = gateway.getSceneByName((String)tag);
-                        gateway.recallScene(scene, this, (SceneAction)action);
+                        if (gateway != null) {
+                            AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
+                            if (scene != null) {
+                                gateway.recallScene(scene, this, (SceneAction) action);
+                            }
+                        }
                     }
 
                     @Override
