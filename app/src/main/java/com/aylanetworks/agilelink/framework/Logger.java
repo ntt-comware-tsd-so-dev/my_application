@@ -167,8 +167,12 @@ public class Logger implements Thread.UncaughtExceptionHandler {
     public static void logMessage(String tag, Message msg, String fmt, Object... args) {
         String detail = String.format(fmt, args);
         String jsonResult = "";
-        if (msg.obj instanceof  String) {
-            jsonResult = (String)msg.obj;
+        if (msg.obj != null) {
+            if (msg.obj instanceof String) {
+                jsonResult = (String) msg.obj;
+            } else {
+                jsonResult = msg.obj.getClass().getSimpleName();
+            }
         }
         if (!TextUtils.isEmpty(jsonResult)) {
             jsonResult = jsonResult.replace("\n", "");
