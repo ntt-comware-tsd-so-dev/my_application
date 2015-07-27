@@ -7,6 +7,8 @@ echo ' checkout git repo'
 echo Building from branch $AYLA_BUILD_BRANCH
 
 cd ..
+git checkout -b $AYLA_BUILD_BRANCH origin/$AYLA_BUILD_BRANCH
+git pull
 rm -rf libraries
 mkdir libraries
 cd libraries
