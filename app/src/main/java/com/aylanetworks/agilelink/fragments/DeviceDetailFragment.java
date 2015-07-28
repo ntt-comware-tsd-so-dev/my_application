@@ -283,6 +283,13 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void onPrepareOptionsMenu(Menu menu) {
         menu.clear();
         MainActivity.getInstance().getMenuInflater().inflate(R.menu.menu_device_details, menu);
+
+        boolean hasFactoryReset = false;
+        if (_device != null) {
+            hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
+        }
+        menu.getItem(1).setVisible(hasFactoryReset);
+
         super.onPrepareOptionsMenu(menu);
     }
 
