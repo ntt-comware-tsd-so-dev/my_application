@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -37,8 +38,12 @@ import java.util.List;
  */
 
 public class AllDevicesFragment extends Fragment
-        implements Device.DeviceStatusListener,
-        DeviceManager.DeviceListListener, SessionManager.SessionListener, View.OnClickListener {
+    implements
+        Device.DeviceStatusListener,
+        DeviceManager.DeviceListListener,
+        SessionManager.SessionListener,
+        View.OnClickListener,
+        DialogInterface.OnCancelListener {
 
     private final static String LOG_TAG = "AllDevicesFragment";
 
@@ -296,7 +301,8 @@ public class AllDevicesFragment extends Fragment
                 }
             } else {
                 // Put the device into LAN mode before pushing the detail fragment
-                MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
+                // Sometime this can take forever... so make it cancelable.
+                MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body), this);
                 Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] enterLANMode");
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
                     @Override
@@ -309,5 +315,10 @@ public class AllDevicesFragment extends Fragment
                 });
             }
         }
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        //MainActivity.getInstance().dismissWaitDialog();
     }
 }
