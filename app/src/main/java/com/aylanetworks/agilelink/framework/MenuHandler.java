@@ -114,32 +114,26 @@ public class MenuHandler {
         return true;
     }
 
-    public static void handleAllDevices() {
-        Fragment frag = AllDevicesFragment.newInstance();
+    static void replaceFragmentToRoot(Fragment frag) {
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+    }
+
+    public static void handleAllDevices() {
+        replaceFragmentToRoot(AllDevicesFragment.newInstance());
     }
 
     public static void handleGateways() {
-        Fragment frag = GatewayDevicesFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(GatewayDevicesFragment.newInstance());
     }
 
     public static void handleDeviceGroups() {
-        Fragment frag = DeviceGroupsFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
     public static void handleDeviceScenes() {
-        Fragment frag = DeviceScenesFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(DeviceScenesFragment.newInstance());
     }
 
     public static void handleAddDevice() {
@@ -167,7 +161,6 @@ public class MenuHandler {
         EditProfileFragment frag = EditProfileFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
-
 
     public static AlertDialog _confirmDeleteDialog;
 

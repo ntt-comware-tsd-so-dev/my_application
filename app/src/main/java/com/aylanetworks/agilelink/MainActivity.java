@@ -59,6 +59,8 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
 
+import java.util.List;
+
 /*
  * MainActivity.java
  * AgileLink Application Framework
@@ -368,6 +370,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
+
+        // force to Production Service
+        //SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
     }
 
     @Override
@@ -534,13 +539,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
     }
 
+    void onSelectMenuItemById(int id) {
+        if (_navigationView != null) {
+            Menu menu = _navigationView.getMenu();
+            MenuItem item = menu.findItem(id);
+            if (item != null) {
+                MenuHandler.handleMenuItem(item);
+            }
+        }
+    }
+
     @Override
     public void onClick(View v) {
-        Menu menu = _navigationView.getMenu();
-        MenuItem item = menu.findItem(v.getId());
-        if (item != null) {
-            MenuHandler.handleMenuItem(item);
-        }
+        onSelectMenuItemById(v.getId());
     }
 
     ImageView _sideBarIcon;
@@ -728,16 +739,54 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         return parameters;
     }
 
+    Fragment getVisibleFragment() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment fragment : fragments) {
+            if (fragment != null && fragment.getUserVisibleHint()) {
+                return fragment;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void onBackPressed() {
+        FragmentManager fm = getSupportFragmentManager();
+        int bsc = fm.getBackStackEntryCount();
+
         // Open the nav drawer on back unless it's already open (or we don't have one)
         if ( _drawerToggle != null &&
                 !_noDevicesMode &&
-                getSupportFragmentManager().getBackStackEntryCount() == 0 &&
                 isDrawerOpen() ) {
             closeDrawer();
+            //Log.e(LOG_TAG, "back: onBackPressed close menu");
             return;
         }
+
+        // Go back to the dashboard
+        if (bsc == 0) {
+            Fragment frag = getVisibleFragment();
+            if (frag != null) {
+                //Log.e(LOG_TAG, "back: onBackPressed frag=" + frag.getClass().getSimpleName());
+                if (!TextUtils.equals(frag.getClass().getSimpleName(), AllDevicesFragment.class.getSimpleName())) {
+                    //Log.e(LOG_TAG, "back: onBackPressed select dashboard");
+                    onSelectMenuItemById(R.id.action_all_devices);
+                    return;
+                }
+            } else {
+                //Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
+            }
+        } else {
+            FragmentManager.BackStackEntry bse = fm.getBackStackEntryAt(bsc - 1);
+            //Log.e(LOG_TAG, "back: onBackPressed id=" + bse.getId() + ", name=" + bse.getName() + ", title=" + bse.getBreadCrumbTitle());
+            Fragment frag = fm.findFragmentById(bse.getId());
+            if (frag != null) {
+                //Log.e(LOG_TAG, "back: onBackPressed frag=" + frag.getClass().getSimpleName());
+            } else {
+                ////Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
+            }
+        }
+        Log.e(LOG_TAG, "back: onBackPressed super");
         super.onBackPressed();
     }
 
