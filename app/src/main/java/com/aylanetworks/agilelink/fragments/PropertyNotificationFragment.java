@@ -261,6 +261,9 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
     @Override
     public boolean isOwner(AylaContact contact) {
+        if ((contact == null) || (_ownerContact == null)) {
+            return false;
+        }
         if (contact.id == _ownerContact.id) {
             return true;
         }

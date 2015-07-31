@@ -558,12 +558,15 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void activateMenuItem(MenuItem menuItem) {
         menuItem.setChecked(true);
         if (_sideBarView != null) {
-            if (_sideBarIcon != null) {
-                _sideBarIcon.clearColorFilter();
-            }
-            _sideBarIcon = (ImageView)findViewById(menuItem.getItemId());
-            if (_sideBarIcon != null) {
-                _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
+            View view = findViewById(menuItem.getItemId());
+            if (view instanceof ImageView) {
+                if (_sideBarIcon != null) {
+                    _sideBarIcon.clearColorFilter();
+                }
+                _sideBarIcon = (ImageView)view;
+                if (_sideBarIcon != null) {
+                    _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
+                }
             }
         }
     }

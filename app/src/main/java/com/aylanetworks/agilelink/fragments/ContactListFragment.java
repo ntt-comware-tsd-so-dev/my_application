@@ -17,7 +17,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaContact;
@@ -74,8 +73,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         _layoutManager = new LinearLayoutManager(getActivity());
         _recyclerView.setLayoutManager(_layoutManager);
 
-        ImageButton b = (ImageButton) view.findViewById(R.id.add_button);
-        b.setOnClickListener(this);
+        view.findViewById(R.id.add_button).setOnClickListener(this);
 
         // Do a deep fetch of the contact list
         MainActivity.getInstance().showWaitDialog(R.string.fetching_contacts_title, R.string.fetching_contacts_body);
@@ -104,7 +102,11 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch ( item.getItemId() ) {
-             case R.id.action_fill_from_contact:
+            case R.id.action_add_contact:
+                onAddClicked();
+                return true;
+
+            case R.id.action_fill_from_contact:
                 // Push the edit contact fragment and set it as the delegate of the contact picker
                 EditContactFragment frag = EditContactFragment.newInstance(null);
                 MainActivity.getInstance().pushFragment(frag);
@@ -115,17 +117,18 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         return false;
     }
 
+    void onAddClicked() {
+        Log.d(LOG_TAG, "Add button clicked");
+        MainActivity.getInstance().pushFragment(EditContactFragment.newInstance(null));
+    }
+
     @Override
     public void onClick(View v) {
-        Log.d(LOG_TAG, "Add button clicked");
-        EditContactFragment frag = EditContactFragment.newInstance(null);
-
-        // We want to handle our own navigation here
-        getFragmentManager().beginTransaction().
-                setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                        R.anim.abc_fade_in, R.anim.abc_fade_out)
-                .add(android.R.id.content, frag)
-                .addToBackStack(null).commit();
+        switch (v.getId()) {
+            case R.id.add_button:
+                onAddClicked();
+                break;
+        }
     }
 
     @Override
@@ -162,6 +165,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
     @Override
     public boolean isOwner(AylaContact contact) {
+        if ((contact == null) || (_ownerContact == null)) {
+            return false;
+        }
         if (contact.id == _ownerContact.id) {
             return true;
         }

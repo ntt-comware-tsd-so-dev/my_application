@@ -302,7 +302,8 @@
     <string name="confirm_delete_contact_body" formatted="false">Are you sure you want to remove \"%s\" from your contact list?</string>
     <string name="deleting_contact_title">Removing Contact</string>
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
-    <string name="fill_from_contact">Add new from address book</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="fill_from_contact">Import from Address Book</string>
     <string name="choose_ap_details" formatted="false">Enter the password for the \"%s\" access point</string>
     <string name="shares">Shares</string>
     <string name="devices_i_share">Devices I am sharing with others</string>

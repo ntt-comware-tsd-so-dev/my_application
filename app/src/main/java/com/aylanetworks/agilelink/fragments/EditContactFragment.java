@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -16,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaContact;
@@ -24,6 +24,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.controls.ComboBox;
 import com.aylanetworks.agilelink.framework.ContactManager;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -32,8 +33,11 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.provider.ContactsContract.*;
-import static android.provider.ContactsContract.CommonDataKinds.*;
+import static android.provider.ContactsContract.CommonDataKinds.Email;
+import static android.provider.ContactsContract.CommonDataKinds.Phone;
+import static android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
+import static android.provider.ContactsContract.Data;
 
 /**
  * Created by Brian King on 3/19/15.
@@ -257,7 +261,19 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         if (cursor == null) {
             // Cancel. Pop ourselves off the stack if we were launched from elsewhere
             if ( !_dontDismiss) {
-                getFragmentManager().popBackStack();
+                try {
+                    // have to do this to handle cancel from onActivityResult
+                    Runnable r = new Runnable() {
+                        @Override
+                        public void run() {
+                            getFragmentManager().popBackStack();
+                        }
+                    };
+                    Handler h = new Handler();
+                    h.post(r);
+                } catch (Exception ex) {
+                    Logger.logError(LOG_TAG, ex);
+                }
             }
             return;
         }
