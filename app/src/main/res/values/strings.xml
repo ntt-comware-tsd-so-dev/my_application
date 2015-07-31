@@ -332,6 +332,7 @@
     <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
     <string name="lan_login_message">LAN login. Application functionality is limited.</string>
     <string name="share_read_only_message">Allow this user to:</string>
+    <string name="share_control_only_message">Allow this user to control your device</string>
     <string name="share_read_only_button">View</string>
     <string name="share_read_write_button">Control</string>
     <string name="share_instructions">Enter the email address of the Ayla account holder you wish to share with</string>
