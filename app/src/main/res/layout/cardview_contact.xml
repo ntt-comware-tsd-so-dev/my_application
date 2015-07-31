@@ -34,6 +34,15 @@
             />
 
         <ImageButton
+            android:id="@+id/button_email"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="right|center_vertical"
+            android:scaleType="fitXY"
+            android:background="@android:color/transparent"
+            android:src="@drawable/email"/>
+
+        <ImageButton
             android:id="@+id/button_sms"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -42,15 +51,6 @@
             android:background="@android:color/transparent"
             android:src="@drawable/sms"
             />
-
-        <ImageButton
-            android:id="@+id/button_email"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="right|center_vertical"
-            android:scaleType="fitXY"
-            android:background="@android:color/transparent"
-            android:src="@drawable/email"/>
 
     </LinearLayout>
 </android.support.v7.widget.CardView>

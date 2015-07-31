@@ -372,7 +372,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         ((AgileLinkApplication)getApplication()).addListener(this);
 
         // force to Production Service
-        SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
+        //SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
     }
 
     @Override
