@@ -485,7 +485,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             findViewById(R.id.action_device_scenes).setOnClickListener(this);
             findViewById(R.id.action_gateways).setOnClickListener(this);
             findViewById(R.id.action_shares).setOnClickListener(this);
-            findViewById(R.id.action_notifications).setOnClickListener(this);
             findViewById(R.id.action_account).setOnClickListener(this);
             findViewById(R.id.action_contact_list).setOnClickListener(this);
             findViewById(R.id.action_help).setOnClickListener(this);
