@@ -115,6 +115,7 @@ public class MenuHandler {
     }
 
     static void replaceFragmentToRoot(Fragment frag) {
+        Logger.logInfo(LOG_TAG, "replaceFragmentToRoot " + frag.getClass().getSimpleName());
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
@@ -137,29 +138,23 @@ public class MenuHandler {
     }
 
     public static void handleAddDevice() {
-        // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
     }
 
     public static void handleGatewayWelcome() {
-        WelcomeFragment frag = WelcomeFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(WelcomeFragment.newInstance());
     }
 
     public static void handleContacts() {
-        ContactListFragment frag = ContactListFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(ContactListFragment.newInstance());
     }
 
     public static void handleNotifications() {
-        DeviceNotificationsFragment frag = new DeviceNotificationsFragment();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(DeviceNotificationsFragment.newInstance());
     }
 
     public static void updateProfile() {
-        EditProfileFragment frag = EditProfileFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
     }
 
     public static AlertDialog _confirmDeleteDialog;

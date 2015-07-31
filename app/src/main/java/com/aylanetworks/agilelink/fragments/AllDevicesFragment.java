@@ -24,6 +24,7 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
@@ -128,11 +129,8 @@ public class AllDevicesFragment extends Fragment
     }
 
     private void addDevice() {
-        Log.i(LOG_TAG, "Add Device called");
-
         // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MenuHandler.handleAddDevice();
     }
 
     @Override

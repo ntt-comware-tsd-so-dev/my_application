@@ -7,9 +7,9 @@ package com.aylanetworks.agilelink.fragments;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-import android.util.Log;
 import android.view.View;
 
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
@@ -37,20 +37,18 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
         }
 
         if ( deviceList != null ) {
-            if ( deviceList.isEmpty() ) {
-                // Enter no devices mode
-                Log.e(LOG_TAG, "Received an empty device list!");
-                Thread.dumpStack();
-                MainActivity.getInstance().setNoDevicesMode(true);
-                return;
-            }
-
             MainActivity.getInstance().setNoDevicesMode(false);
             if ( _emptyView != null ) {
-                _emptyView.setVisibility(View.GONE);
-                _recyclerView.setVisibility(View.VISIBLE);
-                _adapter = new DeviceListAdapter(deviceList, this);
-                _recyclerView.setAdapter(_adapter);
+                if (deviceList.isEmpty()) {
+                    _emptyView.setVisibility(View.VISIBLE);
+                    _emptyView.setText(R.string.no_gateways);
+                    _recyclerView.setVisibility(View.GONE);
+                } else {
+                    _emptyView.setVisibility(View.GONE);
+                    _recyclerView.setVisibility(View.VISIBLE);
+                    _adapter = new DeviceListAdapter(deviceList, this);
+                    _recyclerView.setAdapter(_adapter);
+                }
             }
         }
     }

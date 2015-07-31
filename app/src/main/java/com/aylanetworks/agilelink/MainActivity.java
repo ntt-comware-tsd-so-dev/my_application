@@ -922,6 +922,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      * @param frag The fragment to be pushed
      */
     public void pushFragment(Fragment frag) {
+        Logger.logInfo(LOG_TAG, "pushFragment " + frag.getClass().getSimpleName());
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out, R.anim.abc_fade_in, R.anim.abc_fade_out);
         if ( getUIConfig()._navStyle == UIConfig.NavStyle.Pager ) {
