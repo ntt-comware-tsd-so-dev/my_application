@@ -76,6 +76,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private ListView _listView;
     private PropertyListAdapter _adapter;
     private TextView _titleView;
+    private TextView _dsnView;
     private ImageView _imageView;
     private Button _scheduleButton;
     private Button _notificationsButton;
@@ -115,6 +116,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         _listView = (ListView)view.findViewById(R.id.listView);
         _titleView = (TextView)view.findViewById(R.id.device_name);
+        _dsnView = (TextView)view.findViewById(R.id.device_dsn);
         _imageView = (ImageView)view.findViewById(R.id.device_image);
 
         _notificationsButton = (Button)view.findViewById(R.id.notifications_button);
@@ -128,6 +130,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         if ( !_device.getDevice().amOwner() ) {
             // This device was shared with us
             sharingButton.setVisibility(View.GONE);
+            _dsnView.setVisibility(View.GONE);
         } else {
             // This device is ours. Allow the name to be changed.
             _titleView.setTextColor(getResources().getColor(R.color.link));
@@ -274,6 +277,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             // Set the device title and image
             _titleView.setText(_device.toString());
+            _dsnView.setText(_device.getDeviceDsn());
             _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
             _listView.setAdapter(_adapter);
         }
@@ -283,6 +287,13 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void onPrepareOptionsMenu(Menu menu) {
         menu.clear();
         MainActivity.getInstance().getMenuInflater().inflate(R.menu.menu_device_details, menu);
+
+        boolean hasFactoryReset = false;
+        if (_device != null) {
+            hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
+        }
+        menu.getItem(1).setVisible(hasFactoryReset);
+
         super.onPrepareOptionsMenu(menu);
     }
 

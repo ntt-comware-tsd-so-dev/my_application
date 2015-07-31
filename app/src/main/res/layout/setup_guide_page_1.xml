@@ -29,10 +29,11 @@
         android:layout_height="fill_parent"
         android:layout_marginBottom="8dp">
         <Button
+            android:id="@+id/btn_connected"
+            style="@style/AgileLinkButton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/connected_cables"
-            android:id="@+id/btn_connected"
             android:layout_gravity="bottom"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"

@@ -344,6 +344,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 selected.add(d);
             }
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.remote_pair_to_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
@@ -389,6 +390,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                     apNames[i] = list.get(i).getProductName();
                 }
                 new AlertDialog.Builder(getActivity())
+                        .setIcon(R.drawable.ic_launcher)
                         .setTitle(R.string.remote_pair_to_device)
                         .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                             @Override
@@ -428,6 +430,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 selected.add(d);
             }
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.remote_unpair_from_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
@@ -455,6 +458,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             // Device is or can be paired to a remote switch
 
             AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
+            ad.setIcon(R.drawable.ic_launcher);
             ad.setTitle(R.string.remote_unpair_title);
             ad.setMessage(R.string.remote_unpair_body);
             ad.setNegativeButton(android.R.string.no, null);

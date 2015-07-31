@@ -144,6 +144,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     private void onLongClick(final int index) {
         AylaPropertyTrigger trigger = _propertyTriggers.get(index);
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.delete_notification_title)
                 .setMessage(getActivity().getResources().getString(R.string.delete_notification_message, trigger.deviceNickname))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

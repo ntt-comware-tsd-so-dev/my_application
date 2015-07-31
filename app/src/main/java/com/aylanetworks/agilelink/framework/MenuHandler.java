@@ -25,6 +25,7 @@ import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,6 +52,7 @@ public class MenuHandler {
      * @return true if handled, false if not handled
      */
     public static boolean handleMenuItem(MenuItem menuItem) {
+        MainActivity.getInstance().activateMenuItem(menuItem);
         switch ( menuItem.getItemId() ) {
             case R.id.action_all_devices:
                 handleAllDevices();
@@ -62,6 +64,10 @@ public class MenuHandler {
 
             case R.id.action_device_scenes:
                 handleDeviceScenes();
+                break;
+
+            case R.id.action_gateways:
+                handleGateways();
                 break;
 
             case R.id.action_add_device:
@@ -76,6 +82,7 @@ public class MenuHandler {
                 handleNotifications();
                 break;
 
+            case R.id.action_account:
             case R.id.action_edit_profile:
                 updateProfile();
                 break;
@@ -107,59 +114,55 @@ public class MenuHandler {
         return true;
     }
 
-    public static void handleAllDevices() {
-        Fragment frag = AllDevicesFragment.newInstance();
+    static void replaceFragmentToRoot(Fragment frag) {
+        Logger.logInfo(LOG_TAG, "replaceFragmentToRoot " + frag.getClass().getSimpleName());
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+    }
+
+    public static void handleAllDevices() {
+        replaceFragmentToRoot(AllDevicesFragment.newInstance());
+    }
+
+    public static void handleGateways() {
+        replaceFragmentToRoot(GatewayDevicesFragment.newInstance());
     }
 
     public static void handleDeviceGroups() {
-        Fragment frag = DeviceGroupsFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
     public static void handleDeviceScenes() {
-        Fragment frag = DeviceScenesFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(DeviceScenesFragment.newInstance());
     }
 
     public static void handleAddDevice() {
-        // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
     }
 
     public static void handleGatewayWelcome() {
-        WelcomeFragment frag = WelcomeFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(WelcomeFragment.newInstance());
     }
 
     public static void handleContacts() {
-        ContactListFragment frag = ContactListFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(ContactListFragment.newInstance());
     }
 
     public static void handleNotifications() {
-        DeviceNotificationsFragment frag = new DeviceNotificationsFragment();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(DeviceNotificationsFragment.newInstance());
     }
 
     public static void updateProfile() {
-        EditProfileFragment frag = EditProfileFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
     }
-
 
     public static AlertDialog _confirmDeleteDialog;
 
     public static void deleteAccount() {
         // First confirm
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
                 .setMessage(R.string.confirm_delete_account_message)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -220,6 +223,7 @@ public class MenuHandler {
     public static void signOut() {
         // Confirm
         new AlertDialog.Builder(MainActivity.getInstance())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_sign_out)
                 .setMessage(R.string.confirm_sign_out_message)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

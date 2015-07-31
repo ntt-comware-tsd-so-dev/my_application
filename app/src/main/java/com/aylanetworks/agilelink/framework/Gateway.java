@@ -4,8 +4,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -17,7 +15,6 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaRestService;
 import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
 import java.lang.ref.WeakReference;
@@ -226,24 +223,6 @@ public class Gateway extends Device {
     @Override
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.ic_generic_gateway_red);
-    }
-
-    @Override
-    public void bindViewHolder(RecyclerView.ViewHolder holder) {
-        super.bindViewHolder(holder);
-
-        final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        try {
-            CardView cardView = (CardView) holder.itemView;
-            cardView.setCardBackgroundColor(MainActivity.getInstance().getResources().getColor(R.color.card_background_gateway));
-
-        } catch (ClassCastException e) {
-            // This is not a cardview. Just set the background color of the view.
-            holder.itemView.setBackgroundColor(MainActivity.getInstance().getResources().getColor(R.color.card_background_gateway));
-        }
-        if (h._deviceStatusTextView != null) {
-            h._deviceStatusTextView.setTextColor(MainActivity.getInstance().getResources().getColor(R.color.card_gateway_text));
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

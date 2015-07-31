@@ -27,10 +27,11 @@
         android:gravity="center_horizontal">
 
         <Button
+            android:id="@+id/setup_btn"
+            style="@style/AgileLinkButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/setup_guide"
-            android:id="@+id/setup_btn"
             android:layout_marginTop="40dp"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"

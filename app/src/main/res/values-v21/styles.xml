@@ -3,5 +3,9 @@
     <style name="AppTheme" parent="AppTheme.Base">
     </style>
 
+    <style name="AppMaterialTheme" parent="AppMaterialTheme.Base">
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
 
 </resources>

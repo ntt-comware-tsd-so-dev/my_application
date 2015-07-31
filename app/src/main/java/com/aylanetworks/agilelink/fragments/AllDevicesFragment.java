@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -18,12 +19,12 @@ import android.widget.TextView;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
@@ -38,8 +39,12 @@ import java.util.List;
  */
 
 public class AllDevicesFragment extends Fragment
-        implements Device.DeviceStatusListener,
-        DeviceManager.DeviceListListener, SessionManager.SessionListener, View.OnClickListener {
+    implements
+        Device.DeviceStatusListener,
+        DeviceManager.DeviceListListener,
+        SessionManager.SessionListener,
+        View.OnClickListener,
+        DialogInterface.OnCancelListener {
 
     private final static String LOG_TAG = "AllDevicesFragment";
 
@@ -65,29 +70,6 @@ public class AllDevicesFragment extends Fragment
     public AllDevicesFragment() {
     }
 
-    private void addDevice() {
-        Log.i(LOG_TAG, "Add Device called");
-
-        // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_all_devices, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_add_device) {
-            addDevice();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,18 +84,8 @@ public class AllDevicesFragment extends Fragment
         }
     }
 
-    // This method is called when the fragment is paged in to view
     @Override
-    public void setMenuVisibility(boolean menuVisible) {
-        super.setMenuVisibility(menuVisible);
-        if ( menuVisible ) {
-            updateDeviceList();
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
         _emptyView = (TextView) view.findViewById(R.id.empty);
 
@@ -156,10 +128,47 @@ public class AllDevicesFragment extends Fragment
         return view;
     }
 
+    private void addDevice() {
+        // Bring up the Add Device UI
+        MenuHandler.handleAddDevice();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_all_devices, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_add_device) {
+            addDevice();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // This method is called when the fragment is paged in to view
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if ( menuVisible ) {
+            updateDeviceList();
+        }
+    }
+
     public void updateDeviceList() {
         List<Device> deviceList = null;
         if ( SessionManager.deviceManager() != null ) {
-            deviceList = SessionManager.deviceManager().deviceList();
+            List<Device> all = SessionManager.deviceManager().deviceList();
+            if (all != null) {
+                deviceList = new ArrayList<>();
+                for (Device d : all) {
+                    if (!d.isGateway()) {
+                        deviceList.add(d);
+                    }
+                }
+            }
         }
 
         if ( deviceList != null ) {
@@ -224,7 +233,13 @@ public class AllDevicesFragment extends Fragment
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
             Log.i(LOG_TAG, "Device " + device.getProductName() + " changed");
-            _recyclerView.setAdapter(_adapter);
+            for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
+                Device d = _adapter.getItem(i);
+                if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
+                    _adapter.notifyItemChanged(i);
+                    break;
+                }
+            }
         }
     }
 
@@ -284,7 +299,8 @@ public class AllDevicesFragment extends Fragment
                 }
             } else {
                 // Put the device into LAN mode before pushing the detail fragment
-                MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
+                // Sometime this can take forever... so make it cancelable.
+                MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body), this);
                 Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] enterLANMode");
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
                     @Override
@@ -297,5 +313,10 @@ public class AllDevicesFragment extends Fragment
                 });
             }
         }
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        //MainActivity.getInstance().dismissWaitDialog();
     }
 }

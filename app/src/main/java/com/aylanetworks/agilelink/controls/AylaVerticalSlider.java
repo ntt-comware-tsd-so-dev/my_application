@@ -15,7 +15,7 @@ import android.widget.SeekBar;
 
 public class AylaVerticalSlider extends SeekBar {
 
-    private static final String LOG_TAG = AylaVerticalSlider.class.getSimpleName();
+    private static final String LOG_TAG = "AylaVerticalSlider";
 
     private static final int SCROLL_THRESHOLD = 40;
 
