@@ -30,7 +30,7 @@
             android:layout_gravity="right|center_vertical"
             android:scaleType="fitXY"
             android:background="@android:color/transparent"
-            android:src="@drawable/push"
+            android:src="@drawable/ic_push_icon"
             />
 
         <ImageButton

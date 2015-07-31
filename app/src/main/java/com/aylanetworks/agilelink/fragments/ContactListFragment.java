@@ -159,8 +159,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
     @Override
     public void contactTapped(AylaContact contact) {
         Log.d(LOG_TAG, "Editing contact: " + contact);
-        EditContactFragment frag = EditContactFragment.newInstance(contact);
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(EditContactFragment.newInstance(contact));
     }
 
     @Override

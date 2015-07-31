@@ -53,6 +53,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     private EditText _streetAddress;
     private EditText _zipCode;
     private Button _button;
+    private Button _buttonDelete;
 
     private final static String LOG_TAG = "EditContactFragment";
     private final static String ARG_CONTACT_ID = "contact_id";
@@ -114,11 +115,14 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         _streetAddress = (EditText) view.findViewById(R.id.street_address);
         _zipCode = (EditText) view.findViewById(R.id.zip_code);
         _button = (Button) view.findViewById(R.id.save_contact);
+        _buttonDelete = (Button) view.findViewById(R.id.delete_contact);
 
         _firstName.addTextChangedListener(this);
         _lastName.addTextChangedListener(this);
 
         _button.setOnClickListener(this);
+        _buttonDelete.setOnClickListener(this);
+        _buttonDelete.setVisibility((_aylaContact == null)? View.GONE : View.VISIBLE);
 
         setupViews();
 
@@ -172,8 +176,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         return true;
     }
 
-    @Override
-    public void onClick(View v) {
+    void onSaveContactClicked() {
         if (!validateFields()) {
             return;
         }
@@ -221,6 +224,42 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             SessionManager.getInstance().getContactManager().addContact(_aylaContact, listener);
         } else {
             SessionManager.getInstance().getContactManager().updateContact(_aylaContact, listener);
+        }
+    }
+
+    void onDeleteContactClicked() {
+        MainActivity.getInstance().showWaitDialog(R.string.deleting_contact_title, R.string.deleting_contact_body);
+        SessionManager.getInstance().getContactManager().deleteContact(_aylaContact, new ContactManager.ContactManagerListener() {
+            @Override
+            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if ( succeeded ) {
+                    Toast.makeText(getActivity(), R.string.contact_deleted, Toast.LENGTH_LONG).show();
+                    getFragmentManager().popBackStack();
+                } else {
+                    String message;
+                    if ( lastMessage.obj != null ) {
+                        message = (String)lastMessage.obj;
+                    } else {
+                        message = MainActivity.getInstance().getString(R.string.unknown_error);
+                    }
+                    Toast.makeText(MainActivity.getInstance(), (String)message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId()) {
+            case R.id.save_contact:
+                onSaveContactClicked();
+                break;
+
+            case R.id.delete_contact:
+                onDeleteContactClicked();
+                break;
         }
     }
 

@@ -290,10 +290,12 @@
     <string name="country_code">Country Code</string>
     <string name="display_name">Display Name</string>
     <string name="save_contact">Save Contact</string>
+    <string name="delete_contact">Delete Contact</string>
     <string name="street_address">Street Address</string>
     <string name="create_contact">Create Contact</string>
     <string name="update_contact">Update Contact</string>
     <string name="contact_email_phone_required">A phone number or email address is required</string>
+    <string name="contact_deleted">The contact was deleted</string>
     <string name="contact_updated">The contact information was saved</string>
     <string name="contact_update_failed">An unknown error occurred while trying to update the information for this contact. Please try again later.</string>
     <string name="updating_contact_title">Updating Contact</string>
