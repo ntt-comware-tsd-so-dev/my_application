@@ -439,7 +439,7 @@ public class AddDeviceFragment extends Fragment
         */
 
         if (!moreComing) {
-            MenuHandler.handleAllDevices();
+            MainActivity.getInstance().onSelectMenuItemById(R.id.action_all_devices);
         }
     }
 

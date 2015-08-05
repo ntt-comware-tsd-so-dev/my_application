@@ -538,13 +538,15 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
     }
 
-    void onSelectMenuItemById(int id) {
+    public void onSelectMenuItemById(int id) {
         if (_navigationView != null) {
             Menu menu = _navigationView.getMenu();
             MenuItem item = menu.findItem(id);
             if (item != null) {
                 MenuHandler.handleMenuItem(item);
             }
+        } else {
+            MenuHandler.handleMenuId(id);
         }
     }
 
