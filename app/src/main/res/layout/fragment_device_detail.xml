@@ -13,7 +13,7 @@
             android:id="@+id/top_layout_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
+            android:layout_margin="8dp"
             android:orientation="horizontal">
 
             <ImageView
@@ -28,7 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"
-                android:layout_margin="10dp"
+                android:layout_margin="8dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -37,14 +37,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
-                    android:layout_margin="10dp"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:text="Testing 123"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textStyle="bold"/>
 
+                <TextView
+                    android:id="@+id/device_dsn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center"
+                    android:text="Testing 123"
+                    android:textAppearance="?android:attr/textAppearanceSmall"/>
+
                 <Button
                     android:id="@+id/schedule_button"
+                    style="@style/AgileLinkButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
@@ -54,6 +64,7 @@
 
                 <Button
                     android:id="@+id/remote_button"
+                    style="@style/AgileLinkButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
@@ -63,6 +74,7 @@
 
                 <Button
                     android:id="@+id/trigger_button"
+                    style="@style/AgileLinkButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="4dp"
@@ -116,6 +128,7 @@
 
             <Button
                 android:id="@+id/notifications_button"
+                style="@style/AgileLinkButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"

@@ -16,7 +16,6 @@ import android.widget.TextView;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.Schedule;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 /*
@@ -41,7 +40,7 @@ public class ScheduleContainerFragment extends Fragment {
     public static ScheduleContainerFragment newInstance(Device device) {
         ScheduleContainerFragment frag = new ScheduleContainerFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
+        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
         frag.setArguments(args);
         return frag;
     }

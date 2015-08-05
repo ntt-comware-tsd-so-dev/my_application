@@ -32,6 +32,7 @@ import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -51,7 +52,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     private static final String ARG_DSN = "dsn";
 
     Device _device;
-    Gateway _gateway;
+    ZigbeeGateway _gateway;
     ListView _listView;
     SimpleDeviceListAdapter _adapter;
     TextView _titleView;
@@ -77,7 +78,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             TextView tv = (TextView)v.findViewById(android.R.id.text1);
 
             Device device = getItem(position);
-            tv.setText(device.getDevice().productName);
+            tv.setText(device.getProductName());
             tv.setTextAppearance(tv.getContext(), android.R.style.TextAppearance_Medium);
             tv.setTypeface(null, Typeface.BOLD);
             return v;
@@ -93,7 +94,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     public static RemoteFragment newInstance(Device device) {
         RemoteFragment frag = new RemoteFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDevice().dsn);
+        args.putString(ARG_DSN, device.getDeviceDsn());
         frag.setArguments(args);
 
         return frag;
@@ -121,7 +122,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
 
         } else {
-            _gateway = Gateway.getGatewayForDeviceNode(_device);
+            _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(_device);
 
             // group/binding error message area
             _errorContainer = view.findViewById(R.id.error_container);
@@ -153,9 +154,9 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                     // we find.
                     ZigbeeWirelessSwitch remote = (ZigbeeWirelessSwitch) remotes.get(0);
                     if (remote.isPairableDevice(_device)) {
-                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with the remote.", _device.getDevice().dsn, _device.getClass().getSimpleName());
+                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with the remote.", _device.getDeviceDsn(), _device.getClass().getSimpleName());
                     } else {
-                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with the remote.", _device.getDevice().dsn, _device.getClass().getSimpleName());
+                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with the remote.", _device.getDeviceDsn(), _device.getClass().getSimpleName());
                     }
                 } else {
                     Logger.logInfo(LOG_TAG, "rm: we don't have any remotes.");
@@ -240,8 +241,8 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
                 if (remote.isDevicePaired(_device)) {
                     Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is paired with remote [%s:%s]",
-                            _device.getDevice().dsn, _device.getClass().getSimpleName(),
-                            device.getDevice().dsn, device.getClass().getSimpleName());
+                            _device.getDeviceDsn(), _device.getClass().getSimpleName(),
+                            device.getDeviceDsn(), device.getClass().getSimpleName());
                     devices.add(device);
                     enableAdd = false;
                     enableRem = true;
@@ -338,17 +339,18 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             for ( int i = 0; i < list.size(); i++ ) {
                 isSelectedArray[i] = true;
                 Device d = list.get(i);
-                Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
-                apNames[i] = d.getDevice().productName;
+                Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
+                apNames[i] = d.getProductName();
                 selected.add(d);
             }
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.remote_pair_to_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                             Device d = list.get(which);
-                            Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
+                            Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
                             if (isChecked) {
                                 selected.add(d);
                             } else {
@@ -375,8 +377,8 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
                 if (remote.isPairableDevice(_device)) {
                     Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
-                            _device.getDevice().dsn, _device.getClass().getSimpleName(),
-                            device.getDevice().dsn, device.getClass().getSimpleName());
+                            _device.getDeviceDsn(), _device.getClass().getSimpleName(),
+                            device.getDeviceDsn(), device.getClass().getSimpleName());
                     list.add(device);
                 }
             }
@@ -385,9 +387,10 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 // show single selection dialog with the available remotes to add to
                 String apNames[] = new String[list.size()];
                 for (int i = 0; i < list.size(); i++) {
-                    apNames[i] = list.get(i).getDevice().productName;
+                    apNames[i] = list.get(i).getProductName();
                 }
                 new AlertDialog.Builder(getActivity())
+                        .setIcon(R.drawable.ic_launcher)
                         .setTitle(R.string.remote_pair_to_device)
                         .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                             @Override
@@ -422,17 +425,18 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             for ( int i = 0; i < list.size(); i++ ) {
                 isSelectedArray[i] = true;
                 Device d = list.get(i);
-                Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
-                apNames[i] = d.getDevice().productName;
+                Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
+                apNames[i] = d.getProductName();
                 selected.add(d);
             }
             new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.remote_unpair_from_devices)
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                             Device d = list.get(which);
-                            Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
+                            Logger.logVerbose(LOG_TAG, "rm: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
                             if (isChecked) {
                                 selected.add(d);
                             } else {
@@ -454,6 +458,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             // Device is or can be paired to a remote switch
 
             AlertDialog.Builder ad = new AlertDialog.Builder(getActivity());
+            ad.setIcon(R.drawable.ic_launcher);
             ad.setTitle(R.string.remote_unpair_title);
             ad.setMessage(R.string.remote_unpair_body);
             ad.setNegativeButton(android.R.string.no, null);
@@ -466,8 +471,8 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                         RemoteSwitchDevice remote = (RemoteSwitchDevice)device;
                         if (remote.isDevicePaired(_device)) {
                             Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is paired with remote [%s:%s]",
-                                    _device.getDevice().dsn, _device.getClass().getSimpleName(),
-                                    device.getDevice().dsn, device.getClass().getSimpleName());
+                                    _device.getDeviceDsn(), _device.getClass().getSimpleName(),
+                                    device.getDeviceDsn(), device.getClass().getSimpleName());
                             unpairDevice(remote, _device);
                         }
                     }

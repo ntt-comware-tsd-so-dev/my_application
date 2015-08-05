@@ -29,6 +29,7 @@ import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -47,7 +48,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
 
     private static final String ARG_DSN = "dsn";
 
-    Gateway _gateway;
+    ZigbeeGateway _gateway;
     ZigbeeTriggerDevice _device;
 
     AylaGroupZigbee _openTurnOnGroup;
@@ -78,7 +79,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
     public static TriggerFragment newInstance(Device device) {
         TriggerFragment frag = new TriggerFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDevice().dsn);
+        args.putString(ARG_DSN, device.getDeviceDsn());
         frag.setArguments(args);
 
         return frag;
@@ -105,7 +106,7 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             getFragmentManager().popBackStack();
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
         } else {
-            _gateway = Gateway.getGatewayForDeviceNode(_device);
+            _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(_device);
 
             // group/binding error message area
             _errorContainer = view.findViewById(R.id.error_container);
@@ -235,11 +236,11 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
             List<Device> onDevs = _gateway.getGroupManager().getDevices(turnOn);
             List<Device> ofDevs = _gateway.getGroupManager().getDevices(turnOff);
             for (Device device : onDevs) {
-                values.add("Turn on " + device.getDevice().getProductName());
+                values.add("Turn on " + device.getProductName());
                 enableRemOn = true;
             }
             for (Device device : ofDevs) {
-                values.add("Turn off " + device.getDevice().getProductName());
+                values.add("Turn off " + device.getProductName());
                 enableRemOff = true;
             }
             _adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, values);
@@ -339,17 +340,18 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         for ( int i = 0; i < list.size(); i++ ) {
             isSelectedArray[i] = true;
             Device d = list.get(i);
-            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
-            apNames[i] = d.getDevice().productName;
+            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
+            apNames[i] = d.getProductName();
             selected.add(d);
         }
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(turnOn ? R.string.trigger_devices_on_title : R.string.trigger_devices_off_title)
                 .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                         Device d = list.get(which);
-                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
+                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
                         if (isChecked) {
                             selected.add(d);
                         } else {
@@ -385,17 +387,18 @@ public class TriggerFragment extends Fragment implements View.OnClickListener, D
         for ( int i = 0; i < list.size(); i++ ) {
             isSelectedArray[i] = true;
             Device d = list.get(i);
-            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
-            apNames[i] = d.getDevice().productName;
+            Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
+            apNames[i] = d.getProductName();
             selected.add(d);
         }
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.trigger_devices_remove_title)
                 .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                         Device d = list.get(which);
-                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDevice().dsn, d.getDevice().productName);
+                        Logger.logVerbose(LOG_TAG, "tf: device [%s:%s]", d.getDeviceDsn(), d.getProductName());
                         if (isChecked) {
                             selected.add(d);
                         } else {

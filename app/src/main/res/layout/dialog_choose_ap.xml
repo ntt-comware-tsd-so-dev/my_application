@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              style="@style/FullHeightDialog"
-              android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    style="@style/FullHeightDialog"
+    >
 
     <TextView
         android:id="@+id/textView"
@@ -21,27 +22,42 @@
         android:listSelector="@color/list_bg_selected"
         android:layout_weight="1"/>
 
-    <TextView
-        android:id="@+id/choose_ap_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:layout_margin="5dp"
-        android:text="@string/enter_wifi_password"/>
-
-    <EditText
+    <LinearLayout
+        android:id="@+id/password_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:id="@+id/passwordEditText"
+        android:layout_margin="16dp"
         android:layout_weight="0"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
-        android:padding="5dp"
-        android:hint="@string/wifi_password"
-        android:layout_gravity="center_horizontal"/>
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/choose_ap_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="@string/enter_wifi_password"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/password_text_input_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:hint="@string/wifi_password"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                />
+        </android.support.design.widget.TextInputLayout>
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/wifi_show_password"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/wifi_show_password" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -50,6 +66,7 @@
 
         <Button
             android:id="@+id/button_cancel"
+            style="@style/AgileLinkButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
@@ -58,6 +75,7 @@
 
         <Button
             android:id="@+id/button_connect"
+            style="@style/AgileLinkButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"

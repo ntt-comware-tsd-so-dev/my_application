@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/app_theme_window_background"
+    android:orientation="vertical"
+    android:clickable="true">
+    <TextView
+        android:id="@+id/page_header"
+        style="@style/PageHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_guide"/>
+    <ImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:src="@drawable/gatewaydiagram"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="8dp" />
+    <TextView android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_guide_text_1"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="8dp" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginBottom="8dp">
+        <Button
+            android:id="@+id/btn_connected"
+            style="@style/AgileLinkButton"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/connected_cables"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+    </LinearLayout>
+</LinearLayout>

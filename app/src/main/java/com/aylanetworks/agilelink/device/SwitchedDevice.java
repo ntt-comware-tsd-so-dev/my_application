@@ -122,13 +122,13 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         super.bindViewHolder(holder);
 
-        Resources res = MainActivity.getInstance().getResources();
-
-        SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
-        Drawable buttonDrawable = getSwitchedDrawable(res);
-
-        h._switchButton.setImageDrawable(buttonDrawable);
-        h._switchButton.setOnClickListener(this);
+        if (holder instanceof SwitchedDeviceViewHolder) {
+            Resources res = MainActivity.getInstance().getResources();
+            Drawable buttonDrawable = getSwitchedDrawable(res);
+            SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
+            h._switchButton.setImageDrawable(buttonDrawable);
+            h._switchButton.setOnClickListener(this);
+        }
     }
 
 

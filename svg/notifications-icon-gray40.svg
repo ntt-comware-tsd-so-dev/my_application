@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100"  xml:space="preserve">
+    <path id="bezier" stroke="none" fill="#808080" d="M 41,8 L 41,8 C 50.94,8 59,17.63 59,29.5 L 59,29.5 C 59,41.37 50.94,51 41,51 L 41,51 C 31.06,51 23,41.37 23,29.5 L 23,29.5 C 23,17.63 31.06,8 41,8 Z M 41,61.75 C 60.89,61.75 77,71.37 77,83.25 L 77,94 5,94 5,83.25 C 5,71.37 21.11,61.75 41,61.75 Z M 86,51 L 86,24.12 95,24.12 95,51 86,51 Z M 86,72.5 L 86,61.75 95,61.75 95,72.5 86,72.5 Z M 86,72.5" />
+</svg>

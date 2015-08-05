@@ -37,6 +37,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -118,6 +119,7 @@ public class ShareDevicesFragment extends Fragment {
     private Button _startButton;
     private Button _endButton;
     private Button _shareButton;
+    private TextView _shareInfoText;
 
     // Layout only shown if a device was passed in to newInstance()
     private LinearLayout _deviceLayout;
@@ -148,6 +150,7 @@ public class ShareDevicesFragment extends Fragment {
         _deviceImageView = (ImageView)root.findViewById(R.id.device_image);
         _deviceLayout = (LinearLayout)root.findViewById(R.id.device_layout);
         _deviceTextView = (TextView)root.findViewById(R.id.device_name);
+        _shareInfoText = (TextView)root.findViewById(R.id.textview);
 
         _startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +173,18 @@ public class ShareDevicesFragment extends Fragment {
             _deviceLayout.setVisibility(View.VISIBLE);
             _deviceTextView.setText(_device.toString());
             _deviceImageView.setImageDrawable(_device.getDeviceDrawable(MainActivity.getInstance()));
+
+            if(_device.getDevice().lanEnabled){
+
+                _radioGroup.setVisibility(View.INVISIBLE);
+                _radioGroup.check(R.id.radio_read_write);
+                _shareInfoText.setText(getResources().getString(R.string.share_control_only_message));
+            }
+            else{
+                _radioGroup.setVisibility(View.VISIBLE);
+                _radioGroup.check(R.id.radio_read_only);
+                _shareInfoText.setText(getResources().getString(R.string.share_read_only_message));
+            }
         } else {
             // Set up the list view with a set of devices that the owner can share
             _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);

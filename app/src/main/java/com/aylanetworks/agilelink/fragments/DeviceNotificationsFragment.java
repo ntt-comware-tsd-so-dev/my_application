@@ -36,6 +36,10 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
     private CheckBox _smsCheckbox;
     private CheckBox _pushCheckbox;
 
+    public static DeviceNotificationsFragment newInstance() {
+        return new DeviceNotificationsFragment();
+    }
+
     public DeviceNotificationsFragment() {
         // Required empty public constructor
     }

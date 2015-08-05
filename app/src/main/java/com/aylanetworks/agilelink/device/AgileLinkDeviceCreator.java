@@ -31,7 +31,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
+    public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
 
+    /**
+     * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
+     * @param aylaDevice The AylaDevice object to be wrapped
+     * @return Device
+     */
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
         if (aylaDevice.oemModel == null) {
@@ -54,16 +60,23 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             return new SwitchedDevice(aylaDevice);
         }
 
-        // Zigbee devices
-        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
-
-            // todo: take this out after everybody has converted.
+        // Gateway, including Zigbee, devices
+        if (aylaDevice.oemModel.equals("generic")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
-                // This is a Zigbee gateway.
+                // This is a generic gateway.
                 return new Gateway(aylaDevice);
             }
-
-            if (aylaDevice.model.equals("Smart_Plug")) {
+            if (aylaDevice.model.equals("GenericNode")) {
+                // This is a generic node
+                return new GenericNodeDevice(aylaDevice);
+            }
+        }
+        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
+            if (aylaDevice.model.equals("AY001MRT1")) {
+                // This is a Zigbee gateway.
+                return new ZigbeeGateway(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Smart_Plug") || aylaDevice.model.equals("4256050-RZHAC")) {
                 // This is a Zigbee smart plug.
                 return new ZigbeeSwitchedDevice(aylaDevice);
             }
@@ -113,6 +126,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                                 R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_DIMMABLE:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_dimmable_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_dimmable_device_expandable :
+                                R.layout.cardview_dimmable_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new DimmableLightViewHolder(v);
 
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_generic_device_grid :

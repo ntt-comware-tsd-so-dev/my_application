@@ -75,7 +75,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     public static PropertyNotificationFragment newInstance(Device device, AylaPropertyTrigger triggerToEdit) {
         PropertyNotificationFragment frag = new PropertyNotificationFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDevice().dsn);
+        args.putString(ARG_DSN, device.getDeviceDsn());
         if ( triggerToEdit != null ) {
             args.putString(ARG_TRIGGER, triggerToEdit.deviceNickname);
         }
@@ -91,6 +91,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     }
 
     private Device _device;
+    private AylaContact _ownerContact;
 
     private RecyclerView _recyclerView;
     private RecyclerView.LayoutManager _layoutManager;
@@ -169,6 +170,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
         // Fetch the list of contacts, including the owner contact, and show them in the list
         ContactManager cm = SessionManager.getInstance().getContactManager();
+        _ownerContact = cm.getOwnerContact();
         ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override
             public void contactListUpdated(ContactManager manager, boolean succeeded) {
@@ -255,6 +257,25 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         }
 
         _recyclerView.getAdapter().notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean isOwner(AylaContact contact) {
+        if ((contact == null) || (_ownerContact == null)) {
+            return false;
+        }
+        if (contact.id == _ownerContact.id) {
+            return true;
+        }
+        if (TextUtils.equals(contact.email, _ownerContact.email)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void pushTapped(AylaContact contact) {
+        Log.d(LOG_TAG, "Push tapped: " + contact);
     }
 
     @Override

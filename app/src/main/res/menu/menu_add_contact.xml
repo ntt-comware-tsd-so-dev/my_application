@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_fill_from_contact"
+      <item android:id="@+id/action_add_contact"
+          android:title="@string/add_contact"
+          android:icon="@android:drawable/ic_input_add"
+          android:orderInCategory="100"/>
+      <item android:id="@+id/action_fill_from_contact"
           android:title="@string/fill_from_contact"
           android:icon="@drawable/address_book_icon"
-          app:showAsAction="ifRoom"
           android:orderInCategory="100"/>
 </menu>

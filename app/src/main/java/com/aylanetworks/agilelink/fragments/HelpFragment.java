@@ -49,8 +49,8 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.about_amap:
-                Intent aboutKiddeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.about_amap_link)));
-                startActivity(aboutKiddeIntent);
+                Intent aboutIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.about_amap_link)));
+                startActivity(aboutIntent);
                 break;
 
             case R.id.get_started:

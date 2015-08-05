@@ -39,22 +39,24 @@ public class ZigbeeSwitchedDevice extends SwitchedDevice implements View.OnClick
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         super.bindViewHolder(holder);
 
-        Resources res = MainActivity.getInstance().getResources();
+        if (holder instanceof SwitchedDeviceViewHolder) {
+            SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
 
-        SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder) holder;
-
-        boolean onOff = isOn();
-        if (h._sceneDeviceEntity != null) {
-            h._switchButton.setOnClickListener(null);
-            for (AylaSceneZigbeeNodeProperty prop : h._sceneDeviceEntity.properties) {
-                if (TextUtils.equals("1_in_0x0006_0x0000", prop.name)) {
-                    onOff = "1".equals(prop.value);
+            Resources res = MainActivity.getInstance().getResources();
+            boolean onOff = isOn();
+            if (h._sceneDeviceEntity != null) {
+                h._switchButton.setOnClickListener(null);
+                for (AylaSceneZigbeeNodeProperty prop : h._sceneDeviceEntity.properties) {
+                    if (TextUtils.equals("1_in_0x0006_0x0000", prop.name)) {
+                        onOff = "1".equals(prop.value);
+                    }
                 }
+            } else {
+                h._switchButton.setOnClickListener(this);
             }
-        } else {
-            h._switchButton.setOnClickListener(this);
+
+            Drawable buttonDrawable = getSwitchedDrawable(res, onOff);
+            h._switchButton.setImageDrawable(buttonDrawable);
         }
-        Drawable buttonDrawable = getSwitchedDrawable(res, onOff);
-        h._switchButton.setImageDrawable(buttonDrawable);
     }
 }

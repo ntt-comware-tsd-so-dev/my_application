@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,7 +44,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     public static NotificationListFragment newInstance(Device device) {
         NotificationListFragment frag = new NotificationListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDevice().dsn);
+        args.putString(ARG_DSN, device.getDeviceDsn());
         frag.setArguments(args);
         return frag;
     }
@@ -145,6 +144,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     private void onLongClick(final int index) {
         AylaPropertyTrigger trigger = _propertyTriggers.get(index);
         new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.delete_notification_title)
                 .setMessage(getActivity().getResources().getString(R.string.delete_notification_message, trigger.deviceNickname))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

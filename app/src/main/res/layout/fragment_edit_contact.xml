@@ -255,6 +255,19 @@
                     android:text="@string/save_contact"
                     />
 
+                <Button
+                    android:id="@+id/delete_contact"
+                    style="@style/AgileLinkDestructiveButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone"
+                    android:text="@string/delete_contact"
+                    />
+
             </LinearLayout>
         </ScrollView>
     </RelativeLayout>

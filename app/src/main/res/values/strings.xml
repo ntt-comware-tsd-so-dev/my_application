@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Agile Link</string>
+    <string name="app_name">AMAP</string>
     <string name="action_settings">Settings</string>
     <string name="username">Email Address</string>
     <string name="password">Password</string>
@@ -21,6 +21,8 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
     <string name="remote">Remote</string>
     <string name="remote_paired_devices">Paired Devices</string>
     <string name="remote_paired_remote">Paired Remote</string>
@@ -33,8 +35,12 @@
     <string name="forgot"><u>Forgot Password</u></string>
     <string name="resend_confirmation"><u>Re-send Email Confirmation</u></string>
     <string name="signIn">Sign In</string>
+    <string name="userInformation">User Information</string>
     <string name="emailAddress">Email Address</string>
     <string name="passwordHint">Password</string>
+    <string name="currentPassword">Current Password</string>
+    <string name="newPassword">New Password</string>
+    <string name="newPasswordConfirm">Confirm New Password</string>
     <string name="signingIn">Signing in...</string>
     <string name="signingUp">Signing up...</string>
     <string name="confirmPassword">confirm password</string>
@@ -42,10 +48,14 @@
     <string name="country">Country</string>
     <string name="firstName">First Name</string>
     <string name="phoneNumber">Phone Number</string>
+    <string name="phoneCountryCode">Phone Country Code</string>
     <string name="evbNumber">EVB Number</string>
     <string name="zip">Zip</string>
     <string name="signUp">Sign up</string>
+    <string name="update">Update</string>
+    <string name="change">Change</string>
     <string name="password_required">A password is required</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
     <string name="password_no_match">The password you entered does not match the confirmed password entry</string>
     <string name="registraion_email_subject">Ayla Sign-up Confirmation</string>
     <string name="registration_email_body_html"><![CDATA[
@@ -131,6 +141,7 @@
     <string name="enter_wifi_password">Please select the WiFi access point you wish your device to connect to and enter the WiFI password, if necessary.</string>
     <string name="connect">Connect</string>
     <string name="wifi_password">WiFi Network Password</string>
+    <string name="wifi_show_password">Show password</string>
     <string name="connect_device">Connect Device</string>
     <string name="connect_to_service_success">Service connection successful</string>
     <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
@@ -160,7 +171,11 @@
     <string name="error_sign_up_title">Sign-up Error</string>
     <string name="network_not_reachable">Unable to connect to the network</string>
     <string name="wlan_signin">Successful WLAN sign-in</string>
+    <string name="dashboard">Dashboard</string>
     <string name="groups">Groups</string>
+    <string name="scenes">Scenes</string>
+    <string name="gateways">Gateways</string>
+    <string name="account">Account</string>
     <string name="add_device_or_group_title">Add Device or Group</string>
     <string name="add_group_title">Add a Group or Room</string>
     <string name="add_group_message">Input the name for your new group or room</string>
@@ -226,8 +241,8 @@
     <string name="once">Single Event</string>
     <string name="repeating">Daily Schedule</string>
     <string name="timer">Timer</string>
-    <string name="starting_on">Starting on:</string>
-    <string name="ending_on">Ending on:</string>
+    <string name="starting_on">Starting:</string>
+    <string name="ending_on">Ending:</string>
     <string name="schedule_chooose_days_help">Select the days you want the schedule to be active below:</string>
     <string name="save_schedule">Save Schedule</string>
     <string name="end_time">End Time</string>
@@ -277,10 +292,12 @@
     <string name="country_code">Country Code</string>
     <string name="display_name">Display Name</string>
     <string name="save_contact">Save Contact</string>
+    <string name="delete_contact">Delete Contact</string>
     <string name="street_address">Street Address</string>
     <string name="create_contact">Create Contact</string>
     <string name="update_contact">Update Contact</string>
     <string name="contact_email_phone_required">A phone number or email address is required</string>
+    <string name="contact_deleted">The contact was deleted</string>
     <string name="contact_updated">The contact information was saved</string>
     <string name="contact_update_failed">An unknown error occurred while trying to update the information for this contact. Please try again later.</string>
     <string name="updating_contact_title">Updating Contact</string>
@@ -289,9 +306,10 @@
     <string name="confirm_delete_contact_body" formatted="false">Are you sure you want to remove \"%s\" from your contact list?</string>
     <string name="deleting_contact_title">Removing Contact</string>
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
-    <string name="fill_from_contact">Add new from address book</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="fill_from_contact">Import from Address Book</string>
     <string name="choose_ap_details" formatted="false">Enter the password for the \"%s\" access point</string>
-    <string name="shares">Device Shares</string>
+    <string name="shares">Shares</string>
     <string name="devices_i_share">Devices I am sharing with others</string>
     <string name="devices_shared_with_me">Devices shared with me</string>
     <string name="fetching_shares_title">Fetching Shares</string>
@@ -319,6 +337,7 @@
     <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
     <string name="lan_login_message">LAN login. Application functionality is limited.</string>
     <string name="share_read_only_message">Allow this user to:</string>
+    <string name="share_control_only_message">Allow this user to control your device</string>
     <string name="share_read_only_button">View</string>
     <string name="share_read_write_button">Control</string>
     <string name="share_instructions">Enter the email address of the Ayla account holder you wish to share with</string>
@@ -444,10 +463,10 @@
     <string name="guides_videos">Guides &amp; Videos</string>
     <string name="terms_and_condition">Terms &amp; Conditions</string>
     <!--  Links for help page option -->
-    <string name="about_amap_link">https://www.aylanetworks.com/company/ayla</string>
-    <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
-    <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
-    <string name="terms_and_condition_link">http://www.kidde.com/home-safety/en/us/privacy/terms-and-conditions/</string>
+    <string name="about_amap_link">http://www.aylanetworks.com/company/ayla</string>
+    <string name="get_started_link">http://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
+    <string name="guides_videos_link">http://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
+    <string name="terms_and_condition_link">http://www.aylanetworks.com/company/ayla</string>
 
     <string name="trigger_on_name">On</string>
     <string name="trigger_off_name">Off</string>
@@ -478,7 +497,6 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
 
-    <string name="drawer_scenes">Scenes</string>
     <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
     <string name="add_scene">Add Scene</string>
     <string name="activate_scene">Activate Scene</string>
@@ -516,5 +534,26 @@
     <string name="scene_name_hint">Unique Scene Name</string>
     <string name="no_devices">No Devices</string>
     <string name="no_gateway">No Gateway</string>
+    <string name="no_gateways">No Gateways</string>
+    <string name="switched_on_name">On</string>
+    <string name="switched_off_name">Off</string>
+    <string name="no_property">No Property</string>
+    <string name="activate_scene_icon" formatted="false">Activate %s</string>
+
+    <!-- Welcome and SEtup Guide Page -->
+    <string name="welcome_text">Welcome to AMAP!</string>
+    <string name="click_here">Click here to set\n up gateway</string>
+    <string name="setup_guide">Setup Gateway</string>
+    <string name="gateway_ready">Gateway Ready?</string>
+    <string name="gateway_ready_2">The gateway is ready</string>
+    <string name="setup_guide_header">Setup Guide</string>
+    <string name="setup_guide_text_1">Plug your gateway into a power outlet using the included AC adapter.\n\nConnect one end of the included network cable to the gateway\'s Ethernet port and the other end to a LAN port on your WiFi Router.</string>
+    <string name="setup_guide_text_2">The gateway\'s Cloud LED should be blinking slowly, indicating that is ready to be registered.</string>
+    <string name="setup_guide_text_3">If you don\'t see this, please go back and review again the power cable is connected, the network cable is also connected and the WiFi is working.</string>
+    <string name="connected_cables">I\'ve connected all the cables</string>
+    <string name="setup_connect_gateway">Register Gateway</string>
+    <string name="setup_connect_gateway_text">Push the "Reg" button on the back of the gateway.</string>
+    <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
+    <!-- -->
 
 </resources>

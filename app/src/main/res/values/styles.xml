@@ -4,6 +4,17 @@
     <style name="AppTheme" parent="AppTheme.Base">
     </style>
 
+    <style name="AppMaterialTheme" parent="AppMaterialTheme.Base">
+    </style>
+
+    <style name="AppMaterialTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/app_theme_primary</item>
+        <item name="colorPrimaryDark">@color/app_theme_primary_dark</item>
+        <item name="colorAccent">@color/app_theme_accent</item>
+        <item name="android:fontFamily">@string/font_family</item>
+        <item name="android:buttonStyle">@style/AgileLinkButton</item>
+    </style>
+
     <style name="AppTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/app_theme_primary</item>
         <item name="colorPrimaryDark">@color/app_theme_primary_dark</item>
@@ -15,6 +26,15 @@
     <style name="AgileLinkButton" parent="android:style/Widget.Button">
         <item name="android:background">@drawable/button_bg</item>
         <item name="android:textColor">@drawable/button_fg</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:fontFamily">@string/font_family</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="AgileLinkDestructiveButton" parent="android:style/Widget.Button">
+        <item name="android:background">@color/destructive_bg</item>
+        <item name="android:textColor">@color/destructive_fg</item>
         <item name="android:paddingTop">6dp</item>
         <item name="android:paddingBottom">6dp</item>
         <item name="android:fontFamily">@string/font_family</item>
@@ -54,6 +74,28 @@
         <item name="android:layout_margin">10dp</item>
     </style>
 
+    <!-- Style for text views in Setup Page -->
+    <style name="SetupText" parent="@android:style/TextAppearance.Medium">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@string/font_family</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:textColor">@color/card_text</item>
+    </style>
+
+    <!-- Style for text views in Setup Title -->
+    <style name="SetupTitle" parent="@android:style/TextAppearance.Large">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@string/font_family</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:textColor">@color/card_text</item>
+    </style>
+
     <!-- Style for text views used as a title -->
     <style name="PageHeader" parent="@android:style/TextAppearance.Large">
         <item name="android:layout_gravity">center_horizontal</item>
@@ -81,5 +123,20 @@
         <item name="android:layout_margin">10dp</item>
     </style>
 
+    <style name="PageSelectorStyle">
+        <item name="android:button">@null</item>
+        <item name="android:background">@drawable/page_selector_skin</item>
+        <item name="android:layout_width">17dp</item>
+        <item name="android:layout_height">17dp</item>
+        <item name="android:text"></item>
+    </style>
+
+    <style name="Widget.CardContent" parent="android:Widget">
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
 
 </resources>

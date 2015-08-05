@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -229,10 +230,40 @@ public class SessionManager {
         return (_foreground && _sessionParameters.enableLANMode);
     }
 
+    // should probably be part of SessionParameters
     boolean _foreground;
 
+    /**
+     * Set by the MainActivity to indicate whether the app is in the foreground (true) or
+     * background (false)
+     * @param foreground
+     */
     public void setForeground(boolean foreground) {
         _foreground = foreground;
+    }
+
+    /**
+     * Set by the Add Device UI to shutdown all extra network activity while trying to register
+     * new devices.
+     * @param registration
+     */
+    public void setRegistrationMode(boolean registration) {
+        if (registration) {
+            Logger.logDebug(LOG_TAG, "rn: setRegistrationMode true");
+            if (deviceManager() != null) {
+                deviceManager().setRegistrationMode(registration);
+            }
+            // TODO: quick hack... remove this
+            // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
+            // TODO: immediately go to the network to get the current value.
+            StrictMode.ThreadPolicy tp = StrictMode.ThreadPolicy.LAX;
+            StrictMode.setThreadPolicy(tp);
+        } else {
+            if (deviceManager() != null) {
+                deviceManager().setRegistrationMode(registration);
+            }
+            Logger.logDebug(LOG_TAG, "rn: setRegistrationMode false");
+        }
     }
 
     /** Inner Classes */

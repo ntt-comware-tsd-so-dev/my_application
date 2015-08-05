@@ -270,6 +270,7 @@
 
                             <Button
                                 android:id="@+id/button_turn_on"
+                                style="@style/AgileLinkButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
@@ -278,6 +279,7 @@
 
                             <Button
                                 android:id="@+id/button_turn_off"
+                                style="@style/AgileLinkButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
@@ -293,7 +295,8 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
                             android:layout_margin="6dp"
-                            android:timePickerMode="spinner"/>
+                            android:timePickerMode="spinner"
+                            android:contentDescription="hours:minutes" />
 
 
                     </LinearLayout>
@@ -315,6 +318,7 @@
 
                         <Button
                             android:id="@+id/timer_turn_on_button"
+                            style="@style/AgileLinkButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
@@ -323,6 +327,7 @@
 
                         <Button
                             android:id="@+id/timer_turn_off_button"
+                            style="@style/AgileLinkButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
@@ -331,13 +336,38 @@
 
                     </LinearLayout>
 
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/timepicker_layout"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="16dp">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginLeft="30dp"
+                            android:layout_marginRight="30dp">
+                            <TextView
+                                android:id="@+id/hours_label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+
+                                android:text="@string/hours"/>
+                            <TextView
+                                android:id="@+id/minutes_label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="30dp"
+                                android:text="@string/minutes"/>
+                        </LinearLayout>
                         <TimePicker
                             android:id="@+id/timer_duration_picker"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
-                            android:layout_margin="16dp"
                             android:timePickerMode="spinner"/>
+                    </RelativeLayout>
                 </LinearLayout>
             </RelativeLayout>
 
@@ -346,6 +376,7 @@
 
     <Button
         android:id="@id/save_schedule"
+        style="@style/AgileLinkButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
