@@ -444,9 +444,12 @@ public class Device implements Comparable<Device> {
      * @param listener Listener to be notified when the status has been updated.
      */
     public void updateStatus(final DeviceStatusListener listener) {
-        Map<String, String> getPropertyArguments = getPropertyArgumentMap();
-
-        getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
+        try {
+            Map<String, String> getPropertyArguments = getPropertyArgumentMap();
+            getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
+        } catch (Exception ex) {
+            Logger.logError(LOG_TAG, ex, "updateStatus");
+        }
     }
 
     /**
