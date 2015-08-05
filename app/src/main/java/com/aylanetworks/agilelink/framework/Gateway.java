@@ -38,7 +38,7 @@ public class Gateway extends Device {
     private final static String PROPERTY_JOIN_ENABLE = "join_enable";
     private final static String PROPERTY_JOIN_STATUS = "join_status";
 
-    private final static long SCAN_TIMEOUT = (30 * 1000);
+    private final static long SCAN_TIMEOUT = (120 * 1000);
 
     /**
      * Generic Gateway completion handler
@@ -448,6 +448,8 @@ public class Gateway extends Device {
             }
             Logger.logInfo(LOG_TAG, "rn: Register node state=" + state);
             if (state == NodeRegistrationFindState.Started) {
+                //AylaProperty prop = gateway.getProperty(PROPERTY_JOIN_STATUS);
+                //Logger.logInfo(LOG_TAG, "rn: Register node get property join_status : " + prop);
                 Logger.logInfo(LOG_TAG, "rn: Register node get property join_status");
                 if (gateway.getPropertyBoolean(PROPERTY_JOIN_STATUS)) {
                     Logger.logInfo(LOG_TAG, "rn: Register node (JOIN_STATUS=true)");
@@ -615,13 +617,21 @@ public class Gateway extends Device {
                     } else {
                         // invoke it again manually (412: retry open join window)
                         final Handler handler = new Handler();
+                        int delay = gateway.getPropertyBoolean(PROPERTY_JOIN_STATUS) ? 5000 : 500;
                         handler.postDelayed(new Runnable() {        // don't flood gateway
                             @Override
                             public void run() {
-                                state = NodeRegistrationFindState.Started;
+                                if (gateway.getPropertyBoolean(PROPERTY_JOIN_STATUS)) {
+                                    // we think that the join status is true, but we got a 412
+                                    // which means that it isn't open!
+                                    state = NodeRegistrationFindState.OpenJoinWindow;
+                                    // we need to wait a little bit
+                                } else {
+                                    state = NodeRegistrationFindState.Started;
+                                }
                                 nextStep();
                             }
-                        }, 500);                                    // Delay .5 seconds
+                        }, delay);
                     }
                 } else if (msg.arg1 == 404) {
                     if (System.currentTimeMillis() - startTicks > SCAN_TIMEOUT) {

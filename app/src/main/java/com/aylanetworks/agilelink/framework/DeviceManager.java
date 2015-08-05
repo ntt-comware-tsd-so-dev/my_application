@@ -12,6 +12,7 @@ import com.aylanetworks.aaml.AylaDeviceManager;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
+import com.aylanetworks.aaml.AylaLanModule;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaShare;
@@ -663,6 +664,11 @@ public class DeviceManager implements DeviceStatusListener {
 
     public void setRegistrationMode(boolean value) {
         _registrationMode = value;
+        if (value) {
+            AylaLanMode.pause(true);
+        } else {
+            AylaLanMode.resume();
+        }
     }
 
     // Default comparator uses the device's compareTo method. Can be updated with setComparator().
