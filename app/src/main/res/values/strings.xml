@@ -21,6 +21,8 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
     <string name="remote">Remote</string>
     <string name="remote_paired_devices">Paired Devices</string>
     <string name="remote_paired_remote">Paired Remote</string>
