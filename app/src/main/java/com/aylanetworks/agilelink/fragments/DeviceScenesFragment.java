@@ -556,7 +556,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             if (source.equals("")) {
                 return source;
             }
-            if (source.toString().matches("[a-zA-Z0-9[-_\\/\\(\\)\\{\\}\\[\\]\\#\\@\\$]]*")) {
+            if (source.toString().matches("[a-zA-Z0-9[- \\/\\(\\)\\{\\}\\[\\]\\#\\@\\$]]*")) {
                 return source;
             }
             return "";

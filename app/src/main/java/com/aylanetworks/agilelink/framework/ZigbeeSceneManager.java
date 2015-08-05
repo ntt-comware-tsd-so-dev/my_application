@@ -54,7 +54,7 @@ public class ZigbeeSceneManager {
                     for (AylaSceneZigbee scene : scenes) {
                         // Not case-sensitive
                         if (!list.contains(scene.sceneName)) {
-                            list.add(scene.sceneName);
+                            list.add(scene.sceneName.replace("_", " "));
                         }
                     }
                 }
@@ -313,10 +313,13 @@ public class ZigbeeSceneManager {
      * @return AylaSceneZigbee matching the specified name.
      */
     public AylaSceneZigbee getByName(String name) {
-        if ((_scenes != null) && (_scenes.size() > 0)) {
-            for (AylaSceneZigbee scene : _scenes) {
-                if (TextUtils.equals(scene.sceneName, name)) {
-                    return scene;
+        if (!TextUtils.isEmpty(name)) {
+            if ((_scenes != null) && (_scenes.size() > 0)) {
+                name = name.replace(" ", "_");
+                for (AylaSceneZigbee scene : _scenes) {
+                    if (TextUtils.equals(scene.sceneName, name)) {
+                        return scene;
+                    }
                 }
             }
         }
@@ -375,6 +378,7 @@ public class ZigbeeSceneManager {
      * @param handler Optional completion handler.
      */
     public void createScene(String name, List<Device> devices, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+        name = name.replace(" ", "_");
         AylaSceneZigbee scene = new AylaSceneZigbee();
         scene.sceneName = name;
         scene.gatewayDsn = _gateway.getDeviceDsn();
@@ -709,8 +713,9 @@ public class ZigbeeSceneManager {
 
     private void removeSceneByName(String sceneName) {
         // remove from internal list
+        String name = sceneName.replace(" ", "_");
         for (AylaSceneZigbee g : _scenes) {
-            if (g.sceneName.equals(sceneName)) {
+            if (g.sceneName.equals(name)) {
                 _scenes.remove(g);
                 notifyListChanged();
                 return;
