@@ -84,22 +84,15 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_scenes, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        // Change the name of the "Add Device" menu item
-        MenuItem addItem = menu.findItem(R.id.action_add_device);
-        if ( addItem != null ) {
-            addItem.setTitle(R.string.action_manage_devices_in_scene);
-        }
-        super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_modify_scene:
+                onAddDeviceToScene();
+                break;
+
             case R.id.action_add_scene:
                 onAddScene();
                 break;
