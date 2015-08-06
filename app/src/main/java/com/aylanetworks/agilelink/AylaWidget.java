@@ -1,7 +1,10 @@
 
 /*
-AylaWidget.java
-Created by Julian Christensen
+ * AylaWidget.java
+ * AgileLink Application Framework
+ *
+ * Created by Julian Christensen on 06/26/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
 package com.aylanetworks.agilelink;
 
