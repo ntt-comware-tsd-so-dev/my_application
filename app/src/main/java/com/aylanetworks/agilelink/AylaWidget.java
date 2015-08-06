@@ -1,3 +1,8 @@
+
+/*
+AylaWidget.java
+Created by Julian Christensen
+ */
 package com.aylanetworks.agilelink;
 
 import android.app.PendingIntent;
@@ -18,17 +23,15 @@ import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -41,8 +44,6 @@ import java.util.TimerTask;
 public class AylaWidget extends AppWidgetProvider implements SessionManager.SessionListener,
         DeviceManager.DeviceListListener, Device.DeviceStatusListener
 {
-    DeviceManager dm = SessionManager.deviceManager();
-
     //Tags for the pending intents
     private final String REFRESH_TAG = "refresh";
     private final String BLUE_LED_TOGGLE_TAG = "toggleblue";
@@ -57,15 +58,14 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
     final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
     final static int MAX_DEVICES = 8;
-
-    AylaDatapoint datapoint;
-    AylaProperty property;
-    static AylaProperty outlet1 = null;
-    static AylaProperty greenLed = null;
-    static AylaProperty blueLed = null;
-    static AylaProperty blueButton = null;
-    AylaDevice device = null;
-    AylaDevice[] devices = null;
+    private static int numOfDevices = 0;
+   // AylaDatapoint datapoint;
+    private static AylaProperty outlet1 = null;
+    private static AylaProperty greenLed = null;
+    private static AylaProperty blueLed = null;
+    private static AylaProperty blueButton = null;
+    private RemoteViews remoteViews;
+    //AylaDevice device = null;
 
     //Uses a static context variable in order to change widget Views in handlers
     static Context contextStatic = null;
@@ -88,8 +88,6 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         contextStatic=context;
-
-        RemoteViews remoteViews;
         ComponentName aylaWidget;
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
         aylaWidget = new ComponentName(context, AylaWidget.class);
@@ -113,31 +111,39 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         timer.cancel();         //Cancel any previous timed Lan Mode pausing
 
         //Test based on the tags created by the intents to find the button that was pressed
-        if (REFRESH_TAG.equals(intent.getAction())) {
-            getDeviceInfo(context);
-        }
+        String actionType = intent.getAction();
+        if(actionType != null){
+            switch (actionType){
+                case AppWidgetManager.ACTION_APPWIDGET_UPDATE:
+                case REFRESH_TAG:
+                    getDeviceInfo(context);
+                    break;
+                case PLUG_TOGGLE_TAG:
+                    if(outlet1 != null){ // ensure that this gets called only after outlet1 has been set in getProperties handler
+                        toggleUI(context, outlet1, R.id.plug_toggle);
+                    }
 
-        if (PLUG_TOGGLE_TAG.equals(intent.getAction())) {
-            togglePlug(context);
-        }
-        if (BLUE_LED_TOGGLE_TAG.equals(intent.getAction())) {
-            toggleBlueLed(context);
-        }
+                    break;
+                case BLUE_LED_TOGGLE_TAG:
+                    if(blueLed != null){
+                        toggleUI(context, blueLed, R.id.blue_led_toggle);
+                    }
 
-        if (GREEN_LED_TOGGLE_TAG.equals(intent.getAction())) {
-            toggleGreenLed(context);
-        }
+                    break;
+                case GREEN_LED_TOGGLE_TAG:
+                    if(greenLed != null){
+                        toggleUI(context, greenLed, R.id.green_led_toggle);
+                    }
+                    break;
+                case GO_UP_DEVICE_TAG:
+                    goUpDevice(context);
+                    break;
+                case GO_DOWN_DEVICE_TAG:
+                    goDownDevice(context);
+                    break;
 
-        if (BLUE_BUTTON_START_TAG.equals(intent.getAction())) {
 
-        }
-
-        if (GO_UP_DEVICE_TAG.equals(intent.getAction())) {
-            goUpDevice(context);
-        }
-
-        if (GO_DOWN_DEVICE_TAG.equals(intent.getAction())) {
-            goDownDevice(context);
+            }
         }
 
         //Created a timed action that will pause the Lan Mode after 60 seconds
@@ -183,7 +189,6 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         contextStatic = context;
 
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        RemoteViews remoteViews;
         ComponentName aylaWidget;
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
         aylaWidget = new ComponentName(context, AylaWidget.class);
@@ -199,9 +204,10 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         List<Device> deviceList = null;
         if ( SessionManager.deviceManager() != null ) {
             deviceList = SessionManager.deviceManager().deviceList();
+            numOfDevices = deviceList.size();
 
             if (deviceList != null) {
-                device = deviceList.get(deviceNum).getDevice();
+               // device = deviceList.get(deviceNum).getDevice();
                 getDeviceInfo(context);
             }
         }
@@ -209,6 +215,12 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         else
         {
             remoteViews.setTextViewText(R.id.appwidget_text, "Device Not Found");
+            remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
+            remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
+            remoteViews.setViewVisibility(R.id.refresh_button, View.VISIBLE);
+            remoteViews.setViewVisibility(R.id.device_down, View.GONE);
+            remoteViews.setViewVisibility(R.id.device_up, View.GONE);
+
         }
 
         appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
@@ -216,69 +228,84 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     public void getDeviceInfo(Context context) {
 
-        //Creation of items for the manipulation of views in the widget
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        RemoteViews remoteViews;
-        ComponentName aylaWidget;
-        remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
-        aylaWidget = new ComponentName(context, AylaWidget.class);
+        if(SessionManager.deviceManager() != null){
+            //Creation of items for the manipulation of views in the widget
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            ComponentName aylaWidget;
+            remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
+            aylaWidget = new ComponentName(context, AylaWidget.class);
 
-        SessionManager.deviceManager().refreshDeviceList();
+            SessionManager.deviceManager().refreshDeviceList();
 
-        List<Device> deviceList = null;
-        if ( SessionManager.deviceManager() != null ) {
+            List<Device> deviceList = null;
+            if ( SessionManager.deviceManager() != null ) {
 
-            deviceList = SessionManager.deviceManager().deviceList();
+                deviceList = SessionManager.deviceManager().deviceList();
 
-            device = deviceList.get(deviceNum).getDevice();
+                AylaDevice device = deviceList.get(deviceNum).getDevice();
 
 
-            if (deviceNum < deviceList.size() - 1)
-                remoteViews.setViewVisibility(R.id.device_up, View.VISIBLE);
+                if (deviceNum < deviceList.size() - 1)
+                    remoteViews.setViewVisibility(R.id.device_up, View.VISIBLE);
+                else
+                    remoteViews.setViewVisibility(R.id.device_up, View.GONE);
+
+                if (deviceNum > 0)
+                    remoteViews.setViewVisibility(R.id.device_down, View.VISIBLE);
+                else
+                    remoteViews.setViewVisibility(R.id.device_down, View.GONE);
+
+
+                Map<String, String> callParams = new HashMap<String, String>();
+                if (device.oemModel != null && device.oemModel.toLowerCase().contains("plug"))
+                    callParams.put("names", "outlet1 oem_host_version");
+                else
+                    callParams.put("names", "Green_LED Blue_LED Blue_button oem_host_version");
+
+                remoteViews.setViewVisibility(R.id.progress, View.VISIBLE);
+                remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
+                remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
+                device.getProperties(new PropertiesHandler(device), callParams);
+
+                remoteViews.setTextViewText(R.id.appwidget_text, device.getProductName());
+            }
+
             else
-                remoteViews.setViewVisibility(R.id.device_up, View.GONE);
-
-            if (deviceNum > 0)
-                remoteViews.setViewVisibility(R.id.device_down, View.VISIBLE);
-            else
+            {
+                remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
+                remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
+                remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
                 remoteViews.setViewVisibility(R.id.device_down, View.GONE);
+                remoteViews.setViewVisibility(R.id.device_up, View.GONE);
+                remoteViews.setViewVisibility(R.id.refresh_button, View.VISIBLE);
+            }
 
 
-            Map<String, String> callParams = new HashMap<String, String>();
-            if (device.oemModel != null && device.oemModel.toLowerCase().contains("plug"))
-                callParams.put("names", "outlet1 oem_host_version");
-            else
-                callParams.put("names", "Green_LED Blue_LED Blue_button oem_host_version");
 
-            device.getProperties(getProperties, callParams);
-
-            remoteViews.setTextViewText(R.id.appwidget_text, device.getProductName());
+            appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
         }
-
-        else
-        {
-            remoteViews.setTextViewText(R.id.appwidget_text, "Device Not Found");
-
+        else{
+            remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
+            remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
+            remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
+            remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
+            remoteViews.setViewVisibility(R.id.refresh_button, View.VISIBLE);
+            remoteViews.setViewVisibility(R.id.up, View.GONE);
             remoteViews.setViewVisibility(R.id.device_down, View.GONE);
             remoteViews.setViewVisibility(R.id.device_up, View.GONE);
         }
 
-        remoteViews.setViewVisibility(R.id.plug_toggle, View.GONE);
-        remoteViews.setViewVisibility(R.id.blue_led_toggle, View.GONE);
-        remoteViews.setViewVisibility(R.id.green_led_toggle, View.GONE);
-        remoteViews.setViewVisibility(R.id.blue_button, View.GONE);
-
-        appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
     }
 
-    public void togglePlug(Context context)
-    {
 
+    public void toggleUI(Context context, AylaProperty property, int viewId){
         //Creation of items for the manipulation of views in the widget
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
-        RemoteViews remoteViews;
         ComponentName aylaWidget;
+
+        AylaProperty toggledProperty = property;
+        AylaDatapoint datapoint;
 
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
         aylaWidget = new ComponentName(context, AylaWidget.class);
@@ -288,141 +315,38 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         if ( SessionManager.deviceManager() != null ) {
 
             deviceList = SessionManager.deviceManager().deviceList();
+            if(!deviceList.isEmpty()){
+                AylaDevice device = deviceList.get(deviceNum).getDevice();
 
-            device = deviceList.get(deviceNum).getDevice();
-            property = outlet1; //Sets the property to the static outlet property created in getProperties
+                if (toggledProperty.value.equals("0"))
+                {
+                    toggledProperty.value = "1";
 
-            //If the plug is off, turn it on
-            if (property.value.equals("0"))
-            {
-                property.value = "1";
+                    datapoint = new AylaDatapoint();
+                    datapoint.nValue(1);
+                    datapoint.createDatapoint(createDatapoint, property); // next test: no delay
 
-                datapoint = new AylaDatapoint();
-                datapoint.nValue(1);
-                amlTestCreateDatapoint();
+                    remoteViews.setTextViewText(viewId, "ON");
+                }else if (toggledProperty.value.equals("1"))
+                {
+                    toggledProperty.value = "0";
 
-                remoteViews.setTextViewText(R.id.plug_toggle, "ON");
+                    datapoint = new AylaDatapoint();
+                    datapoint.nValue(0);
+                    datapoint.createDatapoint(createDatapoint, property); // next test: no delay
+
+                    remoteViews.setTextViewText(viewId, "OFF");
+                }
             }
 
-            //If the plug is on, turn it off
-            else
-            {
-                property.value = "0";
-
-                datapoint = new AylaDatapoint();
-                datapoint.nValue(0);
-                amlTestCreateDatapoint();
-
-                remoteViews.setTextViewText(R.id.plug_toggle, "OFF");
-            }
 
         }
 
         //Update the widget UI
         appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
+
     }
 
-    public void toggleBlueLed(Context context)
-    {
-
-        //Creation of items for the manipulation of views in the widget
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-
-        RemoteViews remoteViews;
-        ComponentName aylaWidget;
-
-        remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
-        aylaWidget = new ComponentName(context, AylaWidget.class);
-
-        List<Device> deviceList = null;
-        //Checks if the current device is not null
-        if ( SessionManager.deviceManager() != null ) {
-
-            deviceList = SessionManager.deviceManager().deviceList();
-
-            device = deviceList.get(deviceNum).getDevice();
-            property = blueLed; //Sets the property to the static outlet property created in getProperties
-
-            //If the plug is off, turn it on
-            if (property.value.equals("0"))
-            {
-                property.value = "1";
-
-                datapoint = new AylaDatapoint();
-                datapoint.nValue(1);
-                amlTestCreateDatapoint();
-
-                remoteViews.setTextViewText(R.id.blue_led_toggle, "ON");
-            }
-
-            //If the plug is on, turn it off
-            else if (property.value.equals("1"))
-            {
-                property.value = "0";
-
-                datapoint = new AylaDatapoint();
-                datapoint.nValue(0);
-                amlTestCreateDatapoint();
-
-                remoteViews.setTextViewText(R.id.blue_led_toggle, "OFF");
-            }
-
-        }
-
-        //Update the widget UI
-        appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
-    }
-
-    public void toggleGreenLed(Context context)
-    {
-
-        //Creation of items for the manipulation of views in the widget
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-
-        RemoteViews remoteViews;
-        ComponentName aylaWidget;
-
-        remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
-        aylaWidget = new ComponentName(context, AylaWidget.class);
-
-        List<Device> deviceList = null;
-        //Checks if the current device is not null
-        if ( SessionManager.deviceManager() != null ) {
-
-            deviceList = SessionManager.deviceManager().deviceList();
-
-            device = deviceList.get(deviceNum).getDevice();
-            property = greenLed; //Sets the property to the static outlet property created in getProperties
-
-            //If the plug is off, turn it on
-            if (property.value.equals("0"))
-            {
-                property.value = "1";
-
-                datapoint = new AylaDatapoint();
-                datapoint.nValue(1);
-                amlTestCreateDatapoint();
-
-                remoteViews.setTextViewText(R.id.green_led_toggle, "ON");
-            }
-
-            //If the plug is on, turn it off
-            else if (property.value.equals("1"))
-            {
-                property.value = "0";
-
-                datapoint = new AylaDatapoint();
-                datapoint.nValue(0);
-                amlTestCreateDatapoint();
-
-                remoteViews.setTextViewText(R.id.green_led_toggle, "OFF");
-            }
-
-        }
-
-        //Update the widget UI
-        appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
-    }
 
     public void goUpDevice(Context context)
     {
@@ -430,14 +354,15 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         //Creation of items for the manipulation of views in the widget
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
-        RemoteViews remoteViews;
         ComponentName aylaWidget;
 
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
         aylaWidget = new ComponentName(context, AylaWidget.class);
 
         //Checks if the current device number can increase
-        if (deviceNum < MAX_DEVICES - 1)
+        Log.d("WIDGET", "numOfDevices "+numOfDevices + " deviceNum "+deviceNum);
+
+        if (deviceNum < numOfDevices-1)
         {
             deviceNum ++;
             getDeviceInfo(context);
@@ -478,28 +403,27 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     }
 
-    private void amlTestCreateDatapoint() {
-        if (property != null) {
-            datapoint.createDatapoint(createDatapoint, property); // next test: no delay
-        } else {
-            //alert.dialog(88); // currentProperty is null
-        }
-    }
-
     private final Handler createDatapoint = new Handler() {
+
         public void handleMessage(Message msg) {
             //progress("stop");
             String jsonResults = (String)msg.obj;
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                property.datapoint = AylaSystemUtils.gson.fromJson(jsonResults,AylaDatapoint.class);
+               // property.datapoint = AylaSystemUtils.gson.fromJson(jsonResults,AylaDatapoint.class);
             }
         }
     };
 
-    private final Handler getProperties = new Handler() {
+
+    private static class PropertiesHandler extends Handler{
+        AylaDevice device;
+
+
+        PropertiesHandler(AylaDevice device){
+            this.device = device;
+        }
         public void handleMessage(Message msg) {
 
-            //Creation of items for the manipulation of views in the widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(contextStatic);
 
             RemoteViews remoteViews;
@@ -507,83 +431,93 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
             remoteViews = new RemoteViews(contextStatic.getPackageName(), R.layout.ayla_widget);
             aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
+            if(AylaNetworks.succeeded(msg)){
+                //Creation of items for the manipulation of views in the widget
 
-            //Sets the device's properties to the results of the getProperties call
-            String jsonResults = (String) msg.obj;
-            device.properties = AylaSystemUtils.gson.fromJson(jsonResults,AylaProperty[].class);
 
-            //Goes through each of the properties that the method just received
-            for (AylaProperty propertyTemp : device.properties) {
 
-                //Gets the name of the current property in order to test it
-                String name = propertyTemp.name();
+                //Sets the device's properties to the results of the getProperties call
+                String jsonResults = (String) msg.obj;
+                device.properties = AylaSystemUtils.gson.fromJson(jsonResults,AylaProperty[].class);
 
-                if (name.equals("outlet1"))
-                {
-                    //Sets the static outlet property to the current property
-                    outlet1 = propertyTemp;
+                //Goes through each of the properties that the method just received
+                for (AylaProperty propertyTemp : device.properties) {
 
-                    //Sets the initial values of the buttons
-                    if (propertyTemp.value.equals("0"))
-                        remoteViews.setTextViewText(R.id.plug_toggle, "OFF");
+                    //Gets the name of the current property in order to test it
+                    String name = propertyTemp.name();
 
-                    else if (propertyTemp.value.equals("1"))
-                        remoteViews.setTextViewText(R.id.plug_toggle, "ON");
+                    if (name.equals("outlet1"))
+                    {
+                        //Sets the static outlet property to the current property
+                        outlet1 = propertyTemp;
 
-                    else
-                        propertyTemp.value = "0";
+                        //Sets the initial values of the buttons
+                        if (propertyTemp.value.equals("0"))
+                            remoteViews.setTextViewText(R.id.plug_toggle, "OFF");
 
-                    //If the outlet property is there, there will be no need for the EVB based buttons
-                    remoteViews.setViewVisibility(R.id.plug_toggle, View.VISIBLE);
-                    remoteViews.setViewVisibility(R.id.blue_led_toggle, View.GONE);
-                    remoteViews.setViewVisibility(R.id.green_led_toggle, View.GONE);
-                    remoteViews.setViewVisibility(R.id.blue_button, View.GONE);
-                }
+                        else if (propertyTemp.value.equals("1"))
+                            remoteViews.setTextViewText(R.id.plug_toggle, "ON");
 
-                else if (name.equals("Green_LED"))
-                {
-                    //Sets the static greenLed property to the current property
-                    greenLed = propertyTemp;
+                        else
+                            propertyTemp.value = "0";
 
-                    //Sets the initial values of the buttons
-                    if (propertyTemp.value.equals("0"))
-                        remoteViews.setTextViewText(R.id.green_led_toggle, "OFF");
-                    else if (propertyTemp.value.equals("1"))
-                        remoteViews.setTextViewText(R.id.green_led_toggle, "ON");
+                        //If the outlet property is there, there will be no need for the EVB based buttons
+                        remoteViews.setViewVisibility(R.id.progress, View.GONE);
+                        remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
+                        remoteViews.setViewVisibility(R.id.linearlayout_plug, View.VISIBLE);
 
-                    //If the greenLed property is there, there will be no need for the plug based button
-                    remoteViews.setViewVisibility(R.id.plug_toggle, View.GONE);
-                    remoteViews.setViewVisibility(R.id.blue_led_toggle, View.VISIBLE);
-                    remoteViews.setViewVisibility(R.id.green_led_toggle, View.VISIBLE);
-                    remoteViews.setViewVisibility(R.id.blue_button, View.VISIBLE);
-                }
+                    }
 
-                else if (name.equals("Blue_LED"))
-                {
-                    //Sets the static blueLed property to the current property
-                    blueLed = propertyTemp;
+                    else if (name.equals("Green_LED"))
+                    {
+                        //Sets the static greenLed property to the current property
+                        greenLed = propertyTemp;
 
-                    //Sets the initial values of the buttons
-                    if (propertyTemp.value.equals("0"))
-                        remoteViews.setTextViewText(R.id.blue_led_toggle, "OFF");
-                    else if (propertyTemp.value.equals("1"))
-                        remoteViews.setTextViewText(R.id.blue_led_toggle, "ON");
+                        //Sets the initial values of the buttons
+                        if (propertyTemp.value.equals("0"))
+                            remoteViews.setTextViewText(R.id.green_led_toggle, "OFF");
+                        else if (propertyTemp.value.equals("1"))
+                            remoteViews.setTextViewText(R.id.green_led_toggle, "ON");
 
-                    //If the blueLed property is there, it is known that it is an EVB, and so the blueButton needs to be initialized
-                    if (!enabled) {
+                        //If the greenLed property is there, there will be no need for the plug based button
+                        remoteViews.setViewVisibility(R.id.progress, View.GONE);
+                        remoteViews.setViewVisibility(R.id.linearlayout_evb, View.VISIBLE);
+                        remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
+                    }
+
+                    else if (name.equals("Blue_LED"))
+                    {
+                        //Sets the static blueLed property to the current property
+                        blueLed = propertyTemp;
+
+                        //Sets the initial values of the buttons
+                        if (propertyTemp.value.equals("0"))
+                            remoteViews.setTextViewText(R.id.blue_led_toggle, "OFF");
+                        else if (propertyTemp.value.equals("1"))
+                            remoteViews.setTextViewText(R.id.blue_led_toggle, "ON");
+
+                        //If the blueLed property is there, it is known that it is an EVB, and so the blueButton needs to be initialized
+
+                        remoteViews.setViewVisibility(R.id.progress, View.GONE);
+                        remoteViews.setViewVisibility(R.id.linearlayout_evb, View.VISIBLE);
+                        remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
+                   /* if (!enabled) {
                         AylaLanMode.enable(widgetNotifierHandler, widgetReachabilityHandler);
                         enabled = true;
                         remoteViews.setTextViewText(R.id.blue_button, currentVal);
+                    }*/
                     }
                 }
-            }
 
+
+            }
+            remoteViews.setViewVisibility(R.id.progress, View.GONE);
             //Updates the widget UI
             appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
 
         }
 
-    };
+    }
 
     static Handler widgetNotifierHandler = new Handler() {
 
@@ -646,17 +580,21 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     @Override
     public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
-//        DeviceManager deviceManager = SessionManager.deviceManager();
-//        if (deviceManager != null) {
-//            if (loggedIn) {
-//                SessionManager.deviceManager().addDeviceListListener(contextStatic);
-//                SessionManager.deviceManager().addDeviceStatusListener(this);
-//            } else {
-//                // Logged out
-//                SessionManager.deviceManager().removeDeviceListListener(this);
-//                SessionManager.deviceManager().removeDeviceStatusListener(this);
-//            }
-//        }
+        Log.d("WIDGET", "login changed");
+        if(!loggedIn){
+            if(contextStatic != null){
+                remoteViews = new RemoteViews(contextStatic.getPackageName(), R.layout.ayla_widget);
+                remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
+                //Updates the widget UI
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(contextStatic);
+                ComponentName aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
+                appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
+            }
+            SessionManager.deviceManager().removeDeviceListListener(this);
+            SessionManager.deviceManager().removeDeviceStatusListener(this);
+
+
+        }
     }
 
     @Override
