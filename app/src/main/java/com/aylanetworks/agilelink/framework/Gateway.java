@@ -136,7 +136,15 @@ public class Gateway extends Device {
                 }
             }
         } else {
-            Logger.logError(LOG_TAG, "rm: gateway [%s] has no nodes!", gateway.dsn);
+            Logger.logError(LOG_TAG, "zs: gateway [%s] has no nodes!", gateway.dsn);
+            for (Device d : devices) {
+                if (d.isDeviceNode()) {
+                    Gateway g = getGatewayForDeviceNode(d);
+                    if ((g != null) && TextUtils.equals(g.getDeviceDsn(), this.getDeviceDsn())) {
+                        list.add(SessionManager.deviceManager().deviceByDSN(d.getDeviceDsn()));
+                    }
+                }
+            }
         }
         return list;
     }

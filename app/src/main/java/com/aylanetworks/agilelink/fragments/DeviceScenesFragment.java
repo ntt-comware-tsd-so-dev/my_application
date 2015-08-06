@@ -420,6 +420,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 ZigbeeGateway gateway = (ZigbeeGateway)g;
                 List<Device> devices = gateway.filterDeviceList(sceneDevices);
                 AylaSceneZigbee scene = gateway.getSceneByName(name);
+                Logger.logInfo(LOG_TAG, "zs: updateScene [%s] [%s:%s]", name, gateway.getDeviceDsn(), DeviceManager.deviceListToString(sceneDevices));
                 if (scene == null) {
                     gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
                         @Override
@@ -526,10 +527,12 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         addSceneGatewayCount = gateways.size();
         addSceneGatewayDone = addSceneGatewaySuccess = 0;
 
+        Logger.logInfo(LOG_TAG, "zs: addScene [%s] [%s]", name,  DeviceManager.deviceListToString(sceneDevices));
         for (Gateway g : gateways) {
             if (g.isZigbeeGateway()) {
                 ZigbeeGateway gateway = (ZigbeeGateway)g;
-                List<Device> devices = gateway.filterDeviceList(sceneDevices);
+                final List<Device> devices = new ArrayList<Device>( gateway.filterDeviceList(sceneDevices));
+                Logger.logInfo(LOG_TAG, "zs: addScene [%s] [%s:%s]", name, gateway.getDeviceDsn(), DeviceManager.deviceListToString(devices));
                 gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
                     @Override
                     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
@@ -556,6 +559,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             if (source.equals("")) {
                 return source;
             }
+            // Spaces are not allowed in Scene names, but the underscore is.  We replace
+            // spaces with underscores.
             if (source.toString().matches("[a-zA-Z0-9[- \\/\\(\\)\\{\\}\\[\\]\\#\\@\\$]]*")) {
                 return source;
             }

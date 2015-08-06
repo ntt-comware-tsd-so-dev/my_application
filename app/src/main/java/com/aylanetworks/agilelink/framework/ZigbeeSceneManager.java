@@ -385,6 +385,7 @@ public class ZigbeeSceneManager {
         updateSceneWithDevices(scene, devices);
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
+        Logger.logDebug(LOG_TAG, "zs: createScene [%s]", scene);
         gateway.createScene(new CreateHandler(this, name, tag, handler), scene, callParams, false);
     }
 

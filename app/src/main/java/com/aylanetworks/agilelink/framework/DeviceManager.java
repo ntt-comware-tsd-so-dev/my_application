@@ -18,6 +18,8 @@ import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
+import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 
@@ -67,6 +69,32 @@ public class DeviceManager implements DeviceStatusListener {
          * Called when the list of devices has changed.
          */
         void deviceListChanged();
+    }
+
+    /**
+     * Useful method for returning a Device list as a string for logging output
+     * @param list Device list
+     * @return String of Device DSN
+     */
+    static public String deviceListToString(List<Device> list) {
+        StringBuilder sb = new StringBuilder(512);
+        if (list != null) {
+            if (list.isEmpty()) {
+                sb.append("empty");
+            } else {
+                sb.append("{");
+                for (Device device : list) {
+                    if (sb.length() > 1) {
+                        sb.append(",");
+                    }
+                    sb.append(device.getDeviceDsn());
+                }
+                sb.append("}");
+            }
+        } else {
+            sb.append("null");
+        }
+        return sb.toString();
     }
 
     /**
