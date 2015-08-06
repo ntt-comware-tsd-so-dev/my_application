@@ -209,11 +209,14 @@ public class ZigbeeSceneManager {
         StringBuilder sb = new StringBuilder(512);
         if (scene != null) {
             if (scene.nodes != null) {
-                for (AylaSceneZigbeeNodeEntity node : scene.nodes) {
+                for (AylaSceneZigbeeNodeEntity dn : scene.nodes) {
                     if (sb.length() > 0) {
                         sb.append(",");
                     }
-                    sb.append(node.dsn);
+                    sb.append(dn.dsn);
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
+                        sb.append(" (Deleted)");
+                    }
                 }
             }
         }
@@ -235,7 +238,7 @@ public class ZigbeeSceneManager {
                         Logger.logWarning(LOG_TAG, "zs: getDevices [%s] dn NULL", scene.sceneName);
                         continue;
                     }
-                    if (TextUtils.equals(dn.action, "delete")) {
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
                         continue;
                     }
                     Device d = SessionManager.deviceManager().deviceByDSN(dn.dsn);
@@ -269,6 +272,9 @@ public class ZigbeeSceneManager {
                     continue;
                 }
                 if (TextUtils.equals(dsn, dn.dsn)) {
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status, "success")) {
+                        return false;
+                    }
                     return true;
                 }
             }
