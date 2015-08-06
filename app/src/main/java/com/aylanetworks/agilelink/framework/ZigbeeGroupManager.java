@@ -257,6 +257,10 @@ public class ZigbeeGroupManager {
                     continue;
                 }
                 if (TextUtils.equals(dsn, dn.dsn)) {
+                    // ignore successful deletion
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
+                        return false;
+                    }
                     return true;
                 }
             }
