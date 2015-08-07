@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
+    public final static int ITEM_VIEW_TYPE_WITH_STATUS = 4;
 
     /**
      * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
@@ -140,6 +142,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                                 R.layout.cardview_generic_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_WITH_STATUS:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_text_status_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_text_status :
+                                R.layout.cardview_text_status;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new ZigbeeStatusDeviceHolder(v);
         }
 
         return super.viewHolderForViewType(parent, viewType);

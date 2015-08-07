@@ -1,9 +1,13 @@
 package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -61,4 +65,26 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.ic_door_red);
     }
+
+    @Override
+    public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        super.bindViewHolder(holder);
+        if (holder instanceof ZigbeeStatusDeviceHolder) {
+            Resources res = MainActivity.getInstance().getResources();
+            String statusText = isOpen()? getTriggerOnName(): getTriggerOffName();
+            ZigbeeStatusDeviceHolder h = (ZigbeeStatusDeviceHolder) holder;
+            h.statusTextView.setText(statusText);
+
+        }
+    }
+
+    public boolean isOpen() {
+        AylaProperty prop = getProperty(getObservablePropertyName());
+        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+            return true;
+        }
+
+        return false;
+    }
+
 }

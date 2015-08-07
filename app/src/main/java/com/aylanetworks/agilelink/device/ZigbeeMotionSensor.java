@@ -1,9 +1,14 @@
 package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -41,6 +46,7 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
         if (propertyName.equals(PROPERTY_ZB_MOTION_SENSOR)) {
+
             return MainActivity.getInstance().getString(R.string.property_remote_switch_friendly_name);
         }
         return super.friendlyNameForPropertyName(propertyName);
@@ -64,5 +70,31 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
     @Override
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.ic_motionsensor_red);
+    }
+
+    @Override
+    public int getItemViewType() {
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_WITH_STATUS;
+    }
+
+    public boolean isMoving() {
+        AylaProperty prop = getProperty(getObservablePropertyName());
+        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        super.bindViewHolder(holder);
+        if (holder instanceof ZigbeeStatusDeviceHolder) {
+            Resources res = MainActivity.getInstance().getResources();
+            String statusText = isMoving()? getTriggerOnName(): getTriggerOffName();
+            ZigbeeStatusDeviceHolder h = (ZigbeeStatusDeviceHolder) holder;
+            h.statusTextView.setText(statusText);
+
+        }
     }
 }
