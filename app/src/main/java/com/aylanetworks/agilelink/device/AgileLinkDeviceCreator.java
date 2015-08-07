@@ -145,7 +145,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
             case ITEM_VIEW_TYPE_WITH_STATUS:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_text_status_grid :
-                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_text_status :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
                                 R.layout.cardview_text_status;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new ZigbeeStatusDeviceHolder(v);

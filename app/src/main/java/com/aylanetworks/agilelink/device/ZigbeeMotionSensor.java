@@ -93,7 +93,10 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
             Resources res = MainActivity.getInstance().getResources();
             String statusText = isMoving()? getTriggerOnName(): getTriggerOffName();
             ZigbeeStatusDeviceHolder h = (ZigbeeStatusDeviceHolder) holder;
-            h.statusTextView.setText(statusText);
+            if(h.statusTextView != null){
+                h.statusTextView.setText(statusText);
+            }
+
 
         }
     }

@@ -49,7 +49,6 @@
             android:id="@+id/textview_device_status"
             style="@style/DeviceStatusTextView"
             android:text="status"
-            android:textSize="40dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:scaleType="fitXY"
