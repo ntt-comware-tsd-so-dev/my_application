@@ -130,11 +130,14 @@ public class ZigbeeGroupManager {
                     sb.append(dsn);
                 }
             } else if (group.nodes != null) {
-                for (AylaDeviceZigbeeNode node : group.nodes) {
+                for (AylaDeviceZigbeeNode dn : group.nodes) {
                     if (sb.length() > 0) {
                         sb.append(",");
                     }
-                    sb.append(node.dsn);
+                    sb.append(dn.dsn);
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
+                        sb.append(" (Deleted)");
+                    }
                 }
             }
         }
@@ -169,7 +172,7 @@ public class ZigbeeGroupManager {
                         Logger.logWarning(LOG_TAG, "zg: getDevices [%s] dn NULL", group.groupName);
                         continue;
                     }
-                    if (TextUtils.equals(dn.action, "delete")) {
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
                         continue;
                     }
                     Device d = SessionManager.deviceManager().deviceByDSN(dn.dsn);
@@ -216,7 +219,7 @@ public class ZigbeeGroupManager {
                         Logger.logWarning(LOG_TAG, "zg: getDevices [%s] dn NULL", group.groupName);
                         continue;
                     }
-                    if (TextUtils.equals(dn.action, "delete")) {
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status, "success")) {
                         continue;
                     }
                     Device d = SessionManager.deviceManager().deviceByDSN(dn.dsn);
@@ -257,6 +260,10 @@ public class ZigbeeGroupManager {
                     continue;
                 }
                 if (TextUtils.equals(dsn, dn.dsn)) {
+                    // ignore successful deletion
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
+                        return false;
+                    }
                     return true;
                 }
             }

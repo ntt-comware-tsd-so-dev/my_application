@@ -298,13 +298,21 @@ public class ScheduleFragment extends Fragment {
         return root;
     }
 
+    TimeZone getTimeZone() {
+        TimeZone tz = _device.getTimeZone();
+        if (tz == null) {
+            tz = TimeZone.getTimeZone("UTC");
+        }
+        return tz;
+    }
+
     private void scheduleTimeChanged(int hourOfDay, int minute) {
         if ( _updatingUI ) {
             return;
         }
 
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(_device.getTimeZone());
+        cal.setTimeZone(getTimeZone());
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
@@ -358,7 +366,7 @@ public class ScheduleFragment extends Fragment {
 
         // Start date is always "right now".
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(_device.getTimeZone());
+        cal.setTimeZone(getTimeZone());
         _schedule.setStartDate(cal);
 
 

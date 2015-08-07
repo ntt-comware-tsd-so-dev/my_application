@@ -105,7 +105,8 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
                         SessionManager.deviceManager().refreshDeviceList();
                         if (error == AylaNetworks.AML_ERROR_OK) {
-                            MenuHandler.handleAllDevices();
+                            // Go to the Gateway display
+                            MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
                         }
                     }
                 });

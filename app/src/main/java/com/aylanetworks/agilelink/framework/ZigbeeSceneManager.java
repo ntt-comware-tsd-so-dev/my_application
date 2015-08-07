@@ -54,7 +54,7 @@ public class ZigbeeSceneManager {
                     for (AylaSceneZigbee scene : scenes) {
                         // Not case-sensitive
                         if (!list.contains(scene.sceneName)) {
-                            list.add(scene.sceneName);
+                            list.add(scene.sceneName.replace("_", " "));
                         }
                     }
                 }
@@ -209,11 +209,14 @@ public class ZigbeeSceneManager {
         StringBuilder sb = new StringBuilder(512);
         if (scene != null) {
             if (scene.nodes != null) {
-                for (AylaSceneZigbeeNodeEntity node : scene.nodes) {
+                for (AylaSceneZigbeeNodeEntity dn : scene.nodes) {
                     if (sb.length() > 0) {
                         sb.append(",");
                     }
-                    sb.append(node.dsn);
+                    sb.append(dn.dsn);
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
+                        sb.append(" (Deleted)");
+                    }
                 }
             }
         }
@@ -235,7 +238,7 @@ public class ZigbeeSceneManager {
                         Logger.logWarning(LOG_TAG, "zs: getDevices [%s] dn NULL", scene.sceneName);
                         continue;
                     }
-                    if (TextUtils.equals(dn.action, "delete")) {
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status,"success")) {
                         continue;
                     }
                     Device d = SessionManager.deviceManager().deviceByDSN(dn.dsn);
@@ -269,6 +272,9 @@ public class ZigbeeSceneManager {
                     continue;
                 }
                 if (TextUtils.equals(dsn, dn.dsn)) {
+                    if (TextUtils.equals(dn.action, "delete") && TextUtils.equals(dn.status, "success")) {
+                        return false;
+                    }
                     return true;
                 }
             }
@@ -313,10 +319,13 @@ public class ZigbeeSceneManager {
      * @return AylaSceneZigbee matching the specified name.
      */
     public AylaSceneZigbee getByName(String name) {
-        if ((_scenes != null) && (_scenes.size() > 0)) {
-            for (AylaSceneZigbee scene : _scenes) {
-                if (TextUtils.equals(scene.sceneName, name)) {
-                    return scene;
+        if (!TextUtils.isEmpty(name)) {
+            if ((_scenes != null) && (_scenes.size() > 0)) {
+                name = name.replace(" ", "_");
+                for (AylaSceneZigbee scene : _scenes) {
+                    if (TextUtils.equals(scene.sceneName, name)) {
+                        return scene;
+                    }
                 }
             }
         }
@@ -375,12 +384,14 @@ public class ZigbeeSceneManager {
      * @param handler Optional completion handler.
      */
     public void createScene(String name, List<Device> devices, Object tag, Gateway.AylaGatewayCompletionHandler handler) {
+        name = name.replace(" ", "_");
         AylaSceneZigbee scene = new AylaSceneZigbee();
         scene.sceneName = name;
         scene.gatewayDsn = _gateway.getDeviceDsn();
         updateSceneWithDevices(scene, devices);
         Map<String, Object> callParams = new HashMap<>();
         AylaDeviceZigbeeGateway gateway = (AylaDeviceZigbeeGateway)_gateway.getDevice();
+        Logger.logDebug(LOG_TAG, "zs: createScene [%s]", scene);
         gateway.createScene(new CreateHandler(this, name, tag, handler), scene, callParams, false);
     }
 
@@ -709,8 +720,9 @@ public class ZigbeeSceneManager {
 
     private void removeSceneByName(String sceneName) {
         // remove from internal list
+        String name = sceneName.replace(" ", "_");
         for (AylaSceneZigbee g : _scenes) {
-            if (g.sceneName.equals(sceneName)) {
+            if (g.sceneName.equals(name)) {
                 _scenes.remove(g);
                 notifyListChanged();
                 return;

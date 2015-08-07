@@ -169,6 +169,19 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
         return view;
     }
 
+    List<Device> getAvailableDevicesForRemote(RemoteSwitchDevice remote) {
+        // Get a list of the devices that can be paired to this remote
+        final List<Device> devices = _gateway.getDevicesOfComparableType(this);
+        final List<Device> list = new ArrayList<Device>();
+        for (Device device : devices) {
+            // This only checks to see if the device is paired with this remote
+            if (!remote.isDevicePaired(device)) {
+                list.add(device);
+            }
+        }
+        return list;
+    }
+
     void updateGroups() {
         int errors = 0;
 
@@ -232,6 +245,9 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             // we are a remote
             devices = ((RemoteSwitchDevice)_device).getPairedDevices();
             enableRem = (devices.size() > 0);
+
+            List<Device> available = getAvailableDevicesForRemote((RemoteSwitchDevice)_device);
+            enableAdd = (available.size() > 0);
         } else {
             // we are a device
 
@@ -323,13 +339,10 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             RemoteSwitchDevice remote = (RemoteSwitchDevice)_device;
 
             // Get a list of the devices that can be paired to this remote
-            final List<Device> devices = _gateway.getDevicesOfComparableType(this);
-            final List<Device> list = new ArrayList<Device>();
-            for (Device device : devices) {
-                // This only checks to see if the device is paired with this remote
-                if (!remote.isDevicePaired(device)) {
-                    list.add(device);
-                }
+            final List<Device> list = getAvailableDevicesForRemote(remote);
+            if (list.isEmpty()) {
+                Toast.makeText(getActivity(), R.string.no_devices_available_to_pair, Toast.LENGTH_SHORT).show();
+                return;
             }
 
             // show a multiple selection dialog with the available devices to add
@@ -343,6 +356,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                 apNames[i] = d.getProductName();
                 selected.add(d);
             }
+
             new AlertDialog.Builder(getActivity())
                     .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.remote_pair_to_devices)
@@ -395,7 +409,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
                         .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                pairDevice((RemoteSwitchDevice)list.get(which), _device);
+                                pairDevice((RemoteSwitchDevice) list.get(which), _device);
                                 dialog.dismiss();
                             }
                         })
@@ -417,6 +431,10 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
 
             // Get a list of the devices that can be unpaired from this remote
             final List<Device> list = remote.getPairedDevices();
+            if (list.isEmpty()) {
+                Toast.makeText(getActivity(), R.string.no_devices_available_to_unpair, Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // show a multiple selection dialog with the available devices to remove
             String apNames[] = new String[list.size()];

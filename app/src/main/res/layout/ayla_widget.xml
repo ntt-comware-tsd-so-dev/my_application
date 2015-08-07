@@ -1,0 +1,113 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:padding="@dimen/widget_margin" android:background="@color/app_theme_window_background">
+
+    <TextView android:id="@+id/appwidget_text" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_centerHorizontal="true"
+        android:text="Device Name"
+        android:textColor="#000000" android:textSize="24sp" android:textStyle="bold|italic"
+        android:layout_margin="8dp" android:contentDescription="@string/appwidget_text"
+         />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        />
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/linearlayout_plug"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/appwidget_text"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/plug_toggle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#66c1e0"
+            android:layout_marginLeft="5px"
+            android:layout_marginRight="5px"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/linearlayout_evb"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/appwidget_text"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/green_led_toggle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#37BC61"
+            android:textColor="#FFFFFF"
+            android:layout_marginLeft="5px"
+            android:layout_marginRight="5px"/>
+
+
+        <Button android:id="@+id/blue_led_toggle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#66c1e0"
+            android:layout_toLeftOf="@id/green_led_toggle"
+            android:layout_marginLeft="5px"
+            android:layout_marginRight="5px"
+            android:textColor="#FFFFFF"/>
+<!--
+        <Button android:id="@+id/blue_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#66c1e0"
+            android:layout_toRightOf="@id/green_led_toggle"
+            android:layout_marginLeft="5px"
+            android:layout_marginRight="5px"
+            android:textColor="#FFFFFF"/>-->
+
+    </LinearLayout>
+
+
+    <ImageButton android:id="@+id/refresh_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/refresh"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10px"
+        />
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentRight="true"
+    >
+
+
+
+
+    <Button android:id="@+id/device_down"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="#66c1e0"
+        android:layout_marginLeft="10px"
+        android:layout_toLeftOf="@+id/device_up"
+        android:text="-"
+        android:textColor="#FFFFFF"/>
+
+    <Button android:id="@+id/device_up"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="#66c1e0"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10px"
+        android:text="+"
+        android:textColor="#FFFFFF"/>
+
+</LinearLayout>
+</RelativeLayout>

@@ -53,7 +53,16 @@ public class MenuHandler {
      */
     public static boolean handleMenuItem(MenuItem menuItem) {
         MainActivity.getInstance().activateMenuItem(menuItem);
-        switch ( menuItem.getItemId() ) {
+        return handleMenuId(menuItem.getItemId());
+    }
+
+    /**
+     * Handles the given menu id, or returns false if not handled.
+     * @param id Menu item id to handle.
+     * @return true if handled, false if not handled.
+     */
+    public static boolean handleMenuId(int id) {
+        switch (id) {
             case R.id.action_all_devices:
                 handleAllDevices();
                 break;
@@ -110,7 +119,6 @@ public class MenuHandler {
             default:
                 return false;
         }
-
         return true;
     }
 
