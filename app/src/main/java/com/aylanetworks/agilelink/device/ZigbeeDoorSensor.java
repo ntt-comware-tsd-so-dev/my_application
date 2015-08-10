@@ -24,6 +24,7 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     private final static String LOG_TAG = "ZigbeeDoorSensor";
 
     public final static String PROPERTY_ZB_OUTPUT = "1_out_0x0006_0x0000";
+
     public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_OUTPUT;
 
     public ZigbeeDoorSensor(AylaDevice device) {
@@ -57,6 +58,11 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     }
 
     @Override
+    public int getItemViewType() {
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_WITH_STATUS;
+    }
+
+    @Override
     public String deviceTypeName() {
         return "Door Sensor";
     }
@@ -73,7 +79,9 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
             Resources res = MainActivity.getInstance().getResources();
             String statusText = isOpen()? getTriggerOnName(): getTriggerOffName();
             ZigbeeStatusDeviceHolder h = (ZigbeeStatusDeviceHolder) holder;
-            h.statusTextView.setText(statusText);
+            if(h.statusTextView != null){
+                h.statusTextView.setText(statusText);
+            }
 
         }
     }
