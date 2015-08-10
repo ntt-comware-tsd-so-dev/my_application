@@ -24,8 +24,9 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     private final static String LOG_TAG = "ZigbeeDoorSensor";
 
     public final static String PROPERTY_ZB_OUTPUT = "1_out_0x0006_0x0000";
-
-    public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_OUTPUT;
+    public final static String PROPERTY_ZB_INPUT = "1_in_0x0500_0x0002";
+    //public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_OUTPUT;
+    public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_INPUT;
 
     public ZigbeeDoorSensor(AylaDevice device) {
         super(device);

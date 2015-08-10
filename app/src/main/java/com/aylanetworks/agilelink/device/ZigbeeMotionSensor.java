@@ -27,7 +27,8 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
     public final static String PROPERTY_ZB_INPUT = "1_in_0x0006_0x0000";
     public final static String PROPERTY_ZB_INPUT_IAS = "1_in_0x0500_0x0002";
 
-    public final static String PROPERTY_ZB_MOTION_SENSOR = PROPERTY_ZB_INPUT;
+   // public final static String PROPERTY_ZB_MOTION_SENSOR = PROPERTY_ZB_INPUT;
+   public final static String PROPERTY_ZB_MOTION_SENSOR = PROPERTY_ZB_INPUT_IAS;
     public final static String PROPERTY_ZB_MOTION_SENSOR_IAS = PROPERTY_ZB_INPUT_IAS;
     public final static String PROPERTY_ZB_MOTION_SENSOR_FAKE = PROPERTY_ZB_INPUT;
 
