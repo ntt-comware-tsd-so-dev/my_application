@@ -538,13 +538,15 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         }
     }
 
-    void onSelectMenuItemById(int id) {
+    public void onSelectMenuItemById(int id) {
         if (_navigationView != null) {
             Menu menu = _navigationView.getMenu();
             MenuItem item = menu.findItem(id);
             if (item != null) {
                 MenuHandler.handleMenuItem(item);
             }
+        } else {
+            MenuHandler.handleMenuId(id);
         }
     }
 
@@ -755,7 +757,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void onBackPressed() {
         FragmentManager fm = getSupportFragmentManager();
         int bsc = fm.getBackStackEntryCount();
-
         // Open the nav drawer on back unless it's already open (or we don't have one)
         if ( _drawerToggle != null &&
                 !_noDevicesMode &&
@@ -775,10 +776,17 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                     onSelectMenuItemById(R.id.action_all_devices);
                     return;
                 }
+
             } else {
+
                 //Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
             }
-        } else {
+        } else if(bsc == 1 ){
+            if(SessionManager.deviceManager().deviceList().isEmpty()){
+                this.finish();
+
+            }
+        }else {
             FragmentManager.BackStackEntry bse = fm.getBackStackEntryAt(bsc - 1);
             //Log.e(LOG_TAG, "back: onBackPressed id=" + bse.getId() + ", name=" + bse.getName() + ", title=" + bse.getBreadCrumbTitle());
             Fragment frag = fm.findFragmentById(bse.getId());

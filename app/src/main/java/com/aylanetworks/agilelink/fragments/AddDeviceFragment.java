@@ -92,7 +92,7 @@ public class AddDeviceFragment extends Fragment
     private Spinner _spinnerGatewaySelection;
     private TextView _descriptionTextView;
     private int _registrationType = REG_TYPE_SAME_LAN;
-
+    private Spinner _spinnerProductType;
     private static boolean _needsExit;
 
     @Override
@@ -104,36 +104,6 @@ public class AddDeviceFragment extends Fragment
         // Stop polling & LAN mode
         SessionManager.getInstance().setRegistrationMode(true);
     }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        Logger.logVerbose(LOG_TAG, "rn: onDetach");
-
-        if (_nodeRegistrationGateway != null) {
-            _nodeRegistrationGateway.cleanupRegistrationScan();
-        }
-
-        if (_needsExit) {
-            exitSetup();
-        }
-
-        // Start polling
-        SessionManager.getInstance().setRegistrationMode(false);
-        SessionManager.deviceManager().startPolling();
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        menu.clear();
-        if ( MainActivity.getInstance().isNoDevicesMode() ) {
-            getActivity().getMenuInflater().inflate(R.menu.menu_no_devices, menu);
-        }
-
-        super.onPrepareOptionsMenu(menu);
-    }
-
-    Spinner _spinnerProductType;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -198,6 +168,34 @@ public class AddDeviceFragment extends Fragment
         SessionManager.deviceManager().stopPolling();
 
         return view;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Logger.logVerbose(LOG_TAG, "rn: onDetach");
+
+        if (_nodeRegistrationGateway != null) {
+            _nodeRegistrationGateway.cleanupRegistrationScan();
+        }
+
+        if (_needsExit) {
+            exitSetup();
+        }
+
+        // Start polling
+        SessionManager.getInstance().setRegistrationMode(false);
+        SessionManager.deviceManager().startPolling();
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        if ( MainActivity.getInstance().isNoDevicesMode() ) {
+            getActivity().getMenuInflater().inflate(R.menu.menu_no_devices, menu);
+        }
+
+        super.onPrepareOptionsMenu(menu);
     }
 
     void dismissWaitDialog() {
@@ -439,7 +437,7 @@ public class AddDeviceFragment extends Fragment
         */
 
         if (!moreComing) {
-            MenuHandler.handleAllDevices();
+            MainActivity.getInstance().onSelectMenuItemById(R.id.action_all_devices);
         }
     }
 

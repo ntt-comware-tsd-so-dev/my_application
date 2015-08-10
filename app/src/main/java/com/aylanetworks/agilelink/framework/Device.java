@@ -444,9 +444,12 @@ public class Device implements Comparable<Device> {
      * @param listener Listener to be notified when the status has been updated.
      */
     public void updateStatus(final DeviceStatusListener listener) {
-        Map<String, String> getPropertyArguments = getPropertyArgumentMap();
-
-        getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
+        try {
+            Map<String, String> getPropertyArguments = getPropertyArgumentMap();
+            getDevice().getProperties(new GetPropertiesHandler(this, listener), getPropertyArguments);
+        } catch (Exception ex) {
+            Logger.logError(LOG_TAG, ex, "updateStatus");
+        }
     }
 
     /**
@@ -767,7 +770,7 @@ public class Device implements Comparable<Device> {
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
                 if ( dm != null && AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
-                    Logger.logDebug(LOG_TAG, "Entering LAN mode: " + _device.get());
+                    Logger.logDebug(LOG_TAG, "Entering LAN mode: [%s]", _device.get().getDeviceDsn() );
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
 
@@ -1015,7 +1018,7 @@ public class Device implements Comparable<Device> {
         public void fetchNextAction() {
             if (_schedulesToUpdate.isEmpty()) {
                 // We're done.
-                Logger.logDebug(LOG_TAG, "All schedule actions updated for " + _device);
+                Logger.logDebug(LOG_TAG, "All schedule actions updated for [%s]", _device.getDeviceDsn());
                 _listener.statusUpdated(_device, true);
                 return;
             }

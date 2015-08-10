@@ -21,6 +21,8 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
     <string name="remote">Remote</string>
     <string name="remote_paired_devices">Paired Devices</string>
     <string name="remote_paired_remote">Paired Remote</string>
@@ -492,6 +494,8 @@
     <string name="trigger_action_fix_body">Updating triggers for device</string>
     <string name="trigger_action_fix_complete">Fix Triggers Complete</string>
     <string name="trigger_action_fix_failure">Fix Triggers Failed</string>
+    <string name="appwidget_text">AMAP</string>
+    <string name="add_widget">Add widget</string>
 
     <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
     <string name="add_scene">Add Scene</string>
@@ -535,6 +539,8 @@
     <string name="switched_off_name">Off</string>
     <string name="no_property">No Property</string>
     <string name="activate_scene_icon" formatted="false">Activate %s</string>
+    <string name="no_devices_available_to_pair">No devices available to pair</string>
+    <string name="no_devices_available_to_unpair">No devices to unpair</string>
 
     <!-- Welcome and SEtup Guide Page -->
     <string name="welcome_text">Welcome to AMAP!</string>

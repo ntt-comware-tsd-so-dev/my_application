@@ -255,8 +255,13 @@ public class Schedule implements  Cloneable {
         if (startTime == null) {
             _schedule.startTimeEachDay = "";
         } else {
-            _schedule.startTimeEachDay = _dateFormatHMS.format(startTime.getTime());
-            Log.d(LOG_TAG, "setStartTimeEachDay: " + _schedule.startTimeEachDay);
+            try {
+                Date date = startTime.getTime();
+                _schedule.startTimeEachDay = _dateFormatHMS.format(date);
+                Log.d(LOG_TAG, "setStartTimeEachDay: " + _schedule.startTimeEachDay);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -586,20 +591,22 @@ public class Schedule implements  Cloneable {
         scheduleStartTime.add(Calendar.SECOND, duration);
         _schedule.endDate = _dateFormatYMD.format(scheduleStartTime.getTime());
 
-        AylaScheduleAction action1 = _schedule.scheduleActions[0];
-        AylaScheduleAction action2 = _schedule.scheduleActions[1];
+        if ((_schedule.scheduleActions != null) && (_schedule.scheduleActions.length > 1)) {
+            AylaScheduleAction action1 = _schedule.scheduleActions[0];
+            AylaScheduleAction action2 = _schedule.scheduleActions[1];
 
-        // Turn off action
-        action1.value = "0";
-        action1.atStart = !onAtStart;
-        action1.atEnd = onAtStart;
-        action1.active = (offMinutes != 0);
+            // Turn off action
+            action1.value = "0";
+            action1.atStart = !onAtStart;
+            action1.atEnd = onAtStart;
+            action1.active = (offMinutes != 0);
 
-        // Turn on action
-        action2.value = "1";
-        action2.atStart = onAtStart;
-        action2.atEnd = !onAtStart;
-        action2.active = (onMinutes != 0);
+            // Turn on action
+            action2.value = "1";
+            action2.atStart = onAtStart;
+            action2.atEnd = !onAtStart;
+            action2.active = (onMinutes != 0);
+        }
     }
 
     public void setIsTimer(boolean isTimer) {
