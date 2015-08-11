@@ -156,6 +156,8 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Constructor */
     DeviceManager() {
+        _registrationMode = false;
+
         _deviceListListeners = new HashSet<>();
         _deviceStatusListeners = new HashSet<>();
 

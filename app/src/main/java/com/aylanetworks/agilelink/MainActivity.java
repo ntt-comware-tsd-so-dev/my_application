@@ -241,7 +241,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         if ( _noDevicesMode ) {
             SessionManager.deviceManager().stopPolling();
-            setContentView(R.layout.activity_main_no_devices);
+            if (getUIConfig()._navStyle == UIConfig.NavStyle.Material) {
+                setContentView(R.layout.activity_main_no_devices_material);
+                _toolbar = (Toolbar) findViewById(R.id.toolbar);
+                setSupportActionBar(_toolbar);
+            } else {
+                setContentView(R.layout.activity_main_no_devices);
+            }
             MenuHandler.handleAddDevice();
         } else {
             initUI();
@@ -338,10 +344,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 }
             });
         } else if ( reqCode == REQ_SIGN_IN ) {
-            Log.d(LOG_TAG, "Login screen finished");
+            Log.d(LOG_TAG, "nod: Login screen finished");
 
             if ( resultCode == RESULT_FIRST_USER ) {
-                Log.d(LOG_TAG, "Back pressed from login. Finishing.");
+                Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
             }
         }
@@ -895,18 +901,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             @Override
             public void run() {
                 dismissWaitDialog();
-                Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
+                Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
                 if (!loggedIn) {
                     // User logged out.
                     setNoDevicesMode(false);
                     if (!_loginScreenUp) {
                         showLoginDialog();
                     } else {
-                        Log.e(LOG_TAG, "Login screen is already up:");
+                        Log.e(LOG_TAG, "nod: Login screen is already up:");
                         Thread.dumpStack();
                     }
                 } else {
                     // Finish  the login dialog
+                    Log.d(LOG_TAG, "nod: finish login dialog");
                     MainActivity.this.finishActivity(REQ_SIGN_IN);
                     _loginScreenUp = false;
                     dismissWaitDialog();

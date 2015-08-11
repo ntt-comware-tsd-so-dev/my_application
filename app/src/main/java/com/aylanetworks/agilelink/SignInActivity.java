@@ -90,6 +90,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(LOG_TAG, "nod: onCreate");
 
         // Phones are portrait-only. Tablets support orientation changes.
         if(getResources().getBoolean(R.bool.portrait_only)){
@@ -193,41 +194,85 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                                 });
 
         _forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
-                                                       @Override
-                                                       public void onClick(View v) {
-                                                           onForgotPassword();
-                                                       }
-                                                   });
-
-        Bundle args = getIntent().getExtras();
-        String username = args.getString(ARG_USERNAME);
-        String password = args.getString(ARG_PASSWORD);
-        _username.setText(username);
-        _password.setText(password);
-        _password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if ( actionId == EditorInfo.IME_ACTION_DONE ) {
-                    // Enter key pressed
-                    _loginButton.performClick();
-                    return true;
-                }
-                return false;
+            public void onClick(View v) {
+                onForgotPassword();
             }
         });
+
+        Intent intent = getIntent();
+        dumpIntent("nod: ", intent);
+        Bundle args = intent.getExtras();
+        if (args != null) {
+            String username = args.getString(ARG_USERNAME);
+            String password = args.getString(ARG_PASSWORD);
+            _username.setText(username);
+            _password.setText(password);
+            _password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        // Enter key pressed
+                        _loginButton.performClick();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
 
         SessionManager.addSessionListener(this);
     }
 
     @Override
     protected void onDestroy() {
+        Log.d(LOG_TAG, "nod: onDestroy");
         if ( _progressDialog != null ) {
             _progressDialog.dismiss();
         }
-
         SessionManager.removeSessionListener(this);
-
         super.onDestroy();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(LOG_TAG, "nod: onNewIntent " + intent);
+        //dumpIntent("nod: ", intent);
+    }
+
+    /*
+    public static void dumpIntent(String prefix, Intent intent) {
+        Log.d(LOG_TAG, prefix + intent.toString());
+        Log.d(LOG_TAG, prefix + " action=[" + intent.getAction() + "]");
+        Log.d(LOG_TAG, prefix + " data=[" + intent.getDataString() + "]");
+        Bundle bundle = intent.getExtras();
+        if ((bundle != null) && (bundle.keySet() != null)) {
+            for (String dkey : bundle.keySet()) {
+                Object value = bundle.get(dkey);
+                if (value instanceof Intent) {
+                    dumpIntent(prefix + "[" + dkey + "]: ", (Intent)value);
+                } else {
+                    Log.d(LOG_TAG, String.format(prefix + "  '%s' = [%s] (%s)", dkey, value.toString(), value.getClass().getName()));
+                }
+            }
+        } else {
+            Log.d(LOG_TAG, prefix + " no extras");
+        }
+    }
+    */
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(LOG_TAG, "nod: onResume");
+        Uri uri = AccountConfirmActivity.uri;
+        if (uri != null) {
+            Log.i(LOG_TAG, "onResume: URI is " + uri);
+            handleOpenURI(uri);
+            // Clear out the URI
+            AccountConfirmActivity.uri = null;
+        }
     }
 
     private ProgressDialog _progressDialog;
@@ -247,18 +292,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         dialog.setOnCancelListener(null);
         dialog.show();
         _progressDialog = dialog;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Uri uri = AccountConfirmActivity.uri;
-        if (uri != null) {
-            Log.i(LOG_TAG, "onResume: URI is " + uri);
-            handleOpenURI(uri);
-            // Clear out the URI
-            AccountConfirmActivity.uri = null;
-        }
     }
 
     @Override
