@@ -201,7 +201,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         });
 
         Intent intent = getIntent();
-        dumpIntent("nod: ", intent);
+        //dumpIntent("nod: ", intent);
         Bundle args = intent.getExtras();
         if (args != null) {
             String username = args.getString(ARG_USERNAME);
