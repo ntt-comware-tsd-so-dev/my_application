@@ -293,6 +293,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
         }
         menu.getItem(1).setVisible(hasFactoryReset);
+        menu.getItem(0).setVisible(!hasFactoryReset);
 
         super.onPrepareOptionsMenu(menu);
     }
