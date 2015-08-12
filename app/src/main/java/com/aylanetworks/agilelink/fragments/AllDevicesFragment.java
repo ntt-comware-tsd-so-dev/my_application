@@ -158,10 +158,13 @@ public class AllDevicesFragment extends Fragment
     }
 
     public void updateDeviceList() {
+        boolean hasDevices = false;
+
         List<Device> deviceList = null;
-        if ( SessionManager.deviceManager() != null ) {
+        if (SessionManager.deviceManager() != null) {
             List<Device> all = SessionManager.deviceManager().deviceList();
             if (all != null) {
+                hasDevices = !all.isEmpty();
                 deviceList = new ArrayList<>();
                 for (Device d : all) {
                     if (!d.isGateway()) {
@@ -172,8 +175,8 @@ public class AllDevicesFragment extends Fragment
         }
 
         if ( deviceList != null ) {
-            if ( deviceList.isEmpty() ) {
-                // Enter no devices mode
+            if (!hasDevices) {
+                // Enter absolutely no devices mode
                 Log.e(LOG_TAG, "Received an empty device list!");
                 Thread.dumpStack();
                 MainActivity.getInstance().setNoDevicesMode(true);
@@ -181,11 +184,17 @@ public class AllDevicesFragment extends Fragment
             }
 
             MainActivity.getInstance().setNoDevicesMode(false);
-            if ( _emptyView != null ) {
-                _emptyView.setVisibility(View.GONE);
-                _recyclerView.setVisibility(View.VISIBLE);
-                _adapter = new DeviceListAdapter(deviceList, this);
-                _recyclerView.setAdapter(_adapter);
+            if (_emptyView != null) {
+                if (deviceList.isEmpty()) {
+                    _emptyView.setVisibility(View.VISIBLE);
+                    _emptyView.setText(R.string.no_devices);
+                    _recyclerView.setVisibility(View.GONE);
+                } else {
+                    _emptyView.setVisibility(View.GONE);
+                    _recyclerView.setVisibility(View.VISIBLE);
+                    _adapter = new DeviceListAdapter(deviceList, this);
+                    _recyclerView.setAdapter(_adapter);
+                }
             }
         }
     }
