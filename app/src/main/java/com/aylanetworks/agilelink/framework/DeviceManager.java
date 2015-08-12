@@ -868,8 +868,9 @@ public class DeviceManager implements DeviceStatusListener {
         Log.d(LOG_TAG, "enterLANMode");
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
-        if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
-             AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {
+      /*  if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
+             AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {*/
+        if (  AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
             // Enable LAN mode on the gateway, if present
             Gateway gateway = getGatewayDevice();
             if ( gateway != null ) {
@@ -881,7 +882,7 @@ public class DeviceManager implements DeviceStatusListener {
                 Log.i(LOG_TAG, "LAN mode: No gateway found");
             }
         } else {
-            Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.lanModeState + " - not entering LAN mode");
+            Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.getLanModeState() + " - not entering LAN mode");
         }
     }
 
@@ -1033,7 +1034,7 @@ public class DeviceManager implements DeviceStatusListener {
                     Device device = params.deviceCreator.deviceForAylaDevice(aylaDevice);
                     if ( device != null ) {
                         newDeviceList.add(device);
-                        if ( AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
+                        if ( AylaLanMode.isLanModeRunning() ) {
                             if ( !device.isDeviceNode() && !device.isInLanMode() ) {
                                 Log.d("BSK", "LAN mode enabling " + device);
                                 AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(device.getDevice().dsn);

@@ -769,7 +769,7 @@ public class Device implements Comparable<Device> {
                 // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
-                if ( dm != null && AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
+                if ( dm != null && AylaLanMode.isLanModeRunning() ) {
                     Logger.logDebug(LOG_TAG, "Entering LAN mode: [%s]", _device.get().getDeviceDsn() );
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
