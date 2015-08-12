@@ -877,9 +877,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onResume();
 
         Log.d(LOG_TAG, "onResume");
-        AylaLanMode.resume();
 
         if (SessionManager.deviceManager() != null) {
+            // we aren't going to "resume" LAN mode if we aren't logged in.
+            AylaLanMode.resume();
+
             SessionManager.deviceManager().startPolling();
             setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
         } else if ( !_loginScreenUp ) {
