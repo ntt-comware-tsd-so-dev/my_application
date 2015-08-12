@@ -629,6 +629,7 @@ public class AddDeviceFragment extends Fragment
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
                         SessionManager.deviceManager().refreshDeviceList();
                         if (error == AylaNetworks.AML_ERROR_OK) {
+                            // TODO: Major! unfortunately, we aren't able to transition from nodevicesmode to having devices!
                             MenuHandler.handleAllDevices();
                         }
                     }

@@ -192,9 +192,9 @@ public class AllDevicesFragment extends Fragment
                 } else {
                     _emptyView.setVisibility(View.GONE);
                     _recyclerView.setVisibility(View.VISIBLE);
-                    _adapter = new DeviceListAdapter(deviceList, this);
-                    _recyclerView.setAdapter(_adapter);
                 }
+                _adapter = new DeviceListAdapter(deviceList, this);
+                _recyclerView.setAdapter(_adapter);
             }
         }
     }
