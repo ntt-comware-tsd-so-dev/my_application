@@ -225,7 +225,7 @@ public class Gateway extends Device {
 
     @Override
     public String deviceTypeName() {
-        return "Generic Gateway";
+        return "Gateway";
     }
 
     @Override
