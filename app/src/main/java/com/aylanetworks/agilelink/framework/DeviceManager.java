@@ -732,6 +732,11 @@ public class DeviceManager implements DeviceStatusListener {
 
             Log.d(LOG_TAG, "lanModeHandler: " + msg);
 
+            if (_deviceManager.get() == null) {
+                Log.i(LOG_TAG, "deviceManager has been removed.");
+                return;
+            }
+
             if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_SESSION) == 0) {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
