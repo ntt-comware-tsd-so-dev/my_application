@@ -867,9 +867,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         Log.d(LOG_TAG, "onPause");
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
-        }
 
-        AylaLanMode.pause(false);
+            // we aren't going to "pause" LAN mode if we haven't been logged in.
+            AylaLanMode.pause(false);
+        }
     }
 
     @Override

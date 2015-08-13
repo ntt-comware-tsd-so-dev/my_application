@@ -777,6 +777,7 @@ public class SessionManager {
                     JSONObject results = new JSONObject(json);
                     errorMessage = results.getString("error");
                 } catch (JSONException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage() + " on [" + json + "]");
                     e.printStackTrace();
                     errorMessage = json;
                 }
