@@ -47,6 +47,8 @@ import java.util.TimerTask;
 public class AylaWidget extends AppWidgetProvider implements SessionManager.SessionListener,
         DeviceManager.DeviceListListener, Device.DeviceStatusListener
 {
+    private final static String LOG_TAG = "AylaWidget";
+
     //Tags for the pending intents
     private final String REFRESH_TAG = "refresh";
     private final String BLUE_LED_TOGGLE_TAG = "toggleblue";
@@ -55,6 +57,8 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
     private final String PLUG_TOGGLE_TAG = "toggleplug";
     private final String GO_UP_DEVICE_TAG = "goupdevice";
     private final String GO_DOWN_DEVICE_TAG = "godowndevice";
+    private final String LOGGED_IN_TAG = "loggedin";
+    private final String LOGGED_OUT_TAG = "loggedout";
 
     SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
     final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
@@ -77,15 +81,48 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
     static boolean enabled = false;
     static int deviceNum = 0;
 
-    //Get info from the signIn class
-//    static int currentDeviceNum = signIn.pageNo;
-//    final int MAX_DEVICES = signIn.maxNumDevices;
+    boolean isListening;
+    int _appWidgetId;
 
-    final Handler handler = new Handler();
-    Timer timer = new Timer();
-    TimerTask doAsynchronousTask;
+    protected void startListening() {
+        DeviceManager deviceManager = SessionManager.deviceManager();
+        if (!isListening) {
+            isListening = true;
 
+            Log.d(LOG_TAG, "wig: startListening - add session listener");
+            SessionManager.addSessionListener(this);
+            if (deviceManager != null) {
+                Log.d(LOG_TAG, "wig: startListening - add device listener");
+                SessionManager.deviceManager().addDeviceListListener(this);
+                SessionManager.deviceManager().addDeviceStatusListener(this);
+            } else {
+                Log.d(LOG_TAG, "wig: startListening - no device manager");
+            }
+        } else {
+            Log.d(LOG_TAG, "wig: startListening - already listening.");
+        }
+        if (deviceManager != null) {
+            deviceManager.refreshDeviceList();
+        }
+    }
 
+    protected void stopListening() {
+        if (isListening) {
+            isListening = false;
+            Log.d(LOG_TAG, "wig: stopListening - remove session listener.");
+            SessionManager.removeSessionListener(this);
+            DeviceManager deviceManager = SessionManager.deviceManager();
+            if (deviceManager != null) {
+                Log.d(LOG_TAG, "wig: stopListening - remove device listener.");
+                SessionManager.deviceManager().removeDeviceListListener(this);
+                SessionManager.deviceManager().removeDeviceStatusListener(this);
+            } else {
+                Log.d(LOG_TAG, "wig: stopListening - no device manager.");
+            }
+        } else {
+            Log.d(LOG_TAG, "wig: stopListening - already stopped.");
+        }
+    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -106,21 +143,39 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
     }
 
-    public void onReceive(Context context, Intent intent) {
-        // TODO Auto-generated method stub
-        super.onReceive(context, intent);
+    void onAppWidgetUpdate(Context context, Intent intent) {
+        _appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
+        Log.d(LOG_TAG, "wig: onAppWidgetUpdate id=" + _appWidgetId);
+        startListening();
+        updateDeviceInfo(context);
+    }
 
-        AylaLanMode.resume();   //Resume the Lan Mode when an action is performed
-        timer.cancel();         //Cancel any previous timed Lan Mode pausing
+    void updateDeviceInfo(Context context) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
+        ComponentName aylaWidget = new ComponentName(context, AylaWidget.class);
+        getDeviceInfo(context);
+        appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
+    }
+
+    public void onReceive(Context context, Intent intent) {
+        Log.d(LOG_TAG, "wig: onReceive " + intent);
+        contextStatic = context;
+
+        super.onReceive(context, intent);
 
         //Test based on the tags created by the intents to find the button that was pressed
         String actionType = intent.getAction();
         if(actionType != null){
             switch (actionType){
                 case AppWidgetManager.ACTION_APPWIDGET_UPDATE:
-                case REFRESH_TAG:
-                    getDeviceInfo(context);
+                    onAppWidgetUpdate(context, intent);
                     break;
+
+                case REFRESH_TAG:
+                    updateDeviceInfo(context);
+                    break;
+
                 case PLUG_TOGGLE_TAG:
                     if(outlet1 != null){ // ensure that this gets called only after outlet1 has been set in getProperties handler
                         toggleUI(context, outlet1, R.id.plug_toggle);
@@ -145,29 +200,15 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
                     goDownDevice(context);
                     break;
 
+                case LOGGED_IN_TAG:
+                    onLoggedIn(context, intent);
+                    break;
 
+                case LOGGED_OUT_TAG:
+                    onLoggedOut(context, intent);
+                    break;
             }
         }
-
-        //Created a timed action that will pause the Lan Mode after 60 seconds
-        final Handler handler = new Handler();
-        timer = new Timer();
-        doAsynchronousTask = new TimerTask() {
-
-            @Override
-            public void run() {
-
-                handler.post(new Runnable() {
-                    public void run() {
-                        AylaLanMode.pause(false);
-
-                    }
-                });
-
-            }
-
-        };
-        timer.schedule(doAsynchronousTask, 60000);
     }
 
 
@@ -179,9 +220,9 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     @Override
     public void onEnabled(Context context) {
-        // Enter relevant functionality for when the first widget is created
+        Log.d(LOG_TAG, "wig: onEnabled");
 
-        AylaLanMode.resume();
+        // Enter relevant functionality for when the first widget is created
 
         if ( !TextUtils.isEmpty(savedUsername) && !TextUtils.isEmpty(savedPassword)) {
             signIn(savedUsername, savedPassword);
@@ -232,62 +273,47 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
     public void getDeviceInfo(Context context) {
 
         if(SessionManager.deviceManager() != null){
-            //Creation of items for the manipulation of views in the widget
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            ComponentName aylaWidget;
-            remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
-            aylaWidget = new ComponentName(context, AylaWidget.class);
-
-            SessionManager.deviceManager().refreshDeviceList();
-
-            List<Device> deviceList = null;
-            if ( SessionManager.deviceManager() != null ) {
-
-                deviceList = SessionManager.deviceManager().deviceList();
-
+            List<Device> deviceList = SessionManager.deviceManager().deviceList();
+            if ( deviceList != null ) {
+                Log.d(LOG_TAG, "wig: getDeviceInfo deviceNum=" + deviceNum);
                 AylaDevice device = deviceList.get(deviceNum).getDevice();
+                if (device != null) {
+                    if (deviceNum < deviceList.size() - 1)
+                        remoteViews.setViewVisibility(R.id.device_up, View.VISIBLE);
+                    else
+                        remoteViews.setViewVisibility(R.id.device_up, View.GONE);
+
+                    if (deviceNum > 0)
+                        remoteViews.setViewVisibility(R.id.device_down, View.VISIBLE);
+                    else
+                        remoteViews.setViewVisibility(R.id.device_down, View.GONE);
 
 
-                if (deviceNum < deviceList.size() - 1)
-                    remoteViews.setViewVisibility(R.id.device_up, View.VISIBLE);
-                else
-                    remoteViews.setViewVisibility(R.id.device_up, View.GONE);
+                    Map<String, String> callParams = new HashMap<String, String>();
+                    if (device.oemModel != null && device.oemModel.toLowerCase().contains("plug"))
+                        callParams.put("names", "outlet1 oem_host_version");
+                    else
+                        callParams.put("names", "Green_LED Blue_LED Blue_button oem_host_version");
 
-                if (deviceNum > 0)
-                    remoteViews.setViewVisibility(R.id.device_down, View.VISIBLE);
-                else
-                    remoteViews.setViewVisibility(R.id.device_down, View.GONE);
+                    remoteViews.setViewVisibility(R.id.progress, View.VISIBLE);
+                    remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
+                    remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
+                    device.getProperties(new PropertiesHandler(device), callParams);
 
-
-                Map<String, String> callParams = new HashMap<String, String>();
-                if (device.oemModel != null && device.oemModel.toLowerCase().contains("plug"))
-                    callParams.put("names", "outlet1 oem_host_version");
-                else
-                    callParams.put("names", "Green_LED Blue_LED Blue_button oem_host_version");
-
-                remoteViews.setViewVisibility(R.id.progress, View.VISIBLE);
-                remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
-                remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
-                device.getProperties(new PropertiesHandler(device), callParams);
-
-                remoteViews.setTextViewText(R.id.appwidget_text, device.getProductName());
+                    remoteViews.setTextViewText(R.id.appwidget_text, device.getProductName());
+                }
             }
-
             else
             {
-                remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
+                remoteViews.setTextViewText(R.id.appwidget_text, "Please add devices in AMAP");
                 remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
                 remoteViews.setViewVisibility(R.id.linearlayout_plug, View.GONE);
                 remoteViews.setViewVisibility(R.id.device_down, View.GONE);
                 remoteViews.setViewVisibility(R.id.device_up, View.GONE);
                 remoteViews.setViewVisibility(R.id.refresh_button, View.VISIBLE);
             }
-
-
-
-            appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
         }
-        else{
+        else {
             remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
             remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
             remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
@@ -297,9 +323,7 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
             remoteViews.setViewVisibility(R.id.device_down, View.GONE);
             remoteViews.setViewVisibility(R.id.device_up, View.GONE);
         }
-
     }
-
 
     public void toggleUI(Context context, AylaProperty property, int viewId){
         //Creation of items for the manipulation of views in the widget
@@ -353,51 +377,40 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     public void goUpDevice(Context context)
     {
+        Log.d(LOG_TAG, "wig: goUpDevice");
 
         //Creation of items for the manipulation of views in the widget
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-
-        ComponentName aylaWidget;
-
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
-        aylaWidget = new ComponentName(context, AylaWidget.class);
-
+        ComponentName aylaWidget = new ComponentName(context, AylaWidget.class);
         //Checks if the current device number can increase
-        Log.d("WIDGET", "numOfDevices "+numOfDevices + " deviceNum "+deviceNum);
-
+        Log.d(LOG_TAG, "wig: numOfDevices "+numOfDevices + " deviceNum "+deviceNum);
         if (deviceNum < numOfDevices-1)
         {
             deviceNum ++;
             getDeviceInfo(context);
-
             //Updates the widget UI
             appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
-
         }
     }
 
     public void goDownDevice(Context context)
     {
+        Log.d(LOG_TAG, "wig: goDownDevice");
 
         //Creation of items for the manipulation of views in the widget
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-
-        RemoteViews remoteViews;
-        ComponentName aylaWidget;
-
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.ayla_widget);
-        aylaWidget = new ComponentName(context, AylaWidget.class);
-
+        ComponentName aylaWidget = new ComponentName(context, AylaWidget.class);
         //Checks if the current device number can decrease
+        Log.d(LOG_TAG, "wig: numOfDevices "+numOfDevices + " deviceNum "+deviceNum);
         if (deviceNum > 0)
         {
             //Switches device and loads the info for the device
             deviceNum --;
             getDeviceInfo(context);
-
             //Updates the widget UI
             appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
-
         }
     }
 
@@ -436,8 +449,6 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
             aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
             if(AylaNetworks.succeeded(msg)){
                 //Creation of items for the manipulation of views in the widget
-
-
 
                 //Sets the device's properties to the results of the getProperties call
                 String jsonResults = (String) msg.obj;
@@ -569,45 +580,69 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     @Override
     public void deviceListChanged() {
-        Log.e("Ayla Widget", "Device list changed");
-        //updateDeviceList();
+        Log.d(LOG_TAG, "wig: Device list changed");
+        if ( SessionManager.deviceManager() != null ) {
+            List<Device> deviceList = SessionManager.deviceManager().deviceList();
+            numOfDevices = deviceList.size();
+            if (deviceList != null) {
+                updateDeviceInfo(contextStatic);
+            }
+        }
     }
 
     @Override
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
-           Log.e("Ayla Widget", "Device " + device.getDevice().productName + " changed");
+           Log.d(LOG_TAG, "wig: Device " + device.getDevice().productName + " changed");
            // _recyclerView.setAdapter(_adapter);
         }
     }
 
+    void onLoggedIn(Context context, Intent intent) {
+        Log.d(LOG_TAG, "wig: onLoggedIn");
+        stopListening();
+        if(contextStatic != null) {
+            remoteViews = new RemoteViews(contextStatic.getPackageName(), R.layout.ayla_widget);
+            remoteViews.setTextViewText(R.id.appwidget_text, "Loading...");
+            //Updates the widget UI
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(contextStatic);
+            ComponentName aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
+            appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
+        }
+        startListening();
+    }
+
+    void onLoggedOut(Context context, Intent intent) {
+        Log.d(LOG_TAG, "wig: onLoggedOut");
+        stopListening();
+        if(contextStatic != null) {
+            remoteViews = new RemoteViews(contextStatic.getPackageName(), R.layout.ayla_widget);
+            remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
+            //Updates the widget UI
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(contextStatic);
+            ComponentName aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
+            appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
+        }
+    }
+
+
     @Override
     public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
-        Log.d("WIDGET", "login changed");
-        if(!loggedIn){
-            if(contextStatic != null){
-                remoteViews = new RemoteViews(contextStatic.getPackageName(), R.layout.ayla_widget);
-                remoteViews.setTextViewText(R.id.appwidget_text, "Please login to AMAP");
-                //Updates the widget UI
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(contextStatic);
-                ComponentName aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
-                appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
-            }
-            SessionManager.deviceManager().removeDeviceListListener(this);
-            SessionManager.deviceManager().removeDeviceStatusListener(this);
-
-
-        }
+        Log.d(LOG_TAG, "wig: login changed " + loggedIn);
+        Intent intent = new Intent(contextStatic, AylaWidget.class);
+        intent.setAction(loggedIn ? LOGGED_IN_TAG : LOGGED_OUT_TAG);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, _appWidgetId);
+        contextStatic.sendBroadcast(intent);
     }
 
     @Override
     public void reachabilityChanged(int reachabilityState) {
-        Log.e("Ayla Widget", "Reachability changed: " + reachabilityState);
+        Log.d(LOG_TAG, "wig: Reachability changed: " + reachabilityState);
     }
 
     @Override
     public void lanModeChanged(boolean lanModeEnabled) {
-        Log.e("Ayla Widget", "lanModeChanged: " + (lanModeEnabled ? "ENABLED" : "DISABLED"));
+        Log.d(LOG_TAG, "wig: lanModeChanged: " + (lanModeEnabled ? "ENABLED" : "DISABLED"));
     }
 }
 
