@@ -332,7 +332,7 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
         if(SessionManager.deviceManager() != null){
             List<Device> deviceList = SessionManager.deviceManager().deviceList();
-            if ( deviceList != null ) {
+            if ( deviceList != null && !deviceList.isEmpty()) {
                 Log.d(LOG_TAG, "wig: getDeviceInfo deviceNum=" + deviceNum);
                 AylaDevice device = deviceList.get(deviceNum).getDevice();
                 if (device != null) {
