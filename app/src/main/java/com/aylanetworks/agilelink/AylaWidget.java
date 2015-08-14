@@ -32,6 +32,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.HashMap;
@@ -45,8 +46,7 @@ import java.util.TimerTask;
  * Implementation of App Widget functionality.
  */
 public class AylaWidget extends AppWidgetProvider implements SessionManager.SessionListener,
-        DeviceManager.DeviceListListener, Device.DeviceStatusListener
-{
+        DeviceManager.DeviceListListener, Device.DeviceStatusListener, AgileLinkApplication.AgileLinkApplicationListener {
     private final static String LOG_TAG = "AylaWidget";
 
     //Tags for the pending intents
@@ -83,8 +83,59 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
 
     boolean isListening;
     int _appWidgetId;
+    Timer _timer;
+    TimerTask _timerTask;
 
-    protected void startListening() {
+    void timerCancel() {
+        if (_timer != null) {
+            _timer.cancel();
+        }
+    }
+
+    void timerSchedule() {
+        if (_timer == null) {
+            _timer = new Timer();
+            _timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    lanModePause();
+                }
+            };
+        } else {
+            _timer.cancel();
+        }
+        _timer.schedule(_timerTask, 60000);
+    }
+
+    void lanModeResume() {
+        AgileLinkApplication.LifeCycleState state = AgileLinkApplication.getsInstance().getLifeCycleState();
+        Log.d(LOG_TAG, "wig: lanModeResume state=" + state + ", LMR=" + AylaLanMode.isLanModeRunning());
+        if (SessionManager.deviceManager() != null) {
+            timerSchedule();
+            if (!AylaLanMode.isLanModeRunning()) {
+                AylaLanMode.resume();
+                Log.d(LOG_TAG, "wig: lanModeResume resume");
+                return;
+            }
+        }
+        Log.d(LOG_TAG, "wig: lanModeResume ignored");
+    }
+
+    void lanModePause() {
+        AgileLinkApplication.LifeCycleState state = AgileLinkApplication.getsInstance().getLifeCycleState();
+        Log.d(LOG_TAG, "wig: lanModePause state=" + state);
+        timerCancel();
+        if (SessionManager.deviceManager() != null) {
+            if (AylaLanMode.isLanModeRunning()) {
+                AylaLanMode.pause(false);
+                Log.d(LOG_TAG, "wig: lanModePause pause");
+                return;
+            }
+        }
+        Log.d(LOG_TAG, "wig: lanModePause ignored");
+    }
+
+    void startListening() {
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (!isListening) {
             isListening = true;
@@ -106,7 +157,7 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         }
     }
 
-    protected void stopListening() {
+    void stopListening() {
         if (isListening) {
             isListening = false;
             Log.d(LOG_TAG, "wig: stopListening - remove session listener.");
@@ -143,9 +194,18 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
     }
 
+    @Override
+    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
+        Log.d(LOG_TAG, "wig: applicationLifeCycleStateChange " + state);
+        if (state == AgileLinkApplication.LifeCycleState.ScreenOff) {
+            lanModePause();
+        }
+    }
+
     void onAppWidgetUpdate(Context context, Intent intent) {
         _appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
         Log.d(LOG_TAG, "wig: onAppWidgetUpdate id=" + _appWidgetId);
+        AgileLinkApplication.getsInstance().addListener(this);
         startListening();
         updateDeviceInfo(context);
     }
@@ -180,13 +240,11 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
                     if(outlet1 != null){ // ensure that this gets called only after outlet1 has been set in getProperties handler
                         toggleUI(context, outlet1, R.id.plug_toggle);
                     }
-
                     break;
                 case BLUE_LED_TOGGLE_TAG:
                     if(blueLed != null){
                         toggleUI(context, blueLed, R.id.blue_led_toggle);
                     }
-
                     break;
                 case GREEN_LED_TOGGLE_TAG:
                     if(greenLed != null){
@@ -325,7 +383,15 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         }
     }
 
+    private final Handler createDatapoint = new Handler() {
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "wig: createDatapoint");
+        }
+    };
+
     public void toggleUI(Context context, AylaProperty property, int viewId){
+        lanModeResume();
+
         //Creation of items for the manipulation of views in the widget
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
@@ -340,43 +406,30 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         List<Device> deviceList = null;
         //Checks if the current device is not null
         if ( SessionManager.deviceManager() != null ) {
-
             deviceList = SessionManager.deviceManager().deviceList();
             if(!deviceList.isEmpty()){
                 AylaDevice device = deviceList.get(deviceNum).getDevice();
-
-                if (toggledProperty.value.equals("0"))
-                {
+                if (toggledProperty.value.equals("0")) {
                     toggledProperty.value = "1";
-
                     datapoint = new AylaDatapoint();
                     datapoint.nValue(1);
-                    datapoint.createDatapoint(createDatapoint, property); // next test: no delay
-
+                    datapoint.createDatapoint(createDatapoint, property);
                     remoteViews.setTextViewText(viewId, "ON");
-                }else if (toggledProperty.value.equals("1"))
-                {
+                } else if (toggledProperty.value.equals("1")) {
                     toggledProperty.value = "0";
-
                     datapoint = new AylaDatapoint();
                     datapoint.nValue(0);
-                    datapoint.createDatapoint(createDatapoint, property); // next test: no delay
-
+                    datapoint.createDatapoint(createDatapoint, property);
                     remoteViews.setTextViewText(viewId, "OFF");
                 }
             }
-
-
         }
 
         //Update the widget UI
         appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
-
     }
 
-
-    public void goUpDevice(Context context)
-    {
+    public void goUpDevice(Context context) {
         Log.d(LOG_TAG, "wig: goUpDevice");
 
         //Creation of items for the manipulation of views in the widget
@@ -394,8 +447,7 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
         }
     }
 
-    public void goDownDevice(Context context)
-    {
+    public void goDownDevice(Context context) {
         Log.d(LOG_TAG, "wig: goDownDevice");
 
         //Creation of items for the manipulation of views in the widget
@@ -418,18 +470,6 @@ public class AylaWidget extends AppWidgetProvider implements SessionManager.Sess
     public void onDisabled(Context context) {
 
     }
-
-    private final Handler createDatapoint = new Handler() {
-
-        public void handleMessage(Message msg) {
-            //progress("stop");
-            String jsonResults = (String)msg.obj;
-            if (msg.what == AylaNetworks.AML_ERROR_OK) {
-               // property.datapoint = AylaSystemUtils.gson.fromJson(jsonResults,AylaDatapoint.class);
-            }
-        }
-    };
-
 
     private static class PropertiesHandler extends Handler{
         AylaDevice device;
