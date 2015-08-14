@@ -95,7 +95,7 @@
     <string name="unregister_failure_timeout">Unregister device has still not completed successfully.</string>
     <string name="unregister_try_again">Try Again</string>
 
-    <string name="factory_reset_device">Factory Reset Device</string>
+    <string name="factory_reset_device">Factory Reset and Unregister</string>
     <string name="factory_reset_confirm_title">Factory Reset Device</string>
     <string name="factory_reset_confirm_body">Are you sure you want to factory reset this device?  All settings will be lost, and the device will be removed from your account.</string>
     <string name="waiting_factory_reset_title">Factory Reset Device</string>
