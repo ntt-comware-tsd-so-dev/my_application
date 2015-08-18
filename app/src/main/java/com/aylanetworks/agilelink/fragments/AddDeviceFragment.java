@@ -183,9 +183,13 @@ public class AddDeviceFragment extends Fragment
             exitSetup();
         }
 
-        // Start polling
-        SessionManager.getInstance().setRegistrationMode(false);
-        SessionManager.deviceManager().startPolling();
+        try {
+            // Start polling
+            SessionManager.getInstance().setRegistrationMode(false);
+            SessionManager.deviceManager().startPolling();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
