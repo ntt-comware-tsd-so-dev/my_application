@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.framework;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
@@ -230,10 +231,13 @@ public class MenuHandler {
 
     public static void signOut() {
         // Confirm
+        Resources res = MainActivity.getInstance().getResources();
+        AylaUser currentUser = AylaUser.getCurrent();
+        String msg = res.getString(R.string.confirm_sign_out_message, currentUser.email);
         new AlertDialog.Builder(MainActivity.getInstance())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_sign_out)
-                .setMessage(R.string.confirm_sign_out_message)
+                .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
