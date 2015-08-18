@@ -708,6 +708,13 @@ public class SessionManager {
         return true;
     }
 
+    static void dismissWaitDialog() {
+        MainActivity activity = MainActivity.getInstance();
+        if (activity != null) {
+            activity.dismissWaitDialog();
+        }
+    }
+
     /**
      * Handle the result of the login request
      */
@@ -722,7 +729,7 @@ public class SessionManager {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Login Handler");
             Log.d(LOG_TAG, "Message: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            dismissWaitDialog();
             if (AylaNetworks.succeeded(msg)) {
                 Log.d(LOG_TAG, "Login successful");
 
