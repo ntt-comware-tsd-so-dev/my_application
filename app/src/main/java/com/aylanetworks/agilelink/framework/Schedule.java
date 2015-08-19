@@ -571,6 +571,7 @@ public class Schedule implements  Cloneable {
         setAllDaysOfWeek();
 
         Calendar scheduleStartTime = Calendar.getInstance();
+        Calendar scheduleEndTime = Calendar.getInstance();
 
         boolean onAtStart = true;
         int duration = Math.abs(onMinutes - offMinutes) * 60;
@@ -578,14 +579,17 @@ public class Schedule implements  Cloneable {
         if ( onMinutes > offMinutes ) {
             // We turn off first. That will be the schedule start.
             scheduleStartTime.add(Calendar.MINUTE, offMinutes);
+            scheduleEndTime.add(Calendar.MINUTE, onMinutes);
             onAtStart = false;
         } else {
             // We turn on first. That will be the schedule start.
             scheduleStartTime.add(Calendar.MINUTE, onMinutes);
+            scheduleEndTime.add(Calendar.MINUTE, offMinutes);
         }
 
         _schedule.startDate = _dateFormatYMD.format(scheduleStartTime.getTime());
         _schedule.startTimeEachDay = _dateFormatHMSUTC.format(scheduleStartTime.getTime());
+        _schedule.endTimeEachDay = _dateFormatHMSUTC.format(scheduleEndTime.getTime());
         _schedule.duration = duration;
 
         scheduleStartTime.add(Calendar.SECOND, duration);
