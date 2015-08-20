@@ -102,7 +102,8 @@ public class AddDeviceFragment extends Fragment
         setHasOptionsMenu(true);
 
         // Stop polling & LAN mode
-        SessionManager.getInstance().setRegistrationMode(true);
+        SessionManager.deviceManager().stopPolling();
+        //SessionManager.getInstance().setRegistrationMode(true);
     }
 
     @Override
@@ -185,7 +186,7 @@ public class AddDeviceFragment extends Fragment
 
         try {
             // Start polling
-            SessionManager.getInstance().setRegistrationMode(false);
+            //SessionManager.getInstance().setRegistrationMode(false);
             SessionManager.deviceManager().startPolling();
         } catch (Exception ex) {
             ex.printStackTrace();
