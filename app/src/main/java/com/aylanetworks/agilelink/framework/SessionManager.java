@@ -701,12 +701,20 @@ public class SessionManager {
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
-        AylaUser.logout(params).execute();
-        AylaUser.user.setAccessToken(null);
-        AylaCache.clearAll();
-        notifyLoginStateChanged(false, null);
+        AylaUser.logout(logouthandler, params).execute();
+
         return true;
     }
+
+    private final Handler logouthandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            AylaUser.user.setAccessToken(null);
+            AylaCache.clearAll();
+            notifyLoginStateChanged(false, null);
+        }
+    };
 
     static void dismissWaitDialog() {
         MainActivity activity = MainActivity.getInstance();
