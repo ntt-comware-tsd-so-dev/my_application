@@ -818,13 +818,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     private boolean _loginScreenUp;
     private void showLoginDialog() {
-        Log.d(LOG_TAG, "showLoginDialog:");
+        Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
-            Log.e(LOG_TAG, "showLoginDialog: Already shown");
+            Log.e(LOG_TAG, "nod: showLoginDialog: Already shown");
             return;
         }
-
-        _loginScreenUp = true;
 
         SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
@@ -835,6 +833,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             signIn(savedUsername, savedPassword);
             return;
         }
+
+        _loginScreenUp = true;
 
         // We always want to show the "All Devices" page first
         if ( _viewPager != null ) {
