@@ -21,6 +21,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.ContactManager;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -90,13 +91,10 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     public void onResume() {
         super.onResume();
         // Update our current user's information
-        Map<String, String> args = new HashMap<>();
-        args.put("access_token", SessionManager.sessionParameters().accessToken);
         String title = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_title);
         String body = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_body);
         MainActivity.getInstance().showWaitDialog(title, body);
-
-        AylaUser.getInfo(_getInfoHandler, args);
+        AylaUser.getInfo(_getInfoHandler);
     }
 
     @Override
@@ -211,7 +209,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                 _editProfileDialog.get()._confirmPassword.setText("");
 
                 // Continue updating the rest of the information
-                _editProfileDialog.get().onClick(_editProfileDialog.get().getView().findViewById(R.id.btnSignUp));
+                _editProfileDialog.get().onClick(_editProfileDialog.get().getView().findViewById(R.id.btnUpdate));
             } else {
                 MainActivity.getInstance().dismissWaitDialog();
                 String errMsg = null;
@@ -243,7 +241,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "_getInfoHandler: " + msg);
+            Logger.logMessage(LOG_TAG, msg, "GetInfoHandler");
             MainActivity.getInstance().dismissWaitDialog();
             if (AylaNetworks.succeeded(msg)) {
                 String json = (String) msg.obj;
