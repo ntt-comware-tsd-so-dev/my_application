@@ -94,6 +94,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         String title = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_title);
         String body = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_body);
         MainActivity.getInstance().showWaitDialog(title, body);
+        Log.d(LOG_TAG, "user: AylaUser.getInfo started");
         AylaUser.getInfo(_getInfoHandler);
     }
 
@@ -111,17 +112,14 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
 
     private void updateFields() {
         AylaUser currentUser = AylaUser.getCurrent();
-
         _firstName.setText(currentUser.firstname);
         _lastName.setText(currentUser.lastname);
         _email.setText(currentUser.email);
         _country.setText(currentUser.country);
         _phoneCountryCode.setText(currentUser.phoneCountryCode);
         _phoneNumber.setText(currentUser.phone);
-
         _password.setText("");
         _confirmPassword.setText("");
-
     }
 
     private Map<String, String> getParameters() {
@@ -241,22 +239,22 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
 
         @Override
         public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "user: GetInfo handleMessage [" + msg + "]");
             Logger.logMessage(LOG_TAG, msg, "GetInfoHandler");
             MainActivity.getInstance().dismissWaitDialog();
             if (AylaNetworks.succeeded(msg)) {
-                String json = (String) msg.obj;
-                AylaUser user = AylaSystemUtils.gson.fromJson(json, AylaUser.class);
-                Log.d(LOG_TAG, "User: " + user);
-
+                AylaUser user = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
+                Log.d(LOG_TAG, "user: " + user);
                 // Save the auth info- it's not filled out in the returned user object
                 AylaUser oldUser = AylaUser.getCurrent();
                 user.setAccessToken(oldUser.getAccessToken());
                 user.setRefreshToken(oldUser.getRefreshToken());
                 user.setExpiresIn(oldUser.getExpiresIn());
-
                 AylaUser.setCurrent(user);
-                _editProfileDialog.get().updateFields();
+            } else {
+                Log.e(LOG_TAG, "user: Failed to fetch current user details: " + msg);
             }
+            _editProfileDialog.get().updateFields();
         }
     }
 

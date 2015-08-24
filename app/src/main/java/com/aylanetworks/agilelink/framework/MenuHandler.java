@@ -168,12 +168,17 @@ public class MenuHandler {
 
     public static AlertDialog _confirmDeleteDialog;
 
+    static DeleteAccountHandler _deleteAccountHandler;
+
     public static void deleteAccount() {
         // First confirm
+        Resources res = MainActivity.getInstance().getResources();
+        AylaUser currentUser = AylaUser.getCurrent();
+        String msg = res.getString(R.string.confirm_delete_account_message, currentUser.email);
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
-                .setMessage(R.string.confirm_delete_account_message)
+                .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -181,12 +186,11 @@ public class MenuHandler {
                         if (_confirmDeleteDialog != null) {
                             _confirmDeleteDialog.dismiss();
                         }
-
-                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title,
-                                R.string.deleting_account_message);
-
+                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title, R.string.deleting_account_message);
                         // Actually delete the account
-                        AylaUser.delete(new DeleteAccountHandler());
+                        Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
+                        _deleteAccountHandler = new DeleteAccountHandler();
+                        AylaUser.delete(_deleteAccountHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -196,7 +200,7 @@ public class MenuHandler {
     static class DeleteAccountHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Delete account result: " + msg);
+            Logger.logMessage(LOG_TAG, msg, "user: DeleteAccountHandler");
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Log out and show a toast

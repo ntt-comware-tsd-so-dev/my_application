@@ -344,8 +344,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 }
             });
         } else if ( reqCode == REQ_SIGN_IN ) {
-            Log.d(LOG_TAG, "nod: Login screen finished");
-
+            Log.d(LOG_TAG, "nod: SignInActivity finished");
+            _loginScreenUp = false;
             if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
@@ -817,6 +817,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     private boolean _loginScreenUp;
+
     private void showLoginDialog() {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
@@ -848,6 +849,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         Intent intent = new Intent(this, SignInActivity.class);
         intent.putExtras(args);
+        Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
         startActivityForResult(intent, REQ_SIGN_IN);
     }
 
@@ -897,32 +899,33 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     // SessionListener methods
+    void handleLoginChanged(boolean loggedIn, AylaUser aylaUser) {
+        dismissWaitDialog();
+        if (!loggedIn) {
+            // User logged out.
+            setNoDevicesMode(false);
+            if (!_loginScreenUp) {
+                showLoginDialog();
+            } else {
+                Log.e(LOG_TAG, "nod: Login screen is already up:");
+            }
+        } else {
+            // Finish  the login dialog
+            Log.d(LOG_TAG, "nod: finish login dialog");
+            finishActivity(REQ_SIGN_IN);
+            _loginScreenUp = false;
+            dismissWaitDialog();
+        }
+        setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+    }
+
     @Override
-    public void loginStateChanged(final boolean loggedIn, AylaUser aylaUser) {
-        // Post in a handler in case we just resumed and the instance state has changed
-        new Handler().post(new Runnable() {
+    public void loginStateChanged(final boolean loggedIn, final AylaUser aylaUser) {
+        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dismissWaitDialog();
-                Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
-                if (!loggedIn) {
-                    // User logged out.
-                    setNoDevicesMode(false);
-                    if (!_loginScreenUp) {
-                        showLoginDialog();
-                    } else {
-                        Log.e(LOG_TAG, "nod: Login screen is already up:");
-                        Thread.dumpStack();
-                    }
-                } else {
-                    // Finish  the login dialog
-                    Log.d(LOG_TAG, "nod: finish login dialog");
-                    MainActivity.this.finishActivity(REQ_SIGN_IN);
-                    _loginScreenUp = false;
-                    dismissWaitDialog();
-                }
-
-                setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+                handleLoginChanged(loggedIn, aylaUser);
             }
         });
     }
@@ -977,11 +980,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 return true;
             }
         }
-
         if (MenuHandler.handleMenuItem(item)) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

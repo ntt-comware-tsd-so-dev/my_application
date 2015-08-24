@@ -690,6 +690,8 @@ public class SessionManager {
     }
 
     private boolean stop() {
+        Log.d(LOG_TAG, "nod: stop session");
+
         if (_deviceManager != null) {
             _deviceManager.shutDown();
             _deviceManager = null;
@@ -701,6 +703,7 @@ public class SessionManager {
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
+        Log.d(LOG_TAG, "nod: stop logout");
         AylaUser.logout(logouthandler, params).execute();
 
         return true;
@@ -709,7 +712,8 @@ public class SessionManager {
     private final Handler logouthandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
-            super.handleMessage(msg);
+            Log.d(LOG_TAG, "nod: stop session handle message [" + msg + "]");
+            //super.handleMessage(msg);
             AylaUser.user.setAccessToken(null);
             AylaCache.clearAll();
             notifyLoginStateChanged(false, null);

@@ -172,6 +172,10 @@ public class AllDevicesFragment extends Fragment
                     }
                 }
             }
+            if (SessionManager.deviceManager().isShuttingDown()) {
+                // all done.
+                return;
+            }
         }
 
         if ( deviceList != null ) {
@@ -254,6 +258,7 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
+        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (deviceManager != null) {
             if (loggedIn) {
