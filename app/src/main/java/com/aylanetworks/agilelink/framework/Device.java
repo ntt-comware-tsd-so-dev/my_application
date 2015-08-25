@@ -1289,14 +1289,8 @@ public class Device implements Comparable<Device> {
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
-        if ( isInLanMode() ) {
-            return MainActivity.getInstance().getString(R.string.lan_mode_enabled);
-        }
-        if ( isOnline() ) {
-            return MainActivity.getInstance().getString(R.string.online);
-        } else {
-            return MainActivity.getInstance().getString(R.string.offline);
-        }
+        int resId = isOnline() ? (isInLanMode() ? R.string.lan_mode_enabled : R.string.online) : R.string.offline;
+        return MainActivity.getInstance().getString(resId);
     }
 
     public boolean isInLanMode() {
