@@ -417,11 +417,6 @@ public class DeviceManager implements DeviceStatusListener {
 
     public void enterLANMode(LANModeListener listener) {
         Device device = listener.getDevice();
-        if (_registrationMode) {
-            Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] registration mode");
-            listener.lanModeResult(false);
-            return;
-        }
         if (!SessionManager.getInstance().lanModePermitted()) {
             // We can't enter LAN mode for any devices.
             Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] not permitted");
@@ -695,9 +690,12 @@ public class DeviceManager implements DeviceStatusListener {
     public void setRegistrationMode(boolean value) {
         _registrationMode = value;
         if (value) {
-            AylaLanMode.pause(true);
-        } else {
-            AylaLanMode.resume();
+            // make sure we ARE in LAN mode.
+            if (!AylaLanMode.isLanModeRunning()) {
+                enterLANMode();
+            } else {
+                Logger.logVerbose(LOG_TAG, "rn: lan mode is already running.");
+            }
         }
     }
 
@@ -870,7 +868,7 @@ public class DeviceManager implements DeviceStatusListener {
     private GetNodesHandler _getNodesHandler = new GetNodesHandler(this);
 
     private void enterLANMode() {
-        Log.d(LOG_TAG, "enterLANMode");
+        Log.d(LOG_TAG, "rn: enterLANMode");
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
       /*  if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
@@ -881,13 +879,13 @@ public class DeviceManager implements DeviceStatusListener {
             if ( gateway != null ) {
                 // Get the nodes from the gateway. This establishes the mapping between devices
                 // and nodes, required for LAN mode operation to work right.
-                Log.i(LOG_TAG, "Fetching nodes from gateway...");
+                Log.i(LOG_TAG, "rn: Fetching nodes from gateway...");
                 gateway.getGatewayDevice().getNodes(_getNodesHandler, null);
             } else {
-                Log.i(LOG_TAG, "LAN mode: No gateway found");
+                Log.i(LOG_TAG, "rn: LAN mode: No gateway found");
             }
         } else {
-            Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.getLanModeState() + " - not entering LAN mode");
+            Log.e(LOG_TAG, "rn: LAN mode: lanModeState is " + AylaLanMode.getLanModeState() + " - not entering LAN mode");
         }
     }
 

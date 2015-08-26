@@ -14,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -30,6 +31,7 @@ import android.widget.Toast;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaHostScanResults;
+import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaModule;
 import com.aylanetworks.aaml.AylaModuleScanResults;
 import com.aylanetworks.aaml.AylaNetworks;
@@ -103,7 +105,7 @@ public class AddDeviceFragment extends Fragment
 
         // Stop polling & LAN mode
         SessionManager.deviceManager().stopPolling();
-        //SessionManager.getInstance().setRegistrationMode(true);
+        SessionManager.getInstance().setRegistrationMode(true);
     }
 
     @Override
@@ -186,7 +188,7 @@ public class AddDeviceFragment extends Fragment
 
         try {
             // Start polling
-            //SessionManager.getInstance().setRegistrationMode(false);
+            SessionManager.getInstance().setRegistrationMode(false);
             SessionManager.deviceManager().startPolling();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -678,6 +680,12 @@ public class AddDeviceFragment extends Fragment
 
     ConnectHandler _connectHandler;
     private void connectToAP(AylaHostScanResults scanResult) {
+        if (AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
+            Log.i(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
+        } else {
+            Log.e(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
+        }
+
         AylaSetup.newDevice.hostScanResults = scanResult;
         AylaSetup.lanSsid = scanResult.ssid;
         AylaSetup.lanSecurityType = scanResult.keyMgmt;
