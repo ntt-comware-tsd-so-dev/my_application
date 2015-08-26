@@ -290,7 +290,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         boolean hasFactoryReset = false;
         if (_device != null) {
-            hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
+            // djunod: I have never been able to do Factory Reset on a Zigbee Gateway
+            //hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
+            hasFactoryReset = _device.isDeviceNode();
         }
         menu.getItem(1).setVisible(hasFactoryReset);
         menu.getItem(0).setVisible(!hasFactoryReset);
