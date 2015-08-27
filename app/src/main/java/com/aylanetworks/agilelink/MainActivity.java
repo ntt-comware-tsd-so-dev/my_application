@@ -181,7 +181,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void dismissWaitDialog() {
         // Put the orientation back to what it was before we messed with it
         if (_progressDialog != null) {
-            _progressDialog.dismiss();
+            try {
+                _progressDialog.dismiss();
+            } catch (Exception ex) {}
         }
         _progressDialog = null;
         _progressDialogStart = 0;
