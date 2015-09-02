@@ -2,7 +2,10 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -51,6 +54,7 @@ public class AllDevicesFragment extends Fragment
     /**
      * The fragment's recycler view and helpers
      */
+    protected SwipeRefreshLayout _swipe;
     protected RecyclerView _recyclerView;
     protected RecyclerView.LayoutManager _layoutManager;
     protected DeviceListAdapter _adapter;
@@ -89,13 +93,23 @@ public class AllDevicesFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
         _emptyView = (TextView) view.findViewById(R.id.empty);
 
-        // Set up the list view
+        // setup swipe refresh
+        _swipe = (SwipeRefreshLayout)view.findViewById(R.id.swiperefresh);
+        if (_swipe != null) {
+            _swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    swipeRefreshStart();
+                }
+            });
+        }
 
+        // Set up the list view
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
         _recyclerView.getItemAnimator().setSupportsChangeAnimations(true);
-
         _recyclerView.setVisibility(View.GONE);
+
         _emptyView.setVisibility(View.VISIBLE);
         _emptyView.setText(R.string.fetching_devices);
 
@@ -126,6 +140,35 @@ public class AllDevicesFragment extends Fragment
         b.setOnClickListener(this);
 
         return view;
+    }
+
+    void swipeRefreshStart() {
+        if (SessionManager.deviceManager() != null) {
+            SessionManager.deviceManager().refreshDeviceListWithCompletion(this, new DeviceManager.GetDevicesCompletion() {
+                @Override
+                public void complete(Message msg, List<Device> newDeviceList, Object tag) {
+                    swipeRefreshComplete();
+                }
+            });
+        } else {
+            swipeRefreshComplete();
+        }
+    }
+
+    void swipeRefreshComplete() {
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            _swipe.setRefreshing(false);
+        } else {
+            // Run on the UI thread
+            try {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        _swipe.setRefreshing(false);
+                    }
+                });
+            } catch (Exception ex) { }
+        }
     }
 
     private void addDevice() {
