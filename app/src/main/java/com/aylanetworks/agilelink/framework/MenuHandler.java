@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -228,28 +229,33 @@ public class MenuHandler {
 
     public static void handleShares() {
         Log.d(LOG_TAG, "handleShares()");
-
         SharesFragment frag = SharesFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     public static void signOut() {
-        // Confirm
-        Resources res = MainActivity.getInstance().getResources();
-        AylaUser currentUser = AylaUser.getCurrent();
-        String msg = res.getString(R.string.confirm_sign_out_message, currentUser.email);
-        new AlertDialog.Builder(MainActivity.getInstance())
-                .setIcon(R.drawable.ic_launcher)
-                .setTitle(R.string.confirm_sign_out)
-                .setMessage(msg)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        SessionManager.stopSession();
-                    }
-                })
-                .setNegativeButton(android.R.string.no, null)
-                .create().show();
+        Activity activity = MainActivity.getInstance();
+        if (activity != null) {
+            // Confirm
+            Resources res = activity.getResources();
+            AylaUser currentUser = AylaUser.getCurrent();
+            String msg = res.getString(R.string.confirm_sign_out_message, currentUser.email);
+            new AlertDialog.Builder(activity)
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.confirm_sign_out)
+                    .setMessage(msg)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            SessionManager.stopSession();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .create().show();
+        } else {
+            Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed.");
+            SessionManager.stopSession();
+        }
     }
 
     public static void about() {
