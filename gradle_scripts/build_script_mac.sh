@@ -4,6 +4,8 @@ echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
 : ${MASTER=master}
 : ${AYLA_BUILD_BRANCH=master}
+: ${AYLA_LIB_BRANCH=master}
+: ${AYLA_ZLIB_BRANCH=master}
 : ${AYLA_REMOTE=origin}
 echo Building from branch $AYLA_BUILD_BRANCH
 
@@ -25,13 +27,16 @@ then
     pushd Android_AylaLibrary
 else
     pushd Android_AylaZigbeeLibrary
-	echo Get Android_AylaZigbeeLibrary from branch $AYLA_BUILD_BRANCH
-    git checkout -b $AYLA_BUILD_BRANCH origin/$AYLA_BUILD_BRANCH
+	echo Get Android_AylaZigbeeLibrary from branch $AYLA_ZLIB_BRANCH
+    git fetch $AYLA_REMOTE
+    git branch $AYLA_ZLIB_BRANCH $AYLA_REMOTE/$AYLA_ZLIB_BRANCH
+    git checkout $AYLA_ZLIB_BRANCH
     popd
     pushd Android_AylaLibrary
-	echo Get Android_AylaLibrary from branch $AYLA_BUILD_BRANCH
-	git checkout -b $AYLA_BUILD_BRANCH origin/$AYLA_BUILD_BRANCH
-	#git checkout -b master_candidate_merge3 origin/master_candidate_merge3
+	echo Get Android_AylaLibrary from branch $AYLA_LIB_BRANCH
+	git fetch $AYLA_REMOTE
+    git branch $AYLA_LIB_BRANCH $AYLA_REMOTE/$AYLA_LIB_BRANCH
+    git checkout $AYLA_LIB_BRANCH
 fi
 
 rm -rf lib/src/com/aylanetworks/aaml/zigbee
