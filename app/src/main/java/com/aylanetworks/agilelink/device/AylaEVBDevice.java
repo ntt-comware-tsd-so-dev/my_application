@@ -132,12 +132,6 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
     public void onClick(View v) {
         // The green or blue LED has been tapped.
         boolean isGreenButton = (v.getId() == R.id.green_button);
-
-        if ( !isOnline() ) {
-            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality, Toast.LENGTH_LONG).show();
-            return;
-        }
-
         Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
         if (isGreenButton) {
             setGreenLED(!isGreenLEDOn());

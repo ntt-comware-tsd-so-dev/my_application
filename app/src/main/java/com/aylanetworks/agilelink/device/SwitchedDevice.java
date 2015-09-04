@@ -134,10 +134,6 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if ( !isOnline() ) {
-            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality, Toast.LENGTH_LONG).show();
-            return;
-        }
         // Toggle the button state
         ImageButton button = (ImageButton) v;
         button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
