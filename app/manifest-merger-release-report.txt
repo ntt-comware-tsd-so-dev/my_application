@@ -146,12 +146,12 @@ application
 ADDED from AndroidManifest.xml:58:5
 MERGED from com.android.support:appcompat-v7:22.2.0:22:5
 MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.android.support:recyclerview-v7:22.0.0:22:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
 MERGED from com.android.support:cardview-v7:22.0.0:22:5
 MERGED from com.android.support:design:22.2.0:22:5
 MERGED from com.android.support:appcompat-v7:22.2.0:22:5
 MERGED from com.android.support:support-v4:22.2.0:22:5
-MERGED from com.android.support:support-v4:22.2.0:22:5
-MERGED from com.android.support:recyclerview-v7:22.0.0:22:5
 MERGED from com.android.support:support-v4:22.2.0:22:5
 MERGED from com.google.android.gms:play-services:7.3.0:19:5
 MERGED from com.google.android.gms:play-services-ads:7.3.0:19:5
@@ -367,16 +367,32 @@ category#com.aylanetworks.agileLink.MainActivity
 ADDED from AndroidManifest.xml:126:17
 	android:name
 		ADDED from AndroidManifest.xml:126:27
+receiver#com.aylanetworks.agilelink.AylaWidget
+ADDED from AndroidManifest.xml:129:9
+	android:name
+		ADDED from AndroidManifest.xml:129:19
+intent-filter#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from AndroidManifest.xml:130:13
+action#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from AndroidManifest.xml:131:17
+	android:name
+		ADDED from AndroidManifest.xml:131:25
+meta-data#android.appwidget.provider
+ADDED from AndroidManifest.xml:134:13
+	android:resource
+		ADDED from AndroidManifest.xml:136:17
+	android:name
+		ADDED from AndroidManifest.xml:135:17
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from com.android.support:appcompat-v7:22.2.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.android.support:recyclerview-v7:22.0.0:20:5
 MERGED from com.android.support:support-v4:22.2.0:20:5
 MERGED from com.android.support:cardview-v7:22.0.0:20:5
 MERGED from com.android.support:design:22.2.0:20:5
 MERGED from com.android.support:appcompat-v7:22.2.0:20:5
 MERGED from com.android.support:support-v4:22.2.0:20:5
-MERGED from com.android.support:support-v4:22.2.0:20:5
-MERGED from com.android.support:recyclerview-v7:22.0.0:20:5
 MERGED from com.android.support:support-v4:22.2.0:20:5
 MERGED from com.google.android.gms:play-services:7.3.0:18:5
 MERGED from com.google.android.gms:play-services-ads:7.3.0:18:5
