@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -174,6 +175,17 @@ public class AddDeviceFragment extends Fragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
+            Log.i(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
+        } else {
+            Log.e(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
+        }
+
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         Logger.logVerbose(LOG_TAG, "rn: onDetach");
@@ -205,10 +217,13 @@ public class AddDeviceFragment extends Fragment
         super.onPrepareOptionsMenu(menu);
     }
 
-    void dismissWaitDialog() {
+    private static void dismissWaitDialog() {
         StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
         Logger.logDebug(LOG_TAG, "rn: dismissWaitDialog called from %s", stacktrace[3].getMethodName());
-        MainActivity.getInstance().dismissWaitDialog();
+        MainActivity activity = MainActivity.getInstance();
+        if (activity != null) {
+            activity.dismissWaitDialog();
+        }
     }
 
     ArrayAdapter<Device> createGatewayAdapter() {
@@ -384,7 +399,10 @@ public class AddDeviceFragment extends Fragment
 
     private static void exitSetup() {
         if ( _needsExit ) {
-            MainActivity.getInstance().showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
+            MainActivity activity = MainActivity.getInstance();
+            if (activity != null) {
+                activity.showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
+            }
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
@@ -397,7 +415,7 @@ public class AddDeviceFragment extends Fragment
                 protected void onPostExecute(Void aVoid) {
                     Logger.logVerbose(LOG_TAG, "rn: AylaSetup.exit() completed.");
                     _needsExit = false;
-                    MainActivity.getInstance().dismissWaitDialog();
+                    dismissWaitDialog();
                 }
             }.execute();
         }
@@ -619,7 +637,7 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             Logger.logInfo(LOG_TAG, "rn: Register handler called: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            dismissWaitDialog();
             if (msg.arg1 >= 200 && msg.arg1 < 300) {
                 // Success!
                 AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
@@ -727,7 +745,7 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             Logger.logDebug(LOG_TAG, "rn: Response from returnHostScanForNewDevices: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            dismissWaitDialog();
 
             if ( _frag.get() == null ) {
                 // We've been dismissed.
@@ -761,7 +779,7 @@ public class AddDeviceFragment extends Fragment
 
         @Override
         public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
+            dismissWaitDialog();
             Logger.logDebug(LOG_TAG, "rn: getNewDeviceScanForAPs results: " + msg);
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
@@ -791,8 +809,7 @@ public class AddDeviceFragment extends Fragment
             _needsExit = true;
 
             MainActivity activity = MainActivity.getInstance();
-            activity.dismissWaitDialog();
-
+            dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 String json = (String)msg.obj;
 
@@ -819,8 +836,7 @@ public class AddDeviceFragment extends Fragment
 
         @Override
         public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-
+            dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 final AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
                 Logger.logDebug(LOG_TAG, "rn: New device: " + device);
@@ -869,7 +885,7 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             Logger.logDebug(LOG_TAG, "rn: GetNewDeviceWiFiStatusHandler: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 AylaWiFiStatus status = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaWiFiStatus.class);
                 Logger.logDebug(LOG_TAG, "rn: Wifi status: " + status);
@@ -897,7 +913,7 @@ public class AddDeviceFragment extends Fragment
         @Override
         public void handleMessage(Message msg) {
             Logger.logDebug(LOG_TAG, "rn: Connect to service handler: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Confirm service connection. We need to do this to get the device information
                 // to register it.

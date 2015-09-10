@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
@@ -46,7 +47,12 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
 
         // Get the opposite boolean value and set it
         Boolean newValue = "0".equals(prop.value);
-        setDatapoint(getObservablePropertyName(), newValue, null);
+        setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
+            @Override
+            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+                Log.d(LOG_TAG, "lm: setSwitch: " + succeeded + " ***^^^");
+            }
+        });
     }
 
     public boolean isOn() {
@@ -135,6 +141,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         // Toggle the button state
+        Log.d(LOG_TAG, "lm: Switch tapped ***vvv");
         ImageButton button = (ImageButton) v;
         button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
         toggle();

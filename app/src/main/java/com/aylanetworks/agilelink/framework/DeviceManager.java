@@ -1204,7 +1204,8 @@ public class DeviceManager implements DeviceStatusListener {
     /** This is where we are notified when a device's status has been updated. */
     @Override
     public void statusUpdated(Device device, boolean changed) {
-        Log.d(LOG_TAG, "Device status updated (" + changed + "): " + device);
+        //Log.d(LOG_TAG, "Device status updated (" + changed + "): " + device);
+        Log.d(LOG_TAG, "lm: statusUpdated [" + device.getDeviceDsn() + "] changed=" + changed);
         if ( changed ) {
             notifyDeviceStatusChanged(device);
         }

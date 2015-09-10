@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 
 import com.aylanetworks.aaml.AylaDatapoint;
@@ -225,6 +226,13 @@ public class Device implements Comparable<Device> {
     public String getDeviceDsn() {
         if (_device != null) {
             return _device.dsn;
+        }
+        return "";
+    }
+
+    public String getDeviceIP() {
+        if (_device != null) {
+            return _device.lanIp;
         }
         return "";
     }
@@ -896,9 +904,11 @@ public class Device implements Comparable<Device> {
         }
 
         // Put the device into LAN mode before setting the property
+        Log.d(LOG_TAG, "lm: setDatapoint [" + getDeviceDsn() + "]");
         SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(this) {
             @Override
             public void lanModeResult(boolean isInLANMode) {
+                Log.d(LOG_TAG, "lm: setDatapoint [" + getDeviceDsn() + "] lanModeResult " + isInLANMode);
                 final CreateDatapointHandler handler = new CreateDatapointHandler(Device.this,property,listener);
                 property.createDatapoint(handler,datapoint);
             }
@@ -918,6 +928,7 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "lm: CreateDatapointHandler handleMessage " + msg);
             if (AylaNetworks.succeeded(msg)) {
                 // Set the value of the property
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);

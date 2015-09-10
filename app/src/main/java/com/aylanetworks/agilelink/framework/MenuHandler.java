@@ -247,13 +247,14 @@ public class MenuHandler {
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            Logger.logInfo(LOG_TAG, "signOut: stop session.");
                             SessionManager.stopSession();
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)
                     .create().show();
         } else {
-            Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed.");
+            Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed, stop session.");
             SessionManager.stopSession();
         }
     }

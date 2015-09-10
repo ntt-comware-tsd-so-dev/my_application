@@ -277,7 +277,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             // Set the device title and image
             _titleView.setText(_device.toString());
-            _dsnView.setText(_device.getDeviceDsn());
+            _dsnView.setText(_device.isInLanMode() ? _device.getDeviceIP() : _device.getDeviceDsn());
             _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
             _listView.setAdapter(_adapter);
         }

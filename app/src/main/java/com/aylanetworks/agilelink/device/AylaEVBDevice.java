@@ -55,7 +55,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
        setDatapoint(PROPERTY_GREEN_LED, on, new SetDatapointListener() {
            @Override
            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-               Log.d(LOG_TAG, "setGreenLED: " + succeeded);
+               Log.d(LOG_TAG, "lm: setGreenLED: " + succeeded + " ***^^^");
            }
        });
     }
@@ -64,7 +64,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
         setDatapoint(PROPERTY_BLUE_LED, on, new SetDatapointListener() {
             @Override
             public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "setGreenLED: " + succeeded);
+                Log.d(LOG_TAG, "lm: setBlueLED: " + succeeded + " ***^^^");
             }
         });
     }
@@ -132,7 +132,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
     public void onClick(View v) {
         // The green or blue LED has been tapped.
         boolean isGreenButton = (v.getId() == R.id.green_button);
-        Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
+        Log.d(LOG_TAG, "lm: Button tapped: " + (isGreenButton ? "GREEN" : "BLUE") + " ***vvv");
         if (isGreenButton) {
             setGreenLED(!isGreenLEDOn());
         } else {
