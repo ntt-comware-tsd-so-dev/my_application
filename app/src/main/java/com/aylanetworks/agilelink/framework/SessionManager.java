@@ -122,6 +122,9 @@ public class SessionManager {
                 getInstance()._sessionParameters.deviceSsidRegex,
                 getInstance()._sessionParameters.appId);
 
+        if(parameters.logsEmailAddress != null){
+            AylaSystemUtils.setSupportEmailAddress(parameters.logsEmailAddress);
+        }
     }
 
     /**
@@ -425,6 +428,13 @@ public class SessionManager {
          */
         public String notificationEmailBodyHTML = null;
 
+
+        /**
+         * Email address to which logs are to be sent by the user.
+         * Default email address available from AylaSystemUtils.getSupportEmailAddress()
+         */
+        public String logsEmailAddress = null;
+
         /**
          * SessionParameters constructor
          *
@@ -462,6 +472,7 @@ public class SessionManager {
             this.notificationEmailSubject = other.notificationEmailSubject;
             this.notificationEmailTemplateId = other.notificationEmailTemplateId;
             this.notificationEmailBodyHTML = other.notificationEmailBodyHTML;
+            this.logsEmailAddress = other.logsEmailAddress;
         }
 
         @Override

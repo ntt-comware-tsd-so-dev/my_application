@@ -748,6 +748,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             parameters.registrationEmailBodyHTML = null;
         }
 
+        if(parameters.logsEmailAddress == null){
+            parameters.logsEmailAddress = AylaNetworks.DEFAULT_SUPPORT_EMAIL_ADDRESS;
+        }
+
         return parameters;
     }
 

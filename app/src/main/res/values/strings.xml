@@ -461,6 +461,7 @@
     <string name="get_started">Getting Started</string>
     <string name="guides_videos">Guides &amp; Videos</string>
     <string name="terms_and_condition">Terms &amp; Conditions</string>
+    <string name="email_logs_to_ayla">Email logs to Ayla</string>
     <!--  Links for help page option -->
     <string name="about_amap_link">http://www.aylanetworks.com/company/ayla</string>
     <string name="get_started_link">http://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
