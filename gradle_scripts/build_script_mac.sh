@@ -1,7 +1,7 @@
 #!/bin/bash
 #export AYLA_BUILD_BRANCH=develop
-#export AYLA_LIB_BRANCH=feature/AML-62
-#export AYLA_ZLIB_BRANCH=feature/AML-62
+#export AYLA_LIB_BRANCH=feature/http_client_changes
+#export AYLA_ZLIB_BRANCH=develop
 echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
 : ${MASTER=master}
