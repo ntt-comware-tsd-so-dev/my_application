@@ -734,8 +734,7 @@ public class DeviceManager implements DeviceStatusListener {
                 Log.i(LOG_TAG, "deviceManager has been removed.");
                 return;
             }
-
-            if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_SESSION) == 0) {
+            if (TextUtils.equals(type, AylaNetworks.AML_NOTIFY_TYPE_SESSION)) {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
                     Log.i(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
@@ -810,8 +809,7 @@ public class DeviceManager implements DeviceStatusListener {
                     // If the LAN device has changed, then the list has changed.
                     _deviceManager.get().notifyDeviceListChanged();
                 }
-            } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
-                    type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
+            } else if (TextUtils.equals(type, AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) || TextUtils.equals(type, AylaNetworks.AML_NOTIFY_TYPE_NODE)) {
                 // A device's property has changed.
                 Device d = _deviceManager.get().deviceByDSN(dsn);
                 if ( d != null ) {
