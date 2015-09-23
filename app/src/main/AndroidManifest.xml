@@ -95,6 +95,13 @@
 
         </activity>
 
+        <activity
+            android:name=".DeveloperOptions"
+            android:label="AgileLink"
+            android:launchMode="singleInstance">
+
+        </activity>
+
 
         <service android:name="com.aylanetworks.aaml.AylaExecuteRequest"/>
 

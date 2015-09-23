@@ -558,4 +558,29 @@
     <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
     <!-- -->
 
+
+
+    <!-- Developer Options -->
+    <string name="dev_options">Developer Options</string>
+
+    <string-array name="location_options">
+        <item>United States</item>
+        <item>China</item>
+    </string-array>
+
+    <string-array name="service_options">
+        <item>Device Service</item>
+        <item>Developer Service</item>
+        <item>Field Service</item>
+        <item>Staging Service</item>
+    </string-array>
+
+    <string-array name="config_options">
+        <item>Logging</item>
+        <item>Clear Cache</item>
+        <item>Slow Connection</item>
+        <item>LAN Mode</item>
+    </string-array>
+
+
 </resources>
