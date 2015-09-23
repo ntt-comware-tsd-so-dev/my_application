@@ -12,9 +12,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.internal.view.menu.MenuBuilder;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -381,9 +384,15 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         String email = emailEditText.getText().toString();
                         if ("aylarocks".compareToIgnoreCase(email) == 0) {
                             // Enable the dev UI
-                            _serviceTypeSpinner.setVisibility(View.VISIBLE);
+                           /* _serviceTypeSpinner.setVisibility(View.VISIBLE);
                             Toast.makeText(MainActivity.getInstance(), "Developer mode enabled", Toast.LENGTH_LONG).show();
-                            return;
+                            return;*/
+
+                           if(BuildConfig.DEBUG){
+                               Intent intent = new Intent(SignInActivity.this, DeveloperOptions.class);
+                               startActivity(intent);
+                               return;
+                           }
                         }
 
                         SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
@@ -588,4 +597,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     }
 
     private OauthHandler _oauthHandler = new OauthHandler(this);
+
+
 }
