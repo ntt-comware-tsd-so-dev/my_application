@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,6 +42,7 @@ import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
+import com.aylanetworks.aaml.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
@@ -89,6 +92,10 @@ public class AddDeviceFragment extends Fragment
         return new AddDeviceFragment();
     }
 
+    private WifiManager _wifiManager;
+    private String _ssid;
+    private String _bssid;
+
     private Button _registerButton;
     private TextView _spinnerRegistrationTypeLabel;
     private Spinner _spinnerRegistrationType;
@@ -98,11 +105,20 @@ public class AddDeviceFragment extends Fragment
     private Spinner _spinnerProductType;
     private static boolean _needsExit;
 
+    void updateConnectionInfo() {
+        WifiInfo info = _wifiManager.getConnectionInfo();
+        _ssid = info.getSSID().replaceAll("^\"|\"$", "");
+        _bssid = info.getBSSID().replaceAll("^\"|\"$", "");
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logVerbose(LOG_TAG, "rn: onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        _wifiManager = (WifiManager)getActivity().getSystemService(Context.WIFI_SERVICE);
+        updateConnectionInfo();
 
         // Stop polling & LAN mode
         SessionManager.deviceManager().stopPolling();
@@ -182,7 +198,7 @@ public class AddDeviceFragment extends Fragment
         } else {
             Log.e(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
         }
-
+        updateConnectionInfo();
     }
 
     @Override
@@ -731,7 +747,7 @@ public class AddDeviceFragment extends Fragment
         if (_chooseAPDialog == null) {
             Logger.logDebug(LOG_TAG, "rn: chooseAP show");
             _savedScanResults = scanResults;
-            _chooseAPDialog = ChooseAPDialog.newInstance(scanResults);
+            _chooseAPDialog = ChooseAPDialog.newInstance(scanResults, _ssid, _bssid);
             _chooseAPDialog.setTargetFragment(this, 0);
             _chooseAPDialog.show(getFragmentManager(), "ap");
         } else {
