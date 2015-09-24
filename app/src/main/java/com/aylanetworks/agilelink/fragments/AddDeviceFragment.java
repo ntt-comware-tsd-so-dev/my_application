@@ -586,6 +586,8 @@ public class AddDeviceFragment extends Fragment
 
     @Override
     public void choseAccessPoint(String accessPoint, String security, String password) {
+        Logger.logDebug(LOG_TAG, "rn: chooseAP dismissed");
+        _chooseAPDialog = null;
         Logger.logDebug(LOG_TAG, "rn: choseAccessPoint: " + accessPoint + "[" + security + "]");
         if ( accessPoint == null ) {
             exitSetup();
@@ -723,12 +725,18 @@ public class AddDeviceFragment extends Fragment
         device.registerNewDevice(_registerHandler);
     }
 
+    private ChooseAPDialog _chooseAPDialog;
     private AylaModuleScanResults _savedScanResults[];
     private void chooseAP(AylaModuleScanResults scanResults[]) {
-        _savedScanResults = scanResults;
-        ChooseAPDialog d = ChooseAPDialog.newInstance(scanResults);
-        d.setTargetFragment(this, 0);
-        d.show(getFragmentManager(), "ap");
+        if (_chooseAPDialog == null) {
+            Logger.logDebug(LOG_TAG, "rn: chooseAP show");
+            _savedScanResults = scanResults;
+            _chooseAPDialog = ChooseAPDialog.newInstance(scanResults);
+            _chooseAPDialog.setTargetFragment(this, 0);
+            _chooseAPDialog.show(getFragmentManager(), "ap");
+        } else {
+            Logger.logDebug(LOG_TAG, "rn: chooseAP already shown");
+        }
     }
 
     /**
@@ -926,6 +934,7 @@ public class AddDeviceFragment extends Fragment
                 String emsg = (String) msg.obj;
                 if (emsg != null && emsg.contains("invalid key")) {
                     Toast.makeText(MainActivity.getInstance(), R.string.bad_wifi_password, Toast.LENGTH_LONG).show();
+                    Logger.logDebug(LOG_TAG, "rn: chooseAP bad wifi password. try again.");
                     _frag.get().chooseAP(_frag.get()._savedScanResults);
                 } else {
                     String anErrMsg = (String) msg.obj;
