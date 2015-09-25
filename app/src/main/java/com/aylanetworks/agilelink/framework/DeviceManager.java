@@ -856,10 +856,12 @@ public class DeviceManager implements DeviceStatusListener {
 
         @Override
         public void handleMessage(Message msg) {
-            Gateway gateway = _deviceManager.get().getGatewayDevice();
             Log.i(LOG_TAG, "getNodesHandler");
+            Gateway gateway = _deviceManager.get().getGatewayDevice();
             Log.i(LOG_TAG, "Entering LAN mode with gateway " + gateway);
-            gateway.getDevice().lanModeEnable();
+            if (gateway != null) {
+                gateway.getDevice().lanModeEnable();
+            }
         }
     }
 

@@ -421,38 +421,13 @@ public class ZigbeeGroupManager {
                 AylaGroupZigbee[] groups = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaGroupZigbee[].class);
                 if (groups != null) {
                     Logger.logDebug(LOG_TAG, "zg: getZigbeeGroups " + groups.length + " groups");
-                    List<Device> devices = SessionManager.deviceManager().deviceList();
                     for (AylaGroupZigbee group : groups) {
                         if (group == null) {
                             continue;
                         }
-
-                        // verify that it is an active group that we want to add
-                        boolean add = true;
-                        /* should we be doing this? I doubt it...
-                        String prefix = null;
-                        if (group.groupName.startsWith(ZigbeeTriggerDevice.GROUP_PREFIX_TRIGGER)) {
-                            prefix = ZigbeeTriggerDevice.GROUP_PREFIX_TRIGGER;
-                        } else if (group.groupName.startsWith(ZigbeeWirelessSwitch.GROUP_PREFIX_REMOTE)) {
-                            prefix = ZigbeeWirelessSwitch.GROUP_PREFIX_REMOTE;
-                        }
-                        if (prefix != null) {
-                            add = false;
-                            for (Device device : devices) {
-                                String key = prefix + device.getDeviceDsn();
-                                if (group.groupName.startsWith(key)) {
-                                    add = true;
-                                    break;
-                                }
-                            }
-                        }
-                        */
-
-                        if (add) {
-                            Logger.logDebug(LOG_TAG, "zg: getZigbeeGroups + [" + group.groupName + "] [" + getGroupNodesToString(group) + "]");
-                            Logger.logDebug(LOG_TAG, "zg: [%s]", group);
-                            groupSet.add(group);
-                        }
+                        Logger.logDebug(LOG_TAG, "zg: getZigbeeGroups + [" + group.groupName + "] [" + getGroupNodesToString(group) + "]");
+                        Logger.logDebug(LOG_TAG, "zg: [%s]", group);
+                        groupSet.add(group);
                     }
                 }
                 _manager.get().setGroups(groupSet);

@@ -534,7 +534,11 @@ public class ZigbeeTriggerDevice extends Device  {
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
         _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+        if (_gateway != null) {
+            Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+        } else {
+            Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] no gateway found!", this.getDeviceDsn());
+        }
     }
 
     @Override
