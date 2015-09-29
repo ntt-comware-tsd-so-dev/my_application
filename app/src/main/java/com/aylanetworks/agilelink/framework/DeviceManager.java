@@ -1026,10 +1026,15 @@ public class DeviceManager implements DeviceStatusListener {
 
         @Override
         public void handleMessage(Message msg) {
+            DeviceManager deviceManager = _deviceManager.get();
+            if (deviceManager == null) {
+                Logger.logError(LOG_TAG, "no deviceManager");
+                return;
+            }
             List<Device> newDeviceList = new ArrayList<Device>();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Create our device array
-                Log.v(LOG_TAG, "Device list JSON: " + msg.obj);
+                Log.v(LOG_TAG, "dev: Device list JSON: " + msg.obj);
                 AylaDevice[] devices = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice[].class);
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
                 for ( AylaDevice aylaDevice : devices ) {
@@ -1049,16 +1054,16 @@ public class DeviceManager implements DeviceStatusListener {
                     }
                 }
 
-                if ( _deviceManager.get().deviceListChanged(newDeviceList) ) {
+                if ( deviceManager.deviceListChanged(newDeviceList) ) {
 
                     // remember the old device list for a little bit
                     List<Device> oldDeviceList = new ArrayList<Device>();
-                    if (_deviceManager.get()._deviceList != null) {
-                        oldDeviceList = _deviceManager.get()._deviceList;
+                    if (deviceManager._deviceList != null) {
+                        oldDeviceList = deviceManager._deviceList;
                     }
 
                     // replace the old device list with the new list
-                    _deviceManager.get()._deviceList = newDeviceList;
+                    deviceManager._deviceList = newDeviceList;
 
                     // The device list has changed.  Give these new devices a chance to initialize
                     // before notifying anybody
@@ -1073,14 +1078,14 @@ public class DeviceManager implements DeviceStatusListener {
                         }
                     }
 
-                    _deviceManager.get().notifyDeviceListChanged();
+                    deviceManager.notifyDeviceListChanged();
 
                     // Do we need to enter LAN mode?
                     if ( params.enableLANMode ) {
-                        _deviceManager.get().enterLANMode();
+                        deviceManager.enterLANMode();
                     }
                 }
-                _deviceManager.get().refreshDeviceStatus(null);
+                deviceManager.refreshDeviceStatus(null);
             }
 
             synchronized (_completionSet) {
