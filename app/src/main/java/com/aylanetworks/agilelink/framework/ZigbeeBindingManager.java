@@ -220,7 +220,7 @@ public class ZigbeeBindingManager {
                             continue;
                         }
                         Logger.logDebug(LOG_TAG, "zg: getZigbeeBindings + [%s]", binding.bindingName);
-                        Logger.logDebug(LOG_TAG, "zg: [%s]", binding);
+                        //Logger.logDebug(LOG_TAG, "zg: [%s]", binding);
                         set.add(binding);
                     }
                 }

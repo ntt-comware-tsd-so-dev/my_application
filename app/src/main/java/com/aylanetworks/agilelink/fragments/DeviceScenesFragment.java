@@ -639,12 +639,16 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 actionActivate = new SceneAction(_selectedSceneName, new Gateway.AylaGatewayActionHandler() {
                     @Override
                     public void performAction(Object action, Gateway g, Object tag) {
-                        ZigbeeGateway gateway = (ZigbeeGateway)g;
-                        if (gateway != null) {
-                            AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
-                            if (scene != null) {
-                                gateway.recallScene(scene, this, (SceneAction) action);
+                        if (g.isZigbeeGateway()) {
+                            ZigbeeGateway gateway = (ZigbeeGateway) g;
+                            if (gateway != null) {
+                                AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
+                                if (scene != null) {
+                                    gateway.recallScene(scene, this, (SceneAction) action);
+                                }
                             }
+                        } else {
+                            Logger.logError(LOG_TAG, "zg: gateway [%s] is not a ZigbeeGateway!", g.getDeviceDsn());
                         }
                     }
 
@@ -675,11 +679,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 actionDelete = new SceneAction(sceneName, new Gateway.AylaGatewayActionHandler() {
                     @Override
                     public void performAction(Object action, Gateway g, Object tag) {
-                        ZigbeeGateway gateway = (ZigbeeGateway)g;
-                        if (gateway != null) {
-                            AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
-                            if (scene != null) {
-                                gateway.deleteScene(scene, this, (SceneAction) action);
+                        if (g.isZigbeeGateway()) {
+                            ZigbeeGateway gateway = (ZigbeeGateway) g;
+                            if (gateway != null) {
+                                AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
+                                if (scene != null) {
+                                    gateway.deleteScene(scene, this, (SceneAction) action);
+                                }
                             }
                         }
                     }

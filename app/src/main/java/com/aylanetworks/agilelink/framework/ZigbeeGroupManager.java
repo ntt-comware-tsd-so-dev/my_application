@@ -426,7 +426,7 @@ public class ZigbeeGroupManager {
                             continue;
                         }
                         Logger.logDebug(LOG_TAG, "zg: getZigbeeGroups + [" + group.groupName + "] [" + getGroupNodesToString(group) + "]");
-                        Logger.logDebug(LOG_TAG, "zg: [%s]", group);
+                        //Logger.logDebug(LOG_TAG, "zg: [%s]", group);
                         groupSet.add(group);
                     }
                 }
