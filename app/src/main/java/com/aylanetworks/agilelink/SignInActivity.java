@@ -302,6 +302,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private void onResendEmail() {
         final EditText emailEditText = new EditText(this);
         emailEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        emailEditText.setText(_username.getText());
         Dialog dlg = new AlertDialog.Builder(this)
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.resend_confirmation)
@@ -369,6 +370,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private void onForgotPassword() {
         final EditText emailEditText = new EditText(this);
         emailEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        emailEditText.setText(_username.getText());
         final Dialog dlg = new AlertDialog.Builder(this)
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.forgot_password_title)
