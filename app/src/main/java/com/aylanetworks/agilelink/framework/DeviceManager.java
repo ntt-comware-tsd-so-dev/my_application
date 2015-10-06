@@ -1046,7 +1046,11 @@ public class DeviceManager implements DeviceStatusListener {
                             if ( !device.isDeviceNode() && !device.isInLanMode() ) {
                                 Log.d("BSK", "LAN mode enabling " + device);
                                 AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(device.getDevice().dsn);
-                                lanDevice.lanModeEnable();
+                                if (lanDevice != null) {
+                                    lanDevice.lanModeEnable();
+                                } else {
+                                    Logger.logError(LOG_TAG, "no device with dsn [%s]", device.getDevice().dsn);
+                                }
                             }
                         }
                     } else {
