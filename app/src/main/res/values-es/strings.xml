@@ -12,7 +12,7 @@
 
     <string name="all_devices">Dispositivos</string>
     <string name="log_out">Salir</string>
-    <string name="login_register">Login / Register</string>
+    <string name="login_register">Entrar / Registro</string>
     <string name="please_log_in">Por favor entre</string>
     <string name="no_devices_found">No se encontraron dispositivos.\n\n<i>Presiona \"Buscar Dispositivos\" para reescanear o \"Registrar\" para encontrar dispositivos que ya están en la WiFi</i></string>
 
@@ -45,8 +45,8 @@
     <string name="currentPassword">Password actual</string>
     <string name="newPassword">Nuevo password</string>
     <string name="newPasswordConfirm">Confirmar Password</string>
-    <string name="signingIn">Signing in...</string>
-    <string name="signingUp">Signing up...</string>
+    <string name="signingIn">Entrando...</string>
+    <string name="signingUp">Registrando...</string>
     <string name="confirmPassword">confirmar Password</string>
     <string name="lastName">apellido</string>
     <string name="country">país</string>
@@ -93,8 +93,8 @@
     <string name="unregister_confirm_title">Desregistrar Dispositivo</string>
     <string name="unregister_confirm_body">¿Quiere desregistrar el dispositivo?</string>
     <string name="waiting_unregister_title">Desregistrar Dispositivo</string>
-    <string name="waiting_unregister_body">Busy unregistering device</string>
-    <string name="unregister_failed">Unregister of device failed</string>
+    <string name="waiting_unregister_body">Desregistrando dipositivo</string>
+    <string name="unregister_failed">No se pudo desregistrar</string>
     <string name="unregister_success">El dispositivo ha sido desregistrado</string>
     <string name="unregister_failure_timeout">No se completó la operación de Desregistrar.</string>
     <string name="unregister_try_again">Intente de nuevo</string>
@@ -138,7 +138,7 @@
     <string name="scanning_for_aps_title">Buscando redes WiFi</string>
     <string name="scanning_for_aps_body">Buscando Access Points WiFi. Espere por favor...</string>
     <string name="wifi_connect_failed">No se pudo conectar al dispositivo. Reinicie el dispositivo y reintente.</string>
-    <string name="choose_ap">Access Points WiFi</string>
+    <string name="choose_ap">Redes WiFi</string>
     <string name="choose_ap_body">Seleccione la red WiFi para conectar el dipositivo</string>
     <string name="enter_wifi_password">Seleccione el access point WiFi para conectar el dispositivo e introduzca su contraseña si es necesario.</string>
     <string name="connect">Conectar</string>
@@ -146,14 +146,14 @@
     <string name="wifi_show_password">Mostrar password</string>
     <string name="connect_device">Conectar Dispositivo</string>
     <string name="connect_to_service_success">Conectado a la nube</string>
-    <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
+    <string name="bad_wifi_password">Password WiFi Incorrecto. Reintente por favor.</string>
     <string name="connecting_to_network_title">Conectando</string>
     <string name="connecting_to_network_body">Conectando al WiFi. Espere por favor...</string>
     <string name="error_signing_in">Un error desconocido ocurrió al entrar</string>
     <string name="authenticating_with" formatted="false">Entrar con %s</string>
     <string name="facebook">Facebook</string>
     <string name="google">Google</string>
-    <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
+    <string name="error_no_connectivity">Sin conexión WiFi. Verifique la conexión de su red.</string>
     <string name="invalid_email_password">Email o password inválido</string>
     <string name="unknown_error">Ocurrió un error desconocido</string>
     <string name="update_profile">Actualizar perfil</string>
@@ -181,7 +181,7 @@
     <string name="add_device_or_group_title">Añadir Dispositivo o Grupo</string>
     <string name="add_group_title">Añadir Grupo o Cuarto</string>
     <string name="add_group_message">Introduzca el nombre de su nuevo Grupo o Cuarto</string>
-    <string name="group_name_hint">Unique Group or Room Name</string>
+    <string name="group_name_hint">Nombre único de Grupo o Cuarto</string>
     <string name="add_group">Agregar Grupo</string>
     <string name="choose_group_devices">Seleccione los dispositivos para el grupo</string>
     <string name="resend_confirmation_message">Introduzca el correo asociado a su cuenta. Si es válido, una nueva confirmación se enviará.</string>
@@ -197,8 +197,8 @@
     <string name="password_reset_sent">Un email con instrucciones para restablecer su password ha sido enviado.</string>
     <string name="error_password_reset_failed">No se pudo cambiar el password</string>
     <string name="enter_new_password">Nuevo password</string>
-    <string name="enter_new_password_body">Enter your new password in the fields below. Make sure to type the same password in both fields.</string>
-    <string name="set_password">Set Password</string>
+    <string name="enter_new_password_body">Introduzca un nuevo Password, asegúrese de escribir el mismo en ambos campos.</string>
+    <string name="set_password">Cambiar Password</string>
     <string name="password_changed">Password cambiado</string>
     <string name="resetting_password_title">Restableciendo password...</string>
     <string name="resetting_password_body">Restableciendo password. Espere por favor...</string>
@@ -207,6 +207,7 @@
     <string name="deleting_account_title">Borrando Cuenta</string>
     <string name="deleting_account_message">orrando su cuenta. Espere por favor</string>
     <string name="account_deleted">Cuenta borrada</string>
+    <string name="product_type">Tipo de Producto</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">
@@ -276,8 +277,8 @@
     <string name="turn_on">Enceder</string>
     <string name="turn_off">Apagar</string>
     <string name="blue_led">LED Azul</string>
-    <string name="green_led">Green LED</string>
-    <string name="schedule_properties_description">Select which action you would like to update with this schedule:</string>
+    <string name="green_led">LED Verde</string>
+    <string name="schedule_properties_description">Seleccione la acción a actualizar con la programación:</string>
     <string name="no_actions_set">Seleccione una acción para actualizar la programación</string>
     <string name="timezone_button_text">Zona horaria...</string>
     <string name="sharing_button_text">Compartir dispositivo...</string>
@@ -287,7 +288,7 @@
     <string name="updating_timezone_title">Actualizando zona horaria...</string>
     <string name="updating_timezone_body">Actualizando la zona del dispositivo. Por favor espere...</string>
     <string name="timezone_update_success">La zona horaria ha sido actualizada</string>
-    <string name="timezone_update_failure">An error occurred while trying to update the time zone for this device</string>
+    <string name="timezone_update_failure">Ocurrió un error al actualizar la Zona Horaria del Dispositivo</string>
     <string name="timezone_fetch_failed">Ocurrió un error al obtener la zona horaria. Reintente más tarde.</string>
     <string name="fetching_contacts_title">Obteniendo Contactos</string>
     <string name="fetching_contacts_body">Actualizando lista de contactos. Espere por favor...</string>
@@ -315,7 +316,7 @@
     <string name="devices_i_share">Dispositivos que comparto</string>
     <string name="devices_shared_with_me">Dispositivos que me comparten</string>
     <string name="fetching_shares_title">Obteniendo comparticiones</string>
-    <string name="fetching_shares_body">Updating your list of shares from the server. Please wait...</string>
+    <string name="fetching_shares_body">Actualizando comparticiones desde el servidor. Por favor espere...</string>
     <string name="confirm_remove_share_message" formatted="false">Estas seguro que quieres dejar de compartir %1$@ con %2$@?</string>
     <string name="confirm_remove_share_title">Dejar de compartir</string>
     <string name="removing_share_title">Borrando Compartición</string>
@@ -477,8 +478,8 @@
     <string name="door_trigger_on_name">Puerta se abre</string>
     <string name="door_trigger_off_name">Puerta se cierra</string>
 
-    <string name="trigger_devices_on_title">Select devices to turn on</string>
-    <string name="trigger_devices_off_title">Select devices to turn off</string>
+    <string name="trigger_devices_on_title">Seleccione Dispositivos a Encender</string>
+    <string name="trigger_devices_off_title">Seleccione Dispositivos a Apagar</string>
     <string name="trigger_devices_remove_title">Select devices to remove</string>
     <string name="trigger_update_title">Actualizar Disparadores</string>
     <string name="trigger_update_body">Actualizando Dispositivos en Disparador</string>
@@ -510,17 +511,17 @@
     <string name="add_device_or_scene_title">Añadir Dispositivos o Escenas</string>
     <!-- Add device or scene menu items -->
     <string-array name="device_or_scene_items">
-        <item>Manage devices in this scene</item>
+        <item>Administrar Dispositivos en la Escena</item>
         <item>Crear una nueva escena</item>
     </string-array>
     <string name="choose_scene_devices">Por favor seleccione los dispositivos que quiera agregar a la escena</string>
-    <string name="scene_create_title">Create Scene</string>
-    <string name="scene_create_body">Creating scene.</string>
+    <string name="scene_create_title">Crear Escena</string>
+    <string name="scene_create_body">Creando escena.</string>
     <string name="scene_create_complete">Escena creada</string>
     <string name="scene_create_failed">No se pudo crear la escena</string>
-    <string name="scene_update_title">Update Scene</string>
-    <string name="scene_update_body">Updating scene...</string>
-    <string name="scene_update_complete">Update Scene Complete</string>
+    <string name="scene_update_title">Actualizar escena...</string>
+    <string name="scene_update_body">Actualizando escena...</string>
+    <string name="scene_update_complete">Actualización de escena lista</string>
     <string name="scene_add_info">Por favor seleccione los dispositivos que quiera agregar a la escena. Por favor encienda/apague sus dispositivos como quiera que sean capturados en la escena antes de presionar el botón para terminar.</string>
     <string name="scene_add_info_multiple_gateway">Configura los dispositivos como los desee configurar en la escena.  Seleccione los dispositivos. Todos los dipositivos deben pertenecer al mismo Gateway.</string>
     <string name="confirm_delete_scene_body" formatted="false">Desea borrar la escena \"%s\"?</string>
