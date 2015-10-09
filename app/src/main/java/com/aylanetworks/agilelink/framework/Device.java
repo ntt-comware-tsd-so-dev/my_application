@@ -769,8 +769,10 @@ public class Device implements Comparable<Device> {
                 if (properties.length == 0) {
                     Logger.logError(LOG_TAG, "No properties found!! Message: " + msg);
                 }
+
                 for (AylaProperty prop : properties) {
                     Logger.logVerbose(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
+                    prop.product_name = d.dsn;
                 }
 
                 // At this point, enable ourselves in LAN mode if we were the last device
