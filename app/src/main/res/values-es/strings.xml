@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AMAP</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="username">Email</string>
+    <string name="password">Password</string>
+    <string name="login_failed">No se pudo entrar</string>
+    <string name="unknown_app_version">Versión Desconocida</string>
+    <string name="ok">OK</string>
+
+
+    <string name="all_devices">Dispositivos</string>
+    <string name="log_out">Salir</string>
+    <string name="login_register">Entrar / Registro</string>
+    <string name="please_log_in">Por favor entre</string>
+    <string name="no_devices_found">No se encontraron dispositivos.\n\n<i>Presiona \"Buscar Dispositivos\" para reescanear o \"Registrar\" para encontrar dispositivos que ya están en la WiFi</i></string>
+
+
+    <string name="open">Abierto</string>
+    <string name="closed">Cerrada</string>
+    <string name="on">Encender</string>
+    <string name="off">Apagar</string>
+    <string name="device_state_unknown">DESCONOCIDO</string>
+    <string name="smart_plug">Smart Plug</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="schedule">Programación</string>
+    <string name="hours">Horas</string>
+    <string name="minutes">Minutos</string>
+    <string name="remote">Control</string>
+    <string name="remote_paired_devices">Dispositivos Asociados</string>
+    <string name="remote_paired_remote">Control Asociado</string>
+    <string name="remote_add">Asociar</string>
+    <string name="remote_remove">Desasociar</string>
+    <string name="trigger">Disparador</string>
+    <string name="identify">Identificar</string>
+    <string name="device_properties">Propiedades</string>
+    <string name="up"><u>Inscribirme</u></string>
+    <string name="forgot"><u>Olvidé Password</u></string>
+    <string name="resend_confirmation"><u>Reenviar Confirmación</u></string>
+    <string name="signIn">Entrar</string>
+    <string name="userInformation">Información de Usuario</string>
+    <string name="emailAddress">Email</string>
+    <string name="passwordHint">Password</string>
+    <string name="currentPassword">Password actual</string>
+    <string name="newPassword">Nuevo password</string>
+    <string name="newPasswordConfirm">Confirmar Password</string>
+    <string name="signingIn">Entrando...</string>
+    <string name="signingUp">Registrando...</string>
+    <string name="confirmPassword">confirmar Password</string>
+    <string name="lastName">apellido</string>
+    <string name="country">país</string>
+    <string name="firstName">Nombre</string>
+    <string name="phoneNumber">Teléfono</string>
+    <string name="phoneCountryCode">código de País</string>
+    <string name="evbNumber">Número de EVB</string>
+    <string name="zip">C.P.</string>
+    <string name="signUp">Inscribirme</string>
+    <string name="update">Actualizar</string>
+    <string name="change">Cambiar</string>
+    <string name="password_required">Se requiere un Password</string>
+    <string name="password_too_short">El password debe tener al menos 6 caracteres</string>
+    <string name="password_no_match">El Password y la Confirmación no coinciden</string>
+    <string name="registraion_email_subject">Confirmación de Cuenta de Ayla</string>
+   <string name="registration_email_body_html"><![CDATA[
+        <tr><td style="color: #153643; font-family: Arial, sans-serif; font-size: 24px;">
+        <h2>Hola [[user_name]]!</h2>
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+        <b>[[property_name]]</b> ahora tiene un valor de  <b>[[property_value]]</b> en su dispositivo <b>[[device_product_name]]</b>
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+        [[user_message]]
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+        <a href="http://www.aylanetworks.com/">Ayla Networks</a>
+        </td>
+        </tr>
+     ]]></string>
+    <string name="sign_up_success">Cuenta creada, por favor confirme el correo en su bandeja.</string>
+    <string name="sign_up_error">Ocurrió un error al inscribirse</string>
+    <string name="add_device_menu">Añade Dispositivo</string>
+
+    <string name="attention">Atención</string>
+
+    <string name="unregister_device">Desregistrar Dispositivo</string>
+    <string name="unregister_confirm_title">Desregistrar Dispositivo</string>
+    <string name="unregister_confirm_body">¿Quiere desregistrar el dispositivo?</string>
+    <string name="waiting_unregister_title">Desregistrar Dispositivo</string>
+    <string name="waiting_unregister_body">Desregistrando dipositivo</string>
+    <string name="unregister_failed">No se pudo desregistrar</string>
+    <string name="unregister_success">El dispositivo ha sido desregistrado</string>
+    <string name="unregister_failure_timeout">No se completó la operación de Desregistrar.</string>
+    <string name="unregister_try_again">Intente de nuevo</string>
+
+    <string name="factory_reset_device">Reestablecer</string>
+    <string name="factory_reset_confirm_title">Reestablecer Dispositivo</string>
+    <string name="factory_reset_confirm_body">¿Esta seguro que desea restablecer el dipositivo? Todos los ajustes se perderán y se eliminará de su cuenta.</string>
+    <string name="waiting_factory_reset_title">Restablecer dispositivo</string>
+    <string name="waiting_factory_reset_body">Restableciendo dispositivo</string>
+    <string name="factory_reset_failed">Restablecimiento falló</string>
+    <string name="factory_reset_success">El dispositivo ha sido restablecido</string>
+    <string name="factory_reset_failure_timeout">El restablecimiento aún no termina correctamente.</string>
+    <string name="factory_reset_try_again">Intente de nuevo</string>
+    <string name="factory_reset_in_progress">Restablecimiento en Proceso</string>
+    <string name="factory_reset_in_progress_toast">Restablecimiento en Proceso</string>
+
+    <string name="register">Registrar</string>
+    <string name="registration_type">Tipo de Registro</string>
+    <string name="registration_same_lan_instructions">Por favor, asegúrese de que el LED naranja este encendido y que su teléfono y el dispositivo se encuentren en la misma conexión al internet </string>
+
+    <string name="registration_button_push_instructions">Por favor asegúrese de que el LED naranja en el dispositivo este encendido, después presione el botón de registro en su dispositivo, tendrá 2 minutos para presionar el botón Continuar</string>
+
+    <string name="select_gateway">Gateway</string>
+    <string name="gateway_find_devices"><![CDATA[Encienda su dispositivo y presione \"Buscar Dispositivos\".\nDespues mantenga la varita magnética contra el icono de asociación en su dispositivo hasta que la luz deje de parpadear. El dispositivo aparecerá en la lista en unos momentos. Selecciónela y presione \"Registrar\".]]></string>
+
+    <string name="registration_display_instructions">Por favor asegúrese de que el LED naranja en el dispositivo este encendido.</string>
+    <string name="please_wait">Por favor espere...</string>
+    <string name="registration_success">Registro exitoso!</string>
+    <string name="registration_failure">No se pudo registrar. Asegúrese de que el dispositivo esté listo.</string>
+    <string name="settings">Ajustes</string>
+    <string name="device_registration">Registrar Dispositivo</string>
+    <string name="wifi_setup">Configuración WiFi</string>
+    <string name="scan">Buscar Dispositivos</string>
+    <string name="scanning_for_devices_title">Buscando</string>
+    <string name="scanning_for_devices_message">Buscando Redes disponibles...</string>
+    <string name="scanning_for_gateway_devices_message">Buscando Dispositivos disponibles...</string>
+    <string name="error_wifi_not_enabled">El WiFi debe estar habilitado para buscar dispositivos</string>
+    <string name="wifi_initial_text">Presione BUSCAR DISPOSITIVOS para comenzar</string>
+    <string name="connecting_to_device_title">Conectando</string>
+    <string name="connecting_to_device_body">Conectando al Dispositivo. Espere por favor...</string>
+    <string name="scanning_for_aps_title">Buscando redes WiFi</string>
+    <string name="scanning_for_aps_body">Buscando Access Points WiFi. Espere por favor...</string>
+    <string name="wifi_connect_failed">No se pudo conectar al dispositivo. Reinicie el dispositivo y reintente.</string>
+    <string name="choose_ap">Redes WiFi</string>
+    <string name="choose_ap_body">Seleccione la red WiFi para conectar el dipositivo</string>
+    <string name="enter_wifi_password">Seleccione el access point WiFi para conectar el dispositivo e introduzca su contraseña si es necesario.</string>
+    <string name="connect">Conectar</string>
+    <string name="wifi_password">Password de WiFi</string>
+    <string name="wifi_show_password">Mostrar password</string>
+    <string name="connect_device">Conectar Dispositivo</string>
+    <string name="connect_to_service_success">Conectado a la nube</string>
+    <string name="bad_wifi_password">Password WiFi Incorrecto. Reintente por favor.</string>
+    <string name="connecting_to_network_title">Conectando</string>
+    <string name="connecting_to_network_body">Conectando al WiFi. Espere por favor...</string>
+    <string name="error_signing_in">Un error desconocido ocurrió al entrar</string>
+    <string name="authenticating_with" formatted="false">Entrar con %s</string>
+    <string name="facebook">Facebook</string>
+    <string name="google">Google</string>
+    <string name="error_no_connectivity">Sin conexión WiFi. Verifique la conexión de su red.</string>
+    <string name="invalid_email_password">Email o password inválido</string>
+    <string name="unknown_error">Ocurrió un error desconocido</string>
+    <string name="update_profile">Actualizar perfil</string>
+    <string name="fetching_user_info_title">Obteniendo Perfil</string>
+    <string name="fetching_user_info_body">Actualizando Perfil. Espere por favor...</string>
+    <string name="error_changing_profile">Ocurrió un error al actualizar el Perfil. Reintente más tarde.</string>
+    <string name="updating_profile_title">Actualizando Perfil</string>
+    <string name="updating_profile_body">Actualizando Perfil. Espere por favor...</string>
+    <string name="profile_updated">Su perfil ha sido actualizado con éxito.</string>
+    <string name="oauth_empty_html"><![CDATA[<font color="#005500"><H3><i>Authenticating with [[PROVIDER]]...</i></H3></font>
+    ]]> </string>
+    <string name="error_open_uri">La URL no pudo abrirse</string>
+    <string name="error_sign_out_first">Salga de la cuenta antes de confirmar una nueva</string>
+    <string name="welcome_new_account">La cuenta %@ ha sido confirmada, por favor entre</string>
+    <string name="error_invalid_token">El token es inválido</string>
+    <string name="error_account_confirm_failed">No se pudo confirmar la cuenta.</string>
+    <string name="error_sign_up_title">Error al inscribirse</string>
+    <string name="network_not_reachable">No se pudo conectar a la red</string>
+    <string name="wlan_signin">Sesión WLAN iniciada con éxito</string>
+    <string name="dashboard">Tablero</string>
+    <string name="groups">Grupos</string>
+    <string name="scenes">Escenas</string>
+    <string name="gateways">Gateways</string>
+    <string name="account">Cuenta</string>
+    <string name="add_device_or_group_title">Añadir Dispositivo o Grupo</string>
+    <string name="add_group_title">Añadir Grupo o Cuarto</string>
+    <string name="add_group_message">Introduzca el nombre de su nuevo Grupo o Cuarto</string>
+    <string name="group_name_hint">Nombre único de Grupo o Cuarto</string>
+    <string name="add_group">Agregar Grupo</string>
+    <string name="choose_group_devices">Seleccione los dispositivos para el grupo</string>
+    <string name="resend_confirmation_message">Introduzca el correo asociado a su cuenta. Si es válido, una nueva confirmación se enviará.</string>
+    <string name="send">Enviar</string>
+    <string name="email_confirmation_sent">Cuenta creada, por favor confirme el correo en su bandeja</string>
+    <string name="delete_group">Borrar este Grupo</string>
+    <string name="invalid_group_name">El nombre que eligió está reservado. Por favor escoja otro.</string>
+    <string name="confirm_delete_group_body" formatted="false">¿Desea borrar el grupo \"%s\"?</string>
+    <string name="confirm_delete_group">¿Borrar Grupo?</string>
+    <string name="action_manage_devices_in_group">Administrar dispositivos en el grupo</string>
+    <string name="forgot_password_title">Reestablecer password</string>
+    <string name="forgot_password_message">Introduzca el correo asociado a su cuenta. Se le enviará un correo para restablecer el password.</string>
+    <string name="password_reset_sent">Un email con instrucciones para restablecer su password ha sido enviado.</string>
+    <string name="error_password_reset_failed">No se pudo cambiar el password</string>
+    <string name="enter_new_password">Nuevo password</string>
+    <string name="enter_new_password_body">Introduzca un nuevo Password, asegúrese de escribir el mismo en ambos campos.</string>
+    <string name="set_password">Cambiar Password</string>
+    <string name="password_changed">Password cambiado</string>
+    <string name="resetting_password_title">Restableciendo password...</string>
+    <string name="resetting_password_body">Restableciendo password. Espere por favor...</string>
+    <string name="confirm_delete_account_title">Borrar cuenta?</string>
+    <string name="confirm_delete_account_message">¿Quieres borrar tu cuenta? Todos tus dispositivos e información se perderán.</string>
+    <string name="deleting_account_title">Borrando Cuenta</string>
+    <string name="deleting_account_message">orrando su cuenta. Espere por favor</string>
+    <string name="account_deleted">Cuenta borrada</string>
+    <string name="product_type">Tipo de Producto</string>
+
+    <!-- Array of registration types -->
+    <string-array name="registration_types">
+        <item>Same-LAN</item>
+        <item>Button-Push</item>
+        <item>Display</item>
+        <item>Nodo</item>
+    </string-array>
+
+    <!-- Add device or group menu items -->
+    <string-array name="device_or_group_items">
+        <item>Manage devices in this group</item>
+        <item>Create a new device group</item>
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="email_notification">Notificar via email</string>
+    <string name="sms_notification">Notificar con mensaje de texto (SMS)</string>
+    <string name="push_notification">Enviar Notificación Push a este dispositivo</string>
+    <string name="notifications_description">Se le puede notificar cuando los dispositivos se conecten o desconecten. Seleccione los métodos de notificación. Para Notificaciones Push, deberá configurar cada dispositivo individualmente.</string>
+    <string name="updating_notifications_title">Actualizando Notificaciones</string>
+    <string name="updating_notifications_body">Actualizando Notificaciones. Espere por favor...</string>
+    <string name="notifications_updated">Actualizar notificaciones</string>
+    <string name="notification_update_failed">No se pudo actualizar las Notificaciones</string>
+    <string name="registration_success_notification_fail">Dispositivo registrado, pero no se pudo actualizar las notificaciones. Verfíquelas en ajustes.</string>
+    <string name="updating_schedule_title">Actualizando Programación</string>
+    <string name="updating_schedule_body">Actualizando Programación del Dispositivo. Espere por favor...</string>
+    <string name="schedule_title" formatted="false">%1$s - %2$s</string>
+    <string name="schedule_help">Encienda y apague su dispositvo automáticamente con la programación.</string>
+    <string name="schedule_active_switch">Activo</string>
+    <string name="enabled">Activo</string>
+    <string name="disabled">Inactivo</string>
+    <string name="once">Única Vez</string>
+    <string name="repeating">Programación Diaria</string>
+    <string name="timer">Temporizador</string>
+    <string name="starting_on">Comenzar:</string>
+    <string name="ending_on">Terminar:</string>
+    <string name="schedule_chooose_days_help">Seleccione los días que la programación debe activarse:</string>
+    <string name="save_schedule">Guardar Programación</string>
+    <string name="end_time">End Time</string>
+    <string name="start_time">Comenzar a las:</string>
+    <string name="ending_at">Terminar a las:</string>
+    <string name="starting_at">Comenzar a las:</string>
+    <string name="schedule_name">Nombre:</string>
+    <string name="turn_my_device">Acción:</string>
+    <string name="at">A las:</string>
+    <string name="device_in">device in...</string>
+    <string name="weekday_letter_sunday">S</string>
+    <string name="weekday_letter_monday">M</string>
+    <string name="weekday_letter_tuesday">T</string>
+    <string name="weekday_letter_wednesday">W</string>
+    <string name="weekday_letter_thursday">T</string>
+    <string name="weekday_letter_friday">F</string>
+    <string name="weekday_letter_saturday">S</string>
+    <string name="schedule_updated">Actualizar programación</string>
+    <string name="schedule_update_failed">Un error ocurrió al actualizar la programación. Reintente más tarde.</string>
+    <string name="no_schedules_found">El dispositivo no tiene programaciones</string>
+    <string name="unknown_property_name">Desconocido</string>
+    <string name="property_zigbee_input_friendly_name">Entrada</string>
+    <string name="property_zigbee_output_friendly_name">Salida</string>
+    <string name="property_outlet_friendly_name">Interruptor</string>
+    <string name="property_light_friendly_name">Luz</string>
+    <string name="property_door_sensor_friendly_name">Sensor de puerta</string>
+    <string name="property_motion_sensor_friendly_name">Sensor de Movimiento</string>
+    <string name="property_remote_switch_friendly_name">Interruptor remoto</string>
+    <string name="turn_on">Enceder</string>
+    <string name="turn_off">Apagar</string>
+    <string name="blue_led">LED Azul</string>
+    <string name="green_led">LED Verde</string>
+    <string name="schedule_properties_description">Seleccione la acción a actualizar con la programación:</string>
+    <string name="no_actions_set">Seleccione una acción para actualizar la programación</string>
+    <string name="timezone_button_text">Zona horaria...</string>
+    <string name="sharing_button_text">Compartir dispositivo...</string>
+    <string name="choose_timezone">Seleccione la zona horaria</string>
+    <string name="fetching_timezone_title">Obteniendo la zona horaria...</string>
+    <string name="fetching_timezone_body">Obteniendo la zona horaria actual desde el servidor. Espere por favor...</string>
+    <string name="updating_timezone_title">Actualizando zona horaria...</string>
+    <string name="updating_timezone_body">Actualizando la zona del dispositivo. Por favor espere...</string>
+    <string name="timezone_update_success">La zona horaria ha sido actualizada</string>
+    <string name="timezone_update_failure">Ocurrió un error al actualizar la Zona Horaria del Dispositivo</string>
+    <string name="timezone_fetch_failed">Ocurrió un error al obtener la zona horaria. Reintente más tarde.</string>
+    <string name="fetching_contacts_title">Obteniendo Contactos</string>
+    <string name="fetching_contacts_body">Actualizando lista de contactos. Espere por favor...</string>
+    <string name="country_code">Código de País</string>
+    <string name="display_name">Nombre para mostrar</string>
+    <string name="save_contact">Se guardó el contacto</string>
+    <string name="delete_contact">Borrar Contacto</string>
+    <string name="street_address">Calle</string>
+    <string name="create_contact">Agregar Contacto</string>
+    <string name="update_contact">Actualizar Contacto</string>
+    <string name="contact_email_phone_required">Se requiere un teléfono o email</string>
+    <string name="contact_deleted">Contacto borrado</string>
+    <string name="contact_updated">Se guardó el contacto</string>
+    <string name="contact_update_failed">Error desconocido al actualizar el contacto. Reintente más tarde.</string>
+    <string name="updating_contact_title">Actualizando Contacto</string>
+    <string name="updating_contact_body">Enviando información de contacto al servidor. Espere por favor...</string>
+    <string name="confirm_delete_contact_title">Borrar Contacto</string>
+    <string name="confirm_delete_contact_body" formatted="false">¿Esta seguro de eliminar a \"%s\" de sus contactos?</string>
+    <string name="deleting_contact_title">Borrando Contacto</string>
+    <string name="deleting_contact_body">Borrando contacto de la lista. Espere por favor...</string>
+    <string name="add_contact">Agregar Contacto</string>
+    <string name="fill_from_contact">Importar desde Libreta de Direcciones</string>
+    <string name="choose_ap_details" formatted="false">Introduzca la contraseña para la red \"%s\"</string>
+    <string name="shares">Comparticiones</string>
+    <string name="devices_i_share">Dispositivos que comparto</string>
+    <string name="devices_shared_with_me">Dispositivos que me comparten</string>
+    <string name="fetching_shares_title">Obteniendo comparticiones</string>
+    <string name="fetching_shares_body">Actualizando comparticiones desde el servidor. Por favor espere...</string>
+    <string name="confirm_remove_share_message" formatted="false">Estas seguro que quieres dejar de compartir %1$@ con %2$@?</string>
+    <string name="confirm_remove_share_title">Dejar de compartir</string>
+    <string name="removing_share_title">Borrando Compartición</string>
+    <string name="removing_share_body">Borrando compartición. Espere por favor...</string>
+    <string name="confirm_remove_shared_device_message">¿Esta seguro que quiere eliminar \"%1$s\" de sus dispositivos?<p/>Este dispositivo fue compartido por %2$s.</string>
+    <string name="confirm_remove_shared_device_message_short">¿Esta seguro de borrar esta compartición?</string>
+    <string name="add_device_share_title">Compartir %s</string>
+    <string name="add_device_share_message">Introduzca el correo de la cuenta de Ayla con la que se va a compartir:</string>
+    <string name="share_device_success">Se han compartido los dispositivos.</string>
+    <string name="share_device_fail">Un error desconocido ocurrió al compartir. Asegúrese de que el email este asociado a una cuenta de Ayla.</string>
+    <string name="add_share_devices_message">Introduzca el email asociado a la cuenta de Ayla con quien quiera compartir. Seleccione los dispositivos a compartir y presione el botón OK.</string>
+    <string name="new_share">Compartir dispositivo</string>
+    <string name="creating_share_title">Compartiendo</string>
+    <string name="creating_share_body">Compartiendo los dispositivos seleccionados. Espere por favor...</string>
+    <string name="sharing_with_others_empty">No hay comparticiones</string>
+    <string name="shared_with_me_empty">No har comparticiones recibidas</string>
+    <string name="error_deleting_share">Ocurrió un error al borrar la compartición. Reintente más tarde.</string>
+    <string name="error_creating_share">Ocurrió un error al compartir. Reintente más tarde.</string>
+    <string name="no_devices_to_share">No hay dispositivos para compartir.</string>
+    <string name="share_removed">El dispositivo compartido ha sido eliminado de la cuenta.</string>
+    <string name="remove_share_failure">Ocurrió un error al borrar la compartición de la cuenta.</string>
+    <string name="lan_login_message">Ha entrado con la LAN. La funcinonalidad puede ser limitada..</string>
+    <string name="share_read_only_message">Permitir al usuario:</string>
+    <string name="share_control_only_message">Permitir al usuario controlar el dispositivo</string>
+    <string name="share_read_only_button">Ver</string>
+    <string name="share_read_write_button">Controlar</string>
+    <string name="share_instructions">Introduzca el correo de la cuenta de Ayla con la que se va a compartir</string>
+    <string name="device_to_share">Dispositivos a compartir:</string>
+    <string name="now">Ahora</string>
+    <string name="never">Nunca</string>
+    <string name="share_button_title">Compartir dispositivo</string>
+    <string name="no_date">Sin Fecha</string>
+    <string name="share_email_address_required">Introduzca el correo de la cuenta de Ayla con la que se va a compartir</string>
+    <string name="rename_device_text">Introduzca el nombre para el dispositivo:</string>
+    <string name="change_name_fail">Ocurrió un error al renombrar el dispositivo. Reintente más tarde.</string>
+    <string name="registration">Registro</string>
+    <string name="contact_list">Lista de Contactos</string>
+    <string name="edit_profile">Editar Perfil</string>
+    <string name="delete_account">Borrar cuenta</string>
+    <string name="sign_out">Salir</string>
+    <string name="confirm_sign_out">¿Salir?</string>
+    <string name="confirm_sign_out_message">Desea salir %s?</string>
+    <string name="group_empty_text">Presione el botón para crear un grupo</string>
+    <string name="no_devices_in_group">Presione el botón para agregar dispositivos</string>
+    <string name="about_app" formatted="false">Acerca de AMAP</string>
+    <string name="about">Acerca de</string>
+    <string name="more_options">Más...</string>
+    <string name="service_type">Service Type</string>
+    <string name="device_service">Device Service</string>
+    <string name="field_service">Field Service</string>
+    <string name="production_service">Production Service</string>
+    <string name="staging_service">Staging Service</string>
+    <string name="demo_service">Demo Service</string>
+    <string name="unknown_service">Unknown Service Type: %d</string>
+    <string name="app_version">Versión de aplicación:</string>
+    <string name="library_version">AAML Version</string>
+    <string name="reachable">Alcanzable</string>
+    <string name="unreachable">Inalcanzable</string>
+    <string name="unknown">Desconocido</string>
+    <string name="service_reachability">Accesibilidad al Servicio</string>
+    <string name="offline_no_functionality">El dipositivo esta desconectado, no se puede modificar</string>
+    <string name="drawer_open">Abra</string>
+    <string name="drawer_close">Cerrar</string>
+    <string name="fetching_devices">Obteniendo dispositivos de la nube. Espere por favor...</string>
+    <string name="confirm_new_device_title">Confirmando Conexión</string>
+    <string name="confirm_new_device_body">Confirmando conexión al servicio. Espere por favor...</string>
+    <string name="registering_device_title">Registrando Dispositivo</string>
+    <string name="registering_device_body">Registrando dispositivo a su cuenta. Espere por favor...</string>
+    <string name="choose_new_device">Seleccione el dispositivo a configurar o cancele.</string>
+    <string name="choose_new_devices">Seleccione los dispositivos a configurar o cancele</string>
+    <string name="exiting_setup_title">Saliendo Configuración</string>
+    <string name="exiting_setup_body">Saliendo de Configuración. Espere por favor...</string>
+    <string name="device_connection_failed_reconnecting">El dipositivo no se pudo conectar a la nube. Reintentando conectar...</string>
+    <string name="device_connection_failed">El dispositivo no se pudo conectar al servicio.</string>
+    <string name="reconnecting_device_title">Reconectando al Dispositivo</string>
+    <string name="reconnecting_device_message">El dispositivo no se pudo conectar al servicio. Intentando reconectar al dipositivo...</string>
+    <string name="fetching_account_info_title">Obteniendo Información de Cuenta</string>
+    <string name="fetching_account_info_body">Obteniendo Información de Cuenta. Espere por favor...</string>
+    <string name="details">Detalles...</string>
+    <string name="device_detail_header_text" formatted="false">%s Detalles</string>
+    <string name="blue_button">Botón Azul</string>
+    <string name="property_notifications">Notificación</string>
+    <string name="is_turned_on">encender</string>
+    <string name="is_turned_off">apagar</string>
+    <string name="notify_me_via">Notificarme via:</string>
+    <string name="notify_contacts">Notificar contactos:</string>
+    <string name="send_notifications_when">Enviar notificaciones al:</string>
+    <string name="loading_contacts">Cargando Contacts...</string>
+    <string name="contact_phone_required">El contacto no puede recibir SMS</string>
+    <string name="contact_email_required">El contacto no puede recibir emails</string>
+    <string name="save_notifications">Guardar Notificaciones</string>
+    <string name="on_or_off">encender o apagar</string>
+    <string name="add_property_notification" formatted="false">Nueva notificación para %s</string>
+    <string name="becomes_greater_than">sea mayor que</string>
+    <string name="becomes_less_than">sea menor que</string>
+    <string name="changes">cambie</string>
+    <string name="notifcations_not_enabled">Las notificaciones no estan disponibles en este dispositivo</string>
+    <string name="fetching_notifications">Obteniendo notificaciones. Espere por favor...</string>
+    <string name="unknown_trigger_name">Disparador %d</string>
+    <string name="no_triggers_found">No hay notificaciones para el dispositivo. Presione Agregar para crear nuevas.</string>
+    <string name="no_contacts_selected">Por favor seleccione al menos un contacto a notificar via email o sms</string>
+    <string name="no_value_chosen">Seleccione un valor para comparar</string>
+    <string name="notification_name">Nombre de Notificación</string>
+    <string name="choose_name">Escoja un nombre para la Notificación</string>
+    <string name="notification_created">Notificación creada con éxito</string>
+    <string name="delete_notification_title">¿Borrar Notificación?</string>
+    <string name="delete_notification_message">¿Quiere borrar la notificación \"%s\"?</string>
+    <string name="warning_location_accuracy">Active GPS en los ajustes de Android para mejorar la precisión</string>
+    <string name="error_gateway_join_window">No se pudo activar la ventana de registro.</string>
+    <string name="error_no_gateway">Sin Gateways</string>
+    <string name="error_gateway_registration_candidates">No se pudo obtener los candidatos</string>
+    <string name="gateway_registered_device_node">Se registró el nodo</string>
+    <string name="error_gateway_register_device_node">No se pudo registrar el nodo</string>
+    <string name="error_gateway_register_no_device">Busque Dispositivos primero</string>
+    <string name="error_no_gateway_instructions">No hay Gateways. Primero registre uno.</string>
+    <string name="add_device_sensor_warning">Se estan efectuando más configuraciones. El sensor puede no responder inmediatamente los siguientes minutos.</string>
+    <string name="message_attention">Atención</string>
+    <string name="lan_mode_enabled">Modo LAN Activo</string>
+    <string name="online">Conectado</string>
+    <string name="offline">Desconectado</string>
+
+    <string name="remote_pair_to_device">Seleccione un Control para asociar</string>
+    <string name="remote_pair_to_devices">Seleccione dispositivos para Asociar</string>
+    <string name="remote_pair_title">Asociar Control</string>
+    <string name="remote_pair_single_body">Asociando Dispositivo al Control</string>
+    <string name="remote_pair_multiple_body">Asociando Dispositivos al Control</string>
+    <string name="remote_pair_body">¿Seguro de asociar al control?</string>
+    <string name="remote_pair_toast">Asociación completa</string>
+
+    <string name="remote_unpair_from_device">Seleccione dispositivo a desasociar</string>
+    <string name="remote_unpair_from_devices">Seleccione dispositivos a desasociar</string>
+    <string name="remote_unpair_title">Desasociar Control</string>
+    <string name="remote_unpair_single_body">Desasociando Dispositivo</string>
+    <string name="remote_unpair_multiple_body">Desasociando Dispositivos</string>
+    <string name="remote_unpair_body">¿Esta seguro de desasociar Control?</string>
+    <string name="remote_unpair_toast">Desasociación completa</string>
+
+    <string name="remote_action_fix_title">Reparar Control</string>
+    <string name="remote_action_fix_body">Actualizando grupo/asociación</string>
+    <string name="remote_action_fix_complete">Reparación completa</string>
+    <string name="remote_action_fix_failure">Reparación falló</string>
+
+    <string name="help">Ayuda</string>
+    <string name="about_amap">Acerca de AMAP</string>
+    <string name="get_started">Comenzando</string>
+    <string name="guides_videos">Guías y Videos</string>
+    <string name="terms_and_condition">Términos y condiciones</string>
+    <string name="email_logs_to_ayla">Enviar registro a Ayla</string>
+    <!--  Links for help page option -->
+    <string name="about_amap_link">http://www.aylanetworks.com/company/ayla</string>
+    <string name="get_started_link">http://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
+    <string name="guides_videos_link">http://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
+    <string name="terms_and_condition_link">http://www.aylanetworks.com/company/ayla</string>
+
+    <string name="trigger_on_name">Encendido</string>
+    <string name="trigger_off_name">Apagado</string>
+    <string name="motion_trigger_on_name">se detecte movimiento</string>
+    <string name="motion_trigger_off_name">el movimiento ha terminado</string>
+    <string name="door_trigger_on_name">Puerta se abre</string>
+    <string name="door_trigger_off_name">Puerta se cierra</string>
+
+    <string name="trigger_devices_on_title">Seleccione Dispositivos a Encender</string>
+    <string name="trigger_devices_off_title">Seleccione Dispositivos a Apagar</string>
+    <string name="trigger_devices_remove_title">Select devices to remove</string>
+    <string name="trigger_update_title">Actualizar Disparadores</string>
+    <string name="trigger_update_body">Actualizando Dispositivos en Disparador</string>
+    <string name="trigger_update_complete">Disparador actualizado</string>
+    <string name="trigger_settings">Ajustes de Disparador</string>
+    <string name="trigger_devices">Dispositivos</string>
+    <string name="trigger_action_turn_on_add">Agregar Encender</string>
+    <string name="trigger_action_turn_off_add">Agregar Apagar</string>
+    <string name="trigger_action_turn_on_remove">Eliminar Encender</string>
+    <string name="trigger_action_turn_off_remove">Eliminar Apagar</string>
+    <string name="trigger_setup_error">Se encontró un problema con la configuración. Asegúrese que el dispositivo tiene batería y este activo, presione el botón Arreglar.</string>
+    <string name="trigger_setup_error_again">Se encontró un problema. Restablezca el dispositivo y agréguelo de nuevo.</string>
+    <string name="trigger_action_fix">Arreglar</string>
+    <string name="trigger_action_fix_title">Arreglar Disparadores</string>
+    <string name="trigger_action_fix_body">Actualizando Disparadores</string>
+    <string name="trigger_action_fix_complete">Disparadores Arreglados</string>
+    <string name="trigger_action_fix_failure">No se pudo arreglar disparadores</string>
+    <string name="appwidget_text">AMAP</string>
+    <string name="add_widget">Añadir widget</string>
+
+    <string name="action_manage_devices_in_scene">Adminsitrar Dispositivos en Escena</string>
+    <string name="add_scene">Agregar Escena</string>
+    <string name="activate_scene">Activar Escena</string>
+    <string name="add_scene_title">Agregar Escena</string>
+    <string name="add_scene_message">Introduzca el nombre de la escena</string>
+    <string name="delete_scene">Borrar Escena</string>
+    <string name="no_devices_in_scene">Presiona el Botón Añadir para añadir dispositivos</string>
+    <string name="scene_empty_text">Presiona el Botón Añadir para crear una nueva Escena</string>
+    <string name="add_device_or_scene_title">Añadir Dispositivos o Escenas</string>
+    <!-- Add device or scene menu items -->
+    <string-array name="device_or_scene_items">
+        <item>Administrar Dispositivos en la Escena</item>
+        <item>Crear una nueva escena</item>
+    </string-array>
+    <string name="choose_scene_devices">Por favor seleccione los dispositivos que quiera agregar a la escena</string>
+    <string name="scene_create_title">Crear Escena</string>
+    <string name="scene_create_body">Creando escena.</string>
+    <string name="scene_create_complete">Escena creada</string>
+    <string name="scene_create_failed">No se pudo crear la escena</string>
+    <string name="scene_update_title">Actualizar escena...</string>
+    <string name="scene_update_body">Actualizando escena...</string>
+    <string name="scene_update_complete">Actualización de escena lista</string>
+    <string name="scene_add_info">Por favor seleccione los dispositivos que quiera agregar a la escena. Por favor encienda/apague sus dispositivos como quiera que sean capturados en la escena antes de presionar el botón para terminar.</string>
+    <string name="scene_add_info_multiple_gateway">Configura los dispositivos como los desee configurar en la escena.  Seleccione los dispositivos. Todos los dipositivos deben pertenecer al mismo Gateway.</string>
+    <string name="confirm_delete_scene_body" formatted="false">Desea borrar la escena \"%s\"?</string>
+    <string name="confirm_delete_scene">¿Borrar Escena?</string>
+    <string name="scene_recall_title">Recrear Escena</string>
+    <string name="scene_recall_body">Recreando escena...</string>
+    <string name="scene_recall_complete">Recreación completa</string>
+    <string name="scene_recall_failed">No se pudo recrear la escena</string>
+    <string name="scene_delete_title">Borrar Escena</string>
+    <string name="scene_delete_body">Borrando Escena...</string>
+    <string name="scene_delete_complete">Escena borrada</string>
+    <string name="scene_delete_failed">No se pudo borrar Escena</string>
+    <string name="scene_name_hint">Nombre único</string>
+    <string name="no_devices">Sin Dispositivos</string>
+    <string name="no_gateway">Sin Gateway</string>
+    <string name="no_gateways">Sin Gateways</string>
+    <string name="switched_on_name">Encendido</string>
+    <string name="switched_off_name">Apagado</string>
+    <string name="no_property">Sin propiedades</string>
+    <string name="activate_scene_icon" formatted="false">Activar %s</string>
+    <string name="no_devices_available_to_pair">Sin dispositivos para asociar</string>
+    <string name="no_devices_available_to_unpair">Sin dispositivos para desasociar</string>
+
+    <!-- Welcome and SEtup Guide Page -->
+    <string name="welcome_text">Bienvenido a AMAP</string>
+    <string name="click_here">Presione aqui para\n configurar gateway</string>
+    <string name="setup_guide">Configurar Gateway</string>
+    <string name="gateway_ready">¿Gateway Listo?</string>
+    <string name="gateway_ready_2">El gateway esta listo</string>
+    <string name="setup_guide_header">Guia de Configuración</string>
+    <string name="setup_guide_text_1">Conecte su Gateway a la fuente de poder con el adaptador incluido.\n\nConecte el cable de red al puerto Ethernet del gateway y el otro cabo al puerto LAN en su Router WiFi.</string>
+    <string name="setup_guide_text_2">El LED de la nube parpadeará lentamente, indicando que esta listo para registrarse.</string>
+    <string name="setup_guide_text_3">Si no ve esto, por favor regrese y asegúrese que la fuente y la red esten conectados, y que la red WiFi esté funcionando.</string>
+    <string name="connected_cables">He conectado todos los cables</string>
+    <string name="setup_connect_gateway">Registrar Gateway</string>
+    <string name="setup_connect_gateway_text">Presione el botón "Reg" en la parte posterior del gateway.</string>
+    <string name="setup_connect_gateway_amap">El LED de la nube debe estar parpadeando más rápido.</string>
+    <!-- -->
+
+
+
+    <!-- Developer Options -->
+    <string name="dev_options">Developer Options</string>
+
+    <string-array name="location_options">
+        <item>United States</item>
+        <item>China</item>
+    </string-array>
+
+    <string-array name="service_options">
+        <item>Device Service</item>
+        <item>Developer Service</item>
+        <item>Field Service</item>
+        <item>Staging Service</item>
+    </string-array>
+
+    <string-array name="config_options">
+        <item>Logging</item>
+        <item>Clear Cache</item>
+        <item>Slow Connection</item>
+        <item>LAN Mode</item>
+    </string-array>
+
+
+</resources>
