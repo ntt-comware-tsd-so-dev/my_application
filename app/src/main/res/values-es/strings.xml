@@ -219,8 +219,8 @@
 
     <!-- Add device or group menu items -->
     <string-array name="device_or_group_items">
-        <item>Manage devices in this group</item>
-        <item>Create a new device group</item>
+        <item>Administrar dispositivos en la grupo</item>
+        <item>Crear una nueva grupo</item>
     </string-array>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -281,7 +281,7 @@
     <string name="schedule_properties_description">Seleccione la acción a actualizar con la programación:</string>
     <string name="no_actions_set">Seleccione una acción para actualizar la programación</string>
     <string name="timezone_button_text">Zona horaria...</string>
-    <string name="sharing_button_text">Compartir dispositivo...</string>
+    <string name="sharing_button_text">Compartir...</string>
     <string name="choose_timezone">Seleccione la zona horaria</string>
     <string name="fetching_timezone_title">Obteniendo la zona horaria...</string>
     <string name="fetching_timezone_body">Obteniendo la zona horaria actual desde el servidor. Espere por favor...</string>
