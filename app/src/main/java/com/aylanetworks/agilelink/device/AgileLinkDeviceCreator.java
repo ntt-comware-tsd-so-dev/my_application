@@ -86,6 +86,10 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 // This is a Generic Gateway motion sensor.
                 return new ZigbeeMotionSensor(aylaDevice);
             }
+            if (aylaDevice.model.equals("NXPZHA-DimmableLight")) {
+                // This is a Generic Gateway dimmable light.
+                return new ZigbeeDimmableLightDevice(aylaDevice);
+            }
             // NexturnZHA-Thermostat
 
             // This is a generic node
