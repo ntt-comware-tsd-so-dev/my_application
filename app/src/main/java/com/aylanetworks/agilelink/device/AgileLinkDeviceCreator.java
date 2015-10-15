@@ -68,10 +68,28 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 // This is a generic gateway.
                 return new Gateway(aylaDevice);
             }
-            if (aylaDevice.model.equals("GenericNode")) {
+            if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
                 // This is a generic node
                 return new GenericNodeDevice(aylaDevice);
             }
+        }
+        if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
+            if (aylaDevice.oemModel.equals("NexturnSmartPlug")) {
+                // This is a Generic Gateway smart plug.
+                return new ZigbeeSwitchedDevice(aylaDevice);
+            }
+            if (aylaDevice.oemModel.equals("NexturnSmart_Bulb_Converter")) {
+                // This is a Generic Gateway smart bulb.
+                return new ZigbeeLightDevice(aylaDevice);
+            }
+            if (aylaDevice.oemModel.equals("NexturnMotion_Sensor")) {
+                // This is a Generic Gateway motion sensor.
+                return new ZigbeeMotionSensor(aylaDevice);
+            }
+            // NexturnZHA-Thermostat
+
+            // This is a generic node
+            return new GenericNodeDevice(aylaDevice);
         }
         if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
