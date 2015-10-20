@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,18 +65,20 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     }
 
     private void registerButtonClick() {
-            Logger.logInfo(LOG_TAG, "rn: registerNewGateway");
-            MainActivity.getInstance().showWaitDialog(null, null);
-            AylaDevice newDevice = new AylaDevice();
-            newDevice.registrationType = AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;    //Gateway is always push button
-            registerNewDevice(newDevice);
+        Log.i(LOG_TAG, "rn: registerNewGateway");
+        MainActivity.getInstance().showWaitDialog(null, null);
+        AylaDevice newDevice = new AylaDevice();
+        newDevice.registrationType = AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;    //Gateway is always push button
+        registerNewDevice(newDevice);
     }
+
+    RegisterHandler _handler;
 
     private void registerNewDevice(AylaDevice device) {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-
-        Logger.logVerbose(LOG_TAG, "Calling registerNewDevice...");
-        device.registerNewDevice(new RegisterHandler(this));
+        Log.i(LOG_TAG, "rn: Calling registerNewDevice...");
+        _handler = new RegisterHandler(this);
+        device.registerNewDevice(_handler);
     }
 
     static class RegisterHandler extends Handler {
@@ -87,10 +90,12 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
         @Override
         public void handleMessage(Message msg) {
-            Logger.logInfo(LOG_TAG, "Register handler called: " + msg);
+            Logger.logInfo(LOG_TAG, "rn: register handler called: " + msg);
             MainActivity.getInstance().dismissWaitDialog();
             if (msg.arg1 >= 200 && msg.arg1 < 300) {
                 // Success!
+                // start the device refresh now!
+                SessionManager.deviceManager().refreshDeviceList();
                 AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
                 Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(aylaDevice);
                 MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
@@ -99,20 +104,24 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                 helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
                     @Override
                     public void newDeviceUpdated(Device device, int error) {
+                        Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
                         MainActivity mainActivity = MainActivity.getInstance();
                         mainActivity.dismissWaitDialog();
                         int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
                         Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                        SessionManager.deviceManager().refreshDeviceList();
                         if (error == AylaNetworks.AML_ERROR_OK) {
                             // Go to the Gateway display
+                            Log.v(LOG_TAG, "rn: registration successful. select gateways.");
                             MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
+                        } else {
+                            Log.w(LOG_TAG, "rn: registration unsuccessful.");
                         }
                     }
                 });
 
             } else {
                 // Something went wrong
+                Log.w(LOG_TAG, "rn: could not register device.");
                 Toast.makeText(_connectGatewayFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
                 exitSetup();
             }

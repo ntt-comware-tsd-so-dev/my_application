@@ -44,6 +44,12 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
         if (aylaDevice.oemModel == null) {
             Logger.logError(LOG_TAG, "No oemModel set on device: " + aylaDevice);
+
+            // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
+            if (aylaDevice.model.equals("AY001MRT1")) {
+                // This is a gateway.
+                return new Gateway(aylaDevice);
+            }
             return new Device(aylaDevice);
         }
 

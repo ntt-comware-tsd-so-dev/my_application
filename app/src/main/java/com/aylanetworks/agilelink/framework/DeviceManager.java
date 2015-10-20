@@ -360,6 +360,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @param device device that changed
      */
     public void deviceChanged(Device device) {
+        Log.v(LOG_TAG, "dev: deviceChanged [" + device.getDeviceDsn() + "]");
         notifyDeviceStatusChanged(device);
         notifyDeviceListChanged();
     }
@@ -838,9 +839,7 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
             String json = (String)msg.obj;
-
             Log.d(LOG_TAG, "Reachability handler: " + json);
         }
     }
@@ -1034,7 +1033,7 @@ public class DeviceManager implements DeviceStatusListener {
             List<Device> newDeviceList = new ArrayList<Device>();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Create our device array
-                Log.v(LOG_TAG, "dev: Device list JSON: " + msg.obj);
+                Log.v(LOG_TAG, "dev: device list JSON " + msg.obj);
                 AylaDevice[] devices = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice[].class);
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
                 for ( AylaDevice aylaDevice : devices ) {
@@ -1226,9 +1225,14 @@ public class DeviceManager implements DeviceStatusListener {
 
     // Notifications
     private void notifyDeviceListChanged() {
-        Log.d(LOG_TAG, "Device list changed:\n" + _deviceList);
-        for ( DeviceListListener listener : _deviceListListeners ) {
-            listener.deviceListChanged();
+        Log.v(LOG_TAG, "dev: device list changed [" + deviceListToString(_deviceList) + "]");
+        if (_deviceListListeners.size() > 0) {
+            for (DeviceListListener listener : _deviceListListeners) {
+                Log.v(LOG_TAG, "dev: notify [" + listener.getClass().getSimpleName() + "]");
+                listener.deviceListChanged();
+            }
+        } else {
+            Log.w(LOG_TAG, "dev: device list changed (no listeners)!");
         }
     }
 
@@ -1238,7 +1242,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @param device Device that changed
      */
     public void notifyDeviceStatusChanged(Device device) {
-        Log.d(LOG_TAG, "Device status changed: " + device);
+        Log.d(LOG_TAG, "dev: device status changed [" + device + "]");
         for (DeviceStatusListener listener : _deviceStatusListeners) {
             listener.statusUpdated(device, true);
         }

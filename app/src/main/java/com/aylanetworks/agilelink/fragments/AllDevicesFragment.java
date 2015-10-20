@@ -281,14 +281,14 @@ public class AllDevicesFragment extends Fragment
 
     @Override
     public void deviceListChanged() {
-        Log.i(LOG_TAG, "Device list changed");
+        Log.i(LOG_TAG, "dev: device list changed");
         updateDeviceList();
     }
 
     @Override
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
-            Log.i(LOG_TAG, "Device " + device.getProductName() + " changed");
+            Log.i(LOG_TAG, "dev: device [" + device.getDeviceDsn() + "] changed");
             for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
                 Device d = _adapter.getItem(i);
                 if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
