@@ -170,6 +170,7 @@ public class MenuHandler {
     public static AlertDialog _confirmDeleteDialog;
 
     static DeleteAccountHandler _deleteAccountHandler;
+    static SsoDeleteAccountHandler _ssoDeleteAccoutnHandler;
 
     public static void deleteAccount() {
         // First confirm
@@ -190,8 +191,15 @@ public class MenuHandler {
                         MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title, R.string.deleting_account_message);
                         // Actually delete the account
                         Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
-                        _deleteAccountHandler = new DeleteAccountHandler();
-                        AylaUser.delete(_deleteAccountHandler);
+
+                        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+                        if(params.ssoLogin){
+                            _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
+                            params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
+                        } else{
+                            _deleteAccountHandler = new DeleteAccountHandler();
+                            AylaUser.delete(_deleteAccountHandler);
+                        }
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -223,6 +231,30 @@ public class MenuHandler {
                 } else {
                     Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
                 }
+            }
+        }
+    }
+
+    static class SsoDeleteAccountHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "user: SSo DeleteAccountHandler");
+            MainActivity.getInstance().dismissWaitDialog();
+            if (msg.arg1 >= 200 && msg.arg1 <300)  {
+                // Log out and show a toast
+                SessionManager.clearSavedUser();
+                SessionManager.stopSession();
+                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+            } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
+                // Look for an error message in the returned JSON
+                String errorMessage = msg.obj.toString();
+                if ( errorMessage != null ) {
+                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
             }
         }
     }
