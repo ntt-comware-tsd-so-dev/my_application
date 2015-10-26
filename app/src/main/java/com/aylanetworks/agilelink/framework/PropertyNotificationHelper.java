@@ -31,6 +31,7 @@ public class PropertyNotificationHelper {
 
     private AylaProperty _property;
     private AylaPropertyTrigger _propertyTrigger;
+    private List<AylaContact> _pushContacts;
     private List<AylaContact> _emailContacts;
     private List<AylaContact> _smsContacts;
 
@@ -88,6 +89,7 @@ public class PropertyNotificationHelper {
      */
     public void setNotifications(AylaProperty property,
                                  AylaPropertyTrigger propertyTrigger,
+                                 List<AylaContact> pushContacts,
                                  List<AylaContact> emailContacts,
                                  List<AylaContact> smsContacts,
                                  SetNotificationListener listener) {
@@ -96,6 +98,7 @@ public class PropertyNotificationHelper {
         _property = property;
         _propertyTrigger = propertyTrigger;
         _setNotificationListener = listener;
+        _pushContacts = new ArrayList<>(pushContacts);
         _emailContacts = new ArrayList<>(emailContacts);
         _smsContacts = new ArrayList<>(smsContacts);
 
@@ -128,23 +131,28 @@ public class PropertyNotificationHelper {
 
     private void setNextTriggerApp() {
         AylaContact nextContact = null;
-        if ( !_emailContacts.isEmpty() ) {
+        if (!_pushContacts.isEmpty()) {
+            nextContact = _pushContacts.remove(0);
+            addTriggerApp(nextContact, true, false);
+        } else if ( !_emailContacts.isEmpty() ) {
             nextContact = _emailContacts.remove(0);
-            addTriggerApp(nextContact, true);
+            addTriggerApp(nextContact, false, true);
         } else if ( !_smsContacts.isEmpty() ) {
             nextContact = _smsContacts.remove(0);
-            addTriggerApp(nextContact, false);
+            addTriggerApp(nextContact, false, false);
         } else  {
             // We're done!
             _setNotificationListener.notificationsSet(_property, _propertyTrigger, true);
         }
     }
 
-    private void addTriggerApp(AylaContact contact, boolean isEmail) {
+    private void addTriggerApp(AylaContact contact, boolean isPush, boolean isEmail) {
         AylaApplicationTrigger app = new AylaApplicationTrigger();
         app.contactId = contact.id.toString();
         app.message = _device.friendlyNameForPropertyName(_property.name());
-        if ( isEmail ) {
+        if (isPush) {
+            _propertyTrigger.createPushApplicationTrigger(new CreateAppTriggerHandler(this), app);
+        } else if ( isEmail ) {
             app.emailAddress = contact.email;
             _propertyTrigger.createEmailApplicationTrigger(new CreateAppTriggerHandler(this), app);
         } else {

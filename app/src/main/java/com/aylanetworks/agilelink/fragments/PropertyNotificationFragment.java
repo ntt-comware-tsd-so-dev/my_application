@@ -29,8 +29,10 @@ import com.aylanetworks.aaml.AylaPropertyTrigger;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
+import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -52,6 +54,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     public static final String TRIGGER_ALWAYS = "always";
 
     private static final String LOG_TAG = "PropNotifFrag";
+    private List<AylaContact> _pushContacts;
     private List<AylaContact> _emailContacts;
     private List<AylaContact> _smsContacts;
     private Spinner _propertySpinner;
@@ -86,6 +89,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
     // Default constructor
     public PropertyNotificationFragment() {
+        _pushContacts = new ArrayList<>();
         _emailContacts = new ArrayList<>();
         _smsContacts = new ArrayList<>();
     }
@@ -201,11 +205,13 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
     void updateUI() {
         if ( _originalTrigger == null ) {
+            Log.e(LOG_TAG, "trigger: No _originalTrigger");
             return;
         }
+        //Log.d(LOG_TAG, "trigger: _originalTrigger=[" + _originalTrigger + "]");
 
         if ( _originalTrigger.propertyNickname == null ) {
-            Log.e(LOG_TAG, "No property nickname");
+            Log.e(LOG_TAG, "trigger: No property nickname");
         } else {
             // Select the property in our list
             String[] props = _device.getNotifiablePropertyNames();
@@ -242,12 +248,15 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
         // Update our list of contacts from the apps on this trigger
         if ( _originalTrigger.applicationTriggers == null ) {
-            Log.e(LOG_TAG, "No triggers found for this notification");
+            Log.e(LOG_TAG, "trigger: No triggers found for this notification");
         } else {
             for ( AylaApplicationTrigger trigger : _originalTrigger.applicationTriggers ) {
+                //Log.d(LOG_TAG, "trigger: [" + trigger + "]");
                 AylaContact contact = SessionManager.getInstance().getContactManager().getContactByID(Integer.parseInt(trigger.contactId));
                 if ( contact != null ) {
-                    if ( trigger.name.equals("email") ) {
+                    if ( trigger.name.equals("push_android") ) {
+                        _pushContacts.add(contact);
+                    } else if ( trigger.name.equals("email") ) {
                         _emailContacts.add(contact);
                     } else {
                         _smsContacts.add(contact);
@@ -276,6 +285,18 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public void pushTapped(AylaContact contact) {
         Log.d(LOG_TAG, "Push tapped: " + contact);
+        if (!isOwner(contact)) {
+            // the icon is only shown if it is the owner... so this can't happen
+            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if ( _pushContacts.contains(contact) ) {
+            _pushContacts.remove(contact);
+        } else {
+            _pushContacts.add(contact);
+        }
+        _recyclerView.getAdapter().notifyDataSetChanged();
+
     }
 
     @Override
@@ -285,7 +306,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             Toast.makeText(getActivity(), R.string.contact_email_required, Toast.LENGTH_SHORT).show();
             return;
         }
-
         if ( _emailContacts.contains(contact) ) {
             _emailContacts.remove(contact);
         } else {
@@ -301,7 +321,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             Toast.makeText(getActivity(), R.string.contact_phone_required, Toast.LENGTH_SHORT).show();
             return;
         }
-
         if ( _smsContacts.contains(contact) ) {
             _smsContacts.remove(contact);
         } else {
@@ -313,10 +332,17 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public void contactTapped(AylaContact contact) {
         Log.d(LOG_TAG, "Contact tapped: " + contact);
-        if ( _smsContacts.contains(contact) || _emailContacts.contains(contact) ) {
+        if ( _smsContacts.contains(contact) || _emailContacts.contains(contact) || _pushContacts.contains(contact) ) {
             _smsContacts.remove(contact);
             _emailContacts.remove(contact);
+            _pushContacts.remove(contact);
         } else {
+            AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+            if (accountSettings != null) {
+                if (isOwner(contact)) {
+                    _pushContacts.add(contact);
+                }
+            }
             if ( !TextUtils.isEmpty(contact.phoneNumber) ) {
                 _smsContacts.add(contact);
             }
@@ -335,6 +361,13 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public int colorForIcon(AylaContact contact, IconType iconType) {
         switch ( iconType ) {
+            case ICON_PUSH:
+                if ( _pushContacts.contains(contact) ) {
+                    return MainActivity.getInstance().getResources().getColor(R.color.app_theme_accent);
+                } else {
+                    return MainActivity.getInstance().getResources().getColor(R.color.disabled_text);
+                }
+
             case ICON_SMS:
                 if ( _smsContacts.contains(contact) ) {
                     return MainActivity.getInstance().getResources().getColor(R.color.app_theme_accent);
@@ -373,7 +406,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         }
 
         // Make sure somebody is selected
-        if ( _emailContacts.size() + _smsContacts.size() == 0 ) {
+        if ( _emailContacts.size() + _smsContacts.size() + _pushContacts.size() == 0 ) {
             Toast.makeText(getActivity(), R.string.no_contacts_selected, Toast.LENGTH_LONG).show();
             return;
         }
@@ -443,6 +476,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
         _propertyNotificationHelper.setNotifications(prop,
                 trigger,
+                _smsContacts,
                 _emailContacts,
                 _smsContacts,
                 new PropertyNotificationHelper.SetNotificationListener() {

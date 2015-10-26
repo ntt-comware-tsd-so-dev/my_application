@@ -343,4 +343,15 @@ public class AccountSettings {
             _user.getDatumWithKey(new FetchDatumHandler(_user, _callback), getDatumName());
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        final String NEW_LINE = System.getProperty("line.separator");
+        result.append(this.getClass().getName()).append("Object {").append(NEW_LINE)
+                .append(" id: " + _ownerContactID).append(NEW_LINE)
+                .append(" user: " + _aylaUser.toString()).append(NEW_LINE)
+                .append("}");
+        return result.toString();
+    }// end of toString
 }
