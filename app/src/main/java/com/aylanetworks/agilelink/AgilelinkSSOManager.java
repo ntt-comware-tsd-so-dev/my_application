@@ -39,7 +39,7 @@ import java.util.Map;
 
 public class AgilelinkSSOManager extends SSOManager{
 
-    private final static String LOG_TAG = "SSOLogin";
+    private final static String LOG_TAG = "AgileLinkSSOManager";
     public String identityProviderBaseUrl = "https://idp-emulation.ayladev.com/api/v1/";
     private SSOSessionParams sessionParams;
 
@@ -63,31 +63,31 @@ public class AgilelinkSSOManager extends SSOManager{
     private static class SSOSessionParams{
 
         /**
-         * User Id received from Identity provider.
+         * User Id received from SSO Identity provider.
          */
         private String userId;
         /**
-         * Access token of the Identity provider.
+         * Access token of the SSO Identity provider.
          */
         private String ipAccessToken;
         /**
-         * App ID of the Identity provider.
+         * App ID of the SSO Identity provider.
          */
         public String ipAppId = "client-id";
 
         /**
-         * App secret of the Identity provider.
+         * App secret of the SSO Identity provider.
          */
         public String ipAppSecret = "client-3431389";
     }
 
 
 
- /**Method to login to identity provider's service.
-    *@param handle handler where results are returned
-    * @param userName user email
-    * @param password password
-    *
+ /**Method to login to SSO identity provider's service.
+  * @param handle handler where results are returned
+  * @param userName user email
+  * @param password password
+  *
 */
     public void login(final Handler handle, final String userName, final String password) {
 
@@ -115,7 +115,7 @@ public class AgilelinkSSOManager extends SSOManager{
                             iStream.close();
                             urlConn.disconnect();
                             JSONObject responseJson = new JSONObject(response);
-                            Log.d("SSO", "responseJson " + response);
+                            Log.d(LOG_TAG, "responseJson " + response);
                             getInstance().sessionParams.ipAccessToken = (String) responseJson.get("access_token");
                             getInstance().sessionParams.userId = (String) responseJson.get("uuid");
                             AylaUser.ssoLogin(handle, userName, password, getInstance().sessionParams.ipAccessToken, getInstance().sessionParams.ipAppId, getInstance().sessionParams.ipAppSecret);
@@ -162,7 +162,10 @@ public class AgilelinkSSOManager extends SSOManager{
     }
 
     /**
-     * /**Method to login to identity provider's service. To be changed by app developer according to Identity Provider's user service
+     * Method to update user info.
+     * This method updates user info in SSO identity provider's service.
+     * The SSO identity provider then invokes callback to update the user info in Ayla user service.
+     * To be changed by app developer according to SSO identity provider's user service
      *
      * @param mHandle Results are returned to this handler
      * @param callParams contains updated values
@@ -172,7 +175,7 @@ public class AgilelinkSSOManager extends SSOManager{
     public void updateUserInfo(final Handler mHandle, Map<String, String> callParams) {
 
         if(isConnected()){
-            Log.d("SSO", "userId "+getInstance().sessionParams.userId);
+            Log.d(LOG_TAG, "userId "+getInstance().sessionParams.userId);
             final String url = identityProviderBaseUrl + "users/" + getInstance().sessionParams.userId;
 
             JSONObject userParams = new JSONObject();
@@ -216,11 +219,9 @@ public class AgilelinkSSOManager extends SSOManager{
                 userParams.put("company", (String)callParams.get("company"));
                 userParams.put("street", (String)callParams.get("street"));
                 userParams.put("city", (String)callParams.get("city"));
-                userParams.put("state", (String)callParams.get("state"));
+                userParams.put("state", (String) callParams.get("state"));
                 userParams.put("nickname", "Nickname");
 
-                Log.e("SSO", "updateUserInfo SSO url" + url);
-                Log.e("SSO", "updateUserInfo SSO userParams" + userParams.toString());
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -256,7 +257,7 @@ public class AgilelinkSSOManager extends SSOManager{
                             response = convertStreamToString(iStream);
                             iStream.close();
                             urlConn.disconnect();
-                            Log.d("SSO", "updateUser response " + response);
+                            Log.d(LOG_TAG, "updateUser response " + response);
                             mHandle.obtainMessage(AylaNetworks.AML_ERROR_OK, responseCode, 0, response).sendToTarget();
 
                         }
@@ -265,7 +266,7 @@ public class AgilelinkSSOManager extends SSOManager{
                             response = convertStreamToString(iStream);
                             iStream.close();
                             urlConn.disconnect();
-                            Log.d("SSO", "updateUser error " + response);
+                            Log.d(LOG_TAG, "updateUser error " + response);
                             mHandle.obtainMessage(AylaNetworks.AML_ERROR_FAIL, responseCode, 0, response).sendToTarget();
 
                         }
@@ -295,8 +296,10 @@ public class AgilelinkSSOManager extends SSOManager{
     }
 
     /**
-     * Method to delete user
-     *
+     * Method to delete user.
+     * This method will delete user from SSO identity provider's service.
+     * The SSO identity provider then invokes callback to delete user from Ayla user service.
+     * To be changed by app developer according to SSO identity provider's user service.
      * @param handler Results are returned to this handler
      */
     public void deleteUser(Handler handler){
@@ -375,7 +378,7 @@ public class AgilelinkSSOManager extends SSOManager{
                 is.close();
             } catch (IOException e) {
                 String eMsg = (e.getLocalizedMessage() == null) ? e.toString() : e.getLocalizedMessage();
-                AylaSystemUtils.saveToLog("%s, %s, %s, %s:%s %s", "E", "SSOManager", "Error", "eMsg", eMsg, "commit.convertStreamToString");
+                AylaSystemUtils.saveToLog("%s, %s, %s, %s:%s %s", "E", LOG_TAG, "Error", "eMsg", eMsg, "commit.convertStreamToString");
             }
         }
         return sb.toString();

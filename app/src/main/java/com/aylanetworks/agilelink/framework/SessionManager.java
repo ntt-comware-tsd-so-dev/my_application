@@ -362,10 +362,10 @@ public class SessionManager {
         public SSOManager ssoManager = new AgilelinkSSOManager();
 
         /**
-         * Set to true to allow login to Identity Provider service.
+         * Set to true to allow login to SSO Identity Provider service.
          * false by default
          */
-        public boolean ssoLogin = true;
+        public boolean ssoLogin = false;
 
         /**
          * Logging level for the Ayla library. Set to one of:
