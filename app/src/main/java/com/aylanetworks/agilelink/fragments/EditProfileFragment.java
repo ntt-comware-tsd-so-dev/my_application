@@ -132,11 +132,29 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         return params;
     }
 
+    /*
+    Add Editable fields for the Identity Provider
+     */
+    private Map<String, String> getSSOUserParameters() {
+        Map<String, String> params = new HashMap<>();
+        params.put("email", _email.getText().toString());
+        params.put("firstname", _firstName.getText().toString());
+        params.put("lastname", _lastName.getText().toString());
+        params.put("country", _country.getText().toString());
+        params.put("phone", _phoneNumber.getText().toString());
+        return params;
+    }
+
     void onUpdateClicked() {
         // Normal profile update
         MainActivity.getInstance().showWaitDialog(getString(R.string.updating_profile_title), getString(R.string.updating_profile_body));
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
-        AylaUser.updateInfo(_updateProfileHandler, getParameters(), params.appId, params.appSecret);
+        if(params.ssoLogin){
+            params.ssoManager.updateUserInfo(_ssoUpdateProfileHandler, getSSOUserParameters());
+        }else{
+            AylaUser.updateInfo(_updateProfileHandler, getParameters(), params.appId, params.appSecret);
+        }
+
     }
 
     void onChangePasswordClicked() {
@@ -338,5 +356,69 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         }
     }
     private UpdateProfileHandler _updateProfileHandler = new UpdateProfileHandler(this);
+
+
+    /**
+     * Handler for updating profile on Identity provider's service
+     * To be modified by app developer
+     */
+    static class SsoUpdateProfileHandler extends Handler {
+        private WeakReference<EditProfileFragment> _editProfileDialog;
+
+        public SsoUpdateProfileHandler(EditProfileFragment editProfileFragment) {
+            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity.getInstance().dismissWaitDialog();
+            String jsonResults = (String) msg.obj;
+            Log.d(LOG_TAG, "SSO Update profile handler: " + msg);
+
+            if (msg.arg1 >= 200 && msg.arg1 <300)  {
+                // Update the owner contact information
+                ContactManager cm = SessionManager.getInstance().getContactManager();
+                AylaContact ownerContact = cm.getOwnerContact();
+
+                if ( ownerContact == null ) {
+                    Log.d(LOG_TAG, "No owner contact found! Creating...");
+                    cm.createOwnerContact();
+                    _editProfileDialog.get().getFragmentManager().popBackStack();
+                    Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
+                } else {
+                    ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
+                    ownerContact.lastname = _editProfileDialog.get()._lastName.getText().toString();
+                    ownerContact.phoneCountryCode = _editProfileDialog.get()._phoneCountryCode.getText().toString();
+                    ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
+                    ownerContact.country = _editProfileDialog.get()._country.getText().toString();
+                    ownerContact.displayName = ownerContact.firstname + " " + ownerContact.lastname;
+                    ContactManager.normalizePhoneNumber(ownerContact);
+
+                    cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
+                        @Override
+                        public void contactListUpdated(ContactManager manager, boolean succeeded) {
+                            _editProfileDialog.get().getFragmentManager().popBackStack();
+                            Toast.makeText(MainActivity.getInstance(),
+                                    succeeded ? R.string.profile_updated : R.string.error_changing_profile,
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            } else {
+                if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
+                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "errors", jsonResults, "userSignUp");
+                    if (jsonResults != null) {
+                        Toast.makeText(MainActivity.getInstance(), jsonResults, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
+    private SsoUpdateProfileHandler _ssoUpdateProfileHandler = new SsoUpdateProfileHandler(this);
 }
 
