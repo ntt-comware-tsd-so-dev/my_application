@@ -740,7 +740,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+        if(getLocaleCountry().equalsIgnoreCase("ES")){
+            parameters.registrationEmailTemplateId = "ayla_confirmation_template_01_es";
+            parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01_es";
+        } else{
+            parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+            parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
+        }
 
         if (parameters.registrationEmailTemplateId == null) {
             parameters.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
@@ -1089,5 +1095,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                     return null;
             }
         }
+    }
+    private String getLocaleCountry(){
+        return getResources().getConfiguration().locale.getCountry();
     }
 }
