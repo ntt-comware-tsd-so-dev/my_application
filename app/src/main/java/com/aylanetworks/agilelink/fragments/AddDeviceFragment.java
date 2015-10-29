@@ -81,7 +81,7 @@ public class AddDeviceFragment extends Fragment
     private static final int REG_TYPE_NODE = 3;
 
     /** Time to delay after completing wifi setup and trying to register the new device */
-    private static final int REGISTRATION_DELAY_MS = 5000;
+    private static final int REGISTRATION_DELAY_MS = 9000;
 
     /**
      * Default instance creator class method
@@ -268,7 +268,7 @@ public class AddDeviceFragment extends Fragment
             // Update the product type. We will set the appropriate value on the registration
             // type when this is selected.
             if ( getView() == null ) {
-                Logger.logError(LOG_TAG, "No view!!!");
+                Logger.logError(LOG_TAG, "rn: No view!!!");
                 return;
             }
             Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
@@ -870,14 +870,17 @@ public class AddDeviceFragment extends Fragment
                     // time to get itself in order first.
                     MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
 
+                    Logger.logDebug(LOG_TAG, "rn: register new device [" + device.dsn + "] after delay");
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
+                            Logger.logDebug(LOG_TAG, "rn: register new device [" + device.dsn + "]");
                             _frag.get().registerNewDevice(device);
                         }
                     }, REGISTRATION_DELAY_MS);
 
                 } else {
+                    Logger.logDebug(LOG_TAG, "rn: device [" + device.dsn + "] already registered");
                     MainActivity.getInstance().popBackstackToRoot();
                     Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_LONG).show();
                 }
