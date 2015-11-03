@@ -195,7 +195,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                         checked = accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL);
                     }
                 } else {
-                    checked = !TextUtils.isEmpty(contact.email);
+                    checked = contact.emailNotification;
                 }
                 break;
             }
@@ -206,7 +206,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                         checked = accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS);
                     }
                 } else {
-                    checked = !TextUtils.isEmpty(contact.phoneNumber);
+                    checked = contact.smsNotification;
                 }
                 break;
             }
@@ -291,9 +291,30 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         Log.d(LOG_TAG, "contact: Email tapped " + contact.email + " - " + isChecked);
         if (isOwner) {
             enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, !isChecked);
+        } else{
+            contact.emailNotification = !isChecked;
+            MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
+            SessionManager.getInstance().getContactManager().updateContact(contact, listener);
         }
     }
 
+    final ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
+        @Override
+        public void contactListUpdated(ContactManager manager, boolean succeeded) {
+            MainActivity.getInstance().dismissWaitDialog();
+            if (succeeded) {
+                Toast.makeText(getActivity(), R.string.contact_updated, Toast.LENGTH_LONG).show();
+                _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
+            } else {
+                if (lastMessage.obj != null) {
+                    Toast.makeText(getActivity(), (String) lastMessage.obj, Toast.LENGTH_LONG).show();
+                } else {
+                    // Generic error message
+                    Toast.makeText(getActivity(), R.string.contact_update_failed, Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    };
     @Override
     public void smsTapped(AylaContact contact) {
         boolean isOwner = isOwner(contact);
@@ -301,6 +322,11 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         Log.d(LOG_TAG, "contact: Sms tapped " + contact.email + " - " + isChecked);
         if (isOwner) {
             enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, !isChecked);
+        } else{
+            //update contact
+            contact.smsNotification = !isChecked;
+            MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
+            SessionManager.getInstance().getContactManager().updateContact(contact, listener);
         }
     }
 
