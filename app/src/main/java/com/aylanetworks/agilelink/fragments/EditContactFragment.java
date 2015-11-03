@@ -199,6 +199,13 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         _aylaContact.streetAddress = _streetAddress.getText().toString();
         _aylaContact.zipCode = _zipCode.getText().toString();
 
+        if(_aylaContact.phoneNumber != null && _aylaContact.phoneNumber.length() != 0){
+            _aylaContact.smsNotification = true;
+        }
+        if(_aylaContact.email != null && _aylaContact.email.length() != 0){
+            _aylaContact.emailNotification = true;
+        }
+
         final ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override
             public void contactListUpdated(ContactManager manager, boolean succeeded) {
