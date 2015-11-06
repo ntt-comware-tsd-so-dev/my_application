@@ -193,13 +193,15 @@ public class MenuHandler {
                         Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
 
                         SessionManager.SessionParameters params = SessionManager.sessionParameters();
-                        if(params.ssoLogin){
+                       /* if(params.ssoLogin){
                             _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
                             params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
                         } else{
                             _deleteAccountHandler = new DeleteAccountHandler();
                             AylaUser.delete(_deleteAccountHandler);
-                        }
+                        }*/
+                        _deleteAccountHandler = new DeleteAccountHandler();
+                        AylaUser.delete(_deleteAccountHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
