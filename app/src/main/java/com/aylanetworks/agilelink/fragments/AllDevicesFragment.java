@@ -216,7 +216,9 @@ public class AllDevicesFragment extends Fragment
                 }
             }
             if (SessionManager.deviceManager().isShuttingDown()) {
-                // all done.
+                // all done. Make sure we clear out our recycler view so it doesn't show
+                // anything when we log back in
+                _recyclerView.setAdapter(null);
                 return;
             }
         }
@@ -226,6 +228,7 @@ public class AllDevicesFragment extends Fragment
                 // Enter absolutely no devices mode
                 Log.e(LOG_TAG, "Received an empty device list!");
                 Thread.dumpStack();
+                _recyclerView.setAdapter(null);
                 MainActivity.getInstance().setNoDevicesMode(true);
                 return;
             }
