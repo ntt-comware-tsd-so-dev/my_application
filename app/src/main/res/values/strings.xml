@@ -127,6 +127,7 @@
     <string name="wifi_setup">WiFi Setup</string>
     <string name="scan">Scan for Devices</string>
     <string name="scanning_for_devices_title">Scanning</string>
+    <string name="gateway_offline">Gateway is offline</string>
     <string name="scanning_for_devices_message">Scanning for available access points...</string>
     <string name="scanning_for_gateway_devices_message">Scanning for available devices...</string>
     <string name="error_wifi_not_enabled">WiFi must be enabled to set up a new device</string>

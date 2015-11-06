@@ -587,9 +587,13 @@ public class AddDeviceFragment extends Fragment
                 MenuHandler.handleGatewayWelcome();
             } else {
                 // Put up a progress dialog
-                MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title), getString(R.string.scanning_for_gateway_devices_message), this);
-                Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDeviceDsn() + "]");
-                _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
+                if(_nodeRegistrationGateway.isOnline()){
+                    MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title), getString(R.string.scanning_for_gateway_devices_message), this);
+                    Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDeviceDsn() + "]");
+                    _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
+                } else{
+                    Toast.makeText(getActivity(), getResources().getString(R.string.gateway_offline), Toast.LENGTH_LONG).show();
+                }
             }
         } else {
             // Put up a progress dialog

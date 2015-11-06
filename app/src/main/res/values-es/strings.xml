@@ -137,6 +137,7 @@
     <string name="connecting_to_device_body">Conectando al Dispositivo. Espere por favor...</string>
     <string name="scanning_for_aps_title">Buscando redes WiFi</string>
     <string name="scanning_for_aps_body">Buscando Access Points WiFi. Espere por favor...</string>
+    <string name="gateway_offline">Gateway desconectado</string>
     <string name="wifi_connect_failed">No se pudo conectar al dispositivo. Reinicie el dispositivo y reintente.</string>
     <string name="choose_ap">Redes WiFi</string>
     <string name="choose_ap_body">Seleccione la red WiFi para conectar el dipositivo</string>
