@@ -893,6 +893,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         Log.d(LOG_TAG, "onResume");
 
+        if(_theInstance == null){
+            _theInstance = this;
+        }
         if (SessionManager.deviceManager() != null) {
             // we aren't going to "resume" LAN mode if we aren't logged in.
             AylaLanMode.resume();
