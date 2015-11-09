@@ -346,7 +346,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             public void contactListUpdated(ContactManager manager, boolean succeeded) {
                 MainActivity.getInstance().dismissWaitDialog();
                 if ( succeeded ) {
-                    ContactListAdapter adapter = new ContactListAdapter(true, ContactListFragment.this);
+                    ContactListAdapter adapter = new ContactListAdapter(false, ContactListFragment.this);
                     _recyclerView.setAdapter(adapter);
                 } else {
                     String message;
