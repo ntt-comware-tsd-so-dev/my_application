@@ -1,3 +1,4 @@
+/*
 
 package com.aylanetworks.agilelink;
 
@@ -24,18 +25,22 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Map;
 
+*/
 /**
  * AgileLinkSSOManager.java
  * AgileLink Application Framework
  * Created by Raji Pillay on 10/12/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
- */
+ *//*
 
+
+*/
 /**
  * Class derived from {@link SSOManager}
  * This is the default SSOManager for Agilelink. Implementers should create their own derived class.
  *
- */
+ *//*
+
 
 public class AgilelinkSSOManager extends SSOManager{
 
@@ -43,12 +48,16 @@ public class AgilelinkSSOManager extends SSOManager{
     public String identityProviderBaseUrl = "https://idp-emulation.ayladev.com/api/v1/";
     private SSOSessionParams sessionParams;
 
-    /* SSOManager singleton object*/
+    */
+/* SSOManager singleton object*//*
+
     private static AgilelinkSSOManager ssoLoginInstance;
 
-    /**
+    */
+/**
      * @return ssoLoginInstance Single instance of SSOManager
-     */
+     *//*
+
     public static AgilelinkSSOManager getInstance() {
         if (ssoLoginInstance == null) {
             ssoLoginInstance = new AgilelinkSSOManager();
@@ -57,38 +66,50 @@ public class AgilelinkSSOManager extends SSOManager{
         return ssoLoginInstance;
     }
 
-    /**
+    */
+/**
      * Inner class used to to store SSO session parameters.
-     */
+     *//*
+
     private static class SSOSessionParams{
 
-        /**
+        */
+/**
          * User Id received from SSO Identity provider.
-         */
+         *//*
+
         private String userId;
-        /**
+        */
+/**
          * Access token of the SSO Identity provider.
-         */
+         *//*
+
         private String ipAccessToken;
-        /**
+        */
+/**
          * App ID of the SSO Identity provider.
-         */
+         *//*
+
         public String ipAppId = "client-id";
 
-        /**
+        */
+/**
          * App secret of the SSO Identity provider.
-         */
+         *//*
+
         public String ipAppSecret = "client-3431389";
     }
 
 
 
- /**Method to login to SSO identity provider's service.
+ */
+/**Method to login to SSO identity provider's service.
   * @param handle handler where results are returned
   * @param userName user email
   * @param password password
   *
-*/
+*//*
+
     public void login(final Handler handle, final String userName, final String password) {
 
         if(isConnected()){
@@ -161,7 +182,8 @@ public class AgilelinkSSOManager extends SSOManager{
 
     }
 
-    /**
+    */
+/**
      * Method to update user info.
      * This method updates user info in SSO identity provider's service.
      * The SSO identity provider then invokes callback to update the user info in Ayla user service.
@@ -171,7 +193,8 @@ public class AgilelinkSSOManager extends SSOManager{
      * @param callParams contains updated values
      *
 
-     */
+     *//*
+
     public void updateUserInfo(final Handler mHandle, Map<String, String> callParams) {
 
         if(isConnected()){
@@ -295,13 +318,15 @@ public class AgilelinkSSOManager extends SSOManager{
 
     }
 
-    /**
+    */
+/**
      * Method to delete user.
      * This method will delete user from SSO identity provider's service.
      * The SSO identity provider then invokes callback to delete user from Ayla user service.
      * To be changed by app developer according to SSO identity provider's user service.
      * @param handler Results are returned to this handler
-     */
+     *//*
+
     public void deleteUser(Handler handler){
         if(isConnected()){
             final String url = identityProviderBaseUrl + "/users/" + getInstance().sessionParams.userId;
@@ -397,3 +422,4 @@ public class AgilelinkSSOManager extends SSOManager{
 
 }
 
+*/
