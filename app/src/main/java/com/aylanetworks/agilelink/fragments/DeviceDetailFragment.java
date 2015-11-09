@@ -130,8 +130,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Button sharingButton = (Button)view.findViewById(R.id.sharing_button);
         if(_device.isDeviceNode()){
             sharingButton.setVisibility(View.GONE);
+        } else{
+            sharingButton.setOnClickListener(this);
         }
-        sharingButton.setOnClickListener(this);
         if ( !_device.getDevice().amOwner() ) {
             // This device was shared with us
             sharingButton.setVisibility(View.GONE);
