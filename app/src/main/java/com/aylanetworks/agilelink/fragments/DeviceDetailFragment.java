@@ -107,7 +107,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void onDestroy() {
         super.onDestroy();
         ensureIdentifyOff();
-        SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
+        if(SessionManager.deviceManager() != null){
+            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
+        }
     }
 
     @Override
