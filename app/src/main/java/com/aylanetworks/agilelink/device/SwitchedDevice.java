@@ -38,7 +38,7 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     }
 
     public void toggle() {
-        if(isOnline()){
+        if(isOnline() || isInLanMode()){
             AylaProperty prop = getProperty(getObservablePropertyName());
             if (prop == null) {
                 Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
