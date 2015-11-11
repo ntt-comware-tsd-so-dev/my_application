@@ -261,7 +261,9 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     @Override
     public void onResume() {
         super.onResume();
-        fetchScenes();
+        if (SessionManager.deviceManager() != null) {
+            fetchScenes();
+        }
     }
 
     @Override

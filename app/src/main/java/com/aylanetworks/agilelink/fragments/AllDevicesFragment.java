@@ -278,8 +278,10 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        startListening();
-        deviceListChanged();
+        if (SessionManager.deviceManager() != null) {
+            startListening();
+            deviceListChanged();
+        }
     }
 
     @Override
