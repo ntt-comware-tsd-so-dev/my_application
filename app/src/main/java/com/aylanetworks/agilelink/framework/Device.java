@@ -761,8 +761,16 @@ public class Device implements Comparable<Device> {
 
             if (AylaNetworks.succeeded(msg)) {
                 // Update our properties
-                AylaProperty[] properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
-                        AylaProperty[].class);
+                AylaProperty[] properties = null;
+                try {
+                    properties = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaProperty[].class);
+                } catch (Exception ex) {
+                    Logger.logError(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + ex.getMessage());
+                    if (_listener != null) {
+                        _listener.statusUpdated(_device.get(), true);
+                    }
+                    return;
+                }
 
                 Logger.logVerbose(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
                 Logger.logVerbose(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
