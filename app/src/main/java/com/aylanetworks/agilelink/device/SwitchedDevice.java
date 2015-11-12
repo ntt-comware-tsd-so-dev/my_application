@@ -38,21 +38,24 @@ public class SwitchedDevice extends Device implements View.OnClickListener {
     }
 
     public void toggle() {
-        AylaProperty prop = getProperty(getObservablePropertyName());
-        if (prop == null) {
-            Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
-            SessionManager.deviceManager().refreshDeviceStatus(this);
-            return;
+        if(isOnline() || isInLanMode()){
+            AylaProperty prop = getProperty(getObservablePropertyName());
+            if (prop == null) {
+                Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
+                SessionManager.deviceManager().refreshDeviceStatus(this);
+                return;
+            }
+
+            // Get the opposite boolean value and set it
+            Boolean newValue = "0".equals(prop.value);
+            setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
+                @Override
+                public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+                    Log.d(LOG_TAG, "lm: setSwitch: " + succeeded + " ***^^^");
+                }
+            });
         }
 
-        // Get the opposite boolean value and set it
-        Boolean newValue = "0".equals(prop.value);
-        setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
-            @Override
-            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "lm: setSwitch: " + succeeded + " ***^^^");
-            }
-        });
     }
 
     public boolean isOn() {

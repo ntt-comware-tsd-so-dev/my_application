@@ -133,15 +133,18 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
         // The green or blue LED has been tapped.
         boolean isGreenButton = (v.getId() == R.id.green_button);
         Log.d(LOG_TAG, "lm: Button tapped: " + (isGreenButton ? "GREEN" : "BLUE") + " ***vvv");
-        if (isGreenButton) {
-            setGreenLED(!isGreenLEDOn());
-        } else {
-            setBlueLED(!isBlueLEDOn());
+        if(isOnline() || isInLanMode()){
+            if (isGreenButton) {
+                setGreenLED(!isGreenLEDOn());
+            } else {
+                setBlueLED(!isBlueLEDOn());
+            }
+
+            // Update the image view to show the transient state
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
         }
 
-        // Update the image view to show the transient state
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
     }
 
     public static final int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
