@@ -330,27 +330,30 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     protected void onDeleteGroup() {
         Log.d(LOG_TAG, "onDeleteGroup");
-        String msg = getResources().getString(R.string.confirm_delete_group_body, _selectedGroup.getGroupName());
-        new AlertDialog.Builder(getActivity())
-                .setIcon(R.drawable.ic_launcher)
-                .setTitle(R.string.confirm_delete_group)
-                .setMessage(msg)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        GroupManager gm = SessionManager.deviceManager().getGroupManager();
-                        gm.removeGroup(_selectedGroup);
-                        gm.pushGroupList();
-                        if ( gm.getGroups().isEmpty() ) {
-                            _selectedGroup = null;
-                        } else {
-                            _selectedGroup = gm.getGroups().get(0);
+        if(_selectedGroup != null){
+            String msg = getResources().getString(R.string.confirm_delete_group_body, _selectedGroup.getGroupName());
+            new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.confirm_delete_group)
+                    .setMessage(msg)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            GroupManager gm = SessionManager.deviceManager().getGroupManager();
+                            gm.removeGroup(_selectedGroup);
+                            gm.pushGroupList();
+                            if ( gm.getGroups().isEmpty() ) {
+                                _selectedGroup = null;
+                            } else {
+                                _selectedGroup = gm.getGroups().get(0);
+                            }
+                            deviceListChanged();
                         }
-                        deviceListChanged();
-                    }
-                })
-                .setNegativeButton(android.R.string.no, null)
-                .create().show();
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .create().show();
+        }
+
     }
 
     protected void onGroupSelected(DeviceGroup group) {
