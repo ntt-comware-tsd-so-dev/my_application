@@ -38,7 +38,8 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
 
     @Override
     public String[] getNotifiablePropertyNames() {
-        return new String[]{PROPERTY_ZB_INPUT};
+      //  return new String[]{PROPERTY_ZB_INPUT};
+        return new String[]{PROPERTY_ZB_INPUT_IAS};
     }
 
     @Override
@@ -48,7 +49,10 @@ public class ZigbeeMotionSensor extends ZigbeeTriggerDevice {
     public String friendlyNameForPropertyName(String propertyName) {
         if (propertyName.equals(PROPERTY_ZB_MOTION_SENSOR)) {
 
-            return MainActivity.getInstance().getString(R.string.property_remote_switch_friendly_name);
+            return MainActivity.getInstance().getString(R.string.property_motion_sensor_friendly_name);
+        }
+        if(propertyName.equals(PROPERTY_ZB_INPUT_IAS)){
+            return MainActivity.getInstance().getString(R.string.property_motion_friendly_name);
         }
         return super.friendlyNameForPropertyName(propertyName);
     }
