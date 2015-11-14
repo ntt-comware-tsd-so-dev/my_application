@@ -192,6 +192,26 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Get all gateways belong to this accout, from device collection in AMAP space
+     *
+     * @return gateway collection
+     * */
+    List<Gateway> getAllGateways() {
+        List<Gateway> gws = new ArrayList<>();
+        if (_deviceList == null || _deviceList.isEmpty()) {
+            Log.w(LOG_TAG, "DeviceManager, getAllGateways, _deviceList not initialized.");
+            return gws;
+        }
+
+        for (Device d : _deviceList) {
+            if (d.isGateway()) {
+                gws.add((Gateway)d);
+            }
+        }
+        return gws;
+    }// end of getAllGateways
+
+    /**
      * Returns a list of available gateway devices.
      * @return List of gateway devices.
      */
@@ -874,14 +894,16 @@ public class DeviceManager implements DeviceStatusListener {
              AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {*/
         if (  AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
             // Enable LAN mode on the gateway, if present
-            Gateway gateway = getGatewayDevice();
-            if ( gateway != null ) {
-                // Get the nodes from the gateway. This establishes the mapping between devices
-                // and nodes, required for LAN mode operation to work right.
-                Log.i(LOG_TAG, "rn: Fetching nodes from gateway...");
-                gateway.getGatewayDevice().getNodes(_getNodesHandler, null);
-            } else {
+            List<Gateway> gateways = getAllGateways();
+
+            if (gateways == null || gateways.isEmpty()) {
                 Log.i(LOG_TAG, "rn: LAN mode: No gateway found");
+                return;
+            }
+
+            for (Gateway gw: gateways) {
+                Log.d(LOG_TAG, "rn: Fetching nodes for gateway " + gw.getDeviceDsn());
+                gw.getGatewayDevice().getNodes(_getNodesHandler, null);
             }
         } else {
             Log.e(LOG_TAG, "rn: LAN mode: lanModeState is " + AylaLanMode.getLanModeState() + " - not entering LAN mode");
