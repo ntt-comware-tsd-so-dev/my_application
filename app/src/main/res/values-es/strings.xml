@@ -402,6 +402,8 @@
     <string name="property_notifications">Notificación</string>
     <string name="is_turned_on">encender</string>
     <string name="is_turned_off">apagar</string>
+    <string name="is_detected">se detecte movimiento</string>
+     <string name="is_stopped">el movimiento ha terminado</string>
     <string name="notify_me_via">Notificarme via:</string>
     <string name="notify_contacts">Notificar contactos:</string>
     <string name="send_notifications_when">Enviar notificaciones al:</string>

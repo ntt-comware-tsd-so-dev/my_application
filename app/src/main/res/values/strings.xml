@@ -273,6 +273,7 @@
     <string name="property_door_sensor_friendly_name">Door Sensor</string>
     <string name="property_motion_sensor_friendly_name">Motion Sensor</string>
     <string name="property_remote_switch_friendly_name">Remote Switch</string>
+    <string name="property_motion_friendly_name">Motion</string>
     <string name="turn_on">Turn on</string>
     <string name="turn_off">Turn off</string>
     <string name="blue_led">Blue LED</string>
@@ -400,6 +401,8 @@
     <string name="property_notifications">Notification</string>
     <string name="is_turned_on">is turned on</string>
     <string name="is_turned_off">is turned off</string>
+    <string name="is_detected">Motion detected</string>
+    <string name="is_stopped">Motion stopped</string>
     <string name="notify_me_via">Notify me via:</string>
     <string name="notify_contacts">Notify these contacts:</string>
     <string name="send_notifications_when">Send notifications when:</string>

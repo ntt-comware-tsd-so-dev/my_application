@@ -62,6 +62,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     private EditText _numberEditText;
     private RadioGroup _numberRadioGroup;
     private RadioGroup _booleanRadioGroup;
+    private RadioGroup _motionRadioGroup;
     private String _originalTriggerName;
     private AylaPropertyTrigger _originalTrigger;
     private PropertyNotificationHelper _propertyNotificationHelper;
@@ -70,6 +71,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     // when the property is selected.
     private LinearLayout _booleanLayout;
     private LinearLayout _integerLayout;
+    private LinearLayout _motionSensorLayout;
 
     public static PropertyNotificationFragment newInstance(Device device) {
         return newInstance(device, null);
@@ -117,12 +119,16 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             if ( _originalTriggerName != null ) {
                 // Try to find the trigger
                 for ( AylaProperty prop : _device.getDevice().properties ) {
-                    for ( AylaPropertyTrigger trigger : prop.propertyTriggers ) {
-                        if ( _originalTriggerName.equals(trigger.deviceNickname) ) {
-                            _originalTrigger = trigger;
-                            break;
+
+                    if(prop.propertyTriggers != null){
+                        for ( AylaPropertyTrigger trigger : prop.propertyTriggers ) {
+                            if ( _originalTriggerName.equals(trigger.deviceNickname) ) {
+                                _originalTrigger = trigger;
+                                break;
+                            }
                         }
                     }
+
                 }
 
                 if ( _originalTrigger == null ) {
@@ -143,6 +149,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         _propertySpinner = (Spinner)view.findViewById(R.id.property_spinner);
         _booleanLayout = (LinearLayout)view.findViewById(R.id.layout_boolean);
         _integerLayout = (LinearLayout)view.findViewById(R.id.layout_integer);
+        _motionSensorLayout = (LinearLayout)view.findViewById(R.id.layout_motion);
         _numberEditText = (EditText)view.findViewById(R.id.number_edit_text);
 
         // Set up a listener to show / hide the numerical input field based on the selection
@@ -159,6 +166,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         });
 
         _booleanRadioGroup = (RadioGroup)view.findViewById(R.id.radio_group_boolean);
+        _motionRadioGroup = (RadioGroup)view.findViewById(R.id.radio_group_motion);
 
         String propertyNames[] = _device.getNotifiablePropertyNames();
         String friendlyNames[] = new String[propertyNames.length];
@@ -421,7 +429,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         }
 
         if ( ("integer".equals(prop.baseType) || "decimal".equals(prop.baseType)) &&
-                _numberRadioGroup.getCheckedRadioButtonId() != R.id.radio_integer_changes) {
+                (_numberRadioGroup.getCheckedRadioButtonId() != R.id.radio_integer_changes && _integerLayout.getVisibility() == View.VISIBLE) ){
             if ( numberValue == null ) {
                 _numberEditText.requestFocus();
                 Toast.makeText(getActivity(), R.string.no_value_chosen, Toast.LENGTH_LONG).show();
@@ -454,29 +462,41 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                     trigger.triggerType = TRIGGER_ALWAYS;
                     break;
             }
-        } else {
-            switch ( _numberRadioGroup.getCheckedRadioButtonId() ) {
-                case R.id.radio_integer_changes:
-                    trigger.triggerType = TRIGGER_ALWAYS;
-                    break;
+        } else if(prop.baseType.equals("integer")){
+            if(_device.friendlyNameForPropertyName(propName).equals(MainActivity.getInstance().getString(R.string.property_motion_sensor_friendly_name))) {
+                switch (_motionRadioGroup.getCheckedRadioButtonId()){
+                    case R.id.radio_detected:
+                        trigger.triggerType = TRIGGER_ALWAYS;
+                        break;
+                    case R.id.radio_stopped:
+                        trigger.triggerType = TRIGGER_ALWAYS;
+                        break;
+                }
+            } else{
+                switch ( _numberRadioGroup.getCheckedRadioButtonId() ) {
+                    case R.id.radio_integer_changes:
+                        trigger.triggerType = TRIGGER_ALWAYS;
+                        break;
 
-                case R.id.radio_integer_greater_than:
-                    trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
-                    trigger.compareType = ">";
-                    break;
+                    case R.id.radio_integer_greater_than:
+                        trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
+                        trigger.compareType = ">";
+                        break;
 
-                case R.id.radio_integer_less_than:
-                    trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
-                    trigger.compareType = "<";
-                    break;
+                    case R.id.radio_integer_less_than:
+                        trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
+                        trigger.compareType = "<";
+                        break;
+                }
             }
+
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
 
         _propertyNotificationHelper.setNotifications(prop,
                 trigger,
-                _smsContacts,
+                _pushContacts,
                 _emailContacts,
                 _smsContacts,
                 new PropertyNotificationHelper.SetNotificationListener() {
@@ -521,6 +541,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         // Hide all of the type-specific layouts
         _booleanLayout.setVisibility(View.INVISIBLE);
         _integerLayout.setVisibility(View.INVISIBLE);
+        _motionSensorLayout.setVisibility(View.INVISIBLE);
         Log.d(LOG_TAG, "Property " + propertyName + " base type: " + prop.baseType);
         _numberRadioGroup.clearCheck();
         switch ( prop.baseType ) {
@@ -535,10 +556,17 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
             case "integer":
 
-                _integerLayout.setVisibility(View.VISIBLE);
-                _numberEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
-                _numberRadioGroup.check(R.id.radio_integer_changes);
+                if(_device.friendlyNameForPropertyName(propertyName).equals(MainActivity.getInstance().getString(R.string.property_motion_sensor_friendly_name))){
+                    _motionSensorLayout.setVisibility(View.VISIBLE);
+
+                } else{
+                    _integerLayout.setVisibility(View.VISIBLE);
+                    _numberEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                    _numberRadioGroup.check(R.id.radio_integer_changes);
+
+                }
                 break;
+
 
             case "decimal":
                 _integerLayout.setVisibility(View.VISIBLE);
