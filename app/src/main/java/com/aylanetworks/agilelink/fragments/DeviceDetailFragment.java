@@ -159,8 +159,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         triggerButton.setOnClickListener(this);
 
         if (_device.isDeviceNode()) {
-            _identifySwitch.setVisibility(View.VISIBLE);
             Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+            _identifySwitch.setVisibility(gateway.isZigbeeGateway() ? View.VISIBLE : View.GONE);
 
             if (_device instanceof ZigbeeTriggerDevice) {
                 Logger.logDebug(LOG_TAG, "we are a trigger device.");
