@@ -524,6 +524,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         if ( _progressDialog != null ) {
             _progressDialog.dismiss();
         }
+        if (loggedIn) {
+            finish();
+        }
     }
 
     @Override
