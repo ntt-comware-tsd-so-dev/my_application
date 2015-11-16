@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.agilelink.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -105,7 +106,7 @@ public class PushNotification extends AylaSystemUtils {
         if (resultCode != ConnectionResult.SUCCESS) {
             Log.i(TAG, "This device does not support Google Play Services. Push notifications are not supported");
             saveToLog("%s, %s, %s:%d, %s", "I", "amca.PushNotification", "resultCode", resultCode, "checkPlayServices");
-            String toastMessage = "Push notificaitons not supported";
+            String toastMessage = AylaNetworks.appContext.getString(R.string.push_notifcations_not_supported);
             Toast.makeText(AylaNetworks.appContext, toastMessage, Toast.LENGTH_LONG).show();
             return false;
         }

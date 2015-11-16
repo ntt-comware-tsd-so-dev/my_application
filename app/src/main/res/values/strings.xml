@@ -415,6 +415,7 @@
     <string name="becomes_greater_than">becomes greater than</string>
     <string name="becomes_less_than">becomes less than</string>
     <string name="changes">changes</string>
+    <string name="push_notifcations_not_supported">Push notifications not supported</string>
     <string name="notifcations_not_enabled">Property notifications are not available on this device</string>
     <string name="fetching_notifications">Fetching notifications for this device. Please wait...</string>
     <string name="unknown_trigger_name">Trigger %d</string>
