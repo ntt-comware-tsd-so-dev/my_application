@@ -292,9 +292,15 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         if (isOwner) {
             enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, !isChecked);
         } else{
-            contact.emailNotification = !isChecked;
-            MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
-            SessionManager.getInstance().getContactManager().updateContact(contact, listener);
+            if(contact.email != null){
+                if(!TextUtils.isEmpty(contact.email)){
+                    contact.emailNotification = !isChecked;
+                    MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
+                    SessionManager.getInstance().getContactManager().updateContact(contact, listener);
+                }
+
+            }
+
         }
     }
 
@@ -324,9 +330,15 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, !isChecked);
         } else{
             //update contact
-            contact.smsNotification = !isChecked;
-            MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
-            SessionManager.getInstance().getContactManager().updateContact(contact, listener);
+            if(contact.phoneNumber != null){
+                if(!TextUtils.isEmpty(contact.phoneNumber)){
+                    contact.smsNotification = !isChecked;
+                    MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
+                    SessionManager.getInstance().getContactManager().updateContact(contact, listener);
+                }
+
+            }
+
         }
     }
 
