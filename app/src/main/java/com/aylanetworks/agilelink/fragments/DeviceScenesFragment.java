@@ -236,7 +236,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             // get the scenes for all the gateways
             final List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
             if ((gateways != null) && (gateways.size() > 0)) {
-                fetchCount = gateways.size();
+               // fetchCount = gateways.size();
+                fetchCount = getZigbeeGatewayCount();
                 fetchDone = 0;
                 for (Gateway g : gateways) {
                     if (g.isZigbeeGateway()) {
@@ -331,8 +332,9 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
 
         public SceneAction(Object tag, Gateway.AylaGatewayActionHandler handler, SceneActionStartMode mode) {
             gateways = SessionManager.deviceManager().getGatewayDevices();
-            countTotal = gateways.size();
-            countDone = countSuccess = 0;
+            //countTotal = gateways.size();
+            countTotal = countDone = countSuccess = 0;
+            countTotal = getZigbeeGatewayCount();
             _tag = tag;
             _handler = handler;
             if (mode == SceneActionStartMode.Async) {
@@ -407,7 +409,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         MainActivity.getInstance().showWaitDialog(R.string.scene_update_title, R.string.scene_update_body);
 
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        updateSceneGatewayCount = gateways.size();
+        updateSceneGatewayCount =getZigbeeGatewayCount();
         updateSceneGatewayDone = updateSceneGatewaySuccess = 0;
 
         for (Gateway g : gateways) {
@@ -519,8 +521,9 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
 
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        addSceneGatewayCount = gateways.size();
-        addSceneGatewayDone = addSceneGatewaySuccess = 0;
+        //addSceneGatewayCount = gateways.size();
+        addSceneGatewayCount = addSceneGatewayDone = addSceneGatewaySuccess = 0;
+        addSceneGatewayCount = getZigbeeGatewayCount();
 
         Logger.logInfo(LOG_TAG, "zs: addScene [%s] [%s]", name,  DeviceManager.deviceListToString(sceneDevices));
         for (Gateway g : gateways) {
@@ -730,5 +733,17 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         Log.d(LOG_TAG, "Selected scene: " + sceneName);
         _selectedSceneName = sceneName;
         updateDeviceList();
+    }
+
+
+    private static int getZigbeeGatewayCount(){
+        int count = 0;
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        for(Gateway g: gateways){
+            if(g.isZigbeeGateway()){
+                count++;
+            }
+        }
+        return count;
     }
 }
