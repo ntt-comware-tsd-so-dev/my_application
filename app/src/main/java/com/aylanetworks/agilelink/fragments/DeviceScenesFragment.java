@@ -398,10 +398,10 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     protected void updateSceneComplete(final String name, final List<Device> sceneDevices) {
         MainActivity.getInstance().dismissWaitDialog();
         if (updateSceneGatewaySuccess == updateSceneGatewayCount) {
-            Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.scene_update_complete, Toast.LENGTH_LONG).show();
             deviceListChanged();
         } else {
-            Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.scene_update_failed, Toast.LENGTH_LONG).show();
         }
     }
 
