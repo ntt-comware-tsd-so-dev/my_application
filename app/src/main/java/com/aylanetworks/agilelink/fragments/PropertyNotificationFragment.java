@@ -186,13 +186,13 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override
             public void contactListUpdated(ContactManager manager, boolean succeeded) {
-                _recyclerView.setAdapter(new ContactListAdapter(true, PropertyNotificationFragment.this));
+                _recyclerView.setAdapter(new ContactListAdapter(false, PropertyNotificationFragment.this));
                 emptyView.setVisibility(View.INVISIBLE);
                 _recyclerView.setVisibility(View.VISIBLE);
             }
         };
 
-        if ( cm.getContacts(true).isEmpty() ) {
+        if ( cm.getContacts(false).isEmpty() ) {
             cm.fetchContacts(listener, true);
         } else {
             listener.contactListUpdated(cm, true);
