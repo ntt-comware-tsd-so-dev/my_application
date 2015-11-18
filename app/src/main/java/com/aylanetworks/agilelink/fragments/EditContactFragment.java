@@ -147,7 +147,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             _email.setText(_aylaContact.email);
             _countryCode.setText(_aylaContact.phoneCountryCode);
 
-            PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+          /*  PhoneNumberUtil util = PhoneNumberUtil.getInstance();
             Phonenumber.PhoneNumber phoneNumber = null;
             try {
                 phoneNumber = util.parse(_aylaContact.phoneNumber, "US");
@@ -159,8 +159,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
                 _phoneNumber.setText(util.format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164));
             } else {
                 _phoneNumber.setText(_aylaContact.phoneNumber);
-            }
+            }*/
 
+            _phoneNumber.setText(_aylaContact.phoneNumber);
             _streetAddress.setText(_aylaContact.streetAddress);
             _zipCode.setText(_aylaContact.zipCode);
             _button.setText(getString(R.string.update_contact));
