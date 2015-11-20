@@ -257,6 +257,7 @@ public class Schedule implements  Cloneable {
         } else {
             try {
                 Date date = startTime.getTime();
+                _dateFormatHMS.setTimeZone(startTime.getTimeZone());
                 _schedule.startTimeEachDay = _dateFormatHMS.format(date);
                 Log.d(LOG_TAG, "setStartTimeEachDay: " + _schedule.startTimeEachDay);
             } catch (Exception ex) {
@@ -283,6 +284,7 @@ public class Schedule implements  Cloneable {
         if (date != null) {
             result = today();
             result.setTime(date);
+            result.setTimeZone(_dateFormatHMS.getTimeZone());
         }
 
         return result;
@@ -293,6 +295,7 @@ public class Schedule implements  Cloneable {
         if (endTime == null) {
             _schedule.endTimeEachDay = null;
         } else {
+            _dateFormatHMS.setTimeZone(endTime.getTimeZone());
             _schedule.endTimeEachDay = _dateFormatHMS.format(endTime.getTime());
             Log.d(LOG_TAG, "setEndTimeEachDay: " + _schedule.endTimeEachDay);
         }
@@ -310,6 +313,7 @@ public class Schedule implements  Cloneable {
         if (date != null) {
             result = today();
             result.setTime(date);
+            result.setTimeZone(_dateFormatHMS.getTimeZone());
         }
 
         return result;
