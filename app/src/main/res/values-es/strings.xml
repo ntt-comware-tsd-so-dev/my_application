@@ -522,10 +522,12 @@
     <string name="scene_create_title">Crear Escena</string>
     <string name="scene_create_body">Creando escena.</string>
     <string name="scene_create_complete">Escena creada</string>
+    <string name="scene_create_partial_success">Crear escena terminó con fallos en nodos</string>
     <string name="scene_create_failed">No se pudo crear la escena</string>
     <string name="scene_update_title">Actualizar escena...</string>
     <string name="scene_update_body">Actualizando escena...</string>
     <string name="scene_update_complete">Actualización de escena lista</string>
+    <string name="scene_update_partial_success">Actualizar escena terminó con fallos en nodos</string>
     <string name="scene_update_failed">Actualizar escena falló</string>
     <string name="scene_add_info">Por favor seleccione los dispositivos que quiera agregar a la escena. Por favor encienda/apague sus dispositivos como quiera que sean capturados en la escena antes de presionar el botón para terminar.</string>
     <string name="scene_add_info_multiple_gateway">Configura los dispositivos como los desee configurar en la escena.  Seleccione los dispositivos. Todos los dipositivos deben pertenecer al mismo Gateway.</string>

@@ -116,6 +116,12 @@ public class Gateway extends Device {
     public static Gateway getGatewayForDeviceNode(Device device) {
         if (device.isDeviceNode()) {
             AylaDeviceNode adn = (AylaDeviceNode)device.getDevice();
+            if(adn == null){
+                return null;
+            }
+            if(adn.gatewayDsn == null){
+                return null;
+            }
             return (Gateway)SessionManager.deviceManager().deviceByDSN(adn.gatewayDsn);
         }
         return null;
