@@ -858,12 +858,11 @@ public class AddDeviceFragment extends Fragment
                 .setMessage(getString(R.string.push_registration_button))
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                        exitSetup();
                     }
                 })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
                         registerDevice(device);
                     }
                 })
