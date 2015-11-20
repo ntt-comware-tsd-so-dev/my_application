@@ -67,10 +67,8 @@ public class Schedule implements  Cloneable {
 
         if ( timeZone == null ) {
             _timeZone = TimeZone.getTimeZone("UTC");
-            _schedule.utc = true;
         } else {
             _timeZone = timeZone;
-            _schedule.utc = false;
         }
 
         _actionProperties = new HashSet<>();
@@ -251,12 +249,14 @@ public class Schedule implements  Cloneable {
      * @param startTime Time the schedule should start each day
      */
     public void setStartTimeEachDay(Calendar startTime) {
+        setIsTimer(false);
         _schedule.utc = false;
         if (startTime == null) {
             _schedule.startTimeEachDay = "";
         } else {
             try {
                 Date date = startTime.getTime();
+                _dateFormatHMS.setTimeZone(startTime.getTimeZone());
                 _schedule.startTimeEachDay = _dateFormatHMS.format(date);
                 Log.d(LOG_TAG, "setStartTimeEachDay: " + _schedule.startTimeEachDay);
             } catch (Exception ex) {
@@ -283,16 +283,19 @@ public class Schedule implements  Cloneable {
         if (date != null) {
             result = today();
             result.setTime(date);
+            result.setTimeZone(_dateFormatHMS.getTimeZone());
         }
 
         return result;
     }
 
     public void setEndTimeEachDay(Calendar endTime) {
+        setIsTimer(false);
         _schedule.utc = false;
         if (endTime == null) {
             _schedule.endTimeEachDay = null;
         } else {
+            _dateFormatHMS.setTimeZone(endTime.getTimeZone());
             _schedule.endTimeEachDay = _dateFormatHMS.format(endTime.getTime());
             Log.d(LOG_TAG, "setEndTimeEachDay: " + _schedule.endTimeEachDay);
         }
@@ -310,6 +313,7 @@ public class Schedule implements  Cloneable {
         if (date != null) {
             result = today();
             result.setTime(date);
+            result.setTimeZone(_dateFormatHMS.getTimeZone());
         }
 
         return result;
@@ -566,6 +570,7 @@ public class Schedule implements  Cloneable {
      * @param offMinutes Number of minutes from now to turn off the device
      */
     public void setTimer(int onMinutes, int offMinutes) {
+        setIsTimer(true);
         _schedule.utc = true;
         _schedule.endTimeEachDay = "";
         setAllDaysOfWeek();
