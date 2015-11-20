@@ -67,7 +67,6 @@ import java.util.Map;
  * Created by Brian King on 1/21/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
-
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
         ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener {
@@ -632,16 +631,14 @@ public class AddDeviceFragment extends Fragment
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean netEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-        if(gpsEnabled || netEnabled){
+        if (gpsEnabled || netEnabled) {
             String locationProvider = locationManager.getBestProvider(criteria, false);
             Location location = locationManager.getLastKnownLocation(locationProvider);
             if(location != null){
                 callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
                 callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
             }
-
-        }
-        else{
+        } else {
             Toast.makeText(context, R.string.warning_location_accuracy, Toast.LENGTH_SHORT).show();
         }
 
@@ -854,6 +851,40 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
+    private void showPushButtonDialog(final AylaDevice device) {
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(getString(R.string.attention))
+                .setMessage(getString(R.string.push_registration_button))
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        registerDevice(device);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void registerDevice(final AylaDevice device) {
+        // We need to wait a bit before attempting to register. The service needs some
+        // time to get itself in order first.
+        MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+        Logger.logDebug(LOG_TAG, "rn: register new device [" + device.dsn + "] after delay");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Logger.logDebug(LOG_TAG, "rn: register new device [" + device.dsn + "]");
+                registerNewDevice(device);
+            }
+        }, REGISTRATION_DELAY_MS);
+    }
+
     static class ConfirmNewDeviceHandler extends Handler {
         private WeakReference<AddDeviceFragment> _frag;
         GetNewDeviceWiFiStatusHandler _getNewDeviceWiFiStatusHandler;
@@ -868,20 +899,15 @@ public class AddDeviceFragment extends Fragment
             if ( AylaNetworks.succeeded(msg) ) {
                 final AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
                 Logger.logDebug(LOG_TAG, "rn: New device: " + device);
+
                 // Set up the new device if it's not already registered
                 if ( SessionManager.deviceManager().deviceByDSN(device.dsn) == null ) {
-                    // We need to wait a bit before attempting to register. The service needs some
-                    // time to get itself in order first.
-                    MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-
-                    Logger.logDebug(LOG_TAG, "rn: register new device [" + device.dsn + "] after delay");
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            Logger.logDebug(LOG_TAG, "rn: register new device [" + device.dsn + "]");
-                            _frag.get().registerNewDevice(device);
-                        }
-                    }, REGISTRATION_DELAY_MS);
+                    if (_frag.get()._registrationType == REG_TYPE_BUTTON_PUSH) {
+                        // we need to prompt the user to press the Button for registration
+                        _frag.get().showPushButtonDialog(device);
+                    } else {
+                        _frag.get().registerDevice(device);
+                    }
 
                 } else {
                     Logger.logDebug(LOG_TAG, "rn: device [" + device.dsn + "] already registered");
