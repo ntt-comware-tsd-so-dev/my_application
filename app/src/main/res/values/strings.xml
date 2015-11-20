@@ -521,10 +521,12 @@
     <string name="scene_create_title">Create Scene</string>
     <string name="scene_create_body">Creating scene.</string>
     <string name="scene_create_complete">Create Scene Complete</string>
+    <string name="scene_create_partial_success">Create Scene completed with failed nodes</string>
     <string name="scene_create_failed">Create Scene Failed</string>
     <string name="scene_update_title">Update Scene</string>
     <string name="scene_update_body">Updating scene...</string>
     <string name="scene_update_complete">Update Scene Complete</string>
+    <string name="scene_update_partial_success">Update Scene completed with failed nodes</string>
     <string name="scene_update_failed">Update Scene Failed</string>
     <string name="scene_add_info">Select the devices that you want in the scene.  Set up the devices in the state that you want the scene set.</string>
     <string name="scene_add_info_multiple_gateway">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene. All devices must be attached to the same gateway.</string>
