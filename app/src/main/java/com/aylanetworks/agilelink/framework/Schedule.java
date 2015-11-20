@@ -67,10 +67,8 @@ public class Schedule implements  Cloneable {
 
         if ( timeZone == null ) {
             _timeZone = TimeZone.getTimeZone("UTC");
-            _schedule.utc = true;
         } else {
             _timeZone = timeZone;
-            _schedule.utc = false;
         }
 
         _actionProperties = new HashSet<>();
@@ -251,6 +249,7 @@ public class Schedule implements  Cloneable {
      * @param startTime Time the schedule should start each day
      */
     public void setStartTimeEachDay(Calendar startTime) {
+        setIsTimer(false);
         _schedule.utc = false;
         if (startTime == null) {
             _schedule.startTimeEachDay = "";
@@ -291,6 +290,7 @@ public class Schedule implements  Cloneable {
     }
 
     public void setEndTimeEachDay(Calendar endTime) {
+        setIsTimer(false);
         _schedule.utc = false;
         if (endTime == null) {
             _schedule.endTimeEachDay = null;
@@ -570,6 +570,7 @@ public class Schedule implements  Cloneable {
      * @param offMinutes Number of minutes from now to turn off the device
      */
     public void setTimer(int onMinutes, int offMinutes) {
+        setIsTimer(true);
         _schedule.utc = true;
         _schedule.endTimeEachDay = "";
         setAllDaysOfWeek();
