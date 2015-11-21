@@ -357,6 +357,7 @@
     <string name="edit_profile">Edit Profile</string>
     <string name="delete_account">Delete Account</string>
     <string name="sign_out">Sign Out</string>
+    <string name="signing_out">Signing Out...</string>
     <string name="confirm_sign_out">Sign Out?</string>
     <string name="confirm_sign_out_message">Do you wish to sign out %s?</string>
     <string name="group_empty_text">Tap the add button to create a new group</string>
