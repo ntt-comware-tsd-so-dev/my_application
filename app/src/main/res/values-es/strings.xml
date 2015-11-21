@@ -358,6 +358,7 @@
     <string name="edit_profile">Editar Perfil</string>
     <string name="delete_account">Borrar cuenta</string>
     <string name="sign_out">Salir</string>
+    <string name="signing_out">Salir...</string>
     <string name="confirm_sign_out">¿Salir?</string>
     <string name="confirm_sign_out_message">Desea salir %s?</string>
     <string name="group_empty_text">Presione el botón para crear un grupo</string>

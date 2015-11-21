@@ -273,7 +273,13 @@ public class ShareDevicesFragment extends Fragment {
 
         if ( _device != null ) {
             // This is the only device we care about
-            devicesToAdd.add(_device);
+            if(!_device.isGateway()){
+                devicesToAdd.add(_device);
+            } else{
+                Toast.makeText(getActivity(), "Sharing of Gateways not supported", Toast.LENGTH_LONG).show();
+                return;
+            }
+
         } else {
             // Get the selected devices from the listview
             SparseBooleanArray checkedItems = _deviceList.getCheckedItemPositions();

@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.framework;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
@@ -729,6 +730,8 @@ public class SessionManager {
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
         Log.d(LOG_TAG, "nod: stop logout");
+        Resources resources = MainActivity.getInstance().getResources();
+        MainActivity.getInstance().showWaitDialog(resources.getString(R.string.sign_out), resources.getString(R.string.signing_out));
         AylaUser.logout(logouthandler, params).execute();
 
         return true;
@@ -739,6 +742,7 @@ public class SessionManager {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "nod: stop session handle message [" + msg + "]");
             //super.handleMessage(msg);
+            dismissWaitDialog();
             AylaUser.user.setAccessToken(null);
             AylaCache.clearAll();
             notifyLoginStateChanged(false, null);
