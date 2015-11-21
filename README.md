@@ -8,8 +8,8 @@ Building in Android Studio
 =========================
 
 Requires gradle version 2.1.+                                                                                         
-git clone https://github.com/AylaNetworks/Agile_Link_Android.git                                                    
-cd Agile_Link_Android/gradle_scripts                                                                                
+git clone https://github.com/AylaNetworks/Agile_Link_Android_Public.git
+cd Agile_Link_Android_Public/gradle_scripts
 Set environment variables - AYLA_BUILD_BRANCH to the AMAP branch to be built,
 AYLA_LIB_BRANCH to the Ayla library branch, and AYLA_ZLIB_BRANCH to the Ayla Zigbee library branch to be built. These environment variables default to master.                                                                      
 gradle -q execTasks                                                                                                  
