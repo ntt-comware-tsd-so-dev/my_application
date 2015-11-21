@@ -3,12 +3,12 @@ import org.ajoberstar.grgit.*
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 22
     buildToolsVersion "21.1.2"
     defaultConfig {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 16
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode 15
         versionName "1.0.0_DEV_ZO"
     }
