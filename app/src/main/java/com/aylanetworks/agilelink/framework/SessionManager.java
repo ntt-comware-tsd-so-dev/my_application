@@ -729,6 +729,7 @@ public class SessionManager {
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
         Log.d(LOG_TAG, "nod: stop logout");
+        MainActivity.getInstance().showWaitDialog("Sign out", "Signing out...");
         AylaUser.logout(logouthandler, params).execute();
 
         return true;
@@ -739,6 +740,7 @@ public class SessionManager {
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "nod: stop session handle message [" + msg + "]");
             //super.handleMessage(msg);
+            dismissWaitDialog();
             AylaUser.user.setAccessToken(null);
             AylaCache.clearAll();
             notifyLoginStateChanged(false, null);
