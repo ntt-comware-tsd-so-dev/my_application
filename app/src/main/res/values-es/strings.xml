@@ -566,6 +566,7 @@
     <string name="setup_connect_gateway">Registrar Gateway</string>
     <string name="setup_connect_gateway_text">Presione el botón "Reg" en la parte posterior del gateway.</string>
     <string name="setup_connect_gateway_amap">El LED de la nube debe estar parpadeando más rápido.</string>
+    <string name="push_registration_button">Pulse el botón "Reg" en el dispositivo y, a continuación, pulse "OK".</string>
     <!-- -->
 
 
