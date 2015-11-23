@@ -2,8 +2,10 @@ package com.aylanetworks.agilelink.framework;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -121,6 +123,9 @@ public class SessionManager {
                 getInstance()._sessionParameters.deviceSsidRegex,
                 getInstance()._sessionParameters.appId);
 
+        if(parameters.logsEmailAddress != null){
+            AylaSystemUtils.setSupportEmailAddress(parameters.logsEmailAddress);
+        }
     }
 
     /**
@@ -229,10 +234,40 @@ public class SessionManager {
         return (_foreground && _sessionParameters.enableLANMode);
     }
 
+    // should probably be part of SessionParameters
     boolean _foreground;
 
+    /**
+     * Set by the MainActivity to indicate whether the app is in the foreground (true) or
+     * background (false)
+     * @param foreground
+     */
     public void setForeground(boolean foreground) {
         _foreground = foreground;
+    }
+
+    /**
+     * Set by the Add Device UI to shutdown all extra network activity while trying to register
+     * new devices.
+     * @param registration
+     */
+    public void setRegistrationMode(boolean registration) {
+        if (registration) {
+            Logger.logDebug(LOG_TAG, "rn: setRegistrationMode true");
+            if (deviceManager() != null) {
+                deviceManager().setRegistrationMode(registration);
+            }
+            // TODO: quick hack... remove this
+            // TODO: NetworkOnMainThread is caused when we don't have a cached property and have to
+            // TODO: immediately go to the network to get the current value.
+            StrictMode.ThreadPolicy tp = StrictMode.ThreadPolicy.LAX;
+            StrictMode.setThreadPolicy(tp);
+        } else {
+            if (deviceManager() != null) {
+                deviceManager().setRegistrationMode(registration);
+            }
+            Logger.logDebug(LOG_TAG, "rn: setRegistrationMode false");
+        }
     }
 
     /** Inner Classes */
@@ -319,6 +354,19 @@ public class SessionManager {
          */
         public boolean allowLANLogin = false;
 
+    /*    *//**
+         * {@link com.aylanetworks.agilelink.framework.SSOManager} object.
+         * Implementers should create a class derived from SSOManager
+         *
+         *//*
+        public SSOManager ssoManager = new AgilelinkSSOManager();
+
+        *//**
+         * Set to true to allow login to SSO Identity Provider service.
+         * false by default
+         *//*
+        public boolean ssoLogin = false;
+*/
         /**
          * Logging level for the Ayla library. Set to one of:
          * <ul>
@@ -394,6 +442,13 @@ public class SessionManager {
          */
         public String notificationEmailBodyHTML = null;
 
+
+        /**
+         * Email address to which logs are to be sent by the user.
+         * Default email address available from AylaSystemUtils.getSupportEmailAddress()
+         */
+        public String logsEmailAddress = null;
+
         /**
          * SessionParameters constructor
          *
@@ -431,6 +486,7 @@ public class SessionManager {
             this.notificationEmailSubject = other.notificationEmailSubject;
             this.notificationEmailTemplateId = other.notificationEmailTemplateId;
             this.notificationEmailBodyHTML = other.notificationEmailBodyHTML;
+            this.logsEmailAddress = other.logsEmailAddress;
         }
 
         @Override
@@ -450,6 +506,7 @@ public class SessionManager {
                     "  loggingLevel: " + loggingLevel + "\n" +
                     "  enableLANMode: " + enableLANMode +
                     "  allowLANLogin: " + allowLANLogin +
+                 /*   "  ssoLogin: " + ssoLogin +*/
                     "  registrationEmailTemplateId: " + registrationEmailTemplateId + "\n" +
                     "  registrationEmailSubject: " + registrationEmailSubject + "\n" +
                     "  registrationEmailBodyHTML: " + registrationEmailBodyHTML + "\n" +
@@ -659,6 +716,8 @@ public class SessionManager {
     }
 
     private boolean stop() {
+        Log.d(LOG_TAG, "nod: stop session");
+
         if (_deviceManager != null) {
             _deviceManager.shutDown();
             _deviceManager = null;
@@ -670,11 +729,31 @@ public class SessionManager {
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", AylaUser.user.getauthHeaderValue());
-        AylaUser.logout(params).execute();
-        AylaUser.user.setAccessToken(null);
-        AylaCache.clearAll();
-        notifyLoginStateChanged(false, null);
+        Log.d(LOG_TAG, "nod: stop logout");
+        Resources resources = MainActivity.getInstance().getResources();
+        MainActivity.getInstance().showWaitDialog(resources.getString(R.string.sign_out), resources.getString(R.string.signing_out));
+        AylaUser.logout(logouthandler, params).execute();
+
         return true;
+    }
+
+    private final Handler logouthandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "nod: stop session handle message [" + msg + "]");
+            //super.handleMessage(msg);
+            dismissWaitDialog();
+            AylaUser.user.setAccessToken(null);
+            AylaCache.clearAll();
+            notifyLoginStateChanged(false, null);
+        }
+    };
+
+    static void dismissWaitDialog() {
+        MainActivity activity = MainActivity.getInstance();
+        if (activity != null) {
+            activity.dismissWaitDialog();
+        }
     }
 
     /**
@@ -690,8 +769,8 @@ public class SessionManager {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "Login Handler");
-            Log.d(LOG_TAG, "Message: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
+            Log.d(LOG_TAG, "Message: " + msg.toString());
+            dismissWaitDialog();
             if (AylaNetworks.succeeded(msg)) {
                 Log.d(LOG_TAG, "Login successful");
 
@@ -746,6 +825,7 @@ public class SessionManager {
                     JSONObject results = new JSONObject(json);
                     errorMessage = results.getString("error");
                 } catch (JSONException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage() + " on [" + json + "]");
                     e.printStackTrace();
                     errorMessage = json;
                 }
@@ -762,15 +842,113 @@ public class SessionManager {
 
     private LoginHandler _loginHandler = new LoginHandler(this);
 
+    /**
+     * Handle the result of the login request
+     */
+    static class SsoLoginHandler extends Handler {
+        private WeakReference<SessionManager> _sessionManager;
+
+        public SsoLoginHandler(SessionManager sessionManager) {
+            _sessionManager = new WeakReference<SessionManager>(sessionManager);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "Login Handler");
+            Log.d(LOG_TAG, "Message: " + msg.toString());
+            dismissWaitDialog();
+            if (AylaNetworks.succeeded(msg)) {
+                Log.d(LOG_TAG, "Login successful");
+
+                if ( msg.arg1 == AylaNetworks.AML_ERROR_ASYNC_OK_CACHED ) {
+                    // This is a LAN login. If we don't allow it, then fail. Otherwise we'll continue.
+                    if (_sessionManager.get()._sessionParameters.allowLANLogin) {
+                        Log.d(LOG_TAG, "LAN login!");
+                        Toast.makeText(MainActivity.getInstance(), R.string.lan_login_message, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.getInstance(), R.string.network_not_reachable, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+
+                // Save the auth info for the user
+                _sessionManager.get()._aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
+                _sessionManager.get()._aylaUser.email = _sessionManager.get()._sessionParameters.username;
+                _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
+                _sessionManager.get()._aylaUser = AylaUser.setCurrent(_sessionManager.get()._aylaUser);
+
+                // Store the access / refresh token in our session parameters
+                _sessionManager.get()._sessionParameters.refreshToken = _sessionManager.get()._aylaUser.getRefreshToken();
+                _sessionManager.get()._sessionParameters.accessToken = _sessionManager.get()._aylaUser.getAccessToken();
+
+                _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
+
+                SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(PREFS_PASSWORD, _sessionManager.get()._sessionParameters.password);
+                editor.putString(PREFS_USERNAME, _sessionManager.get()._sessionParameters.username);
+                editor.apply();
+
+                // Fetches the account settings and stores them
+                _sessionManager.get().fetchAccountSettings(null);
+
+                // Create the contacts manager. It will fetch the contact list once the account
+                // settings have been fetched (so it knows who the owner contact is)
+                _sessionManager.get()._contactManager = new ContactManager();
+
+                // Create the device manager and have it start polling the device list
+                _sessionManager.get()._deviceManager = new DeviceManager();
+                _sessionManager.get()._deviceManager.startPolling();
+
+                // Cache this user so we can log in with the same credentials again
+                AylaUser.setCachedUser(_sessionManager.get()._aylaUser);
+                AylaUser.setCurrent(_sessionManager.get()._aylaUser);
+                _sessionManager.get().notifyLoginStateChanged(true, _sessionManager.get()._aylaUser);
+            } else {
+                String json = (String) msg.obj;
+                String errorMessage = null;
+                try {
+                    JSONObject results = new JSONObject(json);
+                    errorMessage = results.getString("errorMessage");
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage() + " on [" + json + "]");
+                    e.printStackTrace();
+                    errorMessage = json;
+                }
+
+                if (errorMessage != null) {
+                    Toast.makeText(_sessionManager.get()._sessionParameters.context, errorMessage, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(_sessionManager.get()._sessionParameters.context, R.string.unknown_error, Toast.LENGTH_LONG).show();
+                }
+                _sessionManager.get().stop();
+            }
+        }
+    }
+
+    private SsoLoginHandler _ssoLoginHandler = new SsoLoginHandler(this);
+
     private void logIn() {
 
         Log.d(LOG_TAG, "User Login");
+
+      /*  if(!_sessionParameters.ssoLogin)
+        {
+            AylaUser.login(_loginHandler,
+                    _sessionParameters.username,
+                    _sessionParameters.password,
+                    _sessionParameters.appId,
+                    _sessionParameters.appSecret);
+        }else{
+
+            _sessionParameters.ssoManager.login(_ssoLoginHandler, _sessionParameters.username, _sessionParameters.password);
+        }*/
+
         AylaUser.login(_loginHandler,
                 _sessionParameters.username,
                 _sessionParameters.password,
                 _sessionParameters.appId,
                 _sessionParameters.appSecret);
-
     }
 
     private boolean checkParameters() {
@@ -792,6 +970,9 @@ public class SessionManager {
         if (_sessionParameters.deviceCreator == null) {
             return false;
         }
+       /* if (_sessionParameters.ssoManager == null) {
+            return false;
+        }*/
         if (_sessionParameters.password == null && _sessionParameters.refreshToken == null) {
             return false;
         }

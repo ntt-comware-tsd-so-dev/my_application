@@ -1,7 +1,9 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
@@ -24,6 +26,8 @@ import com.aylanetworks.agilelink.fragments.DeviceScenesFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
+import com.aylanetworks.agilelink.fragments.WelcomeFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,7 +54,17 @@ public class MenuHandler {
      * @return true if handled, false if not handled
      */
     public static boolean handleMenuItem(MenuItem menuItem) {
-        switch ( menuItem.getItemId() ) {
+        MainActivity.getInstance().activateMenuItem(menuItem);
+        return handleMenuId(menuItem.getItemId());
+    }
+
+    /**
+     * Handles the given menu id, or returns false if not handled.
+     * @param id Menu item id to handle.
+     * @return true if handled, false if not handled.
+     */
+    public static boolean handleMenuId(int id) {
+        switch (id) {
             case R.id.action_all_devices:
                 handleAllDevices();
                 break;
@@ -61,6 +75,10 @@ public class MenuHandler {
 
             case R.id.action_device_scenes:
                 handleDeviceScenes();
+                break;
+
+            case R.id.action_gateways:
+                handleGateways();
                 break;
 
             case R.id.action_add_device:
@@ -75,6 +93,7 @@ public class MenuHandler {
                 handleNotifications();
                 break;
 
+            case R.id.action_account:
             case R.id.action_edit_profile:
                 updateProfile();
                 break;
@@ -102,60 +121,66 @@ public class MenuHandler {
             default:
                 return false;
         }
-
         return true;
     }
 
-    public static void handleAllDevices() {
-        Fragment frag = AllDevicesFragment.newInstance();
+    static void replaceFragmentToRoot(Fragment frag) {
+        Logger.logInfo(LOG_TAG, "replaceFragmentToRoot " + frag.getClass().getSimpleName());
         FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
         MainActivity.getInstance().popBackstackToRoot();
         fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+    }
+
+    public static void handleAllDevices() {
+        replaceFragmentToRoot(AllDevicesFragment.newInstance());
+    }
+
+    public static void handleGateways() {
+        replaceFragmentToRoot(GatewayDevicesFragment.newInstance());
     }
 
     public static void handleDeviceGroups() {
-        Fragment frag = DeviceGroupsFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
     public static void handleDeviceScenes() {
-        Fragment frag = DeviceScenesFragment.newInstance();
-        FragmentManager fm = MainActivity.getInstance().getSupportFragmentManager();
-        MainActivity.getInstance().popBackstackToRoot();
-        fm.beginTransaction().replace(R.id.content_frame, frag).commit();
+        replaceFragmentToRoot(DeviceScenesFragment.newInstance());
     }
 
     public static void handleAddDevice() {
-        // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
+    }
+
+    public static void handleGatewayWelcome() {
+        MainActivity.getInstance().pushFragment(WelcomeFragment.newInstance());
     }
 
     public static void handleContacts() {
-        ContactListFragment frag = ContactListFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(ContactListFragment.newInstance());
     }
 
     public static void handleNotifications() {
-        DeviceNotificationsFragment frag = new DeviceNotificationsFragment();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(DeviceNotificationsFragment.newInstance());
     }
 
     public static void updateProfile() {
-        EditProfileFragment frag = EditProfileFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
     }
-
 
     public static AlertDialog _confirmDeleteDialog;
 
+    static DeleteAccountHandler _deleteAccountHandler;
+    static SsoDeleteAccountHandler _ssoDeleteAccoutnHandler;
+
     public static void deleteAccount() {
         // First confirm
+        Resources res = MainActivity.getInstance().getResources();
+        AylaUser currentUser = AylaUser.getCurrent();
+        String msg = res.getString(R.string.confirm_delete_account_message, currentUser.email);
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
+                .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
-                .setMessage(R.string.confirm_delete_account_message)
+                .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -163,12 +188,20 @@ public class MenuHandler {
                         if (_confirmDeleteDialog != null) {
                             _confirmDeleteDialog.dismiss();
                         }
-
-                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title,
-                                R.string.deleting_account_message);
-
+                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title, R.string.deleting_account_message);
                         // Actually delete the account
-                        AylaUser.delete(new DeleteAccountHandler());
+                        Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
+
+                        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+                       /* if(params.ssoLogin){
+                            _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
+                            params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
+                        } else{
+                            _deleteAccountHandler = new DeleteAccountHandler();
+                            AylaUser.delete(_deleteAccountHandler);
+                        }*/
+                        _deleteAccountHandler = new DeleteAccountHandler();
+                        AylaUser.delete(_deleteAccountHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -178,7 +211,7 @@ public class MenuHandler {
     static class DeleteAccountHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Delete account result: " + msg);
+            Logger.logMessage(LOG_TAG, msg, "user: DeleteAccountHandler");
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Log out and show a toast
@@ -204,26 +237,60 @@ public class MenuHandler {
         }
     }
 
+    static class SsoDeleteAccountHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "user: SSo DeleteAccountHandler");
+            MainActivity.getInstance().dismissWaitDialog();
+            if (msg.arg1 >= 200 && msg.arg1 <300)  {
+                // Log out and show a toast
+                SessionManager.clearSavedUser();
+                SessionManager.stopSession();
+                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+            } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
+                // Look for an error message in the returned JSON
+                String errorMessage = msg.obj.toString();
+                if ( errorMessage != null ) {
+                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     public static void handleShares() {
         Log.d(LOG_TAG, "handleShares()");
-
         SharesFragment frag = SharesFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     public static void signOut() {
-        // Confirm
-        new AlertDialog.Builder(MainActivity.getInstance())
-                .setTitle(R.string.confirm_sign_out)
-                .setMessage(R.string.confirm_sign_out_message)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        SessionManager.stopSession();
-                    }
-                })
-                .setNegativeButton(android.R.string.no, null)
-                .create().show();
+        Activity activity = MainActivity.getInstance();
+        if (activity != null) {
+            // Confirm
+            Resources res = activity.getResources();
+            AylaUser currentUser = AylaUser.getCurrent();
+            String msg = res.getString(R.string.confirm_sign_out_message, currentUser.email);
+            new AlertDialog.Builder(activity)
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.confirm_sign_out)
+                    .setMessage(msg)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Logger.logInfo(LOG_TAG, "signOut: stop session.");
+                            SessionManager.stopSession();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .create().show();
+        } else {
+            Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed, stop session.");
+            SessionManager.stopSession();
+        }
     }
 
     public static void about() {

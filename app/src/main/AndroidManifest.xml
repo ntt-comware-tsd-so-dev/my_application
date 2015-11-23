@@ -91,7 +91,14 @@
         <activity
             android:name=".SignInActivity"
             android:label="AgileLink"
-            android:launchMode="singleTop">
+            android:launchMode="singleInstance">
+
+        </activity>
+
+        <activity
+            android:name=".DeveloperOptions"
+            android:label="AgileLink"
+            android:launchMode="singleInstance">
 
         </activity>
 
@@ -126,6 +133,14 @@
                 <category android:name="com.aylanetworks.agileLink.MainActivity"/>
             </intent-filter>
         </receiver>
+        <receiver android:name=".AylaWidget" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
 
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ayla_widget_info" />
+        </receiver>
     </application>
 </manifest>

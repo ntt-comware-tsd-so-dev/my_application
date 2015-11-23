@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/action_add_device"
-        android:title="@string/add_device"/>
+        android:title="@string/add_device_menu"/>
 
     <item
         android:id="@+id/action_contact_list"
@@ -12,10 +12,6 @@
     <item
         android:id="@+id/action_notifications"
         android:title="@string/notifications"/>
-
-    <item
-        android:id="@+id/action_shares"
-        android:title="@string/shares"/>
 
     <item
         android:id="@+id/action_help"

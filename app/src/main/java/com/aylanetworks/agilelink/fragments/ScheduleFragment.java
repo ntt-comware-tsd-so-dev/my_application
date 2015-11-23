@@ -96,7 +96,7 @@ public class ScheduleFragment extends Fragment {
 
     public static ScheduleFragment newInstance(Device device, int scheduleIndex) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
+        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
         args.putInt(ARG_SCHEDULE_INDEX, scheduleIndex);
         ScheduleFragment frag = new ScheduleFragment();
         frag.setArguments(args);
@@ -298,13 +298,21 @@ public class ScheduleFragment extends Fragment {
         return root;
     }
 
+    TimeZone getTimeZone() {
+        TimeZone tz = _device.getTimeZone();
+        if (tz == null) {
+            tz = TimeZone.getTimeZone("UTC");
+        }
+        return tz;
+    }
+
     private void scheduleTimeChanged(int hourOfDay, int minute) {
         if ( _updatingUI ) {
             return;
         }
 
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(_device.getTimeZone());
+        cal.setTimeZone(getTimeZone());
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
@@ -358,7 +366,7 @@ public class ScheduleFragment extends Fragment {
 
         // Start date is always "right now".
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(_device.getTimeZone());
+        cal.setTimeZone(getTimeZone());
         _schedule.setStartDate(cal);
 
 

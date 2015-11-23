@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Agile Link</string>
+    <string name="app_name">AMAP</string>
     <string name="action_settings">Settings</string>
     <string name="username">Email Address</string>
     <string name="password">Password</string>
@@ -21,6 +21,8 @@
     <string name="smart_plug">Smart Plug</string>
     <string name="notifications">Notifications</string>
     <string name="schedule">Schedule</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
     <string name="remote">Remote</string>
     <string name="remote_paired_devices">Paired Devices</string>
     <string name="remote_paired_remote">Paired Remote</string>
@@ -33,8 +35,12 @@
     <string name="forgot"><u>Forgot Password</u></string>
     <string name="resend_confirmation"><u>Re-send Email Confirmation</u></string>
     <string name="signIn">Sign In</string>
+    <string name="userInformation">User Information</string>
     <string name="emailAddress">Email Address</string>
     <string name="passwordHint">Password</string>
+    <string name="currentPassword">Current Password</string>
+    <string name="newPassword">New Password</string>
+    <string name="newPasswordConfirm">Confirm New Password</string>
     <string name="signingIn">Signing in...</string>
     <string name="signingUp">Signing up...</string>
     <string name="confirmPassword">confirm password</string>
@@ -42,10 +48,14 @@
     <string name="country">Country</string>
     <string name="firstName">First Name</string>
     <string name="phoneNumber">Phone Number</string>
+    <string name="phoneCountryCode">Phone Country Code</string>
     <string name="evbNumber">EVB Number</string>
     <string name="zip">Zip</string>
     <string name="signUp">Sign up</string>
+    <string name="update">Update</string>
+    <string name="change">Change</string>
     <string name="password_required">A password is required</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
     <string name="password_no_match">The password you entered does not match the confirmed password entry</string>
     <string name="registraion_email_subject">Ayla Sign-up Confirmation</string>
     <string name="registration_email_body_html"><![CDATA[
@@ -85,7 +95,7 @@
     <string name="unregister_failure_timeout">Unregister device has still not completed successfully.</string>
     <string name="unregister_try_again">Try Again</string>
 
-    <string name="factory_reset_device">Factory Reset Device</string>
+    <string name="factory_reset_device">Factory Reset and Unregister</string>
     <string name="factory_reset_confirm_title">Factory Reset Device</string>
     <string name="factory_reset_confirm_body">Are you sure you want to factory reset this device?  All settings will be lost, and the device will be removed from your account.</string>
     <string name="waiting_factory_reset_title">Factory Reset Device</string>
@@ -117,6 +127,7 @@
     <string name="wifi_setup">WiFi Setup</string>
     <string name="scan">Scan for Devices</string>
     <string name="scanning_for_devices_title">Scanning</string>
+    <string name="gateway_offline">Gateway is offline</string>
     <string name="scanning_for_devices_message">Scanning for available access points...</string>
     <string name="scanning_for_gateway_devices_message">Scanning for available devices...</string>
     <string name="error_wifi_not_enabled">WiFi must be enabled to set up a new device</string>
@@ -131,6 +142,7 @@
     <string name="enter_wifi_password">Please select the WiFi access point you wish your device to connect to and enter the WiFI password, if necessary.</string>
     <string name="connect">Connect</string>
     <string name="wifi_password">WiFi Network Password</string>
+    <string name="wifi_show_password">Show password</string>
     <string name="connect_device">Connect Device</string>
     <string name="connect_to_service_success">Service connection successful</string>
     <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
@@ -160,7 +172,11 @@
     <string name="error_sign_up_title">Sign-up Error</string>
     <string name="network_not_reachable">Unable to connect to the network</string>
     <string name="wlan_signin">Successful WLAN sign-in</string>
+    <string name="dashboard">Dashboard</string>
     <string name="groups">Groups</string>
+    <string name="scenes">Scenes</string>
+    <string name="gateways">Gateways</string>
+    <string name="account">Account</string>
     <string name="add_device_or_group_title">Add Device or Group</string>
     <string name="add_group_title">Add a Group or Room</string>
     <string name="add_group_message">Input the name for your new group or room</string>
@@ -186,10 +202,11 @@
     <string name="resetting_password_title">Resetting password...</string>
     <string name="resetting_password_body">Resetting your password. Please wait...</string>
     <string name="confirm_delete_account_title">Delete Account?</string>
-    <string name="confirm_delete_account_message">Do you really wish to delete your account? This action cannot be undone.</string>
+    <string name="confirm_delete_account_message">Do you really wish to delete %s? This action cannot be undone.</string>
     <string name="deleting_account_title">Deleting Account</string>
     <string name="deleting_account_message">Deleting your account. Please wait...</string>
     <string name="account_deleted">Your account has successfully been deleted.</string>
+    <string name="product_type">Product Type</string>
 
     <!-- Array of registration types -->
     <string-array name="registration_types">
@@ -212,7 +229,7 @@
     <string name="push_notification">Send a push notification to this device</string>
     <string name="notifications_description">You can be notified when your devices go online or offline. Check all of your preferred notification methods below. Note that for push notifications, each mobile device will need to be updated individually to enable or disable push notifictions to that particular device.</string>
     <string name="updating_notifications_title">Updating Notifications</string>
-    <string name="updating_notifications_body">Updating  device notifications. Please wait...</string>
+    <string name="updating_notifications_body">Updating device notifications. Please wait...</string>
     <string name="notifications_updated">Notifications were updated</string>
     <string name="notification_update_failed">Notifications could not be updated</string>
     <string name="registration_success_notification_fail">The device has been registered, but could not update notifications. Please check notifications in Settings.</string>
@@ -226,8 +243,8 @@
     <string name="once">Single Event</string>
     <string name="repeating">Daily Schedule</string>
     <string name="timer">Timer</string>
-    <string name="starting_on">Starting on:</string>
-    <string name="ending_on">Ending on:</string>
+    <string name="starting_on">Starting:</string>
+    <string name="ending_on">Ending:</string>
     <string name="schedule_chooose_days_help">Select the days you want the schedule to be active below:</string>
     <string name="save_schedule">Save Schedule</string>
     <string name="end_time">End Time</string>
@@ -256,6 +273,7 @@
     <string name="property_door_sensor_friendly_name">Door Sensor</string>
     <string name="property_motion_sensor_friendly_name">Motion Sensor</string>
     <string name="property_remote_switch_friendly_name">Remote Switch</string>
+    <string name="property_motion_friendly_name">Motion</string>
     <string name="turn_on">Turn on</string>
     <string name="turn_off">Turn off</string>
     <string name="blue_led">Blue LED</string>
@@ -277,10 +295,12 @@
     <string name="country_code">Country Code</string>
     <string name="display_name">Display Name</string>
     <string name="save_contact">Save Contact</string>
+    <string name="delete_contact">Delete Contact</string>
     <string name="street_address">Street Address</string>
     <string name="create_contact">Create Contact</string>
     <string name="update_contact">Update Contact</string>
     <string name="contact_email_phone_required">A phone number or email address is required</string>
+    <string name="contact_deleted">The contact was deleted</string>
     <string name="contact_updated">The contact information was saved</string>
     <string name="contact_update_failed">An unknown error occurred while trying to update the information for this contact. Please try again later.</string>
     <string name="updating_contact_title">Updating Contact</string>
@@ -289,9 +309,10 @@
     <string name="confirm_delete_contact_body" formatted="false">Are you sure you want to remove \"%s\" from your contact list?</string>
     <string name="deleting_contact_title">Removing Contact</string>
     <string name="deleting_contact_body">Removing the contact from your list. Please wait...</string>
-    <string name="fill_from_contact">Add new from address book</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="fill_from_contact">Import from Address Book</string>
     <string name="choose_ap_details" formatted="false">Enter the password for the \"%s\" access point</string>
-    <string name="shares">Device Shares</string>
+    <string name="shares">Shares</string>
     <string name="devices_i_share">Devices I am sharing with others</string>
     <string name="devices_shared_with_me">Devices shared with me</string>
     <string name="fetching_shares_title">Fetching Shares</string>
@@ -319,6 +340,7 @@
     <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
     <string name="lan_login_message">LAN login. Application functionality is limited.</string>
     <string name="share_read_only_message">Allow this user to:</string>
+    <string name="share_control_only_message">Allow this user to control your device</string>
     <string name="share_read_only_button">View</string>
     <string name="share_read_write_button">Control</string>
     <string name="share_instructions">Enter the email address of the Ayla account holder you wish to share with</string>
@@ -335,8 +357,9 @@
     <string name="edit_profile">Edit Profile</string>
     <string name="delete_account">Delete Account</string>
     <string name="sign_out">Sign Out</string>
+    <string name="signing_out">Signing Out...</string>
     <string name="confirm_sign_out">Sign Out?</string>
-    <string name="confirm_sign_out_message">Do you wish to sign out?</string>
+    <string name="confirm_sign_out_message">Do you wish to sign out %s?</string>
     <string name="group_empty_text">Tap the add button to create a new group</string>
     <string name="no_devices_in_group">Tap the add button to add devices to this group</string>
     <string name="about_app" formatted="false">About %s</string>
@@ -361,7 +384,6 @@
     <string name="fetching_devices">Fetching devices from the cloud. Please wait...</string>
     <string name="confirm_new_device_title">Confirming connection</string>
     <string name="confirm_new_device_body">Confirming connection to the cloud service. Please wait...</string>
-    <string name="add_device">Add Device</string>
     <string name="registering_device_title">Registering Device</string>
     <string name="registering_device_body">Registering the new device with your account. Please wait...</string>
     <string name="choose_new_device">Tap the device you would like to set up, or cancel</string>
@@ -380,6 +402,8 @@
     <string name="property_notifications">Notification</string>
     <string name="is_turned_on">is turned on</string>
     <string name="is_turned_off">is turned off</string>
+    <string name="is_detected">Motion detected</string>
+    <string name="is_stopped">Motion stopped</string>
     <string name="notify_me_via">Notify me via:</string>
     <string name="notify_contacts">Notify these contacts:</string>
     <string name="send_notifications_when">Send notifications when:</string>
@@ -392,6 +416,7 @@
     <string name="becomes_greater_than">becomes greater than</string>
     <string name="becomes_less_than">becomes less than</string>
     <string name="changes">changes</string>
+    <string name="push_notifcations_not_supported">Push notifications not supported</string>
     <string name="notifcations_not_enabled">Property notifications are not available on this device</string>
     <string name="fetching_notifications">Fetching notifications for this device. Please wait...</string>
     <string name="unknown_trigger_name">Trigger %d</string>
@@ -443,11 +468,12 @@
     <string name="get_started">Getting Started</string>
     <string name="guides_videos">Guides &amp; Videos</string>
     <string name="terms_and_condition">Terms &amp; Conditions</string>
+    <string name="email_logs_to_ayla">Email logs to Ayla</string>
     <!--  Links for help page option -->
-    <string name="about_amap_link">https://www.aylanetworks.com/company/ayla</string>
-    <string name="get_started_link">https://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
-    <string name="guides_videos_link">https://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
-    <string name="terms_and_condition_link">http://www.kidde.com/home-safety/en/us/privacy/terms-and-conditions/</string>
+    <string name="about_amap_link">http://www.aylanetworks.com/company/ayla</string>
+    <string name="get_started_link">http://www.aylanetworks.com/dev-center/steps-get-connected-aylas-platform</string>
+    <string name="guides_videos_link">http://www.aylanetworks.com/platform/what-is-aylas-agile-mobile-application-platform</string>
+    <string name="terms_and_condition_link">http://www.aylanetworks.com/company/ayla</string>
 
     <string name="trigger_on_name">On</string>
     <string name="trigger_off_name">Off</string>
@@ -475,8 +501,9 @@
     <string name="trigger_action_fix_body">Updating triggers for device</string>
     <string name="trigger_action_fix_complete">Fix Triggers Complete</string>
     <string name="trigger_action_fix_failure">Fix Triggers Failed</string>
+    <string name="appwidget_text">AMAP</string>
+    <string name="add_widget">Add widget</string>
 
-    <string name="drawer_scenes">Scenes</string>
     <string name="action_manage_devices_in_scene">Manage devices in this scene</string>
     <string name="add_scene">Add Scene</string>
     <string name="activate_scene">Activate Scene</string>
@@ -495,10 +522,13 @@
     <string name="scene_create_title">Create Scene</string>
     <string name="scene_create_body">Creating scene.</string>
     <string name="scene_create_complete">Create Scene Complete</string>
+    <string name="scene_create_partial_success">Create Scene completed with failed nodes</string>
     <string name="scene_create_failed">Create Scene Failed</string>
     <string name="scene_update_title">Update Scene</string>
     <string name="scene_update_body">Updating scene...</string>
     <string name="scene_update_complete">Update Scene Complete</string>
+    <string name="scene_update_partial_success">Update Scene completed with failed nodes</string>
+    <string name="scene_update_failed">Update Scene Failed</string>
     <string name="scene_add_info">Select the devices that you want in the scene.  Set up the devices in the state that you want the scene set.</string>
     <string name="scene_add_info_multiple_gateway">Set up the devices in the state that you want the scene set.  Select the devices that you want in the scene. All devices must be attached to the same gateway.</string>
     <string name="confirm_delete_scene_body" formatted="false">Do you wish to remove the scene \"%s\"?</string>
@@ -514,5 +544,54 @@
     <string name="scene_name_hint">Unique Scene Name</string>
     <string name="no_devices">No Devices</string>
     <string name="no_gateway">No Gateway</string>
+    <string name="no_gateways">No Gateways</string>
+    <string name="switched_on_name">On</string>
+    <string name="switched_off_name">Off</string>
+    <string name="no_property">No Property</string>
+    <string name="activate_scene_icon" formatted="false">Activate %s</string>
+    <string name="no_devices_available_to_pair">No devices available to pair</string>
+    <string name="no_devices_available_to_unpair">No devices to unpair</string>
+
+    <!-- Welcome and SEtup Guide Page -->
+    <string name="welcome_text">Welcome to AMAP!</string>
+    <string name="click_here">Click here to set\n up gateway</string>
+    <string name="setup_guide">Setup Gateway</string>
+    <string name="gateway_ready">Gateway Ready?</string>
+    <string name="gateway_ready_2">The gateway is ready</string>
+    <string name="setup_guide_header">Setup Guide</string>
+    <string name="setup_guide_text_1">Plug your gateway into a power outlet using the included AC adapter.\n\nConnect one end of the included network cable to the gateway\'s Ethernet port and the other end to a LAN port on your WiFi Router.</string>
+    <string name="setup_guide_text_2">The gateway\'s Cloud LED should be blinking slowly, indicating that is ready to be registered.</string>
+    <string name="setup_guide_text_3">If you don\'t see this, please go back and review again the power cable is connected, the network cable is also connected and the WiFi is working.</string>
+    <string name="connected_cables">I\'ve connected all the cables</string>
+    <string name="setup_connect_gateway">Register Gateway</string>
+    <string name="setup_connect_gateway_text">Push the "Reg" button on the back of the gateway.</string>
+    <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
+    <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
+    <!-- -->
+
+
+
+    <!-- Developer Options -->
+    <string name="dev_options">Developer Options</string>
+
+    <string-array name="location_options">
+        <item>United States</item>
+        <item>China</item>
+    </string-array>
+
+    <string-array name="service_options">
+        <item>Device Service</item>
+        <item>Developer Service</item>
+        <item>Field Service</item>
+        <item>Staging Service</item>
+    </string-array>
+
+    <string-array name="config_options">
+        <item>Logging</item>
+        <item>Clear Cache</item>
+        <item>Slow Connection</item>
+        <item>LAN Mode</item>
+    </string-array>
+
 
 </resources>

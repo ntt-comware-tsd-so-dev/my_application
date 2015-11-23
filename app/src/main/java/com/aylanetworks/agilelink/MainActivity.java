@@ -14,15 +14,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.internal.view.menu.MenuBuilder;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -32,6 +37,7 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaLanMode;
@@ -39,16 +45,21 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaReachability;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
 import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
+import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.google.gson.annotations.Expose;
+
+import java.util.List;
 
 /*
  * MainActivity.java
@@ -58,28 +69,13 @@ import com.google.gson.annotations.Expose;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener {
+public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener {
 
     private static final String LOG_TAG = "Main Activity";
 
     // request IDs for intents we want results from
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    ViewPager mViewPager;
 
     private static MainActivity _theInstance;
 
@@ -106,10 +102,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     static {
         _uiConfig = new UIConfig();
         _uiConfig._listStyle = UIConfig.ListStyle.Grid;
-        _uiConfig._navStyle = UIConfig.NavStyle.Drawer;
+        _uiConfig._navStyle = UIConfig.NavStyle.Material;
     }
 
     ProgressDialog _progressDialog;
+    long _progressDialogStart;
 
     /**
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
@@ -122,12 +119,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if (_progressDialog != null) {
             dismissWaitDialog();
         }
-
         if (title == null) {
-            title = getResources().getString(R.string.please_wait);
+            title = getString(R.string.please_wait);
         }
-
-        _progressDialog = ProgressDialog.show(this, title, message, true);
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle(title);
+        dialog.setIcon(R.drawable.ic_launcher);
+        dialog.setMessage(message);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        dialog.setOnCancelListener(null);
+        dialog.show();
+        _progressDialog = dialog;
+        _progressDialogStart = System.currentTimeMillis();
     }
 
     /**
@@ -143,12 +147,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if (_progressDialog != null) {
             dismissWaitDialog();
         }
-
         if (title == null) {
-            title = getResources().getString(R.string.please_wait);
+            title = getString(R.string.please_wait);
         }
-
-        _progressDialog = ProgressDialog.show(this, title, message, true, true, cancelListener);
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle(title);
+        dialog.setIcon(R.drawable.ic_launcher);
+        dialog.setMessage(message);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(true);
+        dialog.setOnCancelListener(cancelListener);
+        dialog.show();
+        _progressDialog = dialog;
+        _progressDialogStart = System.currentTimeMillis();
     }
 
     /**
@@ -170,9 +181,12 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void dismissWaitDialog() {
         // Put the orientation back to what it was before we messed with it
         if (_progressDialog != null) {
-            _progressDialog.dismiss();
-            _progressDialog = null;
+            try {
+                _progressDialog.dismiss();
+            } catch (Exception ex) {}
         }
+        _progressDialog = null;
+        _progressDialogStart = 0;
     }
 
     /**
@@ -229,7 +243,14 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         if ( _noDevicesMode ) {
             SessionManager.deviceManager().stopPolling();
-            setContentView(R.layout.activity_main_no_devices);
+            if (getUIConfig()._navStyle == UIConfig.NavStyle.Material) {
+                setContentView(R.layout.activity_main_no_devices_material);
+                _toolbar = (Toolbar) findViewById(R.id.toolbar);
+                setSupportActionBar(_toolbar);
+            } else {
+                setContentView(R.layout.activity_main_no_devices);
+            }
+            MenuHandler.handleAddDevice();
         } else {
             initUI();
         }
@@ -325,10 +346,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 }
             });
         } else if ( reqCode == REQ_SIGN_IN ) {
-            Log.d(LOG_TAG, "Login screen finished");
-
+            Log.d(LOG_TAG, "nod: SignInActivity finished");
+            _loginScreenUp = false;
             if ( resultCode == RESULT_FIRST_USER ) {
-                Log.d(LOG_TAG, "Back pressed from login. Finishing.");
+                Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
             }
         }
@@ -343,12 +364,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         } else {
             Log.i("BOOL", "portrait_only: false");
         }
-
         _theInstance = this;
         AylaNetworks.appContext = this;
-
+        setUITheme();
         super.onCreate(savedInstanceState);
-
         initUI();
 
         // Set up the session manager with our session parameters
@@ -359,6 +378,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
+
+        // force to Production Service
+        //SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
     }
 
     @Override
@@ -369,8 +391,26 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onDestroy();
     }
 
+    private void setUITheme() {
+        switch ( getUIConfig()._navStyle ) {
+            case Tabbed:
+            case Pager:
+            case Drawer:
+                setTheme(R.style.AppTheme);
+                break;
+
+            case Material:
+                setTheme(R.style.AppMaterialTheme);
+                break;
+        }
+    }
+
     private void initUI() {
         switch ( getUIConfig()._navStyle ) {
+            case Tabbed:
+                initTab();
+                break;
+
             case Pager:
                 initPager();
                 break;
@@ -378,7 +418,29 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             case Drawer:
                 initDrawer();
                 break;
+
+            case Material:
+                initMaterial();
+                break;
         }
+    }
+
+    SectionsPagerAdapter _sectionsPagerAdapter;
+    ViewPager _viewPager;
+
+    private void initTab() {
+        setContentView(R.layout.activity_main_tabbed);
+
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        _sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        _viewPager = (ViewPager) findViewById(R.id.pager);
+        _viewPager.setAdapter(_sectionsPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(_viewPager);
     }
 
     private void initPager() {
@@ -386,28 +448,148 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        _sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        _viewPager = (ViewPager) findViewById(R.id.pager);
+        _viewPager.setAdapter(_sectionsPagerAdapter);
+
+        AylaPagerTabStrip tabLayout = (AylaPagerTabStrip) findViewById(R.id.pager_tab_strip);
+        tabLayout.setupWithViewPager(_viewPager);
     }
 
-    private DrawerLayout _drawerLayout;
     private ExpandableListView _drawerList;
-    private ActionBarDrawerToggle _drawerToggle;
     private Menu _drawerMenu;
+
+    private DrawerLayout _drawerLayout;
+    private ActionBarDrawerToggle _drawerToggle;
+
+    // AppBar
+    // http://www.android4devs.com/2014/12/how-to-make-material-design-app.html
+    // Colors
+    // http://www.sankk.in/material-mixer/
+
+    private Toolbar _toolbar;
+    private NavigationView _navigationView;
+    private TextView _userView;
+    private TextView _emailView;
+    private View _sideBarView;
+
+    private void initMaterial() {
+        Log.d(LOG_TAG, "initMaterial");
+        setContentView(R.layout.activity_main_material);
+
+        _toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(_toolbar);
+        final ActionBar ab = getSupportActionBar();
+        //ab.setIcon(R.drawable.ic_launcher);
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setHomeButtonEnabled(true);
+
+        _sideBarView = findViewById(R.id.action_sidebar);
+        if (_sideBarView != null) {
+            findViewById(R.id.action_all_devices).setOnClickListener(this);
+            findViewById(R.id.action_device_groups).setOnClickListener(this);
+            findViewById(R.id.action_device_scenes).setOnClickListener(this);
+            findViewById(R.id.action_gateways).setOnClickListener(this);
+            findViewById(R.id.action_shares).setOnClickListener(this);
+            findViewById(R.id.action_account).setOnClickListener(this);
+            findViewById(R.id.action_contact_list).setOnClickListener(this);
+            findViewById(R.id.action_help).setOnClickListener(this);
+            findViewById(R.id.action_about).setOnClickListener(this);
+        }
+
+        _drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                AylaUser currentUser = AylaUser.getCurrent();
+                StringBuilder sb = new StringBuilder(64);
+                if (!TextUtils.isEmpty(currentUser.firstname)) {
+                    sb.append(currentUser.firstname);
+                }
+                if (sb.length() > 0) {
+                    sb.append(" ");
+                }
+                if (!TextUtils.isEmpty(currentUser.lastname)) {
+                    sb.append(currentUser.lastname);
+                }
+                _userView.setText(sb.toString());
+                _emailView.setText(currentUser.email);
+                MainActivity.this.onDrawerOpened(drawerView);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                MainActivity.this.onDrawerClosed(drawerView);
+            }
+        };
+
+        _drawerLayout.setDrawerListener(_drawerToggle); // Drawer Listener set to the Drawer toggle
+        _drawerToggle.syncState();
+
+        _navigationView = (NavigationView) findViewById(R.id.nav_view);
+        if (_navigationView != null) {
+            _navigationView.setNavigationItemSelectedListener(
+                    new NavigationView.OnNavigationItemSelectedListener() {
+                        @Override
+                        public boolean onNavigationItemSelected(MenuItem menuItem) {
+                            closeDrawer();
+                            MenuHandler.handleMenuItem(menuItem);
+                            return true;
+                        }
+                    });
+            _drawerMenu = _navigationView.getMenu();
+            _userView = (TextView)_navigationView.findViewById(R.id.username);
+            _emailView = (TextView)_navigationView.findViewById(R.id.email);
+            onDrawerItemClicked(_drawerMenu.getItem(0));
+        }
+    }
+
+    public void onSelectMenuItemById(int id) {
+        if (_navigationView != null) {
+            Menu menu = _navigationView.getMenu();
+            MenuItem item = menu.findItem(id);
+            if (item != null) {
+                MenuHandler.handleMenuItem(item);
+            }
+        } else {
+            MenuHandler.handleMenuId(id);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        onSelectMenuItemById(v.getId());
+    }
+
+    ImageView _sideBarIcon;
+
+    public void activateMenuItem(MenuItem menuItem) {
+        menuItem.setChecked(true);
+        if (_sideBarView != null) {
+            View view = findViewById(menuItem.getItemId());
+            if (view instanceof ImageView) {
+                if (_sideBarIcon != null) {
+                    _sideBarIcon.clearColorFilter();
+                }
+                _sideBarIcon = (ImageView)view;
+                if (_sideBarIcon != null) {
+                    _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        }
+    }
 
     private void initDrawer() {
         Log.d(LOG_TAG, "initDrawer");
 
         setContentView(R.layout.activity_main_drawer);
+
         // Load the drawer menu resource. We will be using the menu items in our listview.
         _drawerMenu = new MenuBuilder(this);
         MenuInflater inflater = new MenuInflater(this);
         inflater.inflate(R.menu.menu_drawer, _drawerMenu);
-        inflater.inflate(R.menu.menu_drawer_gateway, _drawerMenu);
-        inflater.inflate(R.menu.menu_settings, _drawerMenu);
         _drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         Log.d(LOG_TAG, "_drawerLayout: " + _drawerLayout);
 
@@ -468,15 +650,23 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     public void openDrawer() {
         if ( _drawerLayout != null ) {
-            _drawerLayout.openDrawer(_drawerList);
+            if (_drawerList != null) {
+                _drawerLayout.openDrawer(_drawerList);
+            } else {
+                _drawerLayout.openDrawer(GravityCompat.START);
+            }
         }
     }
 
     public void closeDrawer() {
         if ( _drawerLayout != null ) {
-            _drawerLayout.closeDrawer(_drawerList);
-            for ( int i = 0; i < _drawerList.getAdapter().getCount(); i++ ) {
-                _drawerList.collapseGroup(i);
+            if (_drawerList != null) {
+                _drawerLayout.closeDrawer(_drawerList);
+                for (int i = 0; i < _drawerList.getAdapter().getCount(); i++) {
+                    _drawerList.collapseGroup(i);
+                }
+            } else {
+                _drawerLayout.closeDrawers();
             }
         }
     }
@@ -485,8 +675,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         if ( _drawerLayout == null ) {
             return false;
         }
-
-        return _drawerLayout.isDrawerOpen(_drawerList);
+        if (_drawerList != null) {
+            return _drawerLayout.isDrawerOpen(_drawerList);
+        }
+        return _drawerLayout.isDrawerOpen(GravityCompat.START);
     }
 
     private void onDrawerOpened(View drawerView) {
@@ -548,7 +740,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+        if(getLocaleCountry().equalsIgnoreCase("ES")){
+            parameters.registrationEmailTemplateId = "ayla_confirmation_template_01_es";
+            parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01_es";
+        } else{
+            parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+            parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
+        }
 
         if (parameters.registrationEmailTemplateId == null) {
             parameters.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
@@ -556,19 +754,67 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             parameters.registrationEmailBodyHTML = null;
         }
 
+        if(parameters.logsEmailAddress == null){
+            parameters.logsEmailAddress = AylaNetworks.DEFAULT_SUPPORT_EMAIL_ADDRESS;
+        }
+
         return parameters;
+    }
+
+    Fragment getVisibleFragment() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for (Fragment fragment : fragments) {
+            if (fragment != null && fragment.getUserVisibleHint()) {
+                return fragment;
+            }
+        }
+        return null;
     }
 
     @Override
     public void onBackPressed() {
+        FragmentManager fm = getSupportFragmentManager();
+        int bsc = fm.getBackStackEntryCount();
         // Open the nav drawer on back unless it's already open (or we don't have one)
         if ( _drawerToggle != null &&
                 !_noDevicesMode &&
-                getSupportFragmentManager().getBackStackEntryCount() == 0 &&
-                !isDrawerOpen() ) {
-            openDrawer();
+                isDrawerOpen() ) {
+            closeDrawer();
+            //Log.e(LOG_TAG, "back: onBackPressed close menu");
             return;
         }
+
+        // Go back to the dashboard
+        if (bsc == 0) {
+            Fragment frag = getVisibleFragment();
+            if (frag != null) {
+                //Log.e(LOG_TAG, "back: onBackPressed frag=" + frag.getClass().getSimpleName());
+                if (!TextUtils.equals(frag.getClass().getSimpleName(), AllDevicesFragment.class.getSimpleName())) {
+                    //Log.e(LOG_TAG, "back: onBackPressed select dashboard");
+                    onSelectMenuItemById(R.id.action_all_devices);
+                    return;
+                }
+
+            } else {
+
+                //Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
+            }
+        } else if(bsc == 1 ){
+            if(SessionManager.deviceManager().deviceList().isEmpty()){
+                this.finish();
+
+            }
+        }else {
+            FragmentManager.BackStackEntry bse = fm.getBackStackEntryAt(bsc - 1);
+            //Log.e(LOG_TAG, "back: onBackPressed id=" + bse.getId() + ", name=" + bse.getName() + ", title=" + bse.getBreadCrumbTitle());
+            Fragment frag = fm.findFragmentById(bse.getId());
+            if (frag != null) {
+                //Log.e(LOG_TAG, "back: onBackPressed frag=" + frag.getClass().getSimpleName());
+            } else {
+                ////Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
+            }
+        }
+        Log.e(LOG_TAG, "back: onBackPressed super");
         super.onBackPressed();
     }
 
@@ -583,14 +829,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     private boolean _loginScreenUp;
+
     private void showLoginDialog() {
-        Log.d(LOG_TAG, "showLoginDialog:");
+        Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
-            Log.e(LOG_TAG, "showLoginDialog: Already shown");
+            Log.e(LOG_TAG, "nod: showLoginDialog: Already shown");
             return;
         }
-
-        _loginScreenUp = true;
 
         SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
@@ -602,9 +847,11 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             return;
         }
 
+        _loginScreenUp = true;
+
         // We always want to show the "All Devices" page first
-        if ( mViewPager != null ) {
-            mViewPager.setCurrentItem(0);
+        if ( _viewPager != null ) {
+            _viewPager.setCurrentItem(0);
         }
         popBackstackToRoot();
 
@@ -614,6 +861,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         Intent intent = new Intent(this, SignInActivity.class);
         intent.putExtras(args);
+        Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
         startActivityForResult(intent, REQ_SIGN_IN);
     }
 
@@ -633,9 +881,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         Log.d(LOG_TAG, "onPause");
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
-        }
 
-        AylaLanMode.pause(false);
+            // we aren't going to "pause" LAN mode if we haven't been logged in.
+            AylaLanMode.pause(false);
+        }
     }
 
     @Override
@@ -643,9 +892,14 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onResume();
 
         Log.d(LOG_TAG, "onResume");
-        AylaLanMode.resume();
 
+        if(_theInstance == null){
+            _theInstance = this;
+        }
         if (SessionManager.deviceManager() != null) {
+            // we aren't going to "resume" LAN mode if we aren't logged in.
+            AylaLanMode.resume();
+
             SessionManager.deviceManager().startPolling();
             setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
         } else if ( !_loginScreenUp ) {
@@ -660,31 +914,33 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     // SessionListener methods
+    void handleLoginChanged(boolean loggedIn, AylaUser aylaUser) {
+        dismissWaitDialog();
+        if (!loggedIn) {
+            // User logged out.
+            setNoDevicesMode(false);
+            if (!_loginScreenUp) {
+                showLoginDialog();
+            } else {
+                Log.e(LOG_TAG, "nod: Login screen is already up:");
+            }
+        } else {
+            // Finish  the login dialog
+            Log.d(LOG_TAG, "nod: finish login dialog");
+            finishActivity(REQ_SIGN_IN);
+            _loginScreenUp = false;
+            dismissWaitDialog();
+        }
+        setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+    }
+
     @Override
-    public void loginStateChanged(final boolean loggedIn, AylaUser aylaUser) {
-        // Post in a handler in case we just resumed and the instance state has changed
-        new Handler().post(new Runnable() {
+    public void loginStateChanged(final boolean loggedIn, final AylaUser aylaUser) {
+        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dismissWaitDialog();
-                Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
-                if (!loggedIn) {
-                    // User logged out.
-                    setNoDevicesMode(false);
-                    if (!_loginScreenUp) {
-                        showLoginDialog();
-                    } else {
-                        Log.e(LOG_TAG, "Login screen is already up:");
-                        Thread.dumpStack();
-                    }
-                } else {
-                    // Finish  the login dialog
-                    MainActivity.this.finishActivity(REQ_SIGN_IN);
-                    _loginScreenUp = false;
-                    dismissWaitDialog();
-                }
-
-                setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+                handleLoginChanged(loggedIn, aylaUser);
             }
         });
     }
@@ -705,9 +961,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      * @param frag The fragment to be pushed
      */
     public void pushFragment(Fragment frag) {
+        Logger.logInfo(LOG_TAG, "pushFragment " + frag.getClass().getSimpleName());
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out,
-                R.anim.abc_fade_in, R.anim.abc_fade_out);
+        ft.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out, R.anim.abc_fade_in, R.anim.abc_fade_out);
         if ( getUIConfig()._navStyle == UIConfig.NavStyle.Pager ) {
             // For the pager navigation, we push the fragment
             ft.add(android.R.id.content, frag).addToBackStack(null).commit();
@@ -716,7 +972,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             ft.replace(R.id.content_frame, frag).addToBackStack(null).commit();
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -727,7 +982,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if ( _drawerLayout != null && _drawerLayout.isDrawerOpen(_drawerList)) {
+        if ( _drawerLayout != null && _drawerList != null && _drawerLayout.isDrawerOpen(_drawerList)) {
             menu.clear();
         }
         return super.onPrepareOptionsMenu(menu);
@@ -740,11 +995,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 return true;
             }
         }
-
         if (MenuHandler.handleMenuItem(item)) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -798,13 +1051,19 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             switch (position) {
-                case 0:
+                case 0: // Dashboard
                     return AllDevicesFragment.newInstance();
 
-                case 1:
+                case 1: // Groups
                     return DeviceGroupsFragment.newInstance();
 
-                case 2:
+                case 2: // Gateways
+                    return GatewayDevicesFragment.newInstance();
+
+                case 3: // Shares
+                    return SharesFragment.newInstance();
+
+                case 4: // Settings
                     return SettingsFragment.newInstance();
 
                 default:
@@ -814,24 +1073,33 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         @Override
         public int getCount() {
-            // Show 3 pages (for now).
-            return 3;
+            // Show 5 pages (for now).
+            return 5;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
-                case 0:
-                    return getString(R.string.all_devices);
+                case 0: // Dashboard
+                    return getString(R.string.dashboard);
 
-                case 1:
+                case 1: // Groups
                     return getString(R.string.groups);
 
-                case 2:
+                case 2: // Gateways
+                    return getString(R.string.gateways);
+
+                case 3: // Shares
+                    return getString(R.string.shares);
+
+                case 4: // Settings
                     return getString(R.string.settings);
                 default:
                     return null;
             }
         }
+    }
+    private String getLocaleCountry(){
+        return getResources().getConfiguration().locale.getCountry();
     }
 }

@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.device;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,11 +32,24 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
+    public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
+    public final static int ITEM_VIEW_TYPE_WITH_STATUS = 4;
 
+    /**
+     * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
+     * @param aylaDevice The AylaDevice object to be wrapped
+     * @return Device
+     */
     public Device deviceForAylaDevice(AylaDevice aylaDevice) {
 
         if (aylaDevice.oemModel == null) {
             Logger.logError(LOG_TAG, "No oemModel set on device: " + aylaDevice);
+
+            // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
+            if (aylaDevice.model.equals("AY001MRT1")) {
+                // This is a gateway.
+                return new Gateway(aylaDevice);
+            }
             return new Device(aylaDevice);
         }
 
@@ -54,16 +68,45 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             return new SwitchedDevice(aylaDevice);
         }
 
-        // Zigbee devices
-        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
-
-            // todo: take this out after everybody has converted.
+        // Gateway, including Zigbee, devices
+        if (aylaDevice.oemModel.equals("generic")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
-                // This is a Zigbee gateway.
+                // This is a generic gateway.
                 return new Gateway(aylaDevice);
             }
+            if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
+                // This is a generic node
+                return new GenericNodeDevice(aylaDevice);
+            }
+        }
+        if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
+            if (aylaDevice.oemModel.equals("NexturnSmartPlug")) {
+                // This is a Generic Gateway smart plug.
+                return new ZigbeeSwitchedDevice(aylaDevice);
+            }
+            if (aylaDevice.oemModel.equals("NexturnSmart_Bulb_Converter")) {
+                // This is a Generic Gateway smart bulb.
+                return new ZigbeeLightDevice(aylaDevice);
+            }
+            if (aylaDevice.oemModel.equals("NexturnMotion_Sensor")) {
+                // This is a Generic Gateway motion sensor.
+                return new ZigbeeMotionSensor(aylaDevice);
+            }
+            if (aylaDevice.model.equals("NXPZHA-DimmableLight")) {
+                // This is a Generic Gateway dimmable light.
+                return new ZigbeeDimmableLightDevice(aylaDevice);
+            }
+            // NexturnZHA-Thermostat
 
-            if (aylaDevice.model.equals("Smart_Plug")) {
+            // This is a generic node
+            return new GenericNodeDevice(aylaDevice);
+        }
+        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
+            if (aylaDevice.model.equals("AY001MRT1")) {
+                // This is a Zigbee gateway.
+                return new ZigbeeGateway(aylaDevice);
+            }
+            if (aylaDevice.model.equals("Smart_Plug") || aylaDevice.model.equals("4256050-RZHAC")) {
                 // This is a Zigbee smart plug.
                 return new ZigbeeSwitchedDevice(aylaDevice);
             }
@@ -114,12 +157,26 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new SwitchedDeviceViewHolder(v);
 
+            case ITEM_VIEW_TYPE_DIMMABLE:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_dimmable_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_dimmable_device_expandable :
+                                R.layout.cardview_dimmable_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new DimmableLightViewHolder(v);
+
             case ITEM_VIEW_TYPE_GENERIC_DEVICE:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_generic_device_grid :
                         listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_generic_device_expandable :
                                 R.layout.cardview_generic_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_WITH_STATUS:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_text_status_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
+                                R.layout.cardview_text_status;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new ZigbeeStatusDeviceHolder(v);
         }
 
         return super.viewHolderForViewType(parent, viewType);

@@ -13,113 +13,477 @@ ADDED from AndroidManifest.xml:2:1
 	android:versionCode
 		INJECTED from AndroidManifest.xml:0:0
 		INJECTED from AndroidManifest.xml:0:0
-uses-permission#android.permission.ACCESS_NETWORK_STATE
+permission#com.aylanetworks.agilelink.permission.C2D_MESSAGE
 ADDED from AndroidManifest.xml:6:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:15:5
+	android:protectionLevel
+		ADDED from AndroidManifest.xml:8:9
 	android:name
-		ADDED from AndroidManifest.xml:6:22
-uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from AndroidManifest.xml:7:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:16:5
-	android:name
-		ADDED from AndroidManifest.xml:7:22
-uses-permission#com.google.android.c2dm.permission.RECEIVE
-ADDED from AndroidManifest.xml:8:5
-	android:name
-		ADDED from AndroidManifest.xml:8:22
-application
+		ADDED from AndroidManifest.xml:7:9
+uses-permission#com.aylanetworks.agilelink.permission.C2D_MESSAGE
 ADDED from AndroidManifest.xml:10:5
-MERGED from com.android.support:appcompat-v7:21.0.3:16:5
-MERGED from com.android.support:support-v4:21.0.3:16:5
-MERGED from com.android.support:cardview-v7:21.0.3:16:5
-MERGED from com.android.support:recyclerview-v7:21.0.3:17:5
-MERGED from com.android.support:support-v4:21.0.3:16:5
-MERGED from com.google.android.gms:play-services:6.5.87:20:5
-MERGED from com.android.support:support-v4:21.0.3:16:5
+	android:name
+		ADDED from AndroidManifest.xml:10:22
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from AndroidManifest.xml:11:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:8:5
+	android:name
+		ADDED from AndroidManifest.xml:11:22
+uses-permission#android.permission.CHANGE_WIFI_STATE
+ADDED from AndroidManifest.xml:12:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:9:5
+	android:name
+		ADDED from AndroidManifest.xml:12:22
+uses-permission#android.permission.BROADCAST_STICKY
+ADDED from AndroidManifest.xml:13:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:14:5
+	android:name
+		ADDED from AndroidManifest.xml:13:22
+uses-permission#android.permission.CHANGE_NETWORK_STATE
+ADDED from AndroidManifest.xml:14:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:15:5
+	android:name
+		ADDED from AndroidManifest.xml:14:22
+uses-permission#android.permission.CHANGE_WIFI_MULTICAST_STATE
+ADDED from AndroidManifest.xml:15:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:16:5
+	android:name
+		ADDED from AndroidManifest.xml:15:22
+uses-permission#android.permission.VIBRATE
+ADDED from AndroidManifest.xml:16:5
+	android:name
+		ADDED from AndroidManifest.xml:16:22
+uses-permission#com.google.android.c2dm.permission.RECEIVE
+ADDED from AndroidManifest.xml:18:5
+	android:name
+		ADDED from AndroidManifest.xml:18:22
+uses-permission#android.permission.INTERNET
+ADDED from AndroidManifest.xml:20:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:11:5
+	android:name
+		ADDED from AndroidManifest.xml:20:22
+uses-permission#android.permission.GET_ACCOUNTS
+ADDED from AndroidManifest.xml:22:5
+	android:name
+		ADDED from AndroidManifest.xml:22:22
+uses-permission#android.permission.WAKE_LOCK
+ADDED from AndroidManifest.xml:24:5
+	android:name
+		ADDED from AndroidManifest.xml:24:22
+uses-permission#android.permission.WRITE_SETTINGS
+ADDED from AndroidManifest.xml:27:5
+	android:name
+		ADDED from AndroidManifest.xml:27:22
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from AndroidManifest.xml:28:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:12:5
+	android:name
+		ADDED from AndroidManifest.xml:28:22
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from AndroidManifest.xml:29:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:13:5
+	android:name
+		ADDED from AndroidManifest.xml:29:22
+uses-permission#android.permission.READ_CONTACTS
+ADDED from AndroidManifest.xml:30:5
+	android:name
+		ADDED from AndroidManifest.xml:30:22
+uses-feature#android.permission.READ_CALL_LOG
+ADDED from AndroidManifest.xml:32:5
+	android:required
+		ADDED from AndroidManifest.xml:34:9
+	android:name
+		ADDED from AndroidManifest.xml:33:9
+uses-permission#com.aylanetworks.agilelink.permission.MAPS_RECEIVE
+ADDED from AndroidManifest.xml:36:5
+	android:name
+		ADDED from AndroidManifest.xml:36:22
+uses-permission#com.google.android.providers.gsf.permission.READ_GSERVICES
+ADDED from AndroidManifest.xml:37:5
+	android:name
+		ADDED from AndroidManifest.xml:37:22
+uses-permission#android.permission.CALL_PHONE
+ADDED from AndroidManifest.xml:38:5
+	android:name
+		ADDED from AndroidManifest.xml:38:22
+uses-permission#android.permission.READ_PHONE_STATE
+ADDED from AndroidManifest.xml:39:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:10:5
+	android:name
+		ADDED from AndroidManifest.xml:39:22
+uses-feature#android.hardware.telephony
+ADDED from AndroidManifest.xml:41:5
+	android:required
+		ADDED from AndroidManifest.xml:43:9
+	android:name
+		ADDED from AndroidManifest.xml:42:9
+uses-permission#android.permission.ACCESS_COARSE_LOCATION
+ADDED from AndroidManifest.xml:44:5
+	android:name
+		ADDED from AndroidManifest.xml:44:22
+uses-feature#android.hardware.location
+ADDED from AndroidManifest.xml:46:5
+	android:required
+		ADDED from AndroidManifest.xml:48:9
+	android:name
+		ADDED from AndroidManifest.xml:47:9
+uses-feature#android.hardware.location.network
+ADDED from AndroidManifest.xml:49:5
+	android:required
+		ADDED from AndroidManifest.xml:51:9
+	android:name
+		ADDED from AndroidManifest.xml:50:9
+uses-permission#android.permission.ACCESS_FINE_LOCATION
+ADDED from AndroidManifest.xml:53:5
+	android:name
+		ADDED from AndroidManifest.xml:53:22
+uses-feature#android.hardware.location.gps
+ADDED from AndroidManifest.xml:54:5
+	android:required
+		ADDED from AndroidManifest.xml:56:9
+	android:name
+		ADDED from AndroidManifest.xml:55:9
+application
+ADDED from AndroidManifest.xml:58:5
+MERGED from com.android.support:appcompat-v7:22.2.0:22:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.android.support:recyclerview-v7:22.0.0:22:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.android.support:cardview-v7:22.0.0:22:5
+MERGED from com.android.support:design:22.2.0:22:5
+MERGED from com.android.support:appcompat-v7:22.2.0:22:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-ads:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-analytics:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-analytics:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-appindexing:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-appinvite:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-appstate:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-cast:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-drive:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-fitness:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-location:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-games:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-drive:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-gcm:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-identity:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-location:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-nearby:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-panorama:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-plus:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-safetynet:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-wallet:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-identity:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
+MERGED from com.google.android.gms:play-services-wearable:7.3.0:19:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:22:5
 	android:label
-		ADDED from AndroidManifest.xml:14:9
+		ADDED from AndroidManifest.xml:62:9
 	android:allowBackup
-		ADDED from AndroidManifest.xml:12:9
+		ADDED from AndroidManifest.xml:60:9
 	android:icon
-		ADDED from AndroidManifest.xml:13:9
+		ADDED from AndroidManifest.xml:61:9
 	android:theme
-		ADDED from AndroidManifest.xml:15:9
+		ADDED from AndroidManifest.xml:63:9
 	android:name
-		ADDED from AndroidManifest.xml:11:9
+		ADDED from AndroidManifest.xml:59:9
 activity#com.aylanetworks.agilelink.MainActivity
-ADDED from AndroidManifest.xml:17:9
-	android:screenOrientation
-		ADDED from AndroidManifest.xml:20:13
+ADDED from AndroidManifest.xml:65:9
 	android:label
-		ADDED from AndroidManifest.xml:19:13
+		ADDED from AndroidManifest.xml:67:13
 	android:launchMode
-		ADDED from AndroidManifest.xml:21:13
+		ADDED from AndroidManifest.xml:68:13
 	android:name
-		ADDED from AndroidManifest.xml:18:13
+		ADDED from AndroidManifest.xml:66:13
 intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
-ADDED from AndroidManifest.xml:22:13
+ADDED from AndroidManifest.xml:69:13
 action#android.intent.action.MAIN
-ADDED from AndroidManifest.xml:23:17
+ADDED from AndroidManifest.xml:70:17
 	android:name
-		ADDED from AndroidManifest.xml:23:25
+		ADDED from AndroidManifest.xml:70:25
 category#android.intent.category.LAUNCHER
-ADDED from AndroidManifest.xml:24:17
+ADDED from AndroidManifest.xml:71:17
 	android:name
-		ADDED from AndroidManifest.xml:24:27
+		ADDED from AndroidManifest.xml:71:27
 activity#com.aylanetworks.agilelink.AccountConfirmActivity
-ADDED from AndroidManifest.xml:28:9
+ADDED from AndroidManifest.xml:75:9
 	android:screenOrientation
-		ADDED from AndroidManifest.xml:32:13
+		ADDED from AndroidManifest.xml:79:13
 	android:label
-		ADDED from AndroidManifest.xml:30:13
+		ADDED from AndroidManifest.xml:77:13
 	android:launchMode
-		ADDED from AndroidManifest.xml:31:13
+		ADDED from AndroidManifest.xml:78:13
 	android:name
-		ADDED from AndroidManifest.xml:29:13
+		ADDED from AndroidManifest.xml:76:13
 intent-filter#android.intent.action.VIEW+android.intent.category.BROWSABLE+android.intent.category.DEFAULT
-ADDED from AndroidManifest.xml:33:13
+ADDED from AndroidManifest.xml:80:13
 	android:label
-		ADDED from AndroidManifest.xml:33:28
+		ADDED from AndroidManifest.xml:80:28
 action#android.intent.action.VIEW
-ADDED from AndroidManifest.xml:34:17
+ADDED from AndroidManifest.xml:81:17
 	android:name
-		ADDED from AndroidManifest.xml:34:25
+		ADDED from AndroidManifest.xml:81:25
 category#android.intent.category.DEFAULT
-ADDED from AndroidManifest.xml:36:17
+ADDED from AndroidManifest.xml:83:17
 	android:name
-		ADDED from AndroidManifest.xml:36:27
+		ADDED from AndroidManifest.xml:83:27
 category#android.intent.category.BROWSABLE
-ADDED from AndroidManifest.xml:37:17
+ADDED from AndroidManifest.xml:84:17
 	android:name
-		ADDED from AndroidManifest.xml:37:27
+		ADDED from AndroidManifest.xml:84:27
 data
-ADDED from AndroidManifest.xml:39:17
+ADDED from AndroidManifest.xml:86:17
 	android:scheme
-		ADDED from AndroidManifest.xml:39:23
+		ADDED from AndroidManifest.xml:86:23
+activity#com.aylanetworks.agilelink.SignInActivity
+ADDED from AndroidManifest.xml:91:9
+	android:label
+		ADDED from AndroidManifest.xml:93:13
+	android:launchMode
+		ADDED from AndroidManifest.xml:94:13
+	android:name
+		ADDED from AndroidManifest.xml:92:13
+activity#com.aylanetworks.agilelink.DeveloperOptions
+ADDED from AndroidManifest.xml:98:9
+	android:label
+		ADDED from AndroidManifest.xml:100:13
+	android:launchMode
+		ADDED from AndroidManifest.xml:101:13
+	android:name
+		ADDED from AndroidManifest.xml:99:13
 service#com.aylanetworks.aaml.AylaExecuteRequest
-ADDED from AndroidManifest.xml:45:9
+ADDED from AndroidManifest.xml:106:9
 	android:name
-		ADDED from AndroidManifest.xml:45:18
-receiver#com.aylanetworks.aaml.AylaConnectivyListener
-ADDED from AndroidManifest.xml:47:9
+		ADDED from AndroidManifest.xml:106:18
+receiver#com.aylanetworks.aaml.AylaConnectivityListener
+ADDED from AndroidManifest.xml:108:9
 	android:name
-		ADDED from AndroidManifest.xml:47:19
+		ADDED from AndroidManifest.xml:108:19
 intent-filter#android.net.conn.CONNECTIVITY_CHANGE
-ADDED from AndroidManifest.xml:48:13
+ADDED from AndroidManifest.xml:109:13
 action#android.net.conn.CONNECTIVITY_CHANGE
-ADDED from AndroidManifest.xml:49:17
+ADDED from AndroidManifest.xml:110:17
 	android:name
-		ADDED from AndroidManifest.xml:49:25
+		ADDED from AndroidManifest.xml:110:25
+meta-data#com.google.android.gms.version
+ADDED from AndroidManifest.xml:122:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
+	android:value
+		ADDED from AndroidManifest.xml:124:13
+	android:name
+		ADDED from AndroidManifest.xml:123:13
+receiver#com.aylanetworks.agilelink.framework.GcmBroadcastReceiver
+ADDED from AndroidManifest.xml:125:9
+	android:permission
+		ADDED from AndroidManifest.xml:127:13
+	android:name
+		ADDED from AndroidManifest.xml:126:13
+intent-filter#com.aylanetworks.agileLink.MainActivity+com.google.android.c2dm.intent.RECEIVE+com.google.android.c2dm.intent.REGISTRATION
+ADDED from AndroidManifest.xml:128:13
+action#com.google.android.c2dm.intent.RECEIVE
+ADDED from AndroidManifest.xml:130:17
+	android:name
+		ADDED from AndroidManifest.xml:130:25
+action#com.google.android.c2dm.intent.REGISTRATION
+ADDED from AndroidManifest.xml:131:17
+	android:name
+		ADDED from AndroidManifest.xml:131:25
+category#com.aylanetworks.agileLink.MainActivity
+ADDED from AndroidManifest.xml:133:17
+	android:name
+		ADDED from AndroidManifest.xml:133:27
+receiver#com.aylanetworks.agilelink.AylaWidget
+ADDED from AndroidManifest.xml:136:9
+	android:name
+		ADDED from AndroidManifest.xml:136:19
+intent-filter#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from AndroidManifest.xml:137:13
+action#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from AndroidManifest.xml:138:17
+	android:name
+		ADDED from AndroidManifest.xml:138:25
+meta-data#android.appwidget.provider
+ADDED from AndroidManifest.xml:141:13
+	android:resource
+		ADDED from AndroidManifest.xml:143:17
+	android:name
+		ADDED from AndroidManifest.xml:142:17
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
-MERGED from com.android.support:appcompat-v7:21.0.3:15:5
-MERGED from com.android.support:support-v4:21.0.3:15:5
-MERGED from com.android.support:cardview-v7:21.0.3:15:5
-MERGED from com.android.support:recyclerview-v7:21.0.3:15:5
-MERGED from com.android.support:support-v4:21.0.3:15:5
-MERGED from com.google.android.gms:play-services:6.5.87:18:5
-MERGED from com.android.support:support-v4:21.0.3:15:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:7:5
+MERGED from com.android.support:appcompat-v7:22.2.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.android.support:recyclerview-v7:22.0.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.android.support:cardview-v7:22.0.0:20:5
+MERGED from com.android.support:design:22.2.0:20:5
+MERGED from com.android.support:appcompat-v7:22.2.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-ads:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-analytics:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-analytics:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-appindexing:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-appinvite:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-appstate:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-cast:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-drive:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-fitness:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-location:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-games:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-drive:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-gcm:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-identity:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-location:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-nearby:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-panorama:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-plus:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-safetynet:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-wallet:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-identity:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-maps:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from com.google.android.gms:play-services-wearable:7.3.0:18:5
+MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
+MERGED from com.android.support:support-v4:22.2.0:20:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:4:5
 	android:targetSdkVersion
 		INJECTED from AndroidManifest.xml:0:0
 		INJECTED from AndroidManifest.xml:0:0
@@ -127,42 +491,10 @@ MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:7:5
 		INJECTED from AndroidManifest.xml:0:0
 		INJECTED from AndroidManifest.xml:0:0
 activity#android.support.v7.widget.TestActivity
-ADDED from com.android.support:recyclerview-v7:21.0.3:18:9
+ADDED from com.android.support:recyclerview-v7:22.0.0:23:9
 	android:label
-		ADDED from com.android.support:recyclerview-v7:21.0.3:18:19
+		ADDED from com.android.support:recyclerview-v7:22.0.0:25:13
 	android:name
-		ADDED from com.android.support:recyclerview-v7:21.0.3:18:60
-meta-data#com.google.android.gms.version
-ADDED from com.google.android.gms:play-services:6.5.87:21:9
-	android:value
-		ADDED from com.google.android.gms:play-services:6.5.87:23:13
-	android:name
-		ADDED from com.google.android.gms:play-services:6.5.87:22:13
-uses-permission#android.permission.ACCESS_WIFI_STATE
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:11:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:11:22
-uses-permission#android.permission.CHANGE_WIFI_STATE
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:12:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:12:22
-uses-permission#android.permission.READ_PHONE_STATE
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:13:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:13:22
-uses-permission#android.permission.INTERNET
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:14:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:14:22
-uses-permission#android.permission.BROADCAST_STICKY
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:17:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:17:22
-uses-permission#android.permission.CHANGE_NETWORK_STATE
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:18:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:18:22
-uses-permission#android.permission.CHANGE_WIFI_MULTICAST_STATE
-ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:19:5
-	android:name
-		ADDED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:19:22
+		ADDED from com.android.support:recyclerview-v7:22.0.0:24:13
+android:uses-permission#android.permission.READ_EXTERNAL_STORAGE
+IMPLIED from AndroidManifest.xml:2:1 reason: com.aylanetworks.aaml requested WRITE_EXTERNAL_STORAGE

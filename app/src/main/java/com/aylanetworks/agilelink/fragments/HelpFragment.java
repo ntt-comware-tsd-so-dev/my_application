@@ -10,8 +10,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.aylanetworks.aaml.AylaLogManager;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.BuildConfig;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.SessionManager;
 
 /**
  * Created by Emmanuel Luna on 06/16/15.
@@ -22,6 +27,7 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     private View mGetStarted;
     private View mGuidesView;
     private View mTermsAndConditionView;
+    private View mEmailLogsView;
     private View mView;
 
     @Override
@@ -40,6 +46,9 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
         mTermsAndConditionView = mView.findViewById(R.id.terms_and_condition);
         mTermsAndConditionView.setOnClickListener(this);
 
+        mEmailLogsView = mView.findViewById(R.id.email_logs);
+        mEmailLogsView.setOnClickListener(this);
+
         ((TextView)mView.findViewById(R.id.version)).setText(BuildConfig.VERSION_NAME);
 
         return mView;
@@ -49,8 +58,8 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.about_amap:
-                Intent aboutKiddeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.about_amap_link)));
-                startActivity(aboutKiddeIntent);
+                Intent aboutIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.about_amap_link)));
+                startActivity(aboutIntent);
                 break;
 
             case R.id.get_started:
@@ -66,6 +75,13 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
             case R.id.terms_and_condition:
                 Intent termsAndConditionIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(	getResources().getString(R.string.terms_and_condition_link)));
                 startActivity(termsAndConditionIntent);
+                break;
+
+            case R.id.email_logs:
+                Intent emailLogsIntent = AylaSystemUtils.emailLogsToSupport(SessionManager.sessionParameters().appId);
+                if (emailLogsIntent != null) {
+                    startActivity(emailLogsIntent);
+                }
                 break;
         }
     }

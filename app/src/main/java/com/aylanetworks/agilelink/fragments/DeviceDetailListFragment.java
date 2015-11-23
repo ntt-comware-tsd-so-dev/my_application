@@ -28,7 +28,7 @@ public class DeviceDetailListFragment extends AboutFragment {
 
     public static DeviceDetailListFragment newInstance(Device device) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDevice().dsn);
+        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
         DeviceDetailListFragment frag = new DeviceDetailListFragment();
         frag.setArguments(args);
         return frag;

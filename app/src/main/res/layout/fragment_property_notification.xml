@@ -9,7 +9,8 @@
         style="@style/PageHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/property_notifications"/>
+        android:text="@string/property_notifications"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,14 +19,18 @@
             android:text="@string/notification_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            />
 
         <EditText
             android:id="@+id/notification_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/notification_name"
-            android:layout_weight="2"/>
+            android:layout_weight="2"
+            android:inputType="textCapWords"
+            android:imeOptions="actionDone"
+            />
 
     </LinearLayout>
 
@@ -86,6 +91,36 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/on_or_off"/>
+            </RadioGroup>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/layout_motion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp">
+
+            <RadioGroup
+                android:id="@+id/radio_group_motion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/radio_detected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/is_detected"/>
+
+                <RadioButton
+                    android:id="@+id/radio_stopped"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/is_stopped"/>
+
+
             </RadioGroup>
         </LinearLayout>
 
@@ -177,6 +212,7 @@
 
     <Button
         android:id="@+id/save_notifications"
+        style="@style/AgileLinkButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"

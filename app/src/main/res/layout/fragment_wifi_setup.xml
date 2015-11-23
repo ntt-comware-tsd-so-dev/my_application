@@ -42,6 +42,7 @@
 
         <Button
             android:id="@+id/register_button"
+            style="@style/AgileLinkButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
@@ -54,6 +55,7 @@
 
         <Button
             android:id="@+id/scan_button"
+            style="@style/AgileLinkButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"

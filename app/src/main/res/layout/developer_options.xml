@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_theme_window_background">
+
+    <TextView
+        android:id="@+id/developer_options_header"
+        style="@style/PageHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/dev_options"/>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="20dp">
+
+        <TextView
+            android:id="@+id/txtview_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+           style="@style/Base.TextAppearance.AppCompat.Title"/>
+
+        <Spinner
+            android:id="@+id/location_spinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/txtview_location"
+            android:layout_marginLeft="20dp"></Spinner>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="20dp"
+        >
+
+        <TextView
+            android:id="@+id/txtview_service"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Service"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            style="@style/Base.TextAppearance.AppCompat.Title"/>
+
+        <Spinner
+            android:id="@+id/service_spinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_toRightOf="@+id/txtview_service"
+            android:layout_marginLeft="20dp"></Spinner>
+
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="20dp">
+
+        <TextView
+            android:id="@+id/txtview_config"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Config"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            style="@style/Base.TextAppearance.AppCompat.Title"/>
+
+
+        <ListView
+            android:id="@+id/config_listview"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/txtview_config"
+            android:layout_marginLeft="20dp"
+            android:choiceMode="multipleChoice"></ListView>
+
+    </RelativeLayout>
+
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="25dp"
+        android:text="Save"
+        android:padding="10dp"
+        android:id="@+id/save_button"/>
+
+
+</LinearLayout>

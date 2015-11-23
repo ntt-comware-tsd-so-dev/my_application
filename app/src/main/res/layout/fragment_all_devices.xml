@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:background="@color/app_theme_window_background"
-             android:animateLayoutChanges="true"
-             android:clickable="true"
-             tools:context="com.aylanetworks.agilelink.fragments.AllDevicesFragment">
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_theme_window_background"
+    android:animateLayoutChanges="true"
+    android:clickable="true"
+    tools:context="com.aylanetworks.agilelink.fragments.AllDevicesFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,21 +29,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
 
-
         </LinearLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
-            <!-- Main recycler view -->
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:paddingBottom="@dimen/device_list_padding"
-                android:clipToPadding="false"
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swiperefresh"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
+                android:layout_height="match_parent">
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recycler_view"
+                    android:paddingBottom="@dimen/device_list_padding"
+                    android:clipToPadding="false"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </android.support.v4.widget.SwipeRefreshLayout>
         </FrameLayout>
 
     </LinearLayout>
@@ -58,7 +60,7 @@
         android:background="@drawable/add_button"
         android:elevation="@dimen/elevation_low"
         android:src="@android:drawable/ic_input_add"
-        android:tint="@android:color/white"/>
+        android:tint="@color/add_button_fg"/>
 
     <!-- Empty text view -->
     <TextView

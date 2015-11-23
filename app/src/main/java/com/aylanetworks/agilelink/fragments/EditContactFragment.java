@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -16,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaContact;
@@ -24,6 +24,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.controls.ComboBox;
 import com.aylanetworks.agilelink.framework.ContactManager;
+import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -32,8 +33,11 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.provider.ContactsContract.*;
-import static android.provider.ContactsContract.CommonDataKinds.*;
+import static android.provider.ContactsContract.CommonDataKinds.Email;
+import static android.provider.ContactsContract.CommonDataKinds.Phone;
+import static android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
+import static android.provider.ContactsContract.Data;
 
 /**
  * Created by Brian King on 3/19/15.
@@ -49,6 +53,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     private EditText _streetAddress;
     private EditText _zipCode;
     private Button _button;
+    private Button _buttonDelete;
 
     private final static String LOG_TAG = "EditContactFragment";
     private final static String ARG_CONTACT_ID = "contact_id";
@@ -110,11 +115,14 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         _streetAddress = (EditText) view.findViewById(R.id.street_address);
         _zipCode = (EditText) view.findViewById(R.id.zip_code);
         _button = (Button) view.findViewById(R.id.save_contact);
+        _buttonDelete = (Button) view.findViewById(R.id.delete_contact);
 
         _firstName.addTextChangedListener(this);
         _lastName.addTextChangedListener(this);
 
         _button.setOnClickListener(this);
+        _buttonDelete.setOnClickListener(this);
+        _buttonDelete.setVisibility((_aylaContact == null)? View.GONE : View.VISIBLE);
 
         setupViews();
 
@@ -139,7 +147,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             _email.setText(_aylaContact.email);
             _countryCode.setText(_aylaContact.phoneCountryCode);
 
-            PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+          /*  PhoneNumberUtil util = PhoneNumberUtil.getInstance();
             Phonenumber.PhoneNumber phoneNumber = null;
             try {
                 phoneNumber = util.parse(_aylaContact.phoneNumber, "US");
@@ -151,8 +159,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
                 _phoneNumber.setText(util.format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164));
             } else {
                 _phoneNumber.setText(_aylaContact.phoneNumber);
-            }
+            }*/
 
+            _phoneNumber.setText(_aylaContact.phoneNumber);
             _streetAddress.setText(_aylaContact.streetAddress);
             _zipCode.setText(_aylaContact.zipCode);
             _button.setText(getString(R.string.update_contact));
@@ -168,8 +177,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         return true;
     }
 
-    @Override
-    public void onClick(View v) {
+    void onSaveContactClicked() {
         if (!validateFields()) {
             return;
         }
@@ -191,6 +199,13 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
 
         _aylaContact.streetAddress = _streetAddress.getText().toString();
         _aylaContact.zipCode = _zipCode.getText().toString();
+
+        if(_aylaContact.phoneNumber != null && _aylaContact.phoneNumber.length() != 0){
+            _aylaContact.smsNotification = true;
+        }
+        if(_aylaContact.email != null && _aylaContact.email.length() != 0){
+            _aylaContact.emailNotification = true;
+        }
 
         final ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override
@@ -217,6 +232,42 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             SessionManager.getInstance().getContactManager().addContact(_aylaContact, listener);
         } else {
             SessionManager.getInstance().getContactManager().updateContact(_aylaContact, listener);
+        }
+    }
+
+    void onDeleteContactClicked() {
+        MainActivity.getInstance().showWaitDialog(R.string.deleting_contact_title, R.string.deleting_contact_body);
+        SessionManager.getInstance().getContactManager().deleteContact(_aylaContact, new ContactManager.ContactManagerListener() {
+            @Override
+            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if ( succeeded ) {
+                    Toast.makeText(getActivity(), R.string.contact_deleted, Toast.LENGTH_LONG).show();
+                    getFragmentManager().popBackStack();
+                } else {
+                    String message;
+                    if ( lastMessage.obj != null ) {
+                        message = (String)lastMessage.obj;
+                    } else {
+                        message = MainActivity.getInstance().getString(R.string.unknown_error);
+                    }
+                    Toast.makeText(MainActivity.getInstance(), (String)message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId()) {
+            case R.id.save_contact:
+                onSaveContactClicked();
+                break;
+
+            case R.id.delete_contact:
+                onDeleteContactClicked();
+                break;
         }
     }
 
@@ -257,7 +308,19 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         if (cursor == null) {
             // Cancel. Pop ourselves off the stack if we were launched from elsewhere
             if ( !_dontDismiss) {
-                getFragmentManager().popBackStack();
+                try {
+                    // have to do this to handle cancel from onActivityResult
+                    Runnable r = new Runnable() {
+                        @Override
+                        public void run() {
+                            getFragmentManager().popBackStack();
+                        }
+                    };
+                    Handler h = new Handler();
+                    h.post(r);
+                } catch (Exception ex) {
+                    Logger.logError(LOG_TAG, ex);
+                }
             }
             return;
         }

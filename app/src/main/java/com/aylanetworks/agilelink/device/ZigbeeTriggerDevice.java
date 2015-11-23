@@ -31,7 +31,7 @@ public class ZigbeeTriggerDevice extends Device  {
     public final static String ZB_IAS_CLOSE_TURN_OFF = "5_out_0x0006_0x0000";
 
     public final static String GROUP_PREFIX_TRIGGER = "sensor-";
-    Gateway _gateway;
+    ZigbeeGateway _gateway;
 
     public ZigbeeTriggerDevice(AylaDevice device) {
         super(device);
@@ -46,7 +46,7 @@ public class ZigbeeTriggerDevice extends Device  {
     public int hasPostRegistrationProcessingResourceId() { return R.string.add_device_sensor_warning; }
 
     /**
-     * Static method used for building the name of the trigger group & binding for a device.  This
+     * Static method used for building the name of the trigger group and binding for a device.  This
      * needs to be consistent between all operating systems.
      *
      * @param device Trigger device.
@@ -57,7 +57,7 @@ public class ZigbeeTriggerDevice extends Device  {
     static public String makeGroupKeyForSensor(Device device, boolean open, boolean turnOn) {
         StringBuilder sb = new StringBuilder(512);
         sb.append(GROUP_PREFIX_TRIGGER);
-        sb.append(device.getDevice().dsn);
+        sb.append(device.getDeviceDsn());
         // don't localize these words
         sb.append(open ? "Open" : "Close");
         sb.append(turnOn ? "On" : "Off");
@@ -88,6 +88,9 @@ public class ZigbeeTriggerDevice extends Device  {
      * @return AylaGroupZigbee
      */
     public AylaGroupZigbee getTriggerGroup(boolean open, boolean turnOn) {
+        if (_gateway == null) {
+            return null;
+        }
         return _gateway.getGroupByName(makeGroupKeyForSensor(this, open, turnOn));
     }
 
@@ -97,6 +100,9 @@ public class ZigbeeTriggerDevice extends Device  {
      * @return AylaGroupZigbee
      */
     public AylaGroupZigbee getTriggerGroupByName(String name) {
+        if (_gateway == null) {
+            return null;
+        }
         return _gateway.getGroupByName(name);
     }
 
@@ -107,6 +113,9 @@ public class ZigbeeTriggerDevice extends Device  {
      * @return AylaBindingZigbee
      */
     public AylaBindingZigbee getTriggerBinding(boolean open, boolean turnOn) {
+        if (_gateway == null) {
+            return null;
+        }
         return _gateway.getBindingByName(makeGroupKeyForSensor(this, open, turnOn));
     }
 
@@ -116,6 +125,9 @@ public class ZigbeeTriggerDevice extends Device  {
      * @return AylaBindingZigbee
      */
     public AylaBindingZigbee getTriggerBindingByName(String name) {
+        if (_gateway == null) {
+            return null;
+        }
         return _gateway.getBindingByName(name);
     }
 
@@ -340,7 +352,7 @@ public class ZigbeeTriggerDevice extends Device  {
 
     public class DequeSet {
 
-        Gateway _gateway;
+        ZigbeeGateway _gateway;
         Device _device;
         Object _tag;
         Object _userTag;
@@ -351,7 +363,7 @@ public class ZigbeeTriggerDevice extends Device  {
         int countSuccess;
         int countFailure;
 
-        public DequeSet(Gateway gateway, Device device, Object tag, Object userTag, Gateway.AylaGatewayCompletionHandler completion) {
+        public DequeSet(ZigbeeGateway gateway, Device device, Object tag, Object userTag, Gateway.AylaGatewayCompletionHandler completion) {
             _gateway = gateway;
             _device = device;
             _tag = tag;
@@ -466,10 +478,11 @@ public class ZigbeeTriggerDevice extends Device  {
         }
     }
 
-    void setupTriggers(Gateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+    void setupTriggers(ZigbeeGateway gateway, Object tag, Gateway.AylaGatewayCompletionHandler completion) {
+
         // make sure we have the latest info
-        gateway.getGroupManager().fetchZigbeeGroups();
-        gateway.getBindingManager().fetchZigbeeBindings();
+        gateway.getGroupManager().fetchZigbeeGroups(null, null);
+        gateway.getBindingManager().fetchZigbeeBindings(null, null);
 
         // create 4 bindings & 4 groups
         Logger.logInfo(LOG_TAG, "zg: initializeSensor [%s] on gateway [%s]", this.getDeviceDsn(), gateway.getDeviceDsn());
@@ -490,44 +503,58 @@ public class ZigbeeTriggerDevice extends Device  {
 
     @Override
     public void postRegistrationForGatewayDevice(Gateway gateway) {
-        setupTriggers(gateway, null, null);
+        if ((gateway != null) && gateway.isZigbeeGateway()) {
+            setupTriggers((ZigbeeGateway)gateway, null, null);
+        }
     }
 
     public void fixRegistrationForGatewayDevice(final Gateway gateway, final Object tag, final Gateway.AylaGatewayCompletionHandler completion) {
-        setupTriggers(gateway, tag, completion);
+        if ((gateway != null) && gateway.isZigbeeGateway()) {
+            setupTriggers((ZigbeeGateway)gateway, tag, completion);
+        }
     }
 
     @Override
-    public void preUnregistrationForGatewayDevice(Gateway gateway) {
+    public void preUnregistrationForGatewayDevice(Gateway g) {
+        if ((g != null) && g.isZigbeeGateway()) {
+            ZigbeeGateway gateway = (ZigbeeGateway)g;
 
-        // make sure we have the latest info
-        gateway.getGroupManager().fetchZigbeeGroups();
-        gateway.getBindingManager().fetchZigbeeBindings();
+            // make sure we have the latest info
+            gateway.getGroupManager().fetchZigbeeGroups(null, null);
+            gateway.getBindingManager().fetchZigbeeBindings(null, null);
 
-        // remove 4 bindings & 4 groups
-        Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+            // remove 4 bindings & 4 groups
+            Logger.logInfo(LOG_TAG, "zg: unregisterDevice [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
 
-        synchronized (_currentDequeSetLock) {
-            if (_currentDequeSet != null) {
-                // stop any add that may be going on...
-                _currentDequeSet.clearDeque();
-                _currentDequeSet = null;
+            synchronized (_currentDequeSetLock) {
+                if (_currentDequeSet != null) {
+                    // stop any add that may be going on...
+                    _currentDequeSet.clearDeque();
+                    _currentDequeSet = null;
+                }
+                // queue up the removals
+                _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice", null, null);
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, true));
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, false));
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, true));
+                _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, false));
+                _currentDequeSet.runIfNeeded();
             }
-            // queue up the removals
-            _currentDequeSet = new DequeSet(gateway, this, "unregisterDevice", null, null);
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, true));
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, true, false));
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, true));
-            _currentDequeSet.addRunEntry(new RemoveTriggerGroupForSensor(_currentDequeSet, this, false, false));
-            _currentDequeSet.runIfNeeded();
         }
     }
 
     @Override
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
-        _gateway = Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+        Gateway gateway = Gateway.getGatewayForDeviceNode(this);
+        if ((gateway != null) && gateway.isZigbeeGateway()) {
+            _gateway = (ZigbeeGateway) gateway;
+            if (_gateway != null) {
+                Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+            } else {
+                Logger.logInfo(LOG_TAG, "zg: deviceAdded [%s] no gateway found!", this.getDeviceDsn());
+            }
+        }
     }
 
     @Override

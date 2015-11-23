@@ -3,18 +3,23 @@ package com.aylanetworks.agilelink.framework;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaDeviceManager;
 import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaDeviceNotification;
 import com.aylanetworks.aaml.AylaLanMode;
+import com.aylanetworks.aaml.AylaLanModule;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaNotify;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeNode;
+import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.framework.Device.DeviceStatusListener;
 
@@ -67,6 +72,32 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Useful method for returning a Device list as a string for logging output
+     * @param list Device list
+     * @return String of Device DSN
+     */
+    static public String deviceListToString(List<Device> list) {
+        StringBuilder sb = new StringBuilder(512);
+        if (list != null) {
+            if (list.isEmpty()) {
+                sb.append("empty");
+            } else {
+                sb.append("{");
+                for (Device device : list) {
+                    if (sb.length() > 1) {
+                        sb.append(",");
+                    }
+                    sb.append(device.getDeviceDsn());
+                }
+                sb.append("}");
+            }
+        } else {
+            sb.append("null");
+        }
+        return sb.toString();
+    }
+
+    /**
      * Listener class called when a device has entered or exited LAN mode. The LANModeListener
      * retains a reference to the underlying device object, which is passed back to the lanModeResult
      * method when the LAN mode state has changed.
@@ -85,10 +116,7 @@ public class DeviceManager implements DeviceStatusListener {
 
     private List<LANModeListener> _lanModeListeners = new ArrayList<>();
 
-    /** The one and only device that is currently LAN-mode enabled. */
-    private Device _lanModeEnabledDevice;
-
-    // Public Helper Methods //
+    /** Public Helper Methods */
 
     /**
      * Checks to see if the specified DSN is in the provided AylaDeviceNode list.
@@ -117,7 +145,7 @@ public class DeviceManager implements DeviceStatusListener {
         if (devices == null || devices.size() == 0)
             return false;
         for (Device d : devices) {
-            if (TextUtils.equals(dsn, d.getDevice().dsn)) {
+            if (TextUtils.equals(dsn, d.getDeviceDsn())) {
                 return true;
             }
         }
@@ -128,6 +156,8 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Constructor */
     DeviceManager() {
+        _registrationMode = false;
+
         _deviceListListeners = new HashSet<>();
         _deviceStatusListeners = new HashSet<>();
 
@@ -143,7 +173,6 @@ public class DeviceManager implements DeviceStatusListener {
         if ( _deviceList == null ) {
             return null;
         }
-
         return new ArrayList<>(_deviceList);
     }
 
@@ -163,6 +192,26 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     /**
+     * Get all gateways belong to this accout, from device collection in AMAP space
+     *
+     * @return gateway collection
+     * */
+    List<Gateway> getAllGateways() {
+        List<Gateway> gws = new ArrayList<>();
+        if (_deviceList == null || _deviceList.isEmpty()) {
+            Log.w(LOG_TAG, "DeviceManager, getAllGateways, _deviceList not initialized.");
+            return gws;
+        }
+
+        for (Device d : _deviceList) {
+            if (d.isGateway()) {
+                gws.add((Gateway)d);
+            }
+        }
+        return gws;
+    }// end of getAllGateways
+
+    /**
      * Returns a list of available gateway devices.
      * @return List of gateway devices.
      */
@@ -171,7 +220,7 @@ public class DeviceManager implements DeviceStatusListener {
         if ((_deviceList != null) && (_deviceList.size() > 0)) {
             for (Device gateway : _deviceList) {
                 if (gateway.isGateway()) {
-                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDevice().dsn + "]");
+                    Log.i(LOG_TAG, "zn: getGatewayDevices [" + gateway.getDeviceDsn() + "]");
                     list.add((Gateway) gateway);
                 }
             }
@@ -244,10 +293,11 @@ public class DeviceManager implements DeviceStatusListener {
      * @param dsn the DSN of the device to find
      * @return The found device, or null if not found
      */
+    @Nullable
     public Device deviceByDSN(String dsn) {
         if (_deviceList != null) {
             for (Device d : _deviceList) {
-                if (d.getDevice().dsn.compareTo(dsn) == 0) {
+                if (d.getDeviceDsn().compareTo(dsn) == 0) {
                     return d;
                 }
             }
@@ -330,6 +380,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @param device device that changed
      */
     public void deviceChanged(Device device) {
+        Log.v(LOG_TAG, "dev: deviceChanged [" + device.getDeviceDsn() + "]");
         notifyDeviceStatusChanged(device);
         notifyDeviceListChanged();
     }
@@ -386,18 +437,19 @@ public class DeviceManager implements DeviceStatusListener {
     }
 
     public void enterLANMode(LANModeListener listener) {
-        if ( !SessionManager.getInstance().lanModePermitted() ) {
+        Device device = listener.getDevice();
+        if (!SessionManager.getInstance().lanModePermitted()) {
             // We can't enter LAN mode for any devices.
+            Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] not permitted");
             listener.lanModeResult(false);
         } else {
-            Log.d(LOG_TAG, "Enter LAN mode request for " + listener.getDevice());
-            if ( _lanModeEnabledDevice == listener._device ) {
-                Log.d(LOG_TAG, listener._device + " is already in LAN mode");
+            if ( device.isInLanMode() ) {
+                Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] already in LAN mode.");
                 listener.lanModeResult(true);
             } else {
-                _startingLANMode = true;
                 _lanModeListeners.add(listener);
-                listener.getDevice().getDevice().lanModeEnable();
+                Logger.logDebug(LOG_TAG, "lm: enterLANMode [" + device.getDeviceDsn() + "] lanModeEnable");
+                device.getDevice().lanModeEnable();
             }
         }
     }
@@ -417,8 +469,10 @@ public class DeviceManager implements DeviceStatusListener {
 
         // _lanModeListeners.add(listener);
         // listener.getDevice().getDevice().lanModeDisable();
-        _lanModeEnabledDevice = null;
         listener.lanModeResult(false);
+        if (listener._device != null) {
+            deviceChanged(listener._device);
+        }
 
         // Start polling our device status again so we include this device
         startPolling();
@@ -434,7 +488,7 @@ public class DeviceManager implements DeviceStatusListener {
         // Save the last LAN mode device in user settings so we can re-enable it next time
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         if ( device != null ) {
-            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDevice().dsn).apply();
+            prefs.edit().putString(PREF_LAST_LAN_MODE_DEVICE, device.getDeviceDsn()).apply();
         } else {
             prefs.edit().remove(PREF_LAST_LAN_MODE_DEVICE);
         }
@@ -448,7 +502,7 @@ public class DeviceManager implements DeviceStatusListener {
     public boolean isLastLanModeDevice(Device device) {
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         String lastDSN = prefs.getString(PREF_LAST_LAN_MODE_DEVICE, "");
-        return lastDSN != null && device.getDevice().dsn != null && device.getDevice().dsn.equals(lastDSN);
+        return lastDSN != null && device.getDeviceDsn() != null && device.getDeviceDsn().equals(lastDSN);
     }
 
     /**
@@ -499,6 +553,12 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         public void updateNextDevice() {
+            if (_registrationMode) {
+                Log.d(LOG_TAG, "rn: updateNextDevice - ignoring in registration mode");
+                _devicesToUpdate.clear();
+                return;
+            }
+
             if ( _devicesToUpdate.isEmpty() ) {
                 // We're done!
                 _listener.notificationsUpdated(true, null);
@@ -535,8 +595,10 @@ public class DeviceManager implements DeviceStatusListener {
         _shuttingDown = true;
         // Clear out our list of devices, and then notify listeners that the list has changed.
         // This should cause all listeners to clear any devices they may be displaying
-        _deviceList.clear();
-        notifyDeviceListChanged();
+        if ( _deviceList != null ) {
+            _deviceList.clear();
+            notifyDeviceListChanged();
+        }
 
         // Get rid of our listeners.
         _deviceStatusListeners.clear();
@@ -643,9 +705,20 @@ public class DeviceManager implements DeviceStatusListener {
     private Set<DeviceListListener> _deviceListListeners;
     private Set<DeviceStatusListener> _deviceStatusListeners;
 
-    // This is set to true while we are attempting to enable LAN mode.
-    // Device queries should be disabled while this is true.
-    private boolean _startingLANMode = false;
+    // This is set to true while we are attempting to added nodes
+    private static boolean _registrationMode = false;
+
+    public void setRegistrationMode(boolean value) {
+        _registrationMode = value;
+        if (value) {
+            // make sure we ARE in LAN mode.
+            if (!AylaLanMode.isLanModeRunning()) {
+                enterLANMode();
+            } else {
+                Logger.logVerbose(LOG_TAG, "rn: lan mode is already running.");
+            }
+        }
+    }
 
     // Default comparator uses the device's compareTo method. Can be updated with setComparator().
     private Comparator<Device> _deviceComparator = new Comparator<Device>() {
@@ -669,8 +742,6 @@ public class DeviceManager implements DeviceStatusListener {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
-            _deviceManager.get()._startingLANMode = false;
-
             String notifyResults = (String) msg.obj;
             AylaNotify notify = AylaSystemUtils.gson.fromJson(notifyResults, AylaNotify.class);
 
@@ -680,29 +751,49 @@ public class DeviceManager implements DeviceStatusListener {
 
             Log.d(LOG_TAG, "lanModeHandler: " + msg);
 
-            if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_SESSION) == 0) {
+            if (_deviceManager.get() == null) {
+                Log.i(LOG_TAG, "deviceManager has been removed.");
+                return;
+            }
+            if (TextUtils.equals(type, AylaNetworks.AML_NOTIFY_TYPE_SESSION)) {
                 if (msg.arg1 > 399) {
                     // LAN mode could not be enabled
                     Log.i(LOG_TAG, "Failed to enter LAN mode: " + msg.arg1 + " " + msg.obj);
                     _deviceManager.get().notifyLANModeChange();
 
-                    // Nobody is in LAN mode now.
-                    _deviceManager.get()._lanModeEnabledDevice = null;
-
-                    // Notify our listeners, if any, and clear our list
-                    for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
+                    // Notify our listeners for this device, if any, and clear our list
+                    for (Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                         LANModeListener listener = iter.next();
-                        listener.lanModeResult(false);
-                        iter.remove();
+                        boolean shouldNotify = listener.getDevice().getDevice().dsn.equals(dsn);
+                        if ( !shouldNotify ) {
+                            // Check for a node / gateway
+                            if ( listener.getDevice().isDeviceNode() ) {
+                                AylaDeviceNode node = (AylaDeviceNode)listener.getDevice().getDevice();
+                                shouldNotify = (node.gatewayDsn.equals(dsn));
+                            }
+                        }
+                        if (shouldNotify) {
+                            listener.lanModeResult(false);
+                            iter.remove();
+                            _deviceManager.get().notifyDeviceStatusChanged(listener.getDevice());
+                        }
                     }
                 } else {
                     if (msg.arg1 >= 200 && msg.arg1 < 300) {
                         // LAN mode has been enabled on a device.
                         Device device = _deviceManager.get().deviceByDSN(dsn);
-                        _deviceManager.get()._lanModeEnabledDevice = device;
                         _deviceManager.get().setLastLanModeDevice(device);
 
-                        if ( device != null ) {
+                        if (device != null) {
+                            Logger.logDebug(LOG_TAG, "lm: [" + device.getDeviceDsn() + "] handleMessage ENABLED " + msg);
+                            Log.d(LOG_TAG, "LAN mode enabled on " + device.toString());
+                            // Update the properties on this device to the AylaDeviceManager's properties
+                            device.syncLanProperties();
+
+                            // Also request an update, as these properties could be from the cache.
+                            Log.e("BSK", "Requesting LAN update for " + device);
+                            device.updateStatus(_deviceManager.get());
+
                             // Remove the LAN-mode-enabled device from the list of devices to poll
                             List<Device> devicesToPoll = _deviceManager.get()._devicesToPoll;
                             if (devicesToPoll != null) {
@@ -710,14 +801,27 @@ public class DeviceManager implements DeviceStatusListener {
                             }
 
                             // Notify listeners listening for this device
-                            for ( Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
+                            for (Iterator<LANModeListener> iter = _deviceManager.get()._lanModeListeners.iterator(); iter.hasNext(); ) {
                                 LANModeListener listener = iter.next();
-                                if ( listener.getDevice().getDevice().dsn.equals(dsn)) {
+
+                                boolean shouldNotify = listener.getDevice().getDevice().dsn.equals(dsn);
+                                if ( !shouldNotify ) {
+                                    // Check for a node / gateway
+                                    if ( listener.getDevice().isDeviceNode() ) {
+                                        AylaDeviceNode node = (AylaDeviceNode)listener.getDevice().getDevice();
+                                        shouldNotify = (node.gatewayDsn.equals(dsn));
+                                    }
+                                }
+
+                                if (shouldNotify) {
+
                                     // Notify the listener that LAN mode has been enabled
                                     listener.lanModeResult(true);
                                     iter.remove();
+                                    _deviceManager.get().notifyDeviceStatusChanged(listener.getDevice());
                                 }
                             }
+                            _deviceManager.get().deviceChanged(device);
                         } else {
                             Log.e(LOG_TAG, "Unknown device [" + dsn + "] has entered LAN mode???");
                         }
@@ -726,19 +830,20 @@ public class DeviceManager implements DeviceStatusListener {
                     // If the LAN device has changed, then the list has changed.
                     _deviceManager.get().notifyDeviceListChanged();
                 }
-            } else if (type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) == 0 ||
-                    type.compareTo(AylaNetworks.AML_NOTIFY_TYPE_NODE) == 0) {
+            } else if (TextUtils.equals(type, AylaNetworks.AML_NOTIFY_TYPE_PROPERTY) || TextUtils.equals(type, AylaNetworks.AML_NOTIFY_TYPE_NODE)) {
                 // A device's property has changed.
                 Device d = _deviceManager.get().deviceByDSN(dsn);
                 if ( d != null ) {
-                    // The properties have already been updated on this device.
                     Log.d(LOG_TAG, "LAN mode handler: Device changed: " + d);
+                    d.syncLanProperties();
                     _deviceManager.get().notifyDeviceStatusChanged(d);
                 } else {
-                    // We don't know what changed, so let's just get everything
-                    Log.e(LOG_TAG, "LAN mode handler (property change): Couldn't find device with DSN: " + dsn);
-                    _deviceManager.get()._deviceStatusTimerHandler.postDelayed(_deviceManager.get()._deviceStatusTimerRunnable, 0);
+                    Log.e(LOG_TAG, "Notify for a device I don't have: " + dsn);
                 }
+            } else {
+                // We don't know what changed, so let's just get everything
+                Log.e(LOG_TAG, "LAN mode handler (property change): Couldn't find device with DSN: " + dsn);
+                _deviceManager.get()._deviceStatusTimerHandler.postDelayed(_deviceManager.get()._deviceStatusTimerRunnable, 0);
             }
         }
     }
@@ -754,13 +859,10 @@ public class DeviceManager implements DeviceStatusListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
             String json = (String)msg.obj;
-
             Log.d(LOG_TAG, "Reachability handler: " + json);
         }
     }
-
 
     private ReachabilityHandler _reachabilityHandler = new ReachabilityHandler(this);
 
@@ -773,36 +875,38 @@ public class DeviceManager implements DeviceStatusListener {
 
         @Override
         public void handleMessage(Message msg) {
-            Gateway gateway = _deviceManager.get().getGatewayDevice();
             Log.i(LOG_TAG, "getNodesHandler");
+            Gateway gateway = _deviceManager.get().getGatewayDevice();
             Log.i(LOG_TAG, "Entering LAN mode with gateway " + gateway);
-            gateway.getDevice().lanModeEnable();
+            if (gateway != null) {
+                gateway.getDevice().lanModeEnable();
+            }
         }
     }
 
     private GetNodesHandler _getNodesHandler = new GetNodesHandler(this);
 
     private void enterLANMode() {
-        Log.d(LOG_TAG, "enterLANMode");
-
+        Log.d(LOG_TAG, "rn: enterLANMode");
         AylaLanMode.enable(_lanModeHandler, _reachabilityHandler);
 
-        if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
-             AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {
+      /*  if ( AylaLanMode.lanModeState == AylaLanMode.lanMode.ENABLED ||
+             AylaLanMode.lanModeState == AylaLanMode.lanMode.RUNNING ) {*/
+        if (  AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
             // Enable LAN mode on the gateway, if present
-            Gateway gateway = getGatewayDevice();
-            if ( gateway != null ) {
-                // Get the nodes from the gateway. This establishes the mapping between devices
-                // and nodes, required for LAN mode operation to work right.
-                Log.i(LOG_TAG, "Fetching nodes from gateway...");
-                gateway.getGatewayDevice().getNodes(_getNodesHandler, null);
-            } else {
-                Log.i(LOG_TAG, "LAN mode: No gateway found");
-                _startingLANMode = false;
+            List<Gateway> gateways = getAllGateways();
+
+            if (gateways == null || gateways.isEmpty()) {
+                Log.i(LOG_TAG, "rn: LAN mode: No gateway found");
+                return;
+            }
+
+            for (Gateway gw: gateways) {
+                Log.d(LOG_TAG, "rn: Fetching nodes for gateway " + gw.getDeviceDsn());
+                gw.getGatewayDevice().getNodes(_getNodesHandler, null);
             }
         } else {
-            Log.e(LOG_TAG, "LAN mode: lanModeState is " + AylaLanMode.lanModeState + " - not entering LAN mode");
-            _startingLANMode = false;
+            Log.e(LOG_TAG, "rn: LAN mode: lanModeState is " + AylaLanMode.getLanModeState() + " - not entering LAN mode");
         }
     }
 
@@ -818,8 +922,8 @@ public class DeviceManager implements DeviceStatusListener {
                 Logger.logDebug(LOG_TAG, "poll:d polling stopped.");
                 return;
             }
-            if ( _startingLANMode ) {
-                Logger.logInfo(LOG_TAG, "poll:d Not querying device list while entering LAN mode");
+            if (_registrationMode) {
+                Log.d(LOG_TAG, "rn: deviceListTimer - ignoring in registration mode");
                 return;
             }
             Logger.logVerbose(LOG_TAG, "poll:Device List Timer");
@@ -837,19 +941,36 @@ public class DeviceManager implements DeviceStatusListener {
         }
     };
 
+    private List<Device>getDevicesToPoll() {
+        List<Device> devices = new ArrayList<Device>();
+        for ( Device d : _deviceList ) {
+            if (    !d.isInLanMode() ||
+                    d.getDevice().properties == null ||
+                    d.getDevice().properties.length == 0 ) {
+                devices.add(d);
+            }
+        }
+        return devices;
+    }
+
     // List of devices we will poll the status of. Each device is removed from the head of the
     // list and queried for its properties.
-    private ArrayList<Device> _devicesToPoll;
+    private List<Device> _devicesToPoll;
     private Runnable _deviceStatusTimerRunnable = new Runnable() {
         @Override
         public void run() {
-            if ( _pollingStopped ) {
+            Logger.logVerbose(LOG_TAG, "Device Status Timer");
+
+            // Trigger the next timer
+            _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
+            _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
+
+            if (_pollingStopped) {
                 Logger.logDebug(LOG_TAG, "poll:s polling stopped");
                 return;
             }
-            // If we're in the process of entering LAN mode, don't query devices yet.
-            if ( _startingLANMode ) {
-                Logger.logInfo(LOG_TAG, "poll:s Not querying device status while entering LAN mode");
+            if (_registrationMode) {
+                Log.d(LOG_TAG, "rn: deviceStatusTimer - ignoring in registration mode");
                 return;
             }
             Logger.logVerbose(LOG_TAG, "poll:Device Status Timer");
@@ -858,35 +979,26 @@ public class DeviceManager implements DeviceStatusListener {
             // library does not handle a series of requests all at once at this time.
             if ( _devicesToPoll == null ) {
                 if ( _deviceList != null ) {
-                    _devicesToPoll = new ArrayList<>(_deviceList);
+                    _devicesToPoll = getDevicesToPoll();
                 }
                 updateNextDeviceStatus();
             } else {
                 Logger.logDebug(LOG_TAG, "poll:s Still not done polling from the last timer event.");
                 Logger.logVerbose(LOG_TAG, "poll:s Current queue is:");
                 for ( Device d : _devicesToPoll ) {
-                    Logger.logVerbose(LOG_TAG, d.getDevice().getProductName());
+                    Logger.logVerbose(LOG_TAG, d.getProductName());
                 }
                 updateNextDeviceStatus();
-            }
-
-            // Only continue polling if we're not in LAN mode and somebody is listening
-            if ( _deviceStatusListeners.size() > 0 ) {
-                _deviceStatusTimerHandler.removeCallbacksAndMessages(null);
-                _deviceStatusTimerHandler.postDelayed(this, _deviceStatusPollInterval);
-            } else {
-                Logger.logDebug(LOG_TAG, "poll:Device Status Timer: Nobody listening.");
             }
         }
     };
 
     private void updateNextDeviceStatus() {
-        Logger.logVerbose(LOG_TAG, "updateNextDeviceStatus");
-        if ( _startingLANMode ) {
-            Logger.logDebug(LOG_TAG, "Not updating status while entering LAN mode");
+        if (_registrationMode) {
+            Log.d(LOG_TAG, "rn: updateNextDeviceStatus - ignoring in registration mode");
             return;
         }
-
+        Logger.logVerbose(LOG_TAG, "updateNextDeviceStatus");
         if ( _devicesToPoll == null || _devicesToPoll.size() == 0 ) {
             // We're done.
             _devicesToPoll = null;
@@ -895,7 +1007,7 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         Device d = _devicesToPoll.remove(0);
-        Logger.logVerbose(LOG_TAG, "poll: device status [" + d.getDeviceDsn() + ":" + d.getDevice().productName + "]");
+        Logger.logVerbose(LOG_TAG, "poll: device status [" + d.getDeviceDsn() + ":" + d.getProductName() + "]");
         if ( _devicesToPoll.size() == 0 ) {
             _devicesToPoll = null;
         }
@@ -907,7 +1019,7 @@ public class DeviceManager implements DeviceStatusListener {
     /** Handler called when the list of devices has been obtained from the server. */
     static class GetDevicesHandler extends Handler {
         private final WeakReference<DeviceManager> _deviceManager;
-        ArrayList<GetDevicesCompletion> _completionSet;
+        final ArrayList<GetDevicesCompletion> _completionSet;
         ArrayList<Object> _tagSet;
 
         GetDevicesHandler(DeviceManager manager) {
@@ -924,9 +1036,9 @@ public class DeviceManager implements DeviceStatusListener {
         }
 
         private Device getDeviceFromList(List<Device> list, Device device) {
-            String dsn = device.getDevice().dsn;
+            String dsn = device.getDeviceDsn();
             for (Device d : list) {
-                if (TextUtils.equals(d.getDevice().dsn, dsn)) {
+                if (TextUtils.equals(d.getDeviceDsn(), dsn)) {
                     return d;
                 }
             }
@@ -935,10 +1047,15 @@ public class DeviceManager implements DeviceStatusListener {
 
         @Override
         public void handleMessage(Message msg) {
+            DeviceManager deviceManager = _deviceManager.get();
+            if (deviceManager == null) {
+                Logger.logError(LOG_TAG, "no deviceManager");
+                return;
+            }
             List<Device> newDeviceList = new ArrayList<Device>();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Create our device array
-                Log.v(LOG_TAG, "Device list JSON: " + msg.obj);
+                Log.v(LOG_TAG, "dev: device list JSON " + msg.obj);
                 AylaDevice[] devices = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice[].class);
                 SessionManager.SessionParameters params = SessionManager.sessionParameters();
                 for ( AylaDevice aylaDevice : devices ) {
@@ -946,21 +1063,32 @@ public class DeviceManager implements DeviceStatusListener {
                     Device device = params.deviceCreator.deviceForAylaDevice(aylaDevice);
                     if ( device != null ) {
                         newDeviceList.add(device);
+                        if ( AylaLanMode.isLanModeRunning() ) {
+                            if ( !device.isDeviceNode() && !device.isInLanMode() ) {
+                                Log.d("BSK", "LAN mode enabling " + device);
+                                AylaDevice lanDevice = AylaDeviceManager.sharedManager().deviceWithDSN(device.getDevice().dsn);
+                                if (lanDevice != null) {
+                                    lanDevice.lanModeEnable();
+                                } else {
+                                    Logger.logError(LOG_TAG, "no device with dsn [%s]", device.getDevice().dsn);
+                                }
+                            }
+                        }
                     } else {
                         Log.i(LOG_TAG, "No device created for " + aylaDevice.getProductName());
                     }
                 }
 
-                if ( _deviceManager.get().deviceListChanged(newDeviceList) ) {
+                if ( deviceManager.deviceListChanged(newDeviceList) ) {
 
                     // remember the old device list for a little bit
                     List<Device> oldDeviceList = new ArrayList<Device>();
-                    if (_deviceManager.get()._deviceList != null) {
-                        oldDeviceList = _deviceManager.get()._deviceList;
+                    if (deviceManager._deviceList != null) {
+                        oldDeviceList = deviceManager._deviceList;
                     }
 
                     // replace the old device list with the new list
-                    _deviceManager.get()._deviceList = newDeviceList;
+                    deviceManager._deviceList = newDeviceList;
 
                     // The device list has changed.  Give these new devices a chance to initialize
                     // before notifying anybody
@@ -975,14 +1103,14 @@ public class DeviceManager implements DeviceStatusListener {
                         }
                     }
 
-                    _deviceManager.get().notifyDeviceListChanged();
+                    deviceManager.notifyDeviceListChanged();
 
                     // Do we need to enter LAN mode?
                     if ( params.enableLANMode ) {
-                        _deviceManager.get().enterLANMode();
+                        deviceManager.enterLANMode();
                     }
                 }
-                _deviceManager.get().refreshDeviceStatus(null);
+                deviceManager.refreshDeviceStatus(null);
             }
 
             synchronized (_completionSet) {
@@ -1009,28 +1137,23 @@ public class DeviceManager implements DeviceStatusListener {
 
     /** Returns true if newDeviceList differs from our previous version (_deviceList) */
     private boolean deviceListChanged(List<Device>newDeviceList) {
-        if ( newDeviceList != null ) {
-            // Sort the new list of devices
-            Collections.sort(newDeviceList, _deviceComparator);
-        }
-
         if ( _deviceList == null && newDeviceList != null ) {
             return true;
         }
-
         if ( newDeviceList == null && _deviceList != null ) {
             return true;
         }
-
         if ( newDeviceList == null && _deviceList == null ) {
             return false;
         }
-
         if ( newDeviceList.size() != _deviceList.size() ) {
             return true;
         }
 
-
+        if ( newDeviceList != null ) {
+            // Sort the new list of devices
+            Collections.sort(newDeviceList, _deviceComparator);
+        }
         // See if any of the devices have changed.
         for ( int i = 0; i < _deviceList.size(); i++ ) {
             Device dev1 = _deviceList.get(i);
@@ -1076,7 +1199,7 @@ public class DeviceManager implements DeviceStatusListener {
 
         public FetchSharesHandler(FetchSharesListener listener) {
             _listener = listener;
-            if ( listener.fetchOwned ) {
+            if (listener.fetchOwned) {
                 _fetchingOwned = true;
             }
         }
@@ -1085,13 +1208,13 @@ public class DeviceManager implements DeviceStatusListener {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             _listener.lastMessage = msg;
-            if ( AylaNetworks.succeeded(msg) ) {
-                AylaShare shares[] = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaShare[].class);
+            if (AylaNetworks.succeeded(msg)) {
+                AylaShare shares[] = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaShare[].class);
 
-                if ( _fetchingOwned ) {
+                if (_fetchingOwned) {
                     _listener.ownedShares = shares;
                     _fetchingOwned = false;
-                    if ( _listener.fetchReceived ) {
+                    if (_listener.fetchReceived) {
                         AylaShare.getReceives(this, AylaUser.getCurrent(), null);
                     } else {
                         // We're done.
@@ -1105,12 +1228,14 @@ public class DeviceManager implements DeviceStatusListener {
                 _listener.sharesFetched(false);
             }
         }
-    }
+    };
+
 
     /** This is where we are notified when a device's status has been updated. */
     @Override
     public void statusUpdated(Device device, boolean changed) {
-        Log.d(LOG_TAG, "Device status updated (" + changed + "): " + device);
+        //Log.d(LOG_TAG, "Device status updated (" + changed + "): " + device);
+        Log.d(LOG_TAG, "lm: statusUpdated [" + device.getDeviceDsn() + "] changed=" + changed);
         if ( changed ) {
             notifyDeviceStatusChanged(device);
         }
@@ -1122,9 +1247,14 @@ public class DeviceManager implements DeviceStatusListener {
 
     // Notifications
     private void notifyDeviceListChanged() {
-        Log.d(LOG_TAG, "Device list changed:\n" + _deviceList);
-        for ( DeviceListListener listener : _deviceListListeners ) {
-            listener.deviceListChanged();
+        Log.v(LOG_TAG, "dev: device list changed [" + deviceListToString(_deviceList) + "]");
+        if (_deviceListListeners.size() > 0) {
+            for (DeviceListListener listener : _deviceListListeners) {
+                Log.v(LOG_TAG, "dev: notify [" + listener.getClass().getSimpleName() + "]");
+                listener.deviceListChanged();
+            }
+        } else {
+            Log.w(LOG_TAG, "dev: device list changed (no listeners)!");
         }
     }
 
@@ -1134,7 +1264,7 @@ public class DeviceManager implements DeviceStatusListener {
      * @param device Device that changed
      */
     public void notifyDeviceStatusChanged(Device device) {
-        Log.d(LOG_TAG, "Device status changed: " + device);
+        Log.d(LOG_TAG, "dev: device status changed [" + device + "]");
         for (DeviceStatusListener listener : _deviceStatusListeners) {
             listener.statusUpdated(device, true);
         }

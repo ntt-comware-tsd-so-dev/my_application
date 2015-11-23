@@ -2,6 +2,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/AppTheme"
+    android:id="@+id/background"
     android:clickable="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -70,7 +71,9 @@
             android:paddingBottom="8dp"
             android:paddingTop="8dp"
             android:text="@string/signIn"
-            android:textSize="18dp"/>
+            android:textSize="18dp"
+            style="@style/AgileLinkButton"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"

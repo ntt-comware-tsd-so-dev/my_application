@@ -1,7 +1,11 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,11 +22,12 @@ import android.widget.TextView;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
@@ -37,14 +42,19 @@ import java.util.List;
  */
 
 public class AllDevicesFragment extends Fragment
-        implements Device.DeviceStatusListener,
-        DeviceManager.DeviceListListener, SessionManager.SessionListener, View.OnClickListener {
+    implements
+        Device.DeviceStatusListener,
+        DeviceManager.DeviceListListener,
+        SessionManager.SessionListener,
+        View.OnClickListener,
+        DialogInterface.OnCancelListener {
 
     private final static String LOG_TAG = "AllDevicesFragment";
 
     /**
      * The fragment's recycler view and helpers
      */
+    protected SwipeRefreshLayout _swipe;
     protected RecyclerView _recyclerView;
     protected RecyclerView.LayoutManager _layoutManager;
     protected DeviceListAdapter _adapter;
@@ -64,29 +74,6 @@ public class AllDevicesFragment extends Fragment
     public AllDevicesFragment() {
     }
 
-    private void addDevice() {
-        Log.i(LOG_TAG, "Add Device called");
-
-        // Bring up the Add Device UI
-        AddDeviceFragment frag = AddDeviceFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_all_devices, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_add_device) {
-            addDevice();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,35 +81,40 @@ public class AllDevicesFragment extends Fragment
 
         _expandedDevices = new ArrayList<>();
 
+        // Listen for login events. Our fragment exists before the user has logged in, so we need
+        // to know when that happens so we can start listening to the device manager notifications.
+        SessionManager.addSessionListener(this);
+
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
         if (dm != null) {
-            _adapter = getDeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
-        }
-    }
-
-    // This method is called when the fragment is paged in to view
-    @Override
-    public void setMenuVisibility(boolean menuVisible) {
-        super.setMenuVisibility(menuVisible);
-        if ( menuVisible ) {
-            updateDeviceList();
+            _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
+            startListening();
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
         _emptyView = (TextView) view.findViewById(R.id.empty);
 
-        // Set up the list view
+        // setup swipe refresh
+        _swipe = (SwipeRefreshLayout)view.findViewById(R.id.swiperefresh);
+        if (_swipe != null) {
+            _swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    swipeRefreshStart();
+                }
+            });
+        }
 
+        // Set up the list view
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
         _recyclerView.getItemAnimator().setSupportsChangeAnimations(true);
-
         _recyclerView.setVisibility(View.GONE);
+
         _emptyView.setVisibility(View.VISIBLE);
         _emptyView.setText(R.string.fetching_devices);
 
@@ -155,38 +147,114 @@ public class AllDevicesFragment extends Fragment
         return view;
     }
 
-    public DeviceListAdapter getDeviceListAdapter(List<Device> deviceList, View.OnClickListener listener) {
-        return new DeviceListAdapter(deviceList, listener);
+    void swipeRefreshStart() {
+        if (SessionManager.deviceManager() != null) {
+            SessionManager.deviceManager().refreshDeviceListWithCompletion(this, new DeviceManager.GetDevicesCompletion() {
+                @Override
+                public void complete(Message msg, List<Device> newDeviceList, Object tag) {
+                    swipeRefreshComplete();
+                }
+            });
+        } else {
+            swipeRefreshComplete();
+        }
+    }
+
+    void swipeRefreshComplete() {
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            _swipe.setRefreshing(false);
+        } else {
+            // Run on the UI thread
+            try {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        _swipe.setRefreshing(false);
+                    }
+                });
+            } catch (Exception ex) { }
+        }
+    }
+
+    private void addDevice() {
+        // Bring up the Add Device UI
+        MenuHandler.handleAddDevice();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_all_devices, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_add_device) {
+            addDevice();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // This method is called when the fragment is paged in to view
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if ( menuVisible ) {
+            updateDeviceList();
+        }
     }
 
     public void updateDeviceList() {
+        boolean hasDevices = false;
+
         List<Device> deviceList = null;
-        if ( SessionManager.deviceManager() != null ) {
-            deviceList = SessionManager.deviceManager().deviceList();
+        if (SessionManager.deviceManager() != null) {
+            List<Device> all = SessionManager.deviceManager().deviceList();
+            if (all != null) {
+                hasDevices = !all.isEmpty();
+                deviceList = new ArrayList<>();
+                for (Device d : all) {
+                    if (!d.isGateway()) {
+                        deviceList.add(d);
+                    }
+                }
+            }
+            if (SessionManager.deviceManager().isShuttingDown()) {
+                // all done. Make sure we clear out our recycler view so it doesn't show
+                // anything when we log back in
+                _recyclerView.setAdapter(null);
+                return;
+            }
         }
 
         if ( deviceList != null ) {
-            if ( deviceList.isEmpty() ) {
-                // Enter no devices mode
+            if (!hasDevices) {
+                // Enter absolutely no devices mode
                 Log.e(LOG_TAG, "Received an empty device list!");
                 Thread.dumpStack();
+                _recyclerView.setAdapter(null);
                 MainActivity.getInstance().setNoDevicesMode(true);
                 return;
             }
 
             MainActivity.getInstance().setNoDevicesMode(false);
-            if ( _emptyView != null ) {
-                _emptyView.setVisibility(View.GONE);
-                _recyclerView.setVisibility(View.VISIBLE);
-                _adapter = getDeviceListAdapter(deviceList, this);
+            if (_emptyView != null) {
+                if (deviceList.isEmpty()) {
+                    _emptyView.setVisibility(View.VISIBLE);
+                    _emptyView.setText(R.string.no_devices);
+                    _recyclerView.setVisibility(View.GONE);
+                } else {
+                    _emptyView.setVisibility(View.GONE);
+                    _recyclerView.setVisibility(View.VISIBLE);
+                }
+                _adapter = new DeviceListAdapter(deviceList, this);
                 _recyclerView.setAdapter(_adapter);
             }
         }
     }
 
     protected void startListening() {
-        SessionManager.addSessionListener(this);
-
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (deviceManager != null) {
             SessionManager.deviceManager().addDeviceListListener(this);
@@ -195,8 +263,6 @@ public class AllDevicesFragment extends Fragment
     }
 
     protected void stopListening() {
-        SessionManager.removeSessionListener(this);
-
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (deviceManager != null) {
             SessionManager.deviceManager().removeDeviceListListener(this);
@@ -213,26 +279,35 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        startListening();
-        deviceListChanged();
+        if (SessionManager.deviceManager() != null) {
+            startListening();
+            deviceListChanged();
+        }
     }
 
     @Override
     public void deviceListChanged() {
-        Log.i(LOG_TAG, "Device list changed");
+        Log.i(LOG_TAG, "dev: device list changed");
         updateDeviceList();
     }
 
     @Override
     public void statusUpdated(Device device, boolean changed) {
         if ( changed ) {
-            Log.i(LOG_TAG, "Device " + device.getDevice().productName + " changed");
-            _recyclerView.setAdapter(_adapter);
+            Log.i(LOG_TAG, "dev: device [" + device.getDeviceDsn() + "] changed");
+            for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
+                Device d = _adapter.getItem(i);
+                if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
+                    _adapter.notifyItemChanged(i);
+                    break;
+                }
+            }
         }
     }
 
     @Override
     public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
+        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (deviceManager != null) {
             if (loggedIn) {
@@ -287,17 +362,26 @@ public class AllDevicesFragment extends Fragment
                 }
             } else {
                 // Put the device into LAN mode before pushing the detail fragment
-                MainActivity.getInstance().showWaitDialog(R.string.connecting_to_device_title, R.string.connecting_to_device_body);
+                // Sometime this can take forever... so make it cancelable.
+                Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connecting to device");
+                MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body), this);
+                Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] enterLANMode");
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
                     @Override
                     public void lanModeResult(boolean isInLANMode) {
+                        Logger.logDebug(LOG_TAG, "lm: [" + getDevice().getDeviceDsn() + "] lanModeResult " + isInLANMode);
                         MainActivity.getInstance().dismissWaitDialog();
-                        Log.d(LOG_TAG, "Pushing details page, lanModeResult for " + getDevice() + ": " + isInLANMode);
                         Fragment frag = d.getDetailsFragment();
                         MainActivity.getInstance().pushFragment(frag);
+                        Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connected to device");
                     }
                 });
             }
         }
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        //MainActivity.getInstance().dismissWaitDialog();
     }
 }
