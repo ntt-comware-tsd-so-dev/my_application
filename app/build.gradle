@@ -9,7 +9,7 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 15
+        versionCode 17
         versionName "4.2.0"
     }
 

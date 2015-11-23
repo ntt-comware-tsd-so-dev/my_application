@@ -25,27 +25,27 @@ ADDED from AndroidManifest.xml:10:5
 		ADDED from AndroidManifest.xml:10:22
 uses-permission#android.permission.ACCESS_WIFI_STATE
 ADDED from AndroidManifest.xml:11:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:8:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:8:5
 	android:name
 		ADDED from AndroidManifest.xml:11:22
 uses-permission#android.permission.CHANGE_WIFI_STATE
 ADDED from AndroidManifest.xml:12:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:9:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:9:5
 	android:name
 		ADDED from AndroidManifest.xml:12:22
 uses-permission#android.permission.BROADCAST_STICKY
 ADDED from AndroidManifest.xml:13:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:14:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:14:5
 	android:name
 		ADDED from AndroidManifest.xml:13:22
 uses-permission#android.permission.CHANGE_NETWORK_STATE
 ADDED from AndroidManifest.xml:14:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:15:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:15:5
 	android:name
 		ADDED from AndroidManifest.xml:14:22
 uses-permission#android.permission.CHANGE_WIFI_MULTICAST_STATE
 ADDED from AndroidManifest.xml:15:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:16:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:16:5
 	android:name
 		ADDED from AndroidManifest.xml:15:22
 uses-permission#android.permission.VIBRATE
@@ -58,7 +58,7 @@ ADDED from AndroidManifest.xml:18:5
 		ADDED from AndroidManifest.xml:18:22
 uses-permission#android.permission.INTERNET
 ADDED from AndroidManifest.xml:20:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:11:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:11:5
 	android:name
 		ADDED from AndroidManifest.xml:20:22
 uses-permission#android.permission.GET_ACCOUNTS
@@ -75,12 +75,12 @@ ADDED from AndroidManifest.xml:27:5
 		ADDED from AndroidManifest.xml:27:22
 uses-permission#android.permission.ACCESS_NETWORK_STATE
 ADDED from AndroidManifest.xml:28:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:12:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:12:5
 	android:name
 		ADDED from AndroidManifest.xml:28:22
 uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
 ADDED from AndroidManifest.xml:29:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:13:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:13:5
 	android:name
 		ADDED from AndroidManifest.xml:29:22
 uses-permission#android.permission.READ_CONTACTS
@@ -107,7 +107,7 @@ ADDED from AndroidManifest.xml:38:5
 		ADDED from AndroidManifest.xml:38:22
 uses-permission#android.permission.READ_PHONE_STATE
 ADDED from AndroidManifest.xml:39:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:10:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:10:5
 	android:name
 		ADDED from AndroidManifest.xml:39:22
 uses-feature#android.hardware.telephony
@@ -300,22 +300,30 @@ ADDED from AndroidManifest.xml:91:9
 		ADDED from AndroidManifest.xml:94:13
 	android:name
 		ADDED from AndroidManifest.xml:92:13
+activity#com.aylanetworks.agilelink.DeveloperOptions
+ADDED from AndroidManifest.xml:98:9
+	android:label
+		ADDED from AndroidManifest.xml:100:13
+	android:launchMode
+		ADDED from AndroidManifest.xml:101:13
+	android:name
+		ADDED from AndroidManifest.xml:99:13
 service#com.aylanetworks.aaml.AylaExecuteRequest
-ADDED from AndroidManifest.xml:99:9
+ADDED from AndroidManifest.xml:106:9
 	android:name
-		ADDED from AndroidManifest.xml:99:18
+		ADDED from AndroidManifest.xml:106:18
 receiver#com.aylanetworks.aaml.AylaConnectivityListener
-ADDED from AndroidManifest.xml:101:9
+ADDED from AndroidManifest.xml:108:9
 	android:name
-		ADDED from AndroidManifest.xml:101:19
+		ADDED from AndroidManifest.xml:108:19
 intent-filter#android.net.conn.CONNECTIVITY_CHANGE
-ADDED from AndroidManifest.xml:102:13
+ADDED from AndroidManifest.xml:109:13
 action#android.net.conn.CONNECTIVITY_CHANGE
-ADDED from AndroidManifest.xml:103:17
+ADDED from AndroidManifest.xml:110:17
 	android:name
-		ADDED from AndroidManifest.xml:103:25
+		ADDED from AndroidManifest.xml:110:25
 meta-data#com.google.android.gms.version
-ADDED from AndroidManifest.xml:115:9
+ADDED from AndroidManifest.xml:122:9
 MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
 MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
 MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
@@ -344,45 +352,45 @@ MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
 MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
 MERGED from com.google.android.gms:play-services-base:7.3.0:21:9
 	android:value
-		ADDED from AndroidManifest.xml:117:13
+		ADDED from AndroidManifest.xml:124:13
 	android:name
-		ADDED from AndroidManifest.xml:116:13
+		ADDED from AndroidManifest.xml:123:13
 receiver#com.aylanetworks.agilelink.framework.GcmBroadcastReceiver
-ADDED from AndroidManifest.xml:118:9
+ADDED from AndroidManifest.xml:125:9
 	android:permission
-		ADDED from AndroidManifest.xml:120:13
+		ADDED from AndroidManifest.xml:127:13
 	android:name
-		ADDED from AndroidManifest.xml:119:13
+		ADDED from AndroidManifest.xml:126:13
 intent-filter#com.aylanetworks.agileLink.MainActivity+com.google.android.c2dm.intent.RECEIVE+com.google.android.c2dm.intent.REGISTRATION
-ADDED from AndroidManifest.xml:121:13
+ADDED from AndroidManifest.xml:128:13
 action#com.google.android.c2dm.intent.RECEIVE
-ADDED from AndroidManifest.xml:123:17
+ADDED from AndroidManifest.xml:130:17
 	android:name
-		ADDED from AndroidManifest.xml:123:25
+		ADDED from AndroidManifest.xml:130:25
 action#com.google.android.c2dm.intent.REGISTRATION
-ADDED from AndroidManifest.xml:124:17
-	android:name
-		ADDED from AndroidManifest.xml:124:25
-category#com.aylanetworks.agileLink.MainActivity
-ADDED from AndroidManifest.xml:126:17
-	android:name
-		ADDED from AndroidManifest.xml:126:27
-receiver#com.aylanetworks.agilelink.AylaWidget
-ADDED from AndroidManifest.xml:129:9
-	android:name
-		ADDED from AndroidManifest.xml:129:19
-intent-filter#android.appwidget.action.APPWIDGET_UPDATE
-ADDED from AndroidManifest.xml:130:13
-action#android.appwidget.action.APPWIDGET_UPDATE
 ADDED from AndroidManifest.xml:131:17
 	android:name
 		ADDED from AndroidManifest.xml:131:25
-meta-data#android.appwidget.provider
-ADDED from AndroidManifest.xml:134:13
-	android:resource
-		ADDED from AndroidManifest.xml:136:17
+category#com.aylanetworks.agileLink.MainActivity
+ADDED from AndroidManifest.xml:133:17
 	android:name
-		ADDED from AndroidManifest.xml:135:17
+		ADDED from AndroidManifest.xml:133:27
+receiver#com.aylanetworks.agilelink.AylaWidget
+ADDED from AndroidManifest.xml:136:9
+	android:name
+		ADDED from AndroidManifest.xml:136:19
+intent-filter#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from AndroidManifest.xml:137:13
+action#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from AndroidManifest.xml:138:17
+	android:name
+		ADDED from AndroidManifest.xml:138:25
+meta-data#android.appwidget.provider
+ADDED from AndroidManifest.xml:141:13
+	android:resource
+		ADDED from AndroidManifest.xml:143:17
+	android:name
+		ADDED from AndroidManifest.xml:142:17
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from com.android.support:appcompat-v7:22.2.0:20:5
@@ -475,7 +483,7 @@ MERGED from com.android.support:support-v4:22.2.0:20:5
 MERGED from com.google.android.gms:play-services-wearable:7.3.0:18:5
 MERGED from com.google.android.gms:play-services-base:7.3.0:18:5
 MERGED from com.android.support:support-v4:22.2.0:20:5
-MERGED from Agile_Link_Android.libraries:Android_AylaLibrary:unspecified:4:5
+MERGED from Agile_Link_Android.libraries:Android_AylaLibrary_Public:unspecified:4:5
 	android:targetSdkVersion
 		INJECTED from AndroidManifest.xml:0:0
 		INJECTED from AndroidManifest.xml:0:0
@@ -488,3 +496,5 @@ ADDED from com.android.support:recyclerview-v7:22.0.0:23:9
 		ADDED from com.android.support:recyclerview-v7:22.0.0:25:13
 	android:name
 		ADDED from com.android.support:recyclerview-v7:22.0.0:24:13
+android:uses-permission#android.permission.READ_EXTERNAL_STORAGE
+IMPLIED from AndroidManifest.xml:2:1 reason: com.aylanetworks.aaml requested WRITE_EXTERNAL_STORAGE
