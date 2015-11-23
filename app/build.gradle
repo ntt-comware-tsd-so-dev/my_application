@@ -3,14 +3,14 @@ import org.ajoberstar.grgit.*
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 22
     buildToolsVersion "21.1.2"
     defaultConfig {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 16
-        targetSdkVersion 21
-        versionCode 14
-        versionName "1.0.0"
+        targetSdkVersion 22
+        versionCode 17
+        versionName "4.2.0"
     }
 
     buildTypes {
@@ -39,7 +39,7 @@ dependencies {
     compile 'com.google.android.gms:play-services:7.3.0'
     compile 'com.googlecode.libphonenumber:libphonenumber:7.0+'
 
-    compile project(':libraries:Android_AylaLibrary')
+    compile project(':libraries:Android_AylaLibrary_Public')
 }
 
 android.applicationVariants.all { variant ->

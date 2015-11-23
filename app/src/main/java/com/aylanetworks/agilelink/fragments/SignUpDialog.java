@@ -55,12 +55,11 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
         getWindow().setAttributes(params);
 
         // Set up a handler for our button
-        Button b = (Button)findViewById(R.id.btnSignUp);
-        b.setOnClickListener(this);
+        findViewById(R.id.btnSignUp).setOnClickListener(this);
+        findViewById(R.id.imageViewConnected).setOnClickListener(this);
     }
 
-    @Override
-    public void onClick(View v) {
+    void onButtonSignUpClicked() {
         // Get our views
         EditText password = (EditText)findViewById(R.id.etPassword);
         EditText confirm = (EditText)findViewById(R.id.etConfirmPassword);
@@ -75,7 +74,7 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
         ProgressBar progress = (ProgressBar)findViewById(R.id.pbProgressBar);
 
         // Validate
-         Resources res = getContext().getResources();
+        Resources res = getContext().getResources();
 
         // Password: Exists and matches
         if ( password.toString().length() == 0 ) {
@@ -101,6 +100,32 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
         progress.setVisibility(View.VISIBLE);
 
         SessionManager.registerNewUser(user, new RegisterNewUserHandler(this));
+    }
+
+    // If you are testing add & delete account, then put your info here
+    void onImageViewConnectedClicked() {
+        /*
+        ((EditText)findViewById(R.id.etEmail)).setText("");
+        ((EditText)findViewById(R.id.etPassword)).setText("");
+        ((EditText)findViewById(R.id.etConfirmPassword)).setText("");
+        ((EditText)findViewById(R.id.etFirstName)).setText("");
+        ((EditText)findViewById(R.id.etLastName)).setText("");
+        ((EditText)findViewById(R.id.etCountry)).setText("USA");
+        ((EditText)findViewById(R.id.etZipCode)).setText("94089");
+        ((EditText)findViewById(R.id.etPhoneNumber)).setText("6505551212");
+        */
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btnSignUp:
+                onButtonSignUpClicked();
+                break;
+            case R.id.imageViewConnected:
+                onImageViewConnectedClicked();
+                break;
+        }
     }
 
     static class RegisterNewUserHandler extends Handler {

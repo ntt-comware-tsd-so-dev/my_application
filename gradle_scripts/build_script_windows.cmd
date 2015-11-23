@@ -3,14 +3,10 @@ cd ..
 rmdir /s /q libraries
 mkdir libraries
 cd libraries
-git clone https://github.com/AylaNetworks/Android_AylaLibrary.git
-cd Android_AylaLibrary
-: git checkout -b master_candidate_merge3 origin/master_candidate_merge3
-git checkout master
-cd ..
-git clone https://github.com/AylaNetworks/Android_AylaZigbeeLibrary.git
-rmdir /s /q Android_AylaLibrary\lib\src\com\aylanetworks\aaml\zigbee
-xcopy Android_AylaZigbeeLibrary\zigbee Android_AylaLibrary\lib\src\com\aylanetworks\aaml\zigbee\ /s /e /y
-rmdir /s /q Android_AylaZigbeeLibrary
-cd Android_AylaLibrary
+git clone -b develop https://github.com/AylaNetworks/Android_AylaLibrary_Public.git
+git clone -b develop https://github.com/AylaNetworks/Android_AylaZigbeeLibrary_Public.git
+rmdir /s /q Android_AylaLibrary_Public\lib\src\com\aylanetworks\aaml\zigbee
+xcopy Android_AylaZigbeeLibrary_Public\zigbee Android_AylaLibrary_Public\lib\src\com\aylanetworks\aaml\zigbee\ /s /e /y
+rmdir /s /q Android_AylaZigbeeLibrary_Public
+cd Android_AylaLibrary_Public
 gradle build

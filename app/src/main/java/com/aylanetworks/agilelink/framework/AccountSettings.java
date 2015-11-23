@@ -86,9 +86,8 @@ public class AccountSettings {
     public static void fetchAccountSettings(AylaUser user, AccountSettingsCallback callback) {
         // Get the current user info first, then fetch the account settings and call the
         // callback.
-        Map<String, String> callParams = new HashMap<>();
-        callParams.put("access_token", user.getAccessToken());
-        AylaUser.getInfo(new GetUserInfoHandler(user, callback), callParams);
+        Log.d(LOG_TAG, "user: AylaUser.getInfo started");
+        AylaUser.getInfo(new GetUserInfoHandler(user, callback));
     }
 
     /**
@@ -328,6 +327,7 @@ public class AccountSettings {
 
         @Override
         public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "user: GetInfo handleMessage [" + msg + "]");
             if ( AylaNetworks.succeeded(msg) ) {
                 AylaUser user = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaUser.class);
                 user.setauthHeaderValue(_user.getauthHeaderValue());
@@ -335,12 +335,23 @@ public class AccountSettings {
                 user.setRefreshToken(_user.getRefreshToken());
                 user.setExpiresIn(_user.getExpiresIn());
                 AylaUser.setCurrent(user);
-                Log.d(LOG_TAG, "Fetched current user details: " + user);
+                Log.d(LOG_TAG, "user: GetInfo current user [" + user + "]");
                 _user = user;
             } else {
-                Log.e(LOG_TAG, "Failed to fetch current user details: " + msg);
+                Log.e(LOG_TAG, "user: Failed to fetch current user details: " + msg);
             }
             _user.getDatumWithKey(new FetchDatumHandler(_user, _callback), getDatumName());
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        final String NEW_LINE = System.getProperty("line.separator");
+        result.append(this.getClass().getName()).append("Object {").append(NEW_LINE)
+                .append(" id: " + _ownerContactID).append(NEW_LINE)
+                .append(" user: " + _aylaUser.toString()).append(NEW_LINE)
+                .append("}");
+        return result.toString();
+    }// end of toString
 }

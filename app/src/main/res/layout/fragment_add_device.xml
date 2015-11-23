@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="left|center_vertical"
             android:layout_weight="0.4"
-            android:text="Product Type"
+            android:text="@string/product_type"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         <Spinner

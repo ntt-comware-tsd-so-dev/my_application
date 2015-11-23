@@ -13,6 +13,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
@@ -50,6 +51,15 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
                     _recyclerView.setAdapter(_adapter);
                 }
             }
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.add_button) {
+            MenuHandler.handleGatewayWelcome();
+        } else {
+            super.onClick(v);
         }
     }
 }

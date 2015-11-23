@@ -1,9 +1,13 @@
 package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -20,7 +24,9 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     private final static String LOG_TAG = "ZigbeeDoorSensor";
 
     public final static String PROPERTY_ZB_OUTPUT = "1_out_0x0006_0x0000";
-    public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_OUTPUT;
+    public final static String PROPERTY_ZB_INPUT = "1_in_0x0500_0x0002";
+    //public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_OUTPUT;
+    public final static String PROPERTY_ZB_DOOR_SENSOR = PROPERTY_ZB_INPUT;
 
     public ZigbeeDoorSensor(AylaDevice device) {
         super(device);
@@ -53,6 +59,11 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     }
 
     @Override
+    public int getItemViewType() {
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_WITH_STATUS;
+    }
+
+    @Override
     public String deviceTypeName() {
         return "Door Sensor";
     }
@@ -61,4 +72,28 @@ public class ZigbeeDoorSensor extends ZigbeeTriggerDevice {
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.ic_door_red);
     }
+
+    @Override
+    public void bindViewHolder(RecyclerView.ViewHolder holder) {
+        super.bindViewHolder(holder);
+        if (holder instanceof ZigbeeStatusDeviceHolder) {
+            Resources res = MainActivity.getInstance().getResources();
+            String statusText = isOpen()? getTriggerOnName(): getTriggerOffName();
+            ZigbeeStatusDeviceHolder h = (ZigbeeStatusDeviceHolder) holder;
+            if(h.statusTextView != null){
+                h.statusTextView.setText(statusText);
+            }
+
+        }
+    }
+
+    public boolean isOpen() {
+        AylaProperty prop = getProperty(getObservablePropertyName());
+        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+            return true;
+        }
+
+        return false;
+    }
+
 }

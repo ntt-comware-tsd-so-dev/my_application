@@ -403,17 +403,23 @@ public class DeviceNotificationHelper {
 
         SessionManager.SessionParameters sessionParameters = SessionManager.sessionParameters();
         AylaAppNotificationParameters params = appNotification.notificationAppParameters;
+        //Log.d(LOG_TAG, "createApp params=[" + params + "]");
 
         appNotification.appType = notificationType;
 
-        params.applicationId = sessionParameters.appId;
-        params.message = _customMessage;
-        params.pushSound = "default";
-        params.registrationId = PushNotification.registrationId;
-        params.contactId = SessionManager.getInstance().getAccountSettings().getOwnerContactID().toString();
+        try {
+            params.applicationId = sessionParameters.appId;
+            params.message = _customMessage;
+            params.pushSound = "default";
+            params.registrationId = PushNotification.registrationId;
+            params.contactId = SessionManager.getInstance().getAccountSettings().getOwnerContactID().toString();
 
-        Log.d(LOG_TAG, "createApp[" + notificationType + "] email: " + params.email + " countryCode: " + params.countryCode + " phoneNumber: " + params.phoneNumber);
-        deviceNotification.createApp(new CreateAppHandler(_device, deviceNotification, listener), appNotification);
+            Log.d(LOG_TAG, "createApp[" + notificationType + "] email: " + params.email + " countryCode: " + params.countryCode + " phoneNumber: " + params.phoneNumber);
+            deviceNotification.createApp(new CreateAppHandler(_device, deviceNotification, listener), appNotification);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.e(LOG_TAG, "createApp[" + notificationType + "] email: " + params.email + " countryCode: " + params.countryCode + " phoneNumber: " + params.phoneNumber + " : error=" + ex.getMessage());
+        }
     }
 
     /**

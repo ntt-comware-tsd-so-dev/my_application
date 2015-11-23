@@ -107,7 +107,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void onDestroy() {
         super.onDestroy();
         ensureIdentifyOff();
-        SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
+        if(SessionManager.deviceManager() != null){
+            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
+        }
     }
 
     @Override
@@ -126,7 +128,11 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _scheduleButton.setOnClickListener(this);
 
         Button sharingButton = (Button)view.findViewById(R.id.sharing_button);
-        sharingButton.setOnClickListener(this);
+        if(_device.isDeviceNode()){
+            sharingButton.setVisibility(View.GONE);
+        } else{
+            sharingButton.setOnClickListener(this);
+        }
         if ( !_device.getDevice().amOwner() ) {
             // This device was shared with us
             sharingButton.setVisibility(View.GONE);
@@ -153,8 +159,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         triggerButton.setOnClickListener(this);
 
         if (_device.isDeviceNode()) {
-            _identifySwitch.setVisibility(View.VISIBLE);
             Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+            _identifySwitch.setVisibility(gateway.isZigbeeGateway() ? View.VISIBLE : View.GONE);
 
             if (_device instanceof ZigbeeTriggerDevice) {
                 Logger.logDebug(LOG_TAG, "we are a trigger device.");
@@ -277,7 +283,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             // Set the device title and image
             _titleView.setText(_device.toString());
-            _dsnView.setText(_device.getDeviceDsn());
+            _dsnView.setText(_device.isInLanMode() ? _device.getDeviceIP() : _device.getDeviceDsn());
             _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
             _listView.setAdapter(_adapter);
         }
@@ -290,9 +296,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
         boolean hasFactoryReset = false;
         if (_device != null) {
-            hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
+            // djunod: I have never been able to do Factory Reset on a Zigbee Gateway
+            //hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
+            hasFactoryReset = _device.isDeviceNode();
         }
         menu.getItem(1).setVisible(hasFactoryReset);
+        menu.getItem(0).setVisible(!hasFactoryReset);
 
         super.onPrepareOptionsMenu(menu);
     }

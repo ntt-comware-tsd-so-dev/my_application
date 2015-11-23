@@ -181,7 +181,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     public void dismissWaitDialog() {
         // Put the orientation back to what it was before we messed with it
         if (_progressDialog != null) {
-            _progressDialog.dismiss();
+            try {
+                _progressDialog.dismiss();
+            } catch (Exception ex) {}
         }
         _progressDialog = null;
         _progressDialogStart = 0;
@@ -241,7 +243,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         if ( _noDevicesMode ) {
             SessionManager.deviceManager().stopPolling();
-            setContentView(R.layout.activity_main_no_devices);
+            if (getUIConfig()._navStyle == UIConfig.NavStyle.Material) {
+                setContentView(R.layout.activity_main_no_devices_material);
+                _toolbar = (Toolbar) findViewById(R.id.toolbar);
+                setSupportActionBar(_toolbar);
+            } else {
+                setContentView(R.layout.activity_main_no_devices);
+            }
             MenuHandler.handleAddDevice();
         } else {
             initUI();
@@ -338,10 +346,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 }
             });
         } else if ( reqCode == REQ_SIGN_IN ) {
-            Log.d(LOG_TAG, "Login screen finished");
-
+            Log.d(LOG_TAG, "nod: SignInActivity finished");
+            _loginScreenUp = false;
             if ( resultCode == RESULT_FIRST_USER ) {
-                Log.d(LOG_TAG, "Back pressed from login. Finishing.");
+                Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
             }
         }
@@ -732,12 +740,22 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+        if(getLocaleCountry().equalsIgnoreCase("ES")){
+            parameters.registrationEmailTemplateId = "ayla_confirmation_template_01_es";
+            parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01_es";
+        } else{
+            parameters.registrationEmailTemplateId = "ayla_confirmation_template_01";
+            parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01";
+        }
 
         if (parameters.registrationEmailTemplateId == null) {
             parameters.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
         } else {
             parameters.registrationEmailBodyHTML = null;
+        }
+
+        if(parameters.logsEmailAddress == null){
+            parameters.logsEmailAddress = AylaNetworks.DEFAULT_SUPPORT_EMAIL_ADDRESS;
         }
 
         return parameters;
@@ -811,14 +829,13 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     private boolean _loginScreenUp;
+
     private void showLoginDialog() {
-        Log.d(LOG_TAG, "showLoginDialog:");
+        Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
-            Log.e(LOG_TAG, "showLoginDialog: Already shown");
+            Log.e(LOG_TAG, "nod: showLoginDialog: Already shown");
             return;
         }
-
-        _loginScreenUp = true;
 
         SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
@@ -829,6 +846,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
             signIn(savedUsername, savedPassword);
             return;
         }
+
+        _loginScreenUp = true;
 
         // We always want to show the "All Devices" page first
         if ( _viewPager != null ) {
@@ -842,6 +861,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         Intent intent = new Intent(this, SignInActivity.class);
         intent.putExtras(args);
+        Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
         startActivityForResult(intent, REQ_SIGN_IN);
     }
 
@@ -861,9 +881,10 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         Log.d(LOG_TAG, "onPause");
         if (SessionManager.deviceManager() != null) {
             SessionManager.deviceManager().stopPolling();
-        }
 
-        AylaLanMode.pause(false);
+            // we aren't going to "pause" LAN mode if we haven't been logged in.
+            AylaLanMode.pause(false);
+        }
     }
 
     @Override
@@ -871,9 +892,14 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onResume();
 
         Log.d(LOG_TAG, "onResume");
-        AylaLanMode.resume();
 
+        if(_theInstance == null){
+            _theInstance = this;
+        }
         if (SessionManager.deviceManager() != null) {
+            // we aren't going to "resume" LAN mode if we aren't logged in.
+            AylaLanMode.resume();
+
             SessionManager.deviceManager().startPolling();
             setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
         } else if ( !_loginScreenUp ) {
@@ -888,31 +914,33 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
 
     // SessionListener methods
+    void handleLoginChanged(boolean loggedIn, AylaUser aylaUser) {
+        dismissWaitDialog();
+        if (!loggedIn) {
+            // User logged out.
+            setNoDevicesMode(false);
+            if (!_loginScreenUp) {
+                showLoginDialog();
+            } else {
+                Log.e(LOG_TAG, "nod: Login screen is already up:");
+            }
+        } else {
+            // Finish  the login dialog
+            Log.d(LOG_TAG, "nod: finish login dialog");
+            finishActivity(REQ_SIGN_IN);
+            _loginScreenUp = false;
+            dismissWaitDialog();
+        }
+        setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+    }
+
     @Override
-    public void loginStateChanged(final boolean loggedIn, AylaUser aylaUser) {
-        // Post in a handler in case we just resumed and the instance state has changed
-        new Handler().post(new Runnable() {
+    public void loginStateChanged(final boolean loggedIn, final AylaUser aylaUser) {
+        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dismissWaitDialog();
-                Log.d(LOG_TAG, "Login state changed. Logged in: " + loggedIn);
-                if (!loggedIn) {
-                    // User logged out.
-                    setNoDevicesMode(false);
-                    if (!_loginScreenUp) {
-                        showLoginDialog();
-                    } else {
-                        Log.e(LOG_TAG, "Login screen is already up:");
-                        Thread.dumpStack();
-                    }
-                } else {
-                    // Finish  the login dialog
-                    MainActivity.this.finishActivity(REQ_SIGN_IN);
-                    _loginScreenUp = false;
-                    dismissWaitDialog();
-                }
-
-                setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+                handleLoginChanged(loggedIn, aylaUser);
             }
         });
     }
@@ -967,11 +995,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                 return true;
             }
         }
-
         if (MenuHandler.handleMenuItem(item)) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -1072,5 +1098,8 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
                     return null;
             }
         }
+    }
+    private String getLocaleCountry(){
+        return getResources().getConfiguration().locale.getCountry();
     }
 }

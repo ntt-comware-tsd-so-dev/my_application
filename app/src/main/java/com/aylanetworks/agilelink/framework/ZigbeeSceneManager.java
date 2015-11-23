@@ -3,6 +3,8 @@ package com.aylanetworks.agilelink.framework;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
@@ -10,6 +12,8 @@ import com.aylanetworks.aaml.zigbee.AylaDeviceZigbeeGateway;
 import com.aylanetworks.aaml.zigbee.AylaNetworksZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.ZigbeeGateway;
 
 import java.lang.ref.WeakReference;
@@ -508,15 +512,9 @@ public class ZigbeeSceneManager {
                 Logger.logWarning(LOG_TAG, "zs: ZigbeeSceneManager went away.");
             }
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                if (msg.arg1 == 206) {
-                    // has failing nodes...
-                    Logger.logWarning(LOG_TAG, "zs: createScene [%s] has failing nodes", _name);
-                    _manager.get().notifyCreateCompleted(_name, msg, null);
-                } else {
-                    AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
-                    _manager.get().addScene(scene);
-                    _manager.get().notifyCreateCompleted(_name, msg, scene);
-                }
+                AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
+                _manager.get().addScene(scene);
+                _manager.get().notifyCreateCompleted(_name, msg, scene);
             } else {
                 _manager.get().notifyCreateCompleted(_name, msg, null);
             }
@@ -548,16 +546,10 @@ public class ZigbeeSceneManager {
                 Logger.logWarning(LOG_TAG, "zs: ZigbeeSceneManager went away.");
             }
             if (msg.what == AylaNetworks.AML_ERROR_OK) {
-                if (msg.arg1 == 206) {
-                    // has failing nodes...
-                    Logger.logWarning(LOG_TAG, "zs: updateScene [%s] has failing nodes", _name);
-                    _manager.get().notifyUpdateCompleted(_name, msg, null);
-                } else {
-                    AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
-                    Logger.logDebug(LOG_TAG, "zs: updateScene [%s]", scene);
-                    _manager.get().updateScene(scene);
-                    _manager.get().notifyUpdateCompleted(_name, msg, scene);
-                }
+                AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
+                Logger.logDebug(LOG_TAG, "zs: updateScene [%s]", scene);
+                _manager.get().updateScene(scene);
+                _manager.get().notifyUpdateCompleted(_name, msg, scene);
             } else {
                 _manager.get().notifyUpdateCompleted(_name, msg, null);
             }
@@ -596,7 +588,7 @@ public class ZigbeeSceneManager {
                 } else {
                     AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
                     // TODO: do we need to update the scene?
-                    _manager.get().updateScene(scene);
+               //     _manager.get().updateScene(scene);
 
                     _manager.get().notifyRecallCompleted(_name, msg, scene);
                 }

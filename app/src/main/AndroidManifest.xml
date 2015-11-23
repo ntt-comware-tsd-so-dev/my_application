@@ -91,7 +91,14 @@
         <activity
             android:name=".SignInActivity"
             android:label="AgileLink"
-            android:launchMode="singleTop">
+            android:launchMode="singleInstance">
+
+        </activity>
+
+        <activity
+            android:name=".DeveloperOptions"
+            android:label="AgileLink"
+            android:launchMode="singleInstance">
 
         </activity>
 

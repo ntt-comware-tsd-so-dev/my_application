@@ -29,7 +29,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
+import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.ZigbeeGateway;
@@ -236,7 +238,8 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             // get the scenes for all the gateways
             final List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
             if ((gateways != null) && (gateways.size() > 0)) {
-                fetchCount = gateways.size();
+               // fetchCount = gateways.size();
+                fetchCount = getZigbeeGatewayCount();
                 fetchDone = 0;
                 for (Gateway g : gateways) {
                     if (g.isZigbeeGateway()) {
@@ -261,7 +264,9 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     @Override
     public void onResume() {
         super.onResume();
-        fetchScenes();
+        if (SessionManager.deviceManager() != null) {
+            fetchScenes();
+        }
     }
 
     @Override
@@ -323,14 +328,17 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         int countTotal;
         int countDone;
         int countSuccess;
+        List<String> failedNodes;
 
         Object _tag;
         Gateway.AylaGatewayActionHandler _handler;
 
         public SceneAction(Object tag, Gateway.AylaGatewayActionHandler handler, SceneActionStartMode mode) {
             gateways = SessionManager.deviceManager().getGatewayDevices();
-            countTotal = gateways.size();
-            countDone = countSuccess = 0;
+            failedNodes = new ArrayList<>();
+            //countTotal = gateways.size();
+            countTotal = countDone = countSuccess = 0;
+            countTotal = getZigbeeGatewayCount();
             _tag = tag;
             _handler = handler;
             if (mode == SceneActionStartMode.Async) {
@@ -354,12 +362,12 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         }
 
         public void actionComplete(Message msg) {
-            if (AylaNetworks.succeeded(msg)) {
+            if (msg.what == AylaNetworks.AML_ERROR_OK) {
                 countSuccess++;
             }
             countDone++;
             if (countDone == countTotal) {
-                complete();
+                complete(msg);
             } else {
                 process();
             }
@@ -372,9 +380,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
             }
         }
 
-        void complete() {
-            Message msg = new Message();
-            msg.what = (countSuccess == countTotal) ? AylaNetworks.AML_ERROR_OK : AylaNetworks.AML_ERROR_FAIL;
+        void complete(Message msg) {
             _handler.complete(this, msg, _tag);
         }
 
@@ -391,13 +397,20 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     int updateSceneGatewayDone;
     int updateSceneGatewaySuccess;
 
-    protected void updateSceneComplete(final String name, final List<Device> sceneDevices) {
+    protected void updateSceneComplete(final String name, final List<Device> sceneDevices, List<String> failedNodes) {
         MainActivity.getInstance().dismissWaitDialog();
         if (updateSceneGatewaySuccess == updateSceneGatewayCount) {
-            Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+
+            if(failedNodes.isEmpty()){
+                Toast.makeText(getActivity(), R.string.scene_update_complete, Toast.LENGTH_LONG).show();
+            } else{
+                Toast.makeText(getActivity(), getResources().getString(R.string.scene_update_partial_success) + " " + failedNodes.toString(), Toast.LENGTH_LONG).show();
+            }
+
+            _selectedSceneName = name;
             deviceListChanged();
         } else {
-            Toast.makeText(getActivity(), R.string.scene_create_failed, Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.scene_update_failed, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -405,25 +418,26 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         MainActivity.getInstance().showWaitDialog(R.string.scene_update_title, R.string.scene_update_body);
 
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        updateSceneGatewayCount = gateways.size();
+        failedNodes = new ArrayList<>();
+        updateSceneGatewayCount =getZigbeeGatewayCount();
         updateSceneGatewayDone = updateSceneGatewaySuccess = 0;
 
         for (Gateway g : gateways) {
             if (g.isZigbeeGateway()) {
                 ZigbeeGateway gateway = (ZigbeeGateway)g;
                 List<Device> devices = gateway.filterDeviceList(sceneDevices);
-                AylaSceneZigbee scene = gateway.getSceneByName(name);
+                final AylaSceneZigbee scene = gateway.getSceneByName(name);
                 Logger.logInfo(LOG_TAG, "zs: updateScene [%s] [%s:%s]", name, gateway.getDeviceDsn(), DeviceManager.deviceListToString(sceneDevices));
                 if (scene == null) {
                     gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
                         @Override
                         public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                            if (AylaNetworks.succeeded(msg)) {
+                            if (msg.what == AylaNetworks.AML_ERROR_OK) {
                                 updateSceneGatewaySuccess++;
                             }
                             updateSceneGatewayDone++;
                             if (updateSceneGatewayDone == updateSceneGatewayCount) {
-                                updateSceneComplete(name, sceneDevices);
+                                updateSceneComplete(name, sceneDevices, failedNodes);
                             }
                         }
                     });
@@ -431,12 +445,18 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                     gateway.updateSceneDevices(scene, devices, this, new Gateway.AylaGatewayCompletionHandler() {
                         @Override
                         public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                            if (AylaNetworks.succeeded(msg)) {
+                            if(msg.what == AylaNetworks.AML_ERROR_OK) {
+                                if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                                    if(msg.arg1 == 206){
+                                        AylaSceneZigbee updatedScene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
+                                        failedNodes = getFailedNodes(updatedScene);
+                                    }
+                                }
                                 updateSceneGatewaySuccess++;
                             }
                             updateSceneGatewayDone++;
                             if (updateSceneGatewayDone == updateSceneGatewayCount) {
-                                updateSceneComplete(name, sceneDevices);
+                                updateSceneComplete(name, sceneDevices, failedNodes);
                             }
                         }
                     });
@@ -500,11 +520,16 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     int addSceneGatewayCount;
     int addSceneGatewayDone;
     int addSceneGatewaySuccess;
+    List<String> failedNodes;
 
-    protected void addSceneComplete(final String name, final List<Device> sceneDevices) {
+    protected void addSceneComplete(final String name, final List<Device> sceneDevices, List<String> failedNodes) {
         MainActivity.getInstance().dismissWaitDialog();
         if (addSceneGatewaySuccess == addSceneGatewayCount) {
-            Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+            if(failedNodes.isEmpty()){
+                Toast.makeText(getActivity(), R.string.scene_create_complete, Toast.LENGTH_LONG).show();
+            } else{
+                Toast.makeText(getActivity(), getResources().getString(R.string.scene_create_partial_success) + " "+ failedNodes.toString() , Toast.LENGTH_LONG).show();
+            }
             _selectedSceneName = name;
             deviceListChanged();
         } else {
@@ -517,8 +542,10 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         MainActivity.getInstance().showWaitDialog(R.string.scene_create_title, R.string.scene_create_body);
 
         List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        addSceneGatewayCount = gateways.size();
-        addSceneGatewayDone = addSceneGatewaySuccess = 0;
+        failedNodes = new ArrayList<>();
+        //addSceneGatewayCount = gateways.size();
+        addSceneGatewayCount = addSceneGatewayDone = addSceneGatewaySuccess = 0;
+        addSceneGatewayCount = getZigbeeGatewayCount();
 
         Logger.logInfo(LOG_TAG, "zs: addScene [%s] [%s]", name,  DeviceManager.deviceListToString(sceneDevices));
         for (Gateway g : gateways) {
@@ -529,12 +556,16 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 gateway.createScene(name, devices, this, new Gateway.AylaGatewayCompletionHandler() {
                     @Override
                     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
-                        if (AylaNetworks.succeeded(msg)) {
+                        if (msg.what == AylaNetworks.AML_ERROR_OK) {
+                            if(msg.arg1 == 206){
+                                AylaSceneZigbee scene = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaSceneZigbee.class);
+                                failedNodes = getFailedNodes(scene);
+                            }
                             addSceneGatewaySuccess++;
                         }
                         addSceneGatewayDone++;
                         if (addSceneGatewayDone == addSceneGatewayCount) {
-                            addSceneComplete(name, sceneDevices);
+                            addSceneComplete(name, sceneDevices, failedNodes);
                         }
                     }
                 });
@@ -639,12 +670,16 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 actionActivate = new SceneAction(_selectedSceneName, new Gateway.AylaGatewayActionHandler() {
                     @Override
                     public void performAction(Object action, Gateway g, Object tag) {
-                        ZigbeeGateway gateway = (ZigbeeGateway)g;
-                        if (gateway != null) {
-                            AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
-                            if (scene != null) {
-                                gateway.recallScene(scene, this, (SceneAction) action);
+                        if (g.isZigbeeGateway()) {
+                            ZigbeeGateway gateway = (ZigbeeGateway) g;
+                            if (gateway != null) {
+                                AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
+                                if (scene != null) {
+                                    gateway.recallScene(scene, this, (SceneAction) action);
+                                }
                             }
+                        } else {
+                            Logger.logError(LOG_TAG, "zg: gateway [%s] is not a ZigbeeGateway!", g.getDeviceDsn());
                         }
                     }
 
@@ -675,11 +710,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 actionDelete = new SceneAction(sceneName, new Gateway.AylaGatewayActionHandler() {
                     @Override
                     public void performAction(Object action, Gateway g, Object tag) {
-                        ZigbeeGateway gateway = (ZigbeeGateway)g;
-                        if (gateway != null) {
-                            AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
-                            if (scene != null) {
-                                gateway.deleteScene(scene, this, (SceneAction) action);
+                        if (g.isZigbeeGateway()) {
+                            ZigbeeGateway gateway = (ZigbeeGateway) g;
+                            if (gateway != null) {
+                                AylaSceneZigbee scene = gateway.getSceneByName((String) tag);
+                                if (scene != null) {
+                                    gateway.deleteScene(scene, this, (SceneAction) action);
+                                }
                             }
                         }
                     }
@@ -722,5 +759,31 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
         Log.d(LOG_TAG, "Selected scene: " + sceneName);
         _selectedSceneName = sceneName;
         updateDeviceList();
+    }
+
+
+    private static int getZigbeeGatewayCount(){
+        int count = 0;
+        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+        for(Gateway g: gateways){
+            if(g.isZigbeeGateway()){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static List<String> getFailedNodes(AylaSceneZigbee scene){
+        List<String> failedNodes = new ArrayList<>();
+        AylaSceneZigbeeNodeEntity[] nodes = scene.nodes;
+
+        for(AylaSceneZigbeeNodeEntity node: nodes){
+            if(node.errorCode != null){
+                if(node.errorCode.equals("ZE_ZCB_COMMS_FAILED")){
+                    failedNodes.add(node.dsn);
+                }
+            }
+        }
+        return failedNodes;
     }
 }

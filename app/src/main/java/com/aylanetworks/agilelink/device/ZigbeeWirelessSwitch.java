@@ -284,7 +284,11 @@ public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
     public void deviceAdded(Device oldDevice) {
         super.deviceAdded(oldDevice);
         _gateway = (ZigbeeGateway)Gateway.getGatewayForDeviceNode(this);
-        Logger.logInfo(LOG_TAG, "rm: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+        if (_gateway == null) {
+            Logger.logError(LOG_TAG, "rm: deviceAdded [%s] no gateway found!", this.getDeviceDsn());
+        } else {
+            Logger.logInfo(LOG_TAG, "rm: deviceAdded [%s] on gateway [%s]", this.getDeviceDsn(), _gateway.getDeviceDsn());
+        }
     }
 
     @Override

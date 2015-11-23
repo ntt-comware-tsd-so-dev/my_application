@@ -1,7 +1,9 @@
 package com.aylanetworks.agilelink.framework;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
@@ -167,12 +169,18 @@ public class MenuHandler {
 
     public static AlertDialog _confirmDeleteDialog;
 
+    static DeleteAccountHandler _deleteAccountHandler;
+    static SsoDeleteAccountHandler _ssoDeleteAccoutnHandler;
+
     public static void deleteAccount() {
         // First confirm
+        Resources res = MainActivity.getInstance().getResources();
+        AylaUser currentUser = AylaUser.getCurrent();
+        String msg = res.getString(R.string.confirm_delete_account_message, currentUser.email);
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
-                .setMessage(R.string.confirm_delete_account_message)
+                .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -180,12 +188,20 @@ public class MenuHandler {
                         if (_confirmDeleteDialog != null) {
                             _confirmDeleteDialog.dismiss();
                         }
-
-                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title,
-                                R.string.deleting_account_message);
-
+                        MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title, R.string.deleting_account_message);
                         // Actually delete the account
-                        AylaUser.delete(new DeleteAccountHandler());
+                        Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
+
+                        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+                       /* if(params.ssoLogin){
+                            _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
+                            params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
+                        } else{
+                            _deleteAccountHandler = new DeleteAccountHandler();
+                            AylaUser.delete(_deleteAccountHandler);
+                        }*/
+                        _deleteAccountHandler = new DeleteAccountHandler();
+                        AylaUser.delete(_deleteAccountHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -195,7 +211,7 @@ public class MenuHandler {
     static class DeleteAccountHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Delete account result: " + msg);
+            Logger.logMessage(LOG_TAG, msg, "user: DeleteAccountHandler");
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Log out and show a toast
@@ -221,27 +237,60 @@ public class MenuHandler {
         }
     }
 
+    static class SsoDeleteAccountHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Logger.logMessage(LOG_TAG, msg, "user: SSo DeleteAccountHandler");
+            MainActivity.getInstance().dismissWaitDialog();
+            if (msg.arg1 >= 200 && msg.arg1 <300)  {
+                // Log out and show a toast
+                SessionManager.clearSavedUser();
+                SessionManager.stopSession();
+                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+            } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
+                // Look for an error message in the returned JSON
+                String errorMessage = msg.obj.toString();
+                if ( errorMessage != null ) {
+                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     public static void handleShares() {
         Log.d(LOG_TAG, "handleShares()");
-
         SharesFragment frag = SharesFragment.newInstance();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     public static void signOut() {
-        // Confirm
-        new AlertDialog.Builder(MainActivity.getInstance())
-                .setIcon(R.drawable.ic_launcher)
-                .setTitle(R.string.confirm_sign_out)
-                .setMessage(R.string.confirm_sign_out_message)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        SessionManager.stopSession();
-                    }
-                })
-                .setNegativeButton(android.R.string.no, null)
-                .create().show();
+        Activity activity = MainActivity.getInstance();
+        if (activity != null) {
+            // Confirm
+            Resources res = activity.getResources();
+            AylaUser currentUser = AylaUser.getCurrent();
+            String msg = res.getString(R.string.confirm_sign_out_message, currentUser.email);
+            new AlertDialog.Builder(activity)
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.confirm_sign_out)
+                    .setMessage(msg)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Logger.logInfo(LOG_TAG, "signOut: stop session.");
+                            SessionManager.stopSession();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .create().show();
+        } else {
+            Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed, stop session.");
+            SessionManager.stopSession();
+        }
     }
 
     public static void about() {

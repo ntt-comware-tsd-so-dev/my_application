@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -43,8 +44,11 @@ import java.util.List;
 public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItemClickListener, TextWatcher, TextView.OnEditorActionListener {
 
     private final static String LOG_TAG = "ChooseAPDialog";
+
     private final static String ARG_SSIDS = "ssids";
     private final static String ARG_SECURITY = "security";
+    private final static String ARG_SSID = "ssid";
+    private final static String ARG_BSSID = "bssid";
     private final static String SECURITY_OPEN = "None";
 
     /**
@@ -55,7 +59,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         void choseAccessPoint(String accessPoint, String security, String password);
     }
 
-    public static ChooseAPDialog newInstance(AylaModuleScanResults[] scanArray) {
+    public static ChooseAPDialog newInstance(AylaModuleScanResults[] scanArray, String ssid, String bssid) {
 
         // show highest strength signal first
         List<AylaModuleScanResults> scanResults = new ArrayList<>(Arrays.asList(scanArray));
@@ -81,6 +85,8 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         Bundle args = new Bundle();
         args.putStringArrayList(ARG_SSIDS, ssids);
         args.putStringArrayList(ARG_SECURITY, keyMgmt);
+        args.putString(ARG_SSID, ssid);
+        args.putString(ARG_BSSID, bssid);
         d.setArguments(args);
 
         return d;
@@ -88,6 +94,8 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
 
     private List<String> _ssidList;
     private List<String> _securityList;
+    private String _ssid;
+    private String _bssid;
     private View _passwordContainer;
     private EditText _passwordEditText;
     private TextView _textView;
@@ -120,7 +128,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         _connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(LOG_TAG, "AP selected");
+                Log.d(LOG_TAG, "rn: AP selected " + _selectedSSID);
                 dismiss();
                 if (listener != null) {
                     listener.choseAccessPoint(_selectedSSID, _selectedSecurity, _passwordEditText.getText().toString());
@@ -149,6 +157,8 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         Bundle args = getArguments();
         _ssidList = args.getStringArrayList(ARG_SSIDS);
         _securityList = args.getStringArrayList(ARG_SECURITY);
+        _ssid = args.getString(ARG_SSID);
+        _bssid = args.getString(ARG_BSSID);
         String[] aps = _ssidList.toArray(new String[_ssidList.size()]);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_activated_1, aps);
         listView.setAdapter(adapter);
@@ -157,9 +167,26 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         // If there's only one SSID, select it (after a short delay)
         if ( _ssidList.size() == 1 ) {
             listView.performItemClick(adapter.getView(0, null, null), 0, adapter.getItemId(0));
+        } else {
+            int index = indexOfSSID();
+            if (index >= 0) {
+                listView.performItemClick(adapter.getView(index, null, null), index, adapter.getItemId(index));
+            } else {
+                Log.e(LOG_TAG, "rn: couldn't find [" + _ssid + "] in ssidList");
+            }
         }
-
         return root;
+    }
+
+    int indexOfSSID() {
+        int index = 0;
+        for (String ssid : _ssidList) {
+            if (TextUtils.equals(ssid, _ssid)) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
     }
 
     private String _selectedSSID;

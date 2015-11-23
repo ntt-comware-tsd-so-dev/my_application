@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 
 import com.aylanetworks.aaml.AylaDatapoint;
@@ -225,6 +226,13 @@ public class Device implements Comparable<Device> {
     public String getDeviceDsn() {
         if (_device != null) {
             return _device.dsn;
+        }
+        return "";
+    }
+
+    public String getDeviceIP() {
+        if (_device != null) {
+            return _device.lanIp;
         }
         return "";
     }
@@ -753,23 +761,33 @@ public class Device implements Comparable<Device> {
 
             if (AylaNetworks.succeeded(msg)) {
                 // Update our properties
-                AylaProperty[] properties = AylaSystemUtils.gson.fromJson((String) msg.obj,
-                        AylaProperty[].class);
+                AylaProperty[] properties = null;
+                try {
+                    properties = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaProperty[].class);
+                } catch (Exception ex) {
+                    Logger.logError(LOG_TAG, "Failed to get properties for " + d.getProductName() + ": error " + ex.getMessage());
+                    if (_listener != null) {
+                        _listener.statusUpdated(_device.get(), true);
+                    }
+                    return;
+                }
 
                 Logger.logVerbose(LOG_TAG, "request: " + _device.get().getPropertyArgumentMap());
                 Logger.logVerbose(LOG_TAG, "Properties for " + d.productName + " [" + _device.get().getClass().getSimpleName() + "]");
                 if (properties.length == 0) {
                     Logger.logError(LOG_TAG, "No properties found!! Message: " + msg);
                 }
+
                 for (AylaProperty prop : properties) {
                     Logger.logVerbose(LOG_TAG, "Prop: " + prop.name + ": " + prop.value);
+                    prop.product_name = d.dsn;
                 }
 
                 // At this point, enable ourselves in LAN mode if we were the last device
                 // to enter LAN mode. If we try to enter LAN mode before we have fetched our properties,
                 // things don't seem to work very well.
                 DeviceManager dm = SessionManager.deviceManager();
-                if ( dm != null && AylaLanMode.lanModeState == AylaNetworks.lanMode.RUNNING ) {
+                if ( dm != null && AylaLanMode.isLanModeRunning() ) {
                     Logger.logDebug(LOG_TAG, "Entering LAN mode: [%s]", _device.get().getDeviceDsn() );
                     dm.enterLANMode(new DeviceManager.LANModeListener(_device.get()));
                 }
@@ -896,9 +914,11 @@ public class Device implements Comparable<Device> {
         }
 
         // Put the device into LAN mode before setting the property
+        Log.d(LOG_TAG, "lm: setDatapoint [" + getDeviceDsn() + "]");
         SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(this) {
             @Override
             public void lanModeResult(boolean isInLANMode) {
+                Log.d(LOG_TAG, "lm: setDatapoint [" + getDeviceDsn() + "] lanModeResult " + isInLANMode);
                 final CreateDatapointHandler handler = new CreateDatapointHandler(Device.this,property,listener);
                 property.createDatapoint(handler,datapoint);
             }
@@ -918,6 +938,7 @@ public class Device implements Comparable<Device> {
 
         @Override
         public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "lm: CreateDatapointHandler handleMessage " + msg);
             if (AylaNetworks.succeeded(msg)) {
                 // Set the value of the property
                 AylaDatapoint dp = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDatapoint.class);
@@ -1289,14 +1310,8 @@ public class Device implements Comparable<Device> {
      * @return A string representing the state of the device
      */
     public String getDeviceState() {
-        if ( isInLanMode() ) {
-            return MainActivity.getInstance().getString(R.string.lan_mode_enabled);
-        }
-        if ( isOnline() ) {
-            return MainActivity.getInstance().getString(R.string.online);
-        } else {
-            return MainActivity.getInstance().getString(R.string.offline);
-        }
+        int resId = isOnline() ? (isInLanMode() ? R.string.lan_mode_enabled : R.string.online) : R.string.offline;
+        return MainActivity.getInstance().getString(resId);
     }
 
     public boolean isInLanMode() {

@@ -142,10 +142,6 @@ public class DimmableLightViewHolder extends GenericDeviceViewHolder implements 
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        if ( !_currentDevice.isOnline() ) {
-            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality, Toast.LENGTH_LONG).show();
-            return;
-        }
         // see if they are just trying to turn the light on/off
         // this is one way of doing it, another would be to track if the touch moved
         if (_sliderStartProgress != seekBar.getProgress()) {

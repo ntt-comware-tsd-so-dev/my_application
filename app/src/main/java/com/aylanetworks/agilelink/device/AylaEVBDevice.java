@@ -55,7 +55,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
        setDatapoint(PROPERTY_GREEN_LED, on, new SetDatapointListener() {
            @Override
            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-               Log.d(LOG_TAG, "setGreenLED: " + succeeded);
+               Log.d(LOG_TAG, "lm: setGreenLED: " + succeeded + " ***^^^");
            }
        });
     }
@@ -64,7 +64,7 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
         setDatapoint(PROPERTY_BLUE_LED, on, new SetDatapointListener() {
             @Override
             public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "setGreenLED: " + succeeded);
+                Log.d(LOG_TAG, "lm: setBlueLED: " + succeeded + " ***^^^");
             }
         });
     }
@@ -132,22 +132,19 @@ public class AylaEVBDevice extends Device implements View.OnClickListener {
     public void onClick(View v) {
         // The green or blue LED has been tapped.
         boolean isGreenButton = (v.getId() == R.id.green_button);
+        Log.d(LOG_TAG, "lm: Button tapped: " + (isGreenButton ? "GREEN" : "BLUE") + " ***vvv");
+        if(isOnline() || isInLanMode()){
+            if (isGreenButton) {
+                setGreenLED(!isGreenLEDOn());
+            } else {
+                setBlueLED(!isBlueLEDOn());
+            }
 
-        if ( !isOnline() ) {
-            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality, Toast.LENGTH_LONG).show();
-            return;
+            // Update the image view to show the transient state
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
         }
 
-        Log.i(LOG_TAG, "Button tapped: " + (isGreenButton ? "GREEN" : "BLUE"));
-        if (isGreenButton) {
-            setGreenLED(!isGreenLEDOn());
-        } else {
-            setBlueLED(!isBlueLEDOn());
-        }
-
-        // Update the image view to show the transient state
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
     }
 
     public static final int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
