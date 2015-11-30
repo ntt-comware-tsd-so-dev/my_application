@@ -12,8 +12,8 @@ Building in Android Studio
 // Each build requires the correct Ayla Mobile Library. export AYLA_LIB_BRANCH &
 // AYLA_ZLIB_BRANCH to the shell environment if using other than 'master'.
                                                                                        
-$ git clone https://github.com/AylaNetworks/AMAP_Android_Public.git
-$ cd AMAP_Android_Public/gradle_scripts                                                    
+$ git clone https://github.com/AylaNetworks/AMAP_Android.git
+$ cd AMAP_Android/gradle_scripts
 $ gradle -q execTasks
                                                                                                   
 Open Android Studio -> Import Project -> Select build.gradle file in project folder(Agile_Link_Android)                

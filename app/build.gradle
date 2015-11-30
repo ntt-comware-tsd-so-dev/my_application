@@ -39,7 +39,7 @@ dependencies {
     compile 'com.google.android.gms:play-services:7.3.0'
     compile 'com.googlecode.libphonenumber:libphonenumber:7.0+'
 
-    compile project(':libraries:Android_AylaLibrary_Public')
+    compile project(':libraries:Android_AylaLibrary')
 }
 
 android.applicationVariants.all { variant ->

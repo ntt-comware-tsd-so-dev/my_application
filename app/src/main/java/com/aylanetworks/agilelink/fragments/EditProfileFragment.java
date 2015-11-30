@@ -149,11 +149,11 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         // Normal profile update
         MainActivity.getInstance().showWaitDialog(getString(R.string.updating_profile_title), getString(R.string.updating_profile_body));
         SessionManager.SessionParameters params = SessionManager.sessionParameters();
-       /* if(params.ssoLogin){
+        if(params.ssoLogin){
             params.ssoManager.updateUserInfo(_ssoUpdateProfileHandler, getSSOUserParameters());
         }else{
             AylaUser.updateInfo(_updateProfileHandler, getParameters(), params.appId, params.appSecret);
-        }*/
+        }
 
         AylaUser.updateInfo(_updateProfileHandler, getParameters(), params.appId, params.appSecret);
     }
