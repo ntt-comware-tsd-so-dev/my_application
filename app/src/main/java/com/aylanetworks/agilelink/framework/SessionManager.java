@@ -14,6 +14,7 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.AgileLinkApplication;
+import com.aylanetworks.agilelink.AgilelinkSSOManager;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -358,15 +359,14 @@ public class SessionManager {
          * {@link com.aylanetworks.agilelink.framework.SSOManager} object.
          * Implementers should create a class derived from SSOManager
          *
-         *//*
+         */
         public SSOManager ssoManager = new AgilelinkSSOManager();
 
-        *//**
+        /**
          * Set to true to allow login to SSO Identity Provider service.
          * false by default
-         *//*
+         */
         public boolean ssoLogin = false;
-*/
         /**
          * Logging level for the Ayla library. Set to one of:
          * <ul>
@@ -506,7 +506,7 @@ public class SessionManager {
                     "  loggingLevel: " + loggingLevel + "\n" +
                     "  enableLANMode: " + enableLANMode +
                     "  allowLANLogin: " + allowLANLogin +
-                 /*   "  ssoLogin: " + ssoLogin +*/
+                    "  ssoLogin: " + ssoLogin +
                     "  registrationEmailTemplateId: " + registrationEmailTemplateId + "\n" +
                     "  registrationEmailSubject: " + registrationEmailSubject + "\n" +
                     "  registrationEmailBodyHTML: " + registrationEmailBodyHTML + "\n" +
@@ -932,7 +932,7 @@ public class SessionManager {
 
         Log.d(LOG_TAG, "User Login");
 
-      /*  if(!_sessionParameters.ssoLogin)
+        if(!_sessionParameters.ssoLogin)
         {
             AylaUser.login(_loginHandler,
                     _sessionParameters.username,
@@ -942,13 +942,8 @@ public class SessionManager {
         }else{
 
             _sessionParameters.ssoManager.login(_ssoLoginHandler, _sessionParameters.username, _sessionParameters.password);
-        }*/
+        }
 
-        AylaUser.login(_loginHandler,
-                _sessionParameters.username,
-                _sessionParameters.password,
-                _sessionParameters.appId,
-                _sessionParameters.appSecret);
     }
 
     private boolean checkParameters() {
@@ -970,9 +965,9 @@ public class SessionManager {
         if (_sessionParameters.deviceCreator == null) {
             return false;
         }
-       /* if (_sessionParameters.ssoManager == null) {
+        if (_sessionParameters.ssoManager == null) {
             return false;
-        }*/
+        }
         if (_sessionParameters.password == null && _sessionParameters.refreshToken == null) {
             return false;
         }
