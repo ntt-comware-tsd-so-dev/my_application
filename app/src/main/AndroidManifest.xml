@@ -3,41 +3,39 @@
     package="com.aylanetworks.agilelink"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Google Cloud Messaging permission -->
     <permission
         android:name="com.aylanetworks.agilelink.permission.C2D_MESSAGE"
         android:protectionLevel="signature"/>
-
     <uses-permission android:name="com.aylanetworks.agilelink.permission.C2D_MESSAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.BROADCAST_STICKY"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <!-- App receives GCM messages. -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
-    <!-- GCM connects to Google Services. -->
-    <uses-permission android:name="android.permission.INTERNET"/>
+
     <!-- GCM requires a Google account. -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
-    <!-- Keeps the processor from sleeping when a message is received. -->
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <!-- Telephone number -->
 
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <!-- Keeps the processor from sleeping when a GCM message is received, required. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <!-- Networking and permissions needed for WiFi setup -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- For mDNS -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+
+    <!-- Save app settings -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <!-- Caching -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- For adding AylaContacts from your contact list -->
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
-    <uses-feature
-        android:name="android.permission.READ_CALL_LOG"
-        android:required="false"/>
-
-    <uses-permission android:name="com.aylanetworks.agilelink.permission.MAPS_RECEIVE"/>
+    <!-- Required for Google Play Services -->
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
+    <!-- Location services required to set lat / long on newly registered devices -->
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false"/>
