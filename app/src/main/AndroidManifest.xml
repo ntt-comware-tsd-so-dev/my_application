@@ -13,6 +13,9 @@
     <!-- GCM requires a Google account. -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
 
+    <!-- Keeps the processor from sleeping when a GCM message is received, required. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
     <!-- Networking and permissions needed for WiFi setup -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
