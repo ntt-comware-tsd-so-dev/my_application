@@ -101,8 +101,8 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             // This is a generic node
             return new GenericNodeDevice(aylaDevice);
         }
-        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("linuxex1")) {
-            if (aylaDevice.model.equals("AY001MRT1")) {
+        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("liunxex1")){
+            if (aylaDevice.model.equals("AY001MRT1") && aylaDevice.isGateway()) {
                 // This is a Zigbee gateway.
                 return new ZigbeeGateway(aylaDevice);
             }
