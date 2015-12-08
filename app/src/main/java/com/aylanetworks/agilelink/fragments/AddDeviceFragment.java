@@ -106,6 +106,9 @@ public class AddDeviceFragment extends Fragment
 
     void updateConnectionInfo() {
         WifiInfo info = _wifiManager.getConnectionInfo();
+        if(info == null || info.getSSID() == null || info.getBSSID()==null)
+            return;
+
         _ssid = info.getSSID().replaceAll("^\"|\"$", "");
         _bssid = info.getBSSID().replaceAll("^\"|\"$", "");
     }
