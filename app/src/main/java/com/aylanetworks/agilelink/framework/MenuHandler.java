@@ -222,8 +222,10 @@ public class MenuHandler {
                 // Look for an error message in the returned JSON
                 String errorMessage = null;
                 try {
-                    JSONObject results = new JSONObject((String)msg.obj);
-                    errorMessage = results.getString("error");
+                    if(msg !=null && msg.obj !=null) {
+                        JSONObject results = new JSONObject((String) msg.obj);
+                        errorMessage = results.getString("error");
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
