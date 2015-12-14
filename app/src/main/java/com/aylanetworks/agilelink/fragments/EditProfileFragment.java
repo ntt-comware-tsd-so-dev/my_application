@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -11,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -188,8 +190,15 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         MenuHandler.deleteAccount();
     }
 
+    private void hideSoftKeyBoard(final View v) {
+        InputMethodManager imm = (InputMethodManager)this.getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
     @Override
     public void onClick(View v) {
+        hideSoftKeyBoard(v);
+
         switch (v.getId()) {
             case R.id.btnUpdate:
                 onUpdateClicked();
