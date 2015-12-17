@@ -11,11 +11,12 @@ import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -69,13 +70,18 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener {
+public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String LOG_TAG = "Main Activity";
+
+    private static int REQUEST_WRITE_EXTERNAL_STORAGE = 0;
+    private static int REQUEST_CONTACT = 1;
+    private static final int REQUEST_LOCATION = 2;
 
     // request IDs for intents we want results from
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
+    public static int LOG_PERMIT = AylaNetworks.AML_LOGGING_LEVEL_NONE;
 
     private static MainActivity _theInstance;
 
@@ -290,9 +296,15 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
      */
     public void pickContact(PickContactListener listener) {
         _pickContactListener = listener;
-        Intent intent = new Intent(Intent.ACTION_PICK,
-                ContactsContract.Contacts.CONTENT_URI);
-        startActivityForResult(intent, REQ_PICK_CONTACT);
+
+        if(ActivityCompat.checkSelfPermission(this, "android.permission.READ_CONTACTS") != PackageManager.PERMISSION_GRANTED){
+            requestContactPermissions();
+        } else{
+            Intent intent = new Intent(Intent.ACTION_PICK,
+                    ContactsContract.Contacts.CONTENT_URI);
+            startActivityForResult(intent, REQ_PICK_CONTACT);
+        }
+
     }
 
     @Override
@@ -358,6 +370,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
+        if(ActivityCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED){
+            requestStoragePermissions();
+        }
         if(getResources().getBoolean(R.bool.portrait_only)){
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -734,7 +749,7 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         // with devices in LAN mode
         parameters.allowLANLogin = true;
 
-        parameters.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+        parameters.loggingLevel = LOG_PERMIT;
 
         parameters.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
 
@@ -892,7 +907,6 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
         super.onResume();
 
         Log.d(LOG_TAG, "onResume");
-
         if(_theInstance == null){
             _theInstance = this;
         }
@@ -1101,5 +1115,59 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
     }
     private String getLocaleCountry(){
         return getResources().getConfiguration().locale.getCountry();
+    }
+
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+
+        if( requestCode == REQUEST_WRITE_EXTERNAL_STORAGE){
+
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                LOG_PERMIT = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+            } else{
+               //ToDo Add fallback case when write is denied and LogManager cannot work
+                LOG_PERMIT = AylaNetworks.AML_LOGGING_LEVEL_NONE;
+            }
+        }
+
+        if(requestCode == REQUEST_CONTACT){
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(this, getResources().getText(R.string.contacts_permission_granted), Toast.LENGTH_SHORT).show();
+            } else{
+                Toast.makeText(this, getResources().getText(R.string.contacts_permission_denied), Toast.LENGTH_SHORT).show();
+            }
+
+        }
+
+        if(requestCode == REQUEST_LOCATION){
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(this, "Location permission granted. You can scan for devices now", Toast.LENGTH_SHORT).show();
+            }  else{
+                Toast.makeText(this, "Location permission denied. You cannot scan for devices", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+
+    }
+
+    /*
+    * Writing logs to memory requires android.permission.WRITE_EXTERNAL_STORAGE.
+     */
+    private void requestStoragePermissions(){
+        ActivityCompat.requestPermissions(this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, REQUEST_WRITE_EXTERNAL_STORAGE);
+
+    }
+
+    /*
+   * Picking contact from device's contacts requires android.permission.READ_CONTACTS.
+    */
+    private void requestContactPermissions(){
+        ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_CONTACTS"}, REQUEST_CONTACT);
+
     }
 }

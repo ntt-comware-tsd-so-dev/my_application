@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -13,7 +14,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.TextUtils;
@@ -44,6 +48,7 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
 import com.aylanetworks.aaml.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.Manifest;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.Device;
@@ -60,6 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.support.v4.app.ActivityCompat.*;
+
 /*
  * AddDeviceFragment.java
  * AgileLink Application Framework
@@ -69,8 +76,10 @@ import java.util.Map;
  */
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener {
+        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener, ActivityCompat.OnRequestPermissionsResultCallback{
     private static final String LOG_TAG = "AddDeviceFragment";
+    private static final int REQUEST_LOCATION = 2;
+    private static final int REQUEST_NETWORK = 0;
 
     private static final boolean USE_WELCOME_FRAGMENT = true;
 
@@ -385,16 +394,27 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void scanButtonClick() {
-        if (USE_WELCOME_FRAGMENT) {
-            Device d = (Device) _spinnerProductType.getSelectedItem();
-            if (d.isGateway()) {
-                MenuHandler.handleGatewayWelcome();
+
+        //Check runtime permission before scanning.
+        //Scanning requires permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION
+        //TODO
+
+        if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+            requestScanPermissions();
+        } else{
+
+            if (USE_WELCOME_FRAGMENT) {
+                Device d = (Device) _spinnerProductType.getSelectedItem();
+                if (d.isGateway()) {
+                    MenuHandler.handleGatewayWelcome();
+                } else {
+                    doScan();
+                }
             } else {
                 doScan();
             }
-        } else {
-            doScan();
         }
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -996,4 +1016,36 @@ public class AddDeviceFragment extends Fragment
             }
         }
     }
+
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+      if(requestCode == REQUEST_LOCATION){
+          if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+              Toast.makeText(getActivity().getBaseContext(), "Location permission granted. You can scan for devices now", Toast.LENGTH_LONG).show();
+          }  else{
+              Toast.makeText(getActivity().getBaseContext(), "Location permission denied. You cannot scan for devices", Toast.LENGTH_LONG).show();
+          }
+      }
+
+    }
+
+    /*
+    * Scan needs location permissions. This method requests Location permission
+     */
+    private void requestScanPermissions(){
+        ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_COARSE_LOCATION"}, REQUEST_LOCATION);
+    }
+
+    /*
+  * Scan needs location permissions. This method requests Location permission
+   */
+    private void requestNetworkPermissions(){
+        ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_NETWORK_STATE"}, REQUEST_NETWORK);
+    }
+
 }

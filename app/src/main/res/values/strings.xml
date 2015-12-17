@@ -569,7 +569,9 @@
     <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
     <!-- -->
 
-
+    <!--  Permissions  -->
+    <string name="contacts_permission_granted">Contacts access permission granted. You can now add contacts</string>
+    <string name="contacts_permission_denied">Contacts access permission denied. You cannot add contacts</string>
 
     <!-- Developer Options -->
     <string name="dev_options">Developer Options</string>
