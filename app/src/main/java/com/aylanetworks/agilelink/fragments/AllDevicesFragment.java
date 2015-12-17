@@ -363,7 +363,7 @@ public class AllDevicesFragment extends Fragment
             } else {
                 // Put the device into LAN mode before pushing the detail fragment
                 // Sometime this can take forever... so make it cancelable.
-                Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connecting to device");
+               /* Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connecting to device");
                 MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body), this);
                 Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] enterLANMode");
                 SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
@@ -375,7 +375,10 @@ public class AllDevicesFragment extends Fragment
                         MainActivity.getInstance().pushFragment(frag);
                         Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connected to device");
                     }
-                });
+                });*/
+
+                Fragment frag = d.getDetailsFragment();
+                MainActivity.getInstance().pushFragment(frag);
             }
         }
     }
