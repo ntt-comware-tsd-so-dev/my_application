@@ -653,11 +653,17 @@ public class AddDeviceFragment extends Fragment
 
         if (gpsEnabled || netEnabled) {
             String locationProvider = locationManager.getBestProvider(criteria, false);
-            Location location = locationManager.getLastKnownLocation(locationProvider);
-            if(location != null){
-                callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
-                callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
+
+            if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+                requestScanPermissions();
+            } else{
+                Location location = locationManager.getLastKnownLocation(locationProvider);
+                if(location != null){
+                    callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
+                    callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
+                }
             }
+
         } else {
             Toast.makeText(context, R.string.warning_location_accuracy, Toast.LENGTH_SHORT).show();
         }
@@ -1016,36 +1022,13 @@ public class AddDeviceFragment extends Fragment
             }
         }
     }
-
-
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-      if(requestCode == REQUEST_LOCATION){
-          if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-              Toast.makeText(getActivity().getBaseContext(), "Location permission granted. You can scan for devices now", Toast.LENGTH_LONG).show();
-          }  else{
-              Toast.makeText(getActivity().getBaseContext(), "Location permission denied. You cannot scan for devices", Toast.LENGTH_LONG).show();
-          }
-      }
-
-    }
+    
 
     /*
     * Scan needs location permissions. This method requests Location permission
      */
     private void requestScanPermissions(){
         ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_COARSE_LOCATION"}, REQUEST_LOCATION);
-    }
-
-    /*
-  * Scan needs location permissions. This method requests Location permission
-   */
-    private void requestNetworkPermissions(){
-        ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_NETWORK_STATE"}, REQUEST_NETWORK);
     }
 
 }

@@ -25,8 +25,8 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.internal.view.menu.MenuBuilder;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -70,7 +70,7 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends ActionBarActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -1146,9 +1146,9 @@ public class MainActivity extends ActionBarActivity implements SessionManager.Se
 
         if(requestCode == REQUEST_LOCATION){
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Location permission granted. You can scan for devices now", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getText(R.string.location_permission_granted), Toast.LENGTH_SHORT).show();
             }  else{
-                Toast.makeText(this, "Location permission denied. You cannot scan for devices", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
 

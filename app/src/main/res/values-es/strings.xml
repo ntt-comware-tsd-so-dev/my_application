@@ -571,7 +571,11 @@
     <string name="push_registration_button">Pulse el botón "Reg" en el dispositivo y, a continuación, pulse "OK".</string>
     <!-- -->
 
-
+    <!--  Permissions  -->
+    <string name="contacts_permission_granted">Se ha otorgado acceso a los contactos. Ahora puede agregar contactos</string>
+    <string name="contacts_permission_denied">Acceso a los contactos denegado. No puede agregar contactos</string>
+    <string name="location_permission_granted">Acceso a ubicación otorgado</string>
+    <string name="location_permission_denied">Acceso a ubicación denegado</string>
 
     <!-- Developer Options -->
     <string name="dev_options">Developer Options</string>
