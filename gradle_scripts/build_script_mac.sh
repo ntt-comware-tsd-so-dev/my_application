@@ -2,7 +2,7 @@
 echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
 : ${MASTER=master}
-: ${AYLA_BUILD_BRANCH=develop}
+: ${AYLA_BUILD_BRANCH=release/4.3.0}
 : ${AYLA_LIB_BRANCH=release/4.3.00}
 : ${AYLA_ZLIB_BRANCH=release/4.3.00}
 : ${AYLA_REMOTE=origin}
