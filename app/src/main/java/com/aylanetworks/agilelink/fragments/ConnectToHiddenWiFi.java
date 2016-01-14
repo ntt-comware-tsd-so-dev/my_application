@@ -19,27 +19,20 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.agilelink.R;
 
 /*
-* This class is used to enter Hidden Wi-Fi(SSID) details. The security of the WiFi could be none or one
-* of the following WEP,WPA2,WPA2 Personal AES,WPA2 Personal Mixed,WPA,WPA_EAP,IEEE8021. If the security type
-* is None the password is not needed and hence not displayed. Once user enters the WiFi name and password
+* This class is used to enter Hidden Wi-Fi(SSID) details. The security of the WiFi could be Open or one
+* of the following WEP,WPA2,WPA,WPA_EAP,IEEE8021. If the security type
+* is Open the password is not needed and hence not displayed. Once user enters the WiFi name and password
 * we call addHiddenWifi method on ChooseAPDialog and that method calls the existing method choseAccessPoint.
 * */
 
 public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.OnItemSelectedListener, TextWatcher {
 
-    public static final String NONE = "NONE";
-    public static final String WEP = "WEP";
-    public static final String WPA2 = "WPA2";
-    public static final String WPA_AES = "WPA2 Personal AES"; // WPA2
-    public static final String WPA_MIX = "WPA2 Personal Mixed"; //WPA
-    public static final String WPA = "WPA";
-    public static final String WPA_EAP = "WPA_EAP";
-    public static final String IEEE8021X = "IEEE8021X";
-
-    static final String[] SECURITY_MODES = {NONE, WEP, WPA2, WPA_AES, WPA_MIX,WPA,WPA_EAP,IEEE8021X};
+    static final String[] SECURITY_MODES = {AylaNetworks.AML_OPEN, AylaNetworks.AML_WEP, AylaNetworks.AML_WPA, AylaNetworks.AML_WPA2, AylaNetworks.AML_WPA_EAP,AylaNetworks.AML_IEEE8021X};
     private final static String LOG_TAG = "ConnectToHiddenWiFi";
     private EditText _wifiNameEditText;
     private Spinner _spinnerSecurityType;
@@ -126,7 +119,7 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(_passwordEditText.getWindowToken(), 0);
 
-        if (_selectedSecurity.equals(SECURITY_MODES[0])) {
+        if (_selectedSecurity.equals(AylaNetworks.AML_OPEN)) {
             // No need for the password field
             _passwordContainer.setVisibility(View.GONE);
             if (_wifiNameEditText.getText().length() > 0) {
@@ -166,8 +159,8 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
     public void afterTextChanged(Editable s) {
         if(_selectedSecurity == null)
             return;
-        //If the user chooses security as none then make sure that the WiFi name is entered
-        if (_selectedSecurity.equals(SECURITY_MODES[0])) {
+        //If the user chooses security as Open then make sure that the WiFi name is entered
+        if (_selectedSecurity.equals(AylaNetworks.AML_OPEN)) {
             _connectButton.setEnabled(_wifiNameEditText.getText().length() > 0);
         } else {
             //If security is other than none make sure they enter both wifiname and password
