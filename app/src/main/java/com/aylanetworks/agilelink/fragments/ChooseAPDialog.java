@@ -41,7 +41,7 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItemClickListener, TextWatcher, TextView.OnEditorActionListener {
+public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItemClickListener, TextWatcher, TextView.OnEditorActionListener,ConnectToHiddenWiFi.AddHiddenWiFi {
 
     private final static String LOG_TAG = "ChooseAPDialog";
 
@@ -100,6 +100,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
     private EditText _passwordEditText;
     private TextView _textView;
     private Button _connectButton;
+    private Button _hiddenWiFiButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -133,6 +134,13 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
                 if (listener != null) {
                     listener.choseAccessPoint(_selectedSSID, _selectedSecurity, _passwordEditText.getText().toString());
                 }
+            }
+        });
+        _hiddenWiFiButton = (Button)root.findViewById(R.id.button_hidden_wifi);
+        _hiddenWiFiButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleConnectToHiddenWiFi();
             }
         });
 
@@ -237,5 +245,21 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         _connectButton.callOnClick();
         return true;
+    }
+    private void handleConnectToHiddenWiFi() {
+        final ChooseAPResults listener = (ChooseAPResults)getTargetFragment();
+        dismiss();
+
+        Log.i(LOG_TAG, "nod: handleConnectToHiddenWiFi");
+        ConnectToHiddenWiFi d = new ConnectToHiddenWiFi();
+        d.setTargetFragment(this, 0);
+        d.show(this.getFragmentManager(), "ConnectToHiddenWiFi");
+    }
+    @Override
+    public void addHiddenWifi(String accessPoint, String security, String password){
+        final ChooseAPResults listener = (ChooseAPResults)getTargetFragment();
+        if (listener != null) {
+            listener.choseAccessPoint(accessPoint, security, password);
+        }
     }
 }
