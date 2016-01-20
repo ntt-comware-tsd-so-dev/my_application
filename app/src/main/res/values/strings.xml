@@ -208,6 +208,11 @@
     <string name="account_deleted">Your account has successfully been deleted.</string>
     <string name="product_type">Product Type</string>
 
+    <string name="add_wifi">Add Wi-Fi</string>
+    <string name="wifi_name">Wi-Fi name (SSID)</string>
+    <string name="enter_ssid">Enter the SSID</string>
+    <string name="security">Security</string>
+
     <!-- Array of registration types -->
     <string-array name="registration_types">
         <item>Same-LAN</item>
