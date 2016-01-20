@@ -226,8 +226,6 @@ public class MenuHandler {
                         JSONObject results = new JSONObject((String)msg.obj);
                         errorMessage = results.getString("error");
                     }
-                    JSONObject results = new JSONObject((String)msg.obj);
-                    errorMessage = results.getString("error");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
