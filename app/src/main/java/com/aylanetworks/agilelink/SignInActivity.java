@@ -424,6 +424,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                             JSONObject errors = new JSONObject(errorJSON);
                                             errorMessage = errors.getString("email");
                                         }
+
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }

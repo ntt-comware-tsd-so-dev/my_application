@@ -574,7 +574,11 @@
     <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
     <!-- -->
 
-
+    <!--  Permissions  -->
+    <string name="contacts_permission_granted">Contacts access permission granted. You can now add contacts</string>
+    <string name="contacts_permission_denied">Contacts access permission denied. You cannot add contacts</string>
+    <string name="location_permission_granted">Location permission granted. You can scan for devices now</string>
+    <string name="location_permission_denied">Location permission denied. You cannot scan for devices</string>
 
     <!-- Developer Options -->
     <string name="dev_options">Developer Options</string>

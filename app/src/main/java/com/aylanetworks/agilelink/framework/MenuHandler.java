@@ -223,7 +223,7 @@ public class MenuHandler {
                 String errorMessage = null;
                 try {
                     if(msg !=null && msg.obj !=null) {
-                        JSONObject results = new JSONObject((String) msg.obj);
+                        JSONObject results = new JSONObject((String)msg.obj);
                         errorMessage = results.getString("error");
                     }
                 } catch (JSONException e) {

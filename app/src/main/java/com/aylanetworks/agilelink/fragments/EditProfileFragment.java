@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -190,15 +188,8 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         MenuHandler.deleteAccount();
     }
 
-    private void hideSoftKeyBoard(final View v) {
-        InputMethodManager imm = (InputMethodManager)this.getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-    }
-
     @Override
     public void onClick(View v) {
-        hideSoftKeyBoard(v);
-
         switch (v.getId()) {
             case R.id.btnUpdate:
                 onUpdateClicked();
@@ -309,6 +300,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                 if ( ownerContact == null ) {
                     Log.e(LOG_TAG, "No owner contact found! Creating...");
                     cm.createOwnerContact();
+                    _editProfileDialog.get().getFragmentManager().popBackStack();
                     Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
                 } else {
                     ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
@@ -322,16 +314,13 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
                         @Override
                         public void contactListUpdated(ContactManager manager, boolean succeeded) {
-
+                            _editProfileDialog.get().getFragmentManager().popBackStack();
                             Toast.makeText(MainActivity.getInstance(),
                                     succeeded ? R.string.profile_updated : R.string.error_changing_profile,
                                     Toast.LENGTH_LONG).show();
                         }
                     });
                 }
-
-                _editProfileDialog.get().getFragmentManager().popBackStack();
-
             } else {
                 String errMsg = null;
                 if (msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS) {
