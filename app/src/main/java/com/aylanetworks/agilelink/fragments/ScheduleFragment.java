@@ -128,6 +128,12 @@ public class ScheduleFragment extends Fragment {
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
             return new View(getActivity());
         }
+        if(_schedule == null){
+            Log.d(LOG_TAG, "onCreateView _schedule is null ");
+            MainActivity.getInstance().popBackstackToRoot();
+            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
+            return new View(getActivity());
+        }
 
         Log.d(LOG_TAG, "onCreateView(" + _schedule.getName() + ")");
 
