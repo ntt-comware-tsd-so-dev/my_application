@@ -747,7 +747,7 @@ public class DeviceManager implements DeviceStatusListener {
 
             String type = notify.type;
             String dsn = notify.dsn;
-            String names[] = notify.names;
+            String names[] = notify.properties;
 
             Log.d(LOG_TAG, "lanModeHandler: " + msg);
 
