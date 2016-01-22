@@ -310,8 +310,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     @Override
     public void deviceListChanged() {
         super.deviceListChanged();
-        createSceneButtonHeader();
-        updateDeviceList();
+        if(this.isAdded()){
+            createSceneButtonHeader();
+            updateDeviceList();
+        } else{
+            return;
+        }
+
     }
 
     static class SceneAction implements Gateway.AylaGatewayCompletionHandler {
