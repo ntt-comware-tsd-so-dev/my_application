@@ -23,22 +23,39 @@ fi
 
 public_repo_pattern=".*_Public\.git .*"
 if [[ $cur_repo =~ $public_repo_pattern ]]; then
-    AYLA_PUBLIC=_Public
     # public build defaults
     : ${AYLA_BUILD_BRANCH=release/4.3.0}
-    # lib branch has one more 0
-    : ${AYLA_LIB_BRANCH=${AYLA_BUILD_BRANCH}0}
-    : ${AYLA_ZIGLIB_BRANCH=${AYLA_BUILD_BRANCH}0}
-    echo -e "\n*** Building public repo on branch ${AYLA_BUILD_BRANCH} ***"
+    if [[ $AYLA_BUILD_BRANCH =~ .*\..* ]]; then
+        # name as 4.2.0, lib branch has one more 0
+        : ${AYLA_LIB_BRANCH=${AYLA_BUILD_BRANCH}0}
+        : ${AYLA_ZIGBEE_LIB_BRANCH=${AYLA_BUILD_BRANCH}0}
+    else
+        # name as "master"
+        : ${AYLA_LIB_BRANCH=${AYLA_BUILD_BRANCH}}
+        : ${AYLA_ZIGBEE_LIB_BRANCH=${AYLA_BUILD_BRANCH}}
+    fi
+
+    AYLA_PUBLIC=_Public
+    repo_type="public"
 else
-    AYLA_PUBLIC=
     # internal developers default
     : ${AYLA_BUILD_BRANCH=develop}
     : ${AYLA_LIB_BRANCH=${AYLA_BUILD_BRANCH}}
-    : ${AYLA_ZIGLIB_BRANCH=${AYLA_BUILD_BRANCH}}
-    echo -e "\n*** Building internal repo on branch ${AYLA_BUILD_BRANCH} ***"
+    : ${AYLA_ZIGBEE_LIB_BRANCH=${AYLA_BUILD_BRANCH}}
+
+    AYLA_PUBLIC=
+    repo_type="internal"
 fi
-echo -e "*** Build for another branch? you can switch to that branch or set environment variables to rebuild ***\n"
+
+green=`tput setaf 2`
+reset=`tput sgr0`
+styled_repo_type=${green}${repo_type}${reset}
+styled_branch=${green}${AYLA_BUILD_BRANCH}${reset}
+styled_lib_branch=${green}${AYLA_LIB_BRANCH}${reset}
+styled_zigbee_lib_branch=${green}${AYLA_ZIGBEE_LIB_BRANCH}${reset}
+echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with lib branch ${styled_lib_branch} and zigbee branch ${styled_zigbee_lib_branch}  ***"
+echo "(Want another branch? you can switch to that branch or set AYLA_BUILD_BRANCH environment variable to build it)"
+echo -e "(Want libs from another branch? you can set AYLA_LIB_BRANCH and AYLA_ZIGBEE_LIB_BRANCH to build it)\n"
 
 echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
@@ -48,6 +65,7 @@ echo ' checkout git repo'
 cd ..
 git fetch $AYLA_REMOTE
 git branch $AYLA_BUILD_BRANCH $AYLA_REMOTE/$AYLA_BUILD_BRANCH
+#git stash
 git checkout $AYLA_BUILD_BRANCH
 git pull
 rm -rf libraries
@@ -64,23 +82,18 @@ fi
 
 export ZIGBEE_PATH=$PWD
 
-if [ "$AYLA_BUILD_BRANCH" == "$MASTER" ]
-then
-    echo already have $AYLA_BUILD_BRANCH
-    pushd Android_AylaLibrary$AYLA_PUBLIC
-else
-    pushd Android_AylaZigbeeLibrary$AYLA_PUBLIC
-    echo Get Android_AylaZigbeeLibrary from branch $AYLA_ZIGLIB_BRANCH
-    git fetch $AYLA_REMOTE
-    git branch $AYLA_ZIGLIB_BRANCH $AYLA_REMOTE/$AYLA_ZIGLIB_BRANCH
-    git checkout $AYLA_ZIGLIB_BRANCH
-    popd
-    pushd Android_AylaLibrary$AYLA_PUBLIC
-    echo Get Android_AylaLibrary from branch $AYLA_LIB_BRANCH
-    git fetch $AYLA_REMOTE
-    git branch $AYLA_LIB_BRANCH $AYLA_REMOTE/$AYLA_LIB_BRANCH
-    git checkout $AYLA_LIB_BRANCH
-fi
+pushd Android_AylaZigbeeLibrary$AYLA_PUBLIC
+echo Get Android_AylaZigbeeLibrary from branch $AYLA_ZIGBEE_LIB_BRANCH
+git fetch $AYLA_REMOTE
+git branch $AYLA_ZIGBEE_LIB_BRANCH $AYLA_REMOTE/$AYLA_ZIGBEE_LIB_BRANCH
+git checkout $AYLA_ZIGBEE_LIB_BRANCH
+popd
+
+pushd Android_AylaLibrary$AYLA_PUBLIC
+echo Get Android_AylaLibrary from branch $AYLA_LIB_BRANCH
+git fetch $AYLA_REMOTE
+git branch $AYLA_LIB_BRANCH $AYLA_REMOTE/$AYLA_LIB_BRANCH
+git checkout $AYLA_LIB_BRANCH
 
 rm -rf lib/src/com/aylanetworks/aaml/zigbee
 ln -s $ZIGBEE_PATH/Android_AylaZigbeeLibrary$AYLA_PUBLIC/zigbee lib/src/com/aylanetworks/aaml/zigbee
@@ -89,7 +102,7 @@ ln -s $ZIGBEE_PATH/Android_AylaZigbeeLibrary$AYLA_PUBLIC/zigbee lib/src/com/ayla
 export symlinkPath=$PWD/lib/src/com/aylanetworks/aaml/zigbee
 if [[ -L $symlinkPath ]]; then
     #statements
-    echo 'Created symlink for zigbee package '
+    echo -e '\nCreated symlink for zigbee package\n '
     cd lib
     gradle build
 else
