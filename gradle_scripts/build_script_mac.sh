@@ -65,7 +65,6 @@ echo ' checkout git repo'
 cd ..
 git fetch $AYLA_REMOTE
 git branch $AYLA_BUILD_BRANCH $AYLA_REMOTE/$AYLA_BUILD_BRANCH
-#git stash
 git checkout $AYLA_BUILD_BRANCH
 git pull
 rm -rf libraries
