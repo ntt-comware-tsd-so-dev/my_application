@@ -851,7 +851,6 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             Log.e(LOG_TAG, "nod: showLoginDialog: Already shown");
             return;
         }
-
         SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
         final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
         final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
@@ -869,6 +868,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             _viewPager.setCurrentItem(0);
         }
         popBackstackToRoot();
+        onSelectMenuItemById(R.id.action_all_devices);
 
         Bundle args = new Bundle();
         args.putString(SignInActivity.ARG_USERNAME, savedUsername);

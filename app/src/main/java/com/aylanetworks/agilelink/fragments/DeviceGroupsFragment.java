@@ -244,8 +244,13 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     @Override
     public void deviceListChanged() {
         super.deviceListChanged();
-        createGroupButtonHeader();
-        updateDeviceList();
+        if(this.isAdded()){
+            createGroupButtonHeader();
+            updateDeviceList();
+        } else{
+            return;
+        }
+
     }
 
     protected void onAddDeviceToGroup() {
