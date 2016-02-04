@@ -226,7 +226,7 @@ public class AddDeviceFragment extends Fragment
         }
 
         if (_needsExit) {
-            exitSetup();
+            exitSetup(true);
         }
 
         try {
@@ -439,7 +439,9 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    private static void exitSetup() {
+    //set cancelAylaSetup to false when exitSetup() is called based on an error message
+    // returned from the library.
+    private static void exitSetup(final boolean cancelAylaSetup) {
         if ( _needsExit ) {
             MainActivity activity = MainActivity.getInstance();
             if (activity != null) {
@@ -449,7 +451,9 @@ public class AddDeviceFragment extends Fragment
                 @Override
                 protected Void doInBackground(Void... params) {
                     Logger.logVerbose(LOG_TAG, "rn: calling AylaSetup.exit()...");
-                    AylaSetup.exit();
+                    if(cancelAylaSetup){
+                        AylaSetup.exit();
+                    }
                     return null;
                 }
 
@@ -636,7 +640,7 @@ public class AddDeviceFragment extends Fragment
         _chooseAPDialog = null;
         Logger.logDebug(LOG_TAG, "rn: choseAccessPoint: " + accessPoint + "[" + security + "]");
         if ( accessPoint == null ) {
-            exitSetup();
+            exitSetup(true);
         } else {
             connectDeviceToService(accessPoint, security, password);
         }
@@ -715,7 +719,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 // Something went wrong
                 Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
-                exitSetup();
+                exitSetup(false);
             }
         }
     }
@@ -820,7 +824,7 @@ public class AddDeviceFragment extends Fragment
                     errMsg = _frag.get().getString(R.string.error_wifi_not_enabled);
                 }
                 Toast.makeText(_frag.get().getActivity(), errMsg, Toast.LENGTH_SHORT).show();
-                exitSetup();
+                exitSetup(false);
             }
         }
     }
@@ -879,7 +883,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 Logger.logError(LOG_TAG, "rn: Connect handler error: " + msg);
                 Toast.makeText(activity, R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
-                exitSetup();
+                exitSetup(false);
             }
         }
     }
@@ -891,7 +895,7 @@ public class AddDeviceFragment extends Fragment
                 .setMessage(getString(R.string.push_registration_button))
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        exitSetup();
+                        exitSetup(true);
                     }
                 })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -959,7 +963,7 @@ public class AddDeviceFragment extends Fragment
                         message = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
                     }
                     Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-                    exitSetup();
+                    exitSetup(false);
                 }
             }
         }
@@ -1024,7 +1028,7 @@ public class AddDeviceFragment extends Fragment
                     }
                     Logger.logError(LOG_TAG, "rn: Failed to connect to service. Calling exitSetup()");
                     Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
-                    exitSetup();
+                    exitSetup(false);
                 }
             }
         }
