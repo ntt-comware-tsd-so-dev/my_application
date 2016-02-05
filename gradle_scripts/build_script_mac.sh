@@ -46,6 +46,8 @@ else
     AYLA_PUBLIC=
     repo_type="internal"
 fi
+: ${AYLA_LIB_REPO=https://github.com/AylaNetworks/Android_AylaLibrary${AYLA_PUBLIC}.git}
+: ${AYLA_ZIGBEE_LIB_REPO=https://github.com/AylaNetworks/Android_AylaZigbeeLibrary${AYLA_PUBLIC}.git}
 
 green=`tput setaf 2`
 reset=`tput sgr0`
@@ -53,9 +55,13 @@ styled_repo_type=${green}${repo_type}${reset}
 styled_branch=${green}${AYLA_BUILD_BRANCH}${reset}
 styled_lib_branch=${green}${AYLA_LIB_BRANCH}${reset}
 styled_zigbee_lib_branch=${green}${AYLA_ZIGBEE_LIB_BRANCH}${reset}
+styled_lib_repo=${green}${AYLA_LIB_REPO}${reset}
+styled_zigbee_lib_repo=${green}${AYLA_ZIGBEE_LIB_REPO}${reset}
 echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with lib branch ${styled_lib_branch} and zigbee branch ${styled_zigbee_lib_branch}  ***"
-echo "(Want another branch? you can switch to that branch or set AYLA_BUILD_BRANCH environment variable to build it)"
-echo -e "(Want libs from another branch? you can set AYLA_LIB_BRANCH and AYLA_ZIGBEE_LIB_BRANCH to build it)\n"
+echo "*** lib repo: ${styled_lib_repo}  zigbee lib repo: ${styled_zigbee_lib_repo} ***"
+echo "(Want another branch? switch to that branch or set AYLA_BUILD_BRANCH environment variable to build it)"
+echo "(Want libs from another branch? set AYLA_LIB_BRANCH and AYLA_ZIGBEE_LIB_BRANCH to build it)"
+echo -e "(want to customize lib or zigbee lib repos? use AYLA_LIB_REPO and AYLA_ZIGBEE_LIB_REPO)\n"
 
 echo ' checkout git repo'
 # if AYLA_BUILD_BRANCH not set, then set to master
@@ -67,11 +73,12 @@ git fetch $AYLA_REMOTE
 git branch $AYLA_BUILD_BRANCH $AYLA_REMOTE/$AYLA_BUILD_BRANCH
 git checkout $AYLA_BUILD_BRANCH
 git pull
+
 rm -rf libraries
 mkdir libraries
 cd libraries
-git clone https://github.com/AylaNetworks/Android_AylaLibrary$AYLA_PUBLIC.git
-git clone https://github.com/AylaNetworks/Android_AylaZigbeeLibrary$AYLA_PUBLIC.git
+git clone $AYLA_LIB_REPO
+git clone $AYLA_ZIGBEE_LIB_REPO
 
 if [ "$AYLA_PUBLIC" == "" ]; then
     echo "Set up symbolic link for gradle project dependency"
