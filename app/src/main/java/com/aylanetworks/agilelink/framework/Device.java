@@ -16,7 +16,6 @@ import android.view.View;
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaDeviceManager;
-import com.aylanetworks.aaml.AylaDeviceNode;
 import com.aylanetworks.aaml.AylaLanMode;
 import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
@@ -40,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -433,16 +431,48 @@ public class Device implements Comparable<Device> {
             }
         });
 
+        // For gw or node, factory reset first, for wifi, we can do it but not necessary.
+        if ( !getDevice().isWifi() ) {  // Assuming only wifi, gw and node, overall three types.
+            getDevice().factoryReset(new FactoryResetHandler(new ResetHandler(_resetTag),
+                    getDevice()), null);
+        } else {
+            // unregister the device
+            getDevice().unregisterDevice(new ResetHandler(_resetTag));
+        }
+
         // remove the device from the device manager list...
         // so that we don't try getting properties for it, etc.
         SessionManager.deviceManager().removeDevice(this);
-
-        // unregister the device
-        getDevice().unregisterDevice(new ResetHandler(_resetTag));
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    static class FactoryResetHandler extends Handler {
 
+        private Handler mResetHandler = null;
+        private AylaDevice mDevice = null;
+
+        FactoryResetHandler(Handler reset, AylaDevice device) {
+            mResetHandler = reset;
+            mDevice = device;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            AylaSystemUtils.saveToLog("%s, %s, %s, %s, %s."
+                    , "D", "Device", "FactoryResetHandler"
+                    , "msg.arg1:" + msg.arg1
+                    , "msg.obj:" + msg.obj);
+
+            if ( !AylaNetworks.succeeded(msg) ) {
+                AylaSystemUtils.saveToLog("%s, %s, %s.", "D", "FactoryResetHandler"
+                        , "factory reset device " + mDevice.dsn + " failed");
+            }
+            mDevice.unregisterDevice(mResetHandler);
+        }
+    }// end of FactoryResetHandler class
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Gets the latest device status from the server and calls listener when done.
      * Derived classes can perform other operations to obtain information about the device state.

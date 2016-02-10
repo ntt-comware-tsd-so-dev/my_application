@@ -354,7 +354,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.action_factory_reset_device:
                 if ( _device.getDevice().amOwner() ) {
-                    factoryResetDevice();
+                    unregisterDevice();
                 } else {
                     removeShare();
                 }
