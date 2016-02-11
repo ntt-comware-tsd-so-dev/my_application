@@ -12,6 +12,39 @@
 # AYLA_REMOTE: default to origin
 #
 
+# normal cases no need to set these variables. But in special cases, you can:
+# either set environment variables as shown in the above comments
+# or customize these variables here by following the commented part
+AYLA_BUILD_BRANCH="" #"release/4.4.0"  #set here or switch to target branch then build
+AYLA_LIB_BRANCH="" #"release/4.4.00"
+AYLA_ZIGBEE_LIB_BRANCH="" #"release/4.4.00"
+AYLA_LIB_REPO="" #"https://github.com/AylaNetworks/Android_AylaLibrary_Public.git
+AYLA_ZIGBEE_LIB_REPO="" #"https://github.com/AylaNetworks/Android_AylaZigbeeLibrary_Public.git"
+AYLA_REMOTE="" #"origin"
+
+# for app rel_branch example: "release/4.3.0"
+# find most stable lib release like 4.3.20
+# $1: rel_branch; $2: repo
+get_latest_lib_branch() {
+    major=`echo $1 | cut -d'.' -f 1`
+    minor=`echo $1 | cut -d'.' -f 2`
+    major_minor=${major}'.'${minor}
+
+    total_branches=`git ls-remote $2 | grep ${major_minor} | cut -f 2`
+    max_sub_minor="00"
+
+    for line in $total_branches; do
+        IFS='.' read -r -a array <<< "$line"
+        element_count=${#array[@]}
+        subminor=${array[(($element_count-1))]}
+        if [ $subminor -ge $max_sub_minor ]; then
+            max_sub_minor=$subminor
+        fi
+    done
+
+    echo $major_minor'.'$max_sub_minor
+}
+
 # conext display: show value whenever related environment variables are set
 build_var_name_list="AYLA_BUILD_BRANCH AYLA_LIB_BRANCH AYLA_ZIGBEE_LIB_BRANCH AYLA_LIB_REPO AYLA_ZIGBEE_LIB_REPO AYLA_REMOTE"
 for n in $build_var_name_list; do
@@ -46,29 +79,26 @@ public_repo_pattern=".*_Public\.git .*"
 if [[ $cur_repo =~ $public_repo_pattern ]]; then
     # public build defaults, set to cur branch unless not found (very rare)
     AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/4.3.0}
-    if [[ $AYLA_BUILD_BRANCH =~ .*\..* ]]; then
-        # name as 4.2.0, lib branch has one more 0
-        AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-${AYLA_BUILD_BRANCH}0}
-        AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-${AYLA_BUILD_BRANCH}0}
-    else
-        # name as "master"
-        AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-${AYLA_BUILD_BRANCH}}
-        AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-${AYLA_BUILD_BRANCH}}
-    fi
-
     AYLA_PUBLIC=_Public
     repo_type="public"
 else
     # internal developers default
     AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-develop}
-    AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-${AYLA_BUILD_BRANCH}}
-    AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-${AYLA_BUILD_BRANCH}}
-
     AYLA_PUBLIC=
     repo_type="internal"
 fi
 AYLA_LIB_REPO=${AYLA_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaLibrary${AYLA_PUBLIC}.git}
 AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaZigbeeLibrary${AYLA_PUBLIC}.git}
+
+lib_branch=$AYLA_BUILD_BRANCH
+zigbee_lib_branch=$AYLA_BUILD_BRANCH
+if [[ $AYLA_BUILD_BRANCH =~ .*\..* ]]; then
+    # for release branch like 4.3.0, find its latest lib branch like 4.3.20
+    lib_branch=$(get_latest_lib_branch $AYLA_BUILD_BRANCH, $AYLA_LIB_REPO)
+    zigbee_lib_branch=$(get_latest_lib_branch $AYLA_BUILD_BRANCH, $AYLA_ZIGBEE_LIB_REPO)
+fi
+AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$lib_branch}
+AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$zigbee_lib_branch}
 
 green=`tput setaf 2`
 reset=`tput sgr0`
