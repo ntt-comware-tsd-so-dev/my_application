@@ -1,58 +1,30 @@
 #!/bin/bash
 #
-# by default, with no need of any build variable configuration, this should build current repo of the current branch
-# by automatically fetching the corresponding libraries of the same branch.
-#
-# However, you can chage the default behavior by the following optional environment variables:
+# The following environment variables are optional for you to control your build:
 # AYLA_BUILD_BRANCH: default to the current branch
 # AYLA_LIB_BRANCH: default to AYLA_BUILD_BRANCH
 # AYLA_ZIGBEE_LIB_BRANCH: default to AYLA_BUILD_BRANCH
+#
+# The following are for rare cases when you use a git protocol other than https or a different remote
+# script detects "public" and "internal" repos automatically
 # AYLA_LIB_REPO: default to https://github.com/AylaNetworks/Android_AylaLibrary(_Public).git
 # AYLA_ZIGBEE_LIB_REPO: default to https://github.com/AylaNetworks/Android_AylaZigbeeLibrary(_Public).git
 # AYLA_REMOTE: default to origin
 #
 
-# normal cases no need to set these variables. But in special cases, you can:
-# either set environment variables as shown in the above comments
-# or customize these variables here by following the commented part
-AYLA_BUILD_BRANCH="" #"release/4.4.0"  #set here or switch to target branch then build
-AYLA_LIB_BRANCH="" #"release/4.4.00"
-AYLA_ZIGBEE_LIB_BRANCH="" #"release/4.4.00"
-AYLA_LIB_REPO="" #"https://github.com/AylaNetworks/Android_AylaLibrary_Public.git
-AYLA_ZIGBEE_LIB_REPO="" #"https://github.com/AylaNetworks/Android_AylaZigbeeLibrary_Public.git"
-AYLA_REMOTE="" #"origin"
+# if you do not specifiy branch, the script use your current branch for build and library branches
+# if you want to build a branch other than your crrent branch, switch to that branch to build it
+AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-}  #release/4.4.00
 
-# for app rel_branch example: "release/4.3.0"
-# find most stable lib release like 4.3.20
-# $1: rel_branch; $2: repo
-get_latest_lib_branch() {
-    major=`echo $1 | cut -d'.' -f 1`
-    minor=`echo $1 | cut -d'.' -f 2`
-    major_minor=${major}'.'${minor}
-
-    total_branches=`git ls-remote $2 | grep ${major_minor} | cut -f 2`
-    max_sub_minor="00"
-
-    for line in $total_branches; do
-        IFS='.' read -r -a array <<< "$line"
-        element_count=${#array[@]}
-        subminor=${array[(($element_count-1))]}
-        if [ $subminor -ge $max_sub_minor ]; then
-            max_sub_minor=$subminor
-        fi
-    done
-
-    echo $major_minor'.'$max_sub_minor
-}
-
-# conext display: show value whenever related environment variables are set
-build_var_name_list="AYLA_BUILD_BRANCH AYLA_LIB_BRANCH AYLA_ZIGBEE_LIB_BRANCH AYLA_LIB_REPO AYLA_ZIGBEE_LIB_REPO AYLA_REMOTE"
-for n in $build_var_name_list; do
-    [ `printenv | grep "$n"` ] && echo -e "Your $n is set to \"${!n}\""
-done
-
-# set to origin if AYLA_REMOTE not set or empty
+# must set lib branch here for public release by replacing $AYLA_BUILD_BRANCH with release/4.4.00 etc because
+# their branch names are different; for internal repos, lib branches can be the same as build branch such as "develop" etc
+AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$AYLA_BUILD_BRANCH} #release/4.4.00
+AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$AYLA_BUILD_BRANCH} #release/4.4.00
 AYLA_REMOTE=${AYLA_REMOTE:-origin}
+
+# script can detect lib repos automatically. If you want something diferent, set values here
+AYLA_LIB_REPO=${AYLA_LIB_REPO:-}
+AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-}
 
 cur_repo=`git remote -v`
 if [ $? -ne 0 ]; then
@@ -69,6 +41,7 @@ fi
 branch_string=`git branch |grep -E "\*"`
 if [ $? -ne 0 ]; then
     echo "No current branch found"
+    AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-master}
 else
    cur_branch=`echo "${branch_string}" | cut -d' ' -f 2`
    # default all branches to the current branch if variable not set or empty
@@ -77,28 +50,37 @@ fi
 
 public_repo_pattern=".*_Public\.git .*"
 if [[ $cur_repo =~ $public_repo_pattern ]]; then
-    # public build defaults, set to cur branch unless not found (very rare)
-    AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/4.3.0}
     AYLA_PUBLIC=_Public
     repo_type="public"
 else
     # internal developers default
-    AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-develop}
     AYLA_PUBLIC=
     repo_type="internal"
 fi
 AYLA_LIB_REPO=${AYLA_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaLibrary${AYLA_PUBLIC}.git}
 AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaZigbeeLibrary${AYLA_PUBLIC}.git}
 
-lib_branch=$AYLA_BUILD_BRANCH
-zigbee_lib_branch=$AYLA_BUILD_BRANCH
-if [[ $AYLA_BUILD_BRANCH =~ .*\..* ]]; then
-    # for release branch like 4.3.0, find its latest lib branch like 4.3.20
-    lib_branch=$(get_latest_lib_branch $AYLA_BUILD_BRANCH, $AYLA_LIB_REPO)
-    zigbee_lib_branch=$(get_latest_lib_branch $AYLA_BUILD_BRANCH, $AYLA_ZIGBEE_LIB_REPO)
+# in case when AYLA_BUILD_BRANCH is default to current branch
+AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$AYLA_BUILD_BRANCH}
+AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$AYLA_BUILD_BRANCH}
+
+release_branch_pattern="release.*"
+if [[ $cur_branch =~ $release_branch_pattern ]]; then
+    if [ "X$AYLA_LIB_BRANCH" == "X${AYLA_BUILD_BRANCH}" ]; then
+        echo "Warning: for release branches, library branch should be different form build branch."
+        echo -e "Please set your AYLA_LIB_BRANCH to the right value.\n"
+    fi
+    if [ "X$AYLA_ZIGBEE_LIB_BRANCH" == "X${AYLA_BUILD_BRANCH}" ]; then
+        echo "Warning: for release branches, zigbee library branch should be different form build branch."
+        echo -e "Please set your AYLA_ZIGBEE_LIB_BRANCH to the right value.\n"
+    fi
 fi
-AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$lib_branch}
-AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$zigbee_lib_branch}
+
+# conext display: show value whenever related environment variables are set
+build_var_name_list="AYLA_BUILD_BRANCH AYLA_LIB_BRANCH AYLA_ZIGBEE_LIB_BRANCH AYLA_LIB_REPO AYLA_ZIGBEE_LIB_REPO AYLA_REMOTE"
+for n in $build_var_name_list; do
+    [ `printenv | grep "$n"` ] && echo -e "Your $n is set to \"${!n}\""
+done
 
 green=`tput setaf 2`
 reset=`tput sgr0`
@@ -110,18 +92,12 @@ styled_lib_repo=${green}${AYLA_LIB_REPO}${reset}
 styled_zigbee_lib_repo=${green}${AYLA_ZIGBEE_LIB_REPO}${reset}
 echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with lib branch ${styled_lib_branch} and zigbee branch ${styled_zigbee_lib_branch}  ***"
 echo "*** lib repo: ${styled_lib_repo}  zigbee lib repo: ${styled_zigbee_lib_repo} ***"
-echo "(Want another branch? switch to that branch or set AYLA_BUILD_BRANCH environment variable to build it)"
-echo "(Want libs from another branch? set AYLA_LIB_BRANCH and AYLA_ZIGBEE_LIB_BRANCH to build it)"
-echo -e "(want to customize lib or zigbee lib repos? use AYLA_LIB_REPO and AYLA_ZIGBEE_LIB_REPO)\n"
 
 for n in $build_var_name_list; do
     echo -e "Now $n = \"${!n}\""
 done
 
 echo -e "\ncheckout git repo"
-# if AYLA_BUILD_BRANCH not set, then set to master
-: ${MASTER=master}
-: ${AYLA_REMOTE=origin}
 
 cd ..
 git fetch $AYLA_REMOTE
