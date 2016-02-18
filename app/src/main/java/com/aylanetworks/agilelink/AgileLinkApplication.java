@@ -91,7 +91,6 @@ public class AgileLinkApplication extends Application implements ComponentCallba
                     .detectLeakedSqlLiteObjects()
                     .detectLeakedClosableObjects()
                     .penaltyLog()
-                    .penaltyDeath()
                     .build());
         }
 
