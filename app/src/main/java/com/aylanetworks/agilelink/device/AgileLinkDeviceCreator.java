@@ -30,6 +30,7 @@ import java.util.List;
 public class AgileLinkDeviceCreator extends DeviceCreator {
     private final static String LOG_TAG = "AgileLinkDeviceCreator";
 
+    public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
@@ -50,7 +51,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 // This is a gateway.
                 return new Gateway(aylaDevice);
             }
-            return new Device(aylaDevice);
+            return new GenericDevice(aylaDevice);
         }
 
         if (aylaDevice.oemModel.equals("ledevb")) {
@@ -72,7 +73,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if (aylaDevice.oemModel.equals("generic")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new Gateway(aylaDevice);
+                return new GenericGateway(aylaDevice);
             }
             if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
                 // This is a generic node
@@ -134,7 +135,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
         //  We don't know what this is. Create a generic device.
         Logger.logError(LOG_TAG, "Could not identify this device: " + aylaDevice);
-        return new Device(aylaDevice);
+        return new GenericDevice(aylaDevice);
     }
 
     @Override

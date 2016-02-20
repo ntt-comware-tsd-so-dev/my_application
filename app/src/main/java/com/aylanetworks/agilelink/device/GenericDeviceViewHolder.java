@@ -9,7 +9,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
-import com.aylanetworks.agilelink.R;
 
 /*
  * GenericDeviceViewHolder.java
