@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Device;
 
 /*
@@ -19,15 +20,15 @@ import com.aylanetworks.agilelink.framework.Device;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class DeviceTypeAdapter extends ArrayAdapter<Device> {
+public class DeviceTypeAdapter extends ArrayAdapter<GenericDevice> {
 
     public boolean useProductName;
 
-    public DeviceTypeAdapter(Context c, Device[] objects) {
+    public DeviceTypeAdapter(Context c, GenericDevice[] objects) {
         super(c, R.layout.spinner_device_selection, objects);
     }
 
-    public DeviceTypeAdapter(Context c, Device[] objects, boolean productName) {
+    public DeviceTypeAdapter(Context c, GenericDevice[] objects, boolean productName) {
         super(c, R.layout.spinner_device_selection, objects);
         useProductName = productName;
     }
@@ -38,7 +39,7 @@ public class DeviceTypeAdapter extends ArrayAdapter<Device> {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View spinner = inflater.inflate(R.layout.spinner_device_selection, parent, false);
 
-        Device d = getItem(position);
+        GenericDevice d = getItem(position);
 
         ImageView iv = (ImageView)spinner.findViewById(R.id.device_image);
         iv.setImageDrawable(d.getDeviceDrawable(getContext()));

@@ -50,6 +50,9 @@ import com.aylanetworks.aaml.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.Manifest;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
+import com.aylanetworks.agilelink.device.GenericDevice;
+import com.aylanetworks.agilelink.device.GenericGateway;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
@@ -257,18 +260,24 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ArrayAdapter<Device> createGatewayAdapter() {
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]), true);
+    ArrayAdapter<GenericGateway> createGatewayAdapter() {
+        List<GenericGateway> gateways = GenericGateway.fromGateways(SessionManager.deviceManager()
+                .getGatewayDevices());
+        return new GenericGateway.GatewayTypeAdapter(getActivity(), gateways.toArray(new
+                GenericGateway[gateways.size()]), true);
     }
 
-    ArrayAdapter<Device> createProductTypeAdapter() {
-        List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
+    ArrayAdapter<GenericDevice> createProductTypeAdapter() {
+        AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
+                .deviceCreator;
+
+        List<Class<? extends GenericDevice>> deviceClasses = dc.getSupportedDeviceClasses();
         ArrayList<Device> deviceList = new ArrayList<>();
-        for (Class<? extends Device> c : deviceClasses) {
+        for (Class<? extends GenericDevice> c : deviceClasses) {
             try {
                 AylaDevice fakeDevice = new AylaDevice();
-                Device d = c.getDeclaredConstructor(AylaDevice.class).newInstance(fakeDevice);
+                GenericDevice d = c.getDeclaredConstructor(GenericDevice.class).newInstance
+                        (fakeDevice);
                 deviceList.add(d);
             } catch (java.lang.InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 e.printStackTrace();

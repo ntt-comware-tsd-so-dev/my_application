@@ -74,7 +74,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if (aylaDevice.oemModel.equals("generic")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new Gateway(aylaDevice);
+                return new GenericGateway(aylaDevice);
             }
             if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
                 // This is a generic node
@@ -183,12 +183,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         return null;
     }
 
-    public List<Class<? extends Device>> getSupportedDeviceClasses() {
-        List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
+    public List<Class<? extends GenericDevice>> getSupportedDeviceClasses() {
+        List<Class<? extends GenericDevice>> classList = new ArrayList<Class<? extends
+                GenericDevice>>();
 
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
-        classList.add(Gateway.class);
+        classList.add(GenericGateway.class);
         classList.add(ZigbeeNodeDevice.class);
         return classList;
     }

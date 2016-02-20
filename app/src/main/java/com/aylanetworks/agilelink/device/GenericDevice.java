@@ -25,6 +25,9 @@ import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <ul>
  * Derived classes should override the following methods:
@@ -42,6 +45,20 @@ public class GenericDevice extends Device {
      */
     public GenericDevice(AylaDevice aylaDevice) {
         super(aylaDevice);
+    }
+
+    /**
+     * Helper method to turn a list of Devices into a list of GenericDevices. All of the Device
+     * objects in the list must be GenericDevice-derived objects.
+     * @param deviceList List of Devices
+     * @return list of GenericDevices
+     */
+    public static List<GenericDevice> fromDeviceList(List<Device> deviceList) {
+        List<GenericDevice> genericDevices = new ArrayList<>(deviceList.size());
+        for ( Device d : deviceList) {
+            genericDevices.add((GenericDevice)d);
+        }
+        return genericDevices;
     }
 
     /**
