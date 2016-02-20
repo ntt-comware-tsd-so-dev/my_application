@@ -5,15 +5,25 @@ package com.aylanetworks.agilelink.device;
  * Copyright 2015 Ayla Networks, all rights reserved
  */
 
+import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
+import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 import com.aylanetworks.agilelink.fragments.TriggerFragment;
+import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.SessionManager;
 
 /**
  * <ul>
@@ -26,6 +36,15 @@ import com.aylanetworks.agilelink.fragments.TriggerFragment;
  */
 public class GenericDevice extends Device {
     /**
+     * Constructor using the AylaDevice parameter
+     *
+     * @param aylaDevice AylaDevice object this device represents
+     */
+    public GenericDevice(AylaDevice aylaDevice) {
+        super(aylaDevice);
+    }
+
+    /**
      * Updates the views in the ViewHolder with information from the Device object.
      * <p/>
      * Derived classes should override this method to set up a ViewHolder for display in
@@ -33,7 +52,6 @@ public class GenericDevice extends Device {
      *
      * @param holder The view holder for this object
      */
-    @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getProductName());
@@ -56,7 +74,8 @@ public class GenericDevice extends Device {
                 h._notificationsButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(Device.this));
+                        MainActivity.getInstance().pushFragment(NotificationListFragment
+                                .newInstance(GenericDevice.this));
                     }
                 });
                 h._notificationsButton.setVisibility(getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
@@ -64,7 +83,8 @@ public class GenericDevice extends Device {
                 h._scheduleButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        MainActivity.getInstance().pushFragment(ScheduleContainerFragment.newInstance(Device.this));
+                        MainActivity.getInstance().pushFragment(ScheduleContainerFragment
+                                .newInstance(GenericDevice.this));
                     }
                 });
                 h._scheduleButton.setVisibility(getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
@@ -73,7 +93,8 @@ public class GenericDevice extends Device {
                 h._detailsButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        MainActivity.getInstance().pushFragment(DeviceDetailFragment.newInstance(Device.this));
+                        MainActivity.getInstance().pushFragment(DeviceDetailFragment
+                                .newInstance(GenericDevice.this));
                     }
                 });
             }
@@ -94,7 +115,8 @@ public class GenericDevice extends Device {
      * for each type of CardView displayed for a device.
      * <p>
      * The value returned from this method will be passed to the
-     * {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType(android.view.ViewGroup, int)}
+     * {@link com.aylanetworks.agilelink.device.AgileLinkDeviceCreator#viewHolderForViewType
+     * (android.view.ViewGroup, int)}
      * method of the {@link com.aylanetworks.agilelink.framework.DeviceCreator} object, which uses
      * it to determine the appropriate ViewHolder object to create for the Device.
      * <p>
@@ -102,7 +124,8 @@ public class GenericDevice extends Device {
      * are the same. Most devices will have their own unique views displayed.
      * <p>
      * View types should be unique, and are generally defined as static members of the
-     * {@link DeviceCreator} class. This keeps them all in the same place and makes it easy to
+     * {@link AgileLinkDeviceCreator} class. This keeps them all in the same place and makes it
+     * easy to
      * ensure that each identifier is unique.
      *
      * @return An integer representing the type of view for this item.

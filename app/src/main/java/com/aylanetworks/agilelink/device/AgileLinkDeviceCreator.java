@@ -15,6 +15,7 @@ import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if (aylaDevice.oemModel.equals("generic")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new GenericGateway(aylaDevice);
+                return new Gateway(aylaDevice);
             }
             if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
                 // This is a generic node
@@ -138,7 +139,6 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         return new GenericDevice(aylaDevice);
     }
 
-    @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
         View v;
         UIConfig.ListStyle listStyle = MainActivity.getUIConfig()._listStyle;
@@ -180,7 +180,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 return new ZigbeeStatusDeviceHolder(v);
         }
 
-        return super.viewHolderForViewType(parent, viewType);
+        return null;
     }
 
     public List<Class<? extends Device>> getSupportedDeviceClasses() {

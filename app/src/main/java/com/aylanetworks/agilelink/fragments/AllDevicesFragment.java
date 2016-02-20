@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -88,7 +89,7 @@ public class AllDevicesFragment extends Fragment
         // See if we have a device manager yet
         DeviceManager dm = SessionManager.deviceManager();
         if (dm != null) {
-            _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
+            _adapter = DeviceListAdapter.fromDeviceList(SessionManager.deviceManager().deviceList(), this);
             startListening();
         }
     }
@@ -112,7 +113,6 @@ public class AllDevicesFragment extends Fragment
         // Set up the list view
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
-        _recyclerView.getItemAnimator().setSupportsChangeAnimations(true);
         _recyclerView.setVisibility(View.GONE);
 
         _emptyView.setVisibility(View.VISIBLE);
@@ -131,7 +131,7 @@ public class AllDevicesFragment extends Fragment
                 gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                     @Override
                     public int getSpanSize(int position) {
-                        Device device = _adapter.getItem(position);
+                        GenericDevice device = _adapter.getItem(position);
                         return device.getGridViewSpan();
                     }
                 });
@@ -248,7 +248,7 @@ public class AllDevicesFragment extends Fragment
                     _emptyView.setVisibility(View.GONE);
                     _recyclerView.setVisibility(View.VISIBLE);
                 }
-                _adapter = new DeviceListAdapter(deviceList, this);
+                _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
                 _recyclerView.setAdapter(_adapter);
             }
         }
@@ -343,7 +343,7 @@ public class AllDevicesFragment extends Fragment
 
     protected void handleItemClick(View v) {
         int itemIndex = (int)v.getTag();
-        final Device d = _adapter.getItem(itemIndex);
+        final GenericDevice d = _adapter.getItem(itemIndex);
         if (d != null) {
             ViewGroup expandedLayout = (ViewGroup)v.findViewById(R.id.expanded_layout);
             if ( expandedLayout != null ) {
