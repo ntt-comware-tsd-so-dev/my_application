@@ -563,6 +563,7 @@ public class SessionManager {
      * @param oAuthResponseMessage The Message returned from a successful call to {@link AylaUser#loginThroughOAuth}
      */
     public static void startOAuthSession(Message oAuthResponseMessage) {
+        getInstance()._loginHandler = new LoginHandler(getInstance(), true);
         getInstance()._loginHandler.handleMessage(oAuthResponseMessage);
     }
 
@@ -741,7 +742,6 @@ public class SessionManager {
         @Override
         public void handleMessage(Message msg) {
             Log.d(LOG_TAG, "nod: stop session handle message [" + msg + "]");
-            //super.handleMessage(msg);
             dismissWaitDialog();
             AylaUser.user.setAccessToken(null);
             AylaCache.clearAll();
@@ -761,9 +761,12 @@ public class SessionManager {
      */
     static class LoginHandler extends Handler {
         private WeakReference<SessionManager> _sessionManager;
+        private boolean isOAuth;
 
-        public LoginHandler(SessionManager sessionManager) {
+        public LoginHandler(SessionManager sessionManager, final boolean isoa) {
             _sessionManager = new WeakReference<SessionManager>(sessionManager);
+
+            isOAuth = isoa;
         }
 
         @Override
@@ -786,7 +789,31 @@ public class SessionManager {
                 }
 
                 // Save the auth info for the user
-                _sessionManager.get()._aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
+                if (isOAuth) { // OAuth response is different from regular response.
+                    _sessionManager.get()._aylaUser = new AylaUser();
+                    try {
+                        JSONObject object = new JSONObject((String)msg.obj);
+
+                        _sessionManager.get()._aylaUser.accessToken = object.getString("access_token");
+                        _sessionManager.get()._aylaUser.refreshToken = object.getString("refresh_token");
+                        _sessionManager.get()._aylaUser.expiresIn = object.getInt("expires_in");
+                        JSONObject roleObject = object.getJSONObject("role");
+                        AylaUser.AylaUserRole oAuthRoleObject = AylaSystemUtils.gson.fromJson
+                                (roleObject.toString(), AylaUser.AylaUserRole.class);
+                        _sessionManager.get()._aylaUser.OAuthRole = oAuthRoleObject;
+                        _sessionManager.get()._aylaUser.role = oAuthRoleObject.name;
+                        // TODO: oAuthRoleObject has id/oem_id/group/can_add_role_user, map and init
+                        // roleTags.
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // inconsistent role field, refer to SVC-2195.
+                        // TODO: Hard code role as "EndUser" for now, fix it.
+                        _sessionManager.get()._aylaUser.role = "EndUser";
+                    }
+                } else {
+                    _sessionManager.get()._aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
+                }
                 _sessionManager.get()._aylaUser.email = _sessionManager.get()._sessionParameters.username;
                 _sessionManager.get()._aylaUser.password = _sessionManager.get()._sessionParameters.password;
                 _sessionManager.get()._aylaUser = AylaUser.setCurrent(_sessionManager.get()._aylaUser);
@@ -840,7 +867,7 @@ public class SessionManager {
         }
     }
 
-    private LoginHandler _loginHandler = new LoginHandler(this);
+    private LoginHandler _loginHandler = null;
 
     /**
      * Handle the result of the login request
@@ -934,6 +961,7 @@ public class SessionManager {
 
         if(!_sessionParameters.ssoLogin)
         {
+            _loginHandler = new LoginHandler(this, false);
             AylaUser.login(_loginHandler,
                     _sessionParameters.username,
                     _sessionParameters.password,
