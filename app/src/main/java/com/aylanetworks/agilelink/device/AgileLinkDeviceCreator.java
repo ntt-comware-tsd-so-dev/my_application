@@ -1,7 +1,6 @@
 package com.aylanetworks.agilelink.device;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,30 +45,30 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             Logger.logError(LOG_TAG, "No oemModel set on device: " + aylaDevice);
 
             // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
-            if (aylaDevice.model.equals("AY001MRT1")) {
+            if ("AY001MRT1".equals(aylaDevice.model)) {
                 // This is a gateway.
                 return new Gateway(aylaDevice);
             }
             return new Device(aylaDevice);
         }
 
-        if (aylaDevice.oemModel.equals("ledevb")) {
+        if ( "ledevb".equals(aylaDevice.oemModel) ) {
             // This is the Ayla devkit.
             return new AylaEVBDevice(aylaDevice);
         }
 
-        if (aylaDevice.oemModel.equals("smartplug1")) {
+        if ( "smartplug1".equals(aylaDevice.oemModel) ) {
             // This is the Ayla Demo Smart plug
             return new SwitchedDevice(aylaDevice);
         }
 
-        if (aylaDevice.oemModel.equals("EWPlug1")) {
+        if ( "EWPlug1".equals(aylaDevice.oemModel) ) {
             // This is an Everwin MFI/Homekit enabled smart plug.
             return new SwitchedDevice(aylaDevice);
         }
 
         // Gateway, including Zigbee, devices
-        if (aylaDevice.oemModel.equals("generic")) {
+        if ( "generic".equals(aylaDevice.oemModel) ) {
             if (aylaDevice.model.equals("AY001MRT1")) {
                 // This is a generic gateway.
                 return new Gateway(aylaDevice);
@@ -79,7 +78,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 return new GenericNodeDevice(aylaDevice);
             }
         }
-        if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
+        if ( "GenericNode".equals(aylaDevice.model) || "Generic Node".equals(aylaDevice.model) ) {
             if (aylaDevice.oemModel.equals("NexturnSmartPlug")) {
                 // This is a Generic Gateway smart plug.
                 return new ZigbeeSwitchedDevice(aylaDevice);
@@ -101,7 +100,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
             // This is a generic node
             return new GenericNodeDevice(aylaDevice);
         }
-        if (aylaDevice.oemModel.equals("zigbee1") || aylaDevice.oemModel.equals("liunxex1")){
+        if ( "zigbee1".equals(aylaDevice.oemModel) || "liunxex1".equals(aylaDevice.oemModel) ){
             if (aylaDevice.model.equals("AY001MRT1") && aylaDevice.isGateway()) {
                 // This is a Zigbee gateway.
                 return new ZigbeeGateway(aylaDevice);
