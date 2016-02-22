@@ -37,7 +37,7 @@ import java.util.List;
  * <li>{@link #friendlyNameForPropertyName(String)}</li>
  * </ul>
  */
-public class GenericDevice extends Device {
+public class GenericDevice extends Device implements DeviceUIProvider {
     /**
      * Constructor using the AylaDevice parameter
      *
@@ -201,8 +201,14 @@ public class GenericDevice extends Device {
      *
      * @return The number of columns the device's view should span when displayed in a grid
      */
+    @Override
     public int getGridViewSpan() {
         return 1;
+    }
+
+    @Override
+    public String getName() {
+        return getProductName();
     }
 
     /**
@@ -211,9 +217,9 @@ public class GenericDevice extends Device {
      * @param c Context to access resources
      * @return A Drawable object representing the device
      */
+    @Override
     public Drawable getDeviceDrawable(Context c) {
         return c.getResources().getDrawable(R.drawable.generic_device);
     }
-
 
 }

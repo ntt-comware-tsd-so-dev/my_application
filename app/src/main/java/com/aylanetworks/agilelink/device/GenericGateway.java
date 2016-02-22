@@ -23,13 +23,23 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GenericGateway extends Gateway {
+public class GenericGateway extends Gateway implements DeviceUIProvider {
     public GenericGateway(AylaDevice aylaDevice) {
         super(aylaDevice);
     }
 
     public Drawable getDeviceDrawable(Context context) {
         return ContextCompat.getDrawable(context, R.drawable.ic_generic_gateway_red);
+    }
+
+    @Override
+    public int getGridViewSpan() {
+        return 1;
+    }
+
+    @Override
+    public String getName() {
+        return getProductName();
     }
 
     public static List<GenericGateway> fromGateways(List<Gateway> gatewayDevices) {

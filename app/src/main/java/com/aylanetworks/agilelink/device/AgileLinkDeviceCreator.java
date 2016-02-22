@@ -183,9 +183,26 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         return null;
     }
 
-    public List<Class<? extends GenericDevice>> getSupportedDeviceClasses() {
-        List<Class<? extends GenericDevice>> classList = new ArrayList<Class<? extends
-                GenericDevice>>();
+    /**
+     * Returns a list of Device class objects that are supported by this application.
+     *
+     * This list is used during device registration to provide a list of Device types that the
+     * user can choose from when registering a new device.
+     *
+     * The device classes returned from this method are instantiated using a dummy AylaDevice object
+     * and queried to provide the name of the device, the preferred registration type and an image
+     * representing the device. This information is gained from calling the following methods on each
+     * device returned from this method:
+     *
+     * <ul>
+     *     <li>{@link Device#registrationType()}</li>
+     *     <li>{@link Device#deviceTypeName()}</li>
+     * </ul>
+     *
+     * @return A list of Class objects, one for each supported Device class
+     */
+    public List<Class<? extends DeviceUIProvider>> getSupportedDeviceClasses() {
+        List<Class<? extends DeviceUIProvider>> classList = new ArrayList<>();
 
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
