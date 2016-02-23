@@ -794,22 +794,21 @@ public class SessionManager {
                     try {
                         JSONObject object = new JSONObject((String)msg.obj);
 
-                        _sessionManager.get()._aylaUser.accessToken = object.getString("access_token");
-                        _sessionManager.get()._aylaUser.refreshToken = object.getString("refresh_token");
-                        _sessionManager.get()._aylaUser.expiresIn = object.getInt("expires_in");
+                        _sessionManager.get()._aylaUser.setAccessToken(object.getString("access_token"));
+                        _sessionManager.get()._aylaUser.setRefreshToken(object.getString("refresh_token"));
+                        _sessionManager.get()._aylaUser.setExpiresIn(object.getInt("expires_in"));
                         JSONObject roleObject = object.getJSONObject("role");
                         AylaUser.AylaUserRole oAuthRoleObject = AylaSystemUtils.gson.fromJson
                                 (roleObject.toString(), AylaUser.AylaUserRole.class);
-                        _sessionManager.get()._aylaUser.OAuthRole = oAuthRoleObject;
-                        _sessionManager.get()._aylaUser.role = oAuthRoleObject.name;
+                        _sessionManager.get()._aylaUser.setOAuthRole(oAuthRoleObject);
+                        _sessionManager.get()._aylaUser.setRole(oAuthRoleObject.name);
                         // TODO: oAuthRoleObject has id/oem_id/group/can_add_role_user, map and init
                         // roleTags.
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        // inconsistent role field, refer to SVC-2195.
-                        // TODO: Hard code role as "EndUser" for now, fix it.
-                        _sessionManager.get()._aylaUser.role = "EndUser";
+                        //TODO: Set to "EndUser" if missing, SVC-2195
+                        _sessionManager.get()._aylaUser.setRole("EndUser");
                     }
                 } else {
                     _sessionManager.get()._aylaUser = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
