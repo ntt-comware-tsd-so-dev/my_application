@@ -200,8 +200,6 @@ public class MenuHandler {
                             _deleteAccountHandler = new DeleteAccountHandler();
                             AylaUser.delete(_deleteAccountHandler);
                         }
-                        _deleteAccountHandler = new DeleteAccountHandler();
-                        AylaUser.delete(_deleteAccountHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
