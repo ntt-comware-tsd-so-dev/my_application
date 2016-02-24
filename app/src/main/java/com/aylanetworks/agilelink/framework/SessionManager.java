@@ -124,6 +124,12 @@ public class SessionManager {
                 getInstance()._sessionParameters.deviceSsidRegex,
                 getInstance()._sessionParameters.appId);
 
+//        AylaSystemUtils.serviceType = AylaNetworks.AML_FIELD_SERVICE;
+//        AylaSystemUtils.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+
+
+//        AylaSystemUtils.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+
         if(parameters.logsEmailAddress != null){
             AylaSystemUtils.setSupportEmailAddress(parameters.logsEmailAddress);
         }
@@ -200,6 +206,12 @@ public class SessionManager {
         // We're not usually initialized at this point
         AylaNetworks.init(params.context, params.deviceSsidRegex, params.appId);
 
+//        AylaSystemUtils.serviceType = AylaNetworks.AML_FIELD_SERVICE;
+//        AylaSystemUtils.serviceType = AylaNetworks.AML_DEVELOPMENT_SERVICE;
+
+
+//        AylaSystemUtils.loggingLevel = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+        
         AylaUser.signUp(resultHandler, callParams, params.appId, params.appSecret);
     }
 
