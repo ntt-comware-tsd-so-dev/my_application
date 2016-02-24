@@ -36,6 +36,7 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
 import com.aylanetworks.agilelink.framework.Device;
@@ -72,7 +73,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
 
-    private Device _device;
+    private GenericDevice _device;
     private ListView _listView;
     private PropertyListAdapter _adapter;
     private TextView _titleView;
@@ -99,7 +100,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _device = null;
         if (getArguments() != null ) {
             String dsn = getArguments().getString(ARG_DEVICE_DSN);
-            _device = SessionManager.deviceManager().deviceByDSN(dsn);
+            _device = (GenericDevice)SessionManager.deviceManager().deviceByDSN(dsn);
         }
      }
 

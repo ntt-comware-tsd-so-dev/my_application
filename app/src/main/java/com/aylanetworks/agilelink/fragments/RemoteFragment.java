@@ -31,14 +31,15 @@ import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
-import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
 
     private static final String ARG_DSN = "dsn";
 
-    Device _device;
+    GenericDevice _device;
     ZigbeeGateway _gateway;
     ListView _listView;
     SimpleDeviceListAdapter _adapter;
@@ -108,7 +109,7 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
         _device = null;
         if (getArguments() != null ) {
             String dsn = getArguments().getString(ARG_DSN);
-            _device = SessionManager.deviceManager().deviceByDSN(dsn);
+            _device = (GenericDevice)SessionManager.deviceManager().deviceByDSN(dsn);
         }
     }
 

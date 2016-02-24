@@ -15,6 +15,7 @@ import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.List;
 public class AgileLinkDeviceCreator extends DeviceCreator {
     private final static String LOG_TAG = "AgileLinkDeviceCreator";
 
+    public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
@@ -50,7 +52,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 // This is a gateway.
                 return new Gateway(aylaDevice);
             }
-            return new Device(aylaDevice);
+            return new GenericDevice(aylaDevice);
         }
 
         if (aylaDevice.oemModel.equals("ledevb")) {
@@ -72,7 +74,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if (aylaDevice.oemModel.equals("generic")) {
             if (aylaDevice.model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new Gateway(aylaDevice);
+                return new GenericGateway(aylaDevice);
             }
             if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
                 // This is a generic node
@@ -134,10 +136,9 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
 
         //  We don't know what this is. Create a generic device.
         Logger.logError(LOG_TAG, "Could not identify this device: " + aylaDevice);
-        return new Device(aylaDevice);
+        return new GenericDevice(aylaDevice);
     }
 
-    @Override
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
         View v;
         UIConfig.ListStyle listStyle = MainActivity.getUIConfig()._listStyle;
@@ -179,15 +180,33 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 return new ZigbeeStatusDeviceHolder(v);
         }
 
-        return super.viewHolderForViewType(parent, viewType);
+        return null;
     }
 
-    public List<Class<? extends Device>> getSupportedDeviceClasses() {
-        List<Class<? extends Device>> classList = new ArrayList<Class<? extends Device>>();
+    /**
+     * Returns a list of Device class objects that are supported by this application.
+     *
+     * This list is used during device registration to provide a list of Device types that the
+     * user can choose from when registering a new device.
+     *
+     * The device classes returned from this method are instantiated using a dummy AylaDevice object
+     * and queried to provide the name of the device, the preferred registration type and an image
+     * representing the device. This information is gained from calling the following methods on each
+     * device returned from this method:
+     *
+     * <ul>
+     *     <li>{@link Device#registrationType()}</li>
+     *     <li>{@link Device#deviceTypeName()}</li>
+     * </ul>
+     *
+     * @return A list of Class objects, one for each supported Device class
+     */
+    public List<Class<? extends DeviceUIProvider>> getSupportedDeviceClasses() {
+        List<Class<? extends DeviceUIProvider>> classList = new ArrayList<>();
 
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
-        classList.add(Gateway.class);
+        classList.add(GenericGateway.class);
         classList.add(ZigbeeNodeDevice.class);
         return classList;
     }

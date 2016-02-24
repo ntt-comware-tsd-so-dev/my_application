@@ -50,6 +50,10 @@ import com.aylanetworks.aaml.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.Manifest;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
+import com.aylanetworks.agilelink.device.GenericDevice;
+import com.aylanetworks.agilelink.device.GenericGateway;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
@@ -168,8 +172,11 @@ public class AddDeviceFragment extends Fragment
         if ((gateways != null) && (gateways.size() > 0)) {
             // If they have a gateway, then default to Zigbee Node
             int index = 0;
-            List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
-            for (Class<? extends Device> c : deviceClasses) {
+            AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
+                    .deviceCreator;
+
+            List<Class<? extends DeviceUIProvider>> deviceClasses = dc.getSupportedDeviceClasses();
+            for (Class<? extends DeviceUIProvider> c : deviceClasses) {
                 if (c.getSimpleName().equals("ZigbeeNodeDevice")) {
                     _nodeRegistrationGateway = gateways.get(0);
                     _registrationType = REG_TYPE_NODE;
@@ -257,24 +264,31 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ArrayAdapter<Device> createGatewayAdapter() {
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]), true);
+    ArrayAdapter<GenericGateway> createGatewayAdapter() {
+        List<GenericGateway> gateways = GenericGateway.fromGateways(SessionManager.deviceManager()
+                .getGatewayDevices());
+        return new GenericGateway.GatewayTypeAdapter(getActivity(), gateways.toArray(new
+                GenericGateway[gateways.size()]), true);
     }
 
-    ArrayAdapter<Device> createProductTypeAdapter() {
-        List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
-        ArrayList<Device> deviceList = new ArrayList<>();
-        for (Class<? extends Device> c : deviceClasses) {
+    ArrayAdapter<DeviceUIProvider> createProductTypeAdapter() {
+        AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
+                .deviceCreator;
+
+        List<Class<? extends DeviceUIProvider>> deviceClasses = dc.getSupportedDeviceClasses();
+        ArrayList<DeviceUIProvider> deviceList = new ArrayList<>();
+        for (Class<? extends DeviceUIProvider> c : deviceClasses) {
             try {
                 AylaDevice fakeDevice = new AylaDevice();
-                Device d = c.getDeclaredConstructor(AylaDevice.class).newInstance(fakeDevice);
+                DeviceUIProvider d = c.getDeclaredConstructor(DeviceUIProvider.class).newInstance
+                        (fakeDevice);
                 deviceList.add(d);
-            } catch (java.lang.InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new Device[deviceList.size()]));
+        return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new DeviceUIProvider[deviceList
+                .size()]));
     }
 
     @Override

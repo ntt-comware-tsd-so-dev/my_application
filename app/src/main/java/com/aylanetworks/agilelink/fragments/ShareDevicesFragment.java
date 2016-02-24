@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
@@ -59,7 +60,7 @@ public class ShareDevicesFragment extends Fragment {
     private Calendar _shareStartDate;
     private Calendar _shareEndDate;
     private boolean _readOnly;
-    private Device _device;             // Only set if we're sharing exactly one device
+    private GenericDevice _device;             // Only set if we're sharing exactly one device
 
     public interface ShareDevicesListener {
         /**
@@ -101,7 +102,8 @@ public class ShareDevicesFragment extends Fragment {
      * @param device   Device to be shared, or null to present a list of devices in the dialog
      * @return the new ShareDevicesFragment
      */
-    public static ShareDevicesFragment newInstance(ShareDevicesListener listener, Device device) {
+    public static ShareDevicesFragment newInstance(ShareDevicesListener listener,
+                                                   GenericDevice device) {
         ShareDevicesFragment frag = new ShareDevicesFragment();
         frag._listener = listener;
         frag._device = device;

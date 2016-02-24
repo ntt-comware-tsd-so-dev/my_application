@@ -6,6 +6,7 @@ import android.view.View;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.ZigbeeSceneManager;
@@ -25,7 +26,7 @@ public class SceneDeviceListAdapter extends DeviceListAdapter {
 
     String _sceneName;
 
-    public static class RecallSceneIcon extends Device {
+    public static class RecallSceneIcon extends GenericDevice {
 
         String _sceneName;
         String _label;
@@ -52,8 +53,9 @@ public class SceneDeviceListAdapter extends DeviceListAdapter {
         }
     }
 
-    static List<Device> getDevicesForSceneName(String sceneName) {
-        List<Device> list = ZigbeeSceneManager.getDevicesForSceneName(sceneName);
+    static List<GenericDevice> getDevicesForSceneName(String sceneName) {
+        List<GenericDevice> list = GenericDevice.fromDeviceList(
+                ZigbeeSceneManager.getDevicesForSceneName(sceneName));
         list.add(0, new RecallSceneIcon(sceneName));
         return list;
     }
@@ -70,7 +72,7 @@ public class SceneDeviceListAdapter extends DeviceListAdapter {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        Device d = _deviceList.get(position);
+        GenericDevice d = _deviceList.get(position);
         if (d.isIcon()) {
             //
         } else {

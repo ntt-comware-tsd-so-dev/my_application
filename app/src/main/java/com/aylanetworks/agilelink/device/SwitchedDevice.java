@@ -28,7 +28,7 @@ import java.util.ArrayList;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class SwitchedDevice extends Device implements View.OnClickListener {
+public class SwitchedDevice extends GenericDevice implements View.OnClickListener {
 
     private final static String LOG_TAG = "SwitchedDevice";
     private final static String PROPERTY_OUTLET = "outlet1";

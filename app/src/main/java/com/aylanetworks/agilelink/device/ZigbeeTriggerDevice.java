@@ -18,10 +18,11 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayDeque;
 
-public class ZigbeeTriggerDevice extends Device  {
+public class ZigbeeTriggerDevice extends GenericDevice  {
 
     private final static String LOG_TAG = "ZigbeeTriggerDevice";
 
