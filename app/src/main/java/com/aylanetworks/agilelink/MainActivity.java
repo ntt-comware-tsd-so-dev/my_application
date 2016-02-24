@@ -898,7 +898,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             SessionManager.deviceManager().stopPolling();
 
             // we aren't going to "pause" LAN mode if we haven't been logged in.
-            AylaLanMode.pause(false);
+            AylaNetworks.onPause(false);
         }
     }
 
