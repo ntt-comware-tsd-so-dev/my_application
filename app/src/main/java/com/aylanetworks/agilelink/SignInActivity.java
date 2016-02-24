@@ -12,15 +12,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.view.menu.MenuBuilder;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
+import android.webkit.ValueCallback;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -281,8 +281,11 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
     }
 
+
+
     private void oAuthSignIn(String service) {
         _webView.setVisibility(View.VISIBLE);
+        CookieManager.getInstance().removeAllCookie();
 
         String serviceName = (service.equals(OAUTH_FACEBOOK)) ? getString(R.string.facebook) :
                 getString(R.string.google);

@@ -1025,7 +1025,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         String error;
     }
 
-    //@Override
+
     public void signInOAuth(Message msg) {
         if (AylaNetworks.succeeded(msg)) {
             // Make sure we have an auth token. Sometimes we get back "OK" but there is
