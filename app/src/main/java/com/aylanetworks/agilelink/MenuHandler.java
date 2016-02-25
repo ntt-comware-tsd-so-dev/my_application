@@ -200,8 +200,6 @@ public class MenuHandler {
                             _deleteAccountHandler = new DeleteAccountHandler();
                             AylaUser.delete(_deleteAccountHandler);
                         }
-                        _deleteAccountHandler = new DeleteAccountHandler();
-                        AylaUser.delete(_deleteAccountHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -212,6 +210,8 @@ public class MenuHandler {
         @Override
         public void handleMessage(Message msg) {
             Logger.logMessage(LOG_TAG, msg, "user: DeleteAccountHandler");
+            Log.d(LOG_TAG, "DeleteAccountHandler Message: " + msg.toString());
+
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
                 // Log out and show a toast

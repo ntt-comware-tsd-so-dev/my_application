@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "21.1.2"
+    buildToolsVersion '23.0.2'
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         applicationId "com.aylanetworks.agilelink"
@@ -29,17 +29,14 @@ task initialize {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.android.support:recyclerview-v7:23.0.0'
-    compile 'com.android.support:cardview-v7:23.1.0'
-    compile 'com.android.support:design:23.0.0'
-
-    compile 'com.google.android.gms:play-services:7.3.0'
-    compile 'com.googlecode.libphonenumber:libphonenumber:7.0+'
-
-    compile project(':libraries:Android_AylaLibrary_Public')
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.android.support:cardview-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.google.android.gms:play-services:8.4.0'
+    compile project(':Android_AylaLibrary_Public')
+    compile project(':AMAP_Core')
 }
 
 android.applicationVariants.all { variant ->

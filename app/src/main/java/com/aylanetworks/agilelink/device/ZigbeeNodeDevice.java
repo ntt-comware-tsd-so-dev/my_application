@@ -17,7 +17,7 @@ import com.aylanetworks.agilelink.framework.Device;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class ZigbeeNodeDevice extends Device {
+public class ZigbeeNodeDevice extends GenericDevice {
 
     private final static String LOG_TAG = "ZigbeeNodeDevice";
 

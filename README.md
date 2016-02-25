@@ -16,7 +16,6 @@ $ git clone https://github.com/AylaNetworks/AMAP_Android.git
 $ cd AMAP_Android/gradle_scripts
 $ gradle -q execTasks
                                                                                                   
-Open Android Studio -> Import Project -> Select build.gradle file in project folder(Agile_Link_Android)                
 To build the project in Android Studio, click 'Build' and select 'Make Project'
 
   Troubleshooting

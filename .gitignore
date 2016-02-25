@@ -11,4 +11,6 @@
 *.apk
 *.ap_
 gradle_scripts/aylaControl_build.sh
+/AMAP_core
+/Android_AylaLibrary_Public
 

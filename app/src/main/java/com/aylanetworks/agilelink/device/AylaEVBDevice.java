@@ -26,7 +26,7 @@ import java.util.ArrayList;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class AylaEVBDevice extends Device implements View.OnClickListener {
+public class AylaEVBDevice extends GenericDevice implements View.OnClickListener {
     private static final String LOG_TAG = "AylaEVBDevice";
 
     private static final String PROPERTY_BLUE_LED = "Blue_LED";

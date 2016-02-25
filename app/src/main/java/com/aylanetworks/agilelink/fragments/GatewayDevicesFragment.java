@@ -47,7 +47,7 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
                 } else {
                     _emptyView.setVisibility(View.GONE);
                     _recyclerView.setVisibility(View.VISIBLE);
-                    _adapter = new DeviceListAdapter(deviceList, this);
+                    _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
                     _recyclerView.setAdapter(_adapter);
                 }
             }

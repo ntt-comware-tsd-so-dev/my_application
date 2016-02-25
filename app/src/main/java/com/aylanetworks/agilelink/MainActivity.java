@@ -27,7 +27,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.internal.view.menu.MenuBuilder;
+import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -898,7 +898,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             SessionManager.deviceManager().stopPolling();
 
             // we aren't going to "pause" LAN mode if we haven't been logged in.
-            AylaLanMode.pause(false);
+            AylaNetworks.onPause(false);
         }
     }
 
@@ -1025,7 +1025,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         String error;
     }
 
-    //@Override
+
     public void signInOAuth(Message msg) {
         if (AylaNetworks.succeeded(msg)) {
             // Make sure we have an auth token. Sometimes we get back "OK" but there is

@@ -29,13 +29,13 @@ import com.aylanetworks.aaml.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aaml.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
 import java.util.List;

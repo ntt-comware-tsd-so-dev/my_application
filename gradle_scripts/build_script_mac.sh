@@ -25,6 +25,7 @@ AYLA_REMOTE=${AYLA_REMOTE:-origin}
 AYLA_PUBLIC=${AYLA_PUBLIC:-}
 AYLA_LIB_REPO=${AYLA_LIB_REPO:-} # or: -https://github.com/AylaNetworks/Android_AylaLibrary.git
 AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-}
+AYLA_CORE_REPO=${AYLA_CORE_REPO:-}
 
 cur_path=`pwd`
 parent_path=`dirname $cur_path`
@@ -38,6 +39,7 @@ fi
 [ "X$AYLA_PUBLIC" == "X" ] && repo_type="internal" || repo_type="public"
 AYLA_LIB_REPO=${AYLA_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaLibrary${AYLA_PUBLIC}.git}
 AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaZigbeeLibrary${AYLA_PUBLIC}.git}
+AYLA_CORE_REPO=${AYLA_CORE_REPO:-https://github.com/AylaNetworks/AMAP_Android_Core_Framework${AYLA_PUBLIC}.git}
 
 branch_string=`git branch |grep -E "\*"`
 if [ $? -ne 0 ]; then
@@ -52,6 +54,7 @@ fi
 # in case when AYLA_BUILD_BRANCH is default to current branch
 AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$AYLA_BUILD_BRANCH}
 AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$AYLA_BUILD_BRANCH}
+AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-$AYLA_BUILD_BRANCH}
 
 green=`tput setaf 2`
 reset=`tput sgr0`
@@ -69,7 +72,7 @@ if [[ $cur_branch =~ $release_branch_pattern ]]; then
 fi
 
 # conext display: show value whenever related environment variables are set
-build_var_name_list="AYLA_BUILD_BRANCH AYLA_LIB_BRANCH AYLA_ZIGBEE_LIB_BRANCH AYLA_LIB_REPO AYLA_ZIGBEE_LIB_REPO AYLA_PUBLIC AYLA_REMOTE"
+build_var_name_list="AYLA_BUILD_BRANCH AYLA_LIB_BRANCH AYLA_ZIGBEE_LIB_BRANCH AYLA_CORE_BRANCH AYLA_LIB_REPO AYLA_ZIGBEE_LIB_REPO AYLA_CORE_REPO AYLA_PUBLIC AYLA_REMOTE"
 for n in $build_var_name_list; do
     [ `printenv | grep "$n"` ] && echo -e "Your $n is set to \"${!n}\""
 done
@@ -78,10 +81,13 @@ styled_repo_type=${green}${repo_type}${reset}
 styled_branch=${green}${AYLA_BUILD_BRANCH}${reset}
 styled_lib_branch=${green}${AYLA_LIB_BRANCH}${reset}
 styled_zigbee_lib_branch=${green}${AYLA_ZIGBEE_LIB_BRANCH}${reset}
+styled_core_branch=${green}${AYLA_CORE_BRANCH}${reset}
 styled_lib_repo=${green}${AYLA_LIB_REPO}${reset}
 styled_zigbee_lib_repo=${green}${AYLA_ZIGBEE_LIB_REPO}${reset}
-echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with lib branch ${styled_lib_branch} and zigbee branch ${styled_zigbee_lib_branch}  ***"
-echo -e "*** lib repo: ${styled_lib_repo}  zigbee lib repo: ${styled_zigbee_lib_repo} ***\n"
+styled_core_repo=${green}${AYLA_CORE_REPO}${reset}
+echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with lib branch ${styled_lib_branch} and zigbee branch ${styled_zigbee_lib_branch} and core brach ${styled_core_branch} ***"
+echo -e "*** lib repo: ${styled_lib_repo}  zigbee lib repo: ${styled_zigbee_lib_repo} ***"
+echo -e "*** core repo: ${styled_core_repo} ***\n"
 
 for n in $build_var_name_list; do
     echo -e "Now $n = \"${!n}\""
@@ -100,11 +106,13 @@ mkdir libraries
 cd libraries
 git clone $AYLA_LIB_REPO
 git clone $AYLA_ZIGBEE_LIB_REPO
+git clone $AYLA_CORE_REPO
 
 if [ "$AYLA_PUBLIC" == "" ]; then
     echo "Set up symbolic link for gradle project dependency"
     ln -sf Android_AylaLibrary Android_AylaLibrary_Public
     ln -sf Android_AylaZigbeeLibrary Android_AylaZigbeeLibrary_Public
+    ln -sf AMAP_Android_Core_Framework AMAP_Android_Core_Framework_Public
 fi
 
 export ZIGBEE_PATH=$PWD
@@ -114,6 +122,13 @@ echo Get Android_AylaZigbeeLibrary from branch $AYLA_ZIGBEE_LIB_BRANCH
 git fetch $AYLA_REMOTE
 git branch $AYLA_ZIGBEE_LIB_BRANCH $AYLA_REMOTE/$AYLA_ZIGBEE_LIB_BRANCH
 git checkout $AYLA_ZIGBEE_LIB_BRANCH
+popd
+
+pushd AMAP_Android_Core_Framework$AYLA_PUBLIC
+echo Get Android_Core_Framework from branch $AYLA_CORE_BRANCH
+git fetch $AYLA_REMOTE
+git branch $AYLA_CORE_BRANCH $AYLA_REMOTE/$AYLA_CORE_BRANCH
+git checkout $AYLA_CORE_BRANCH
 popd
 
 pushd Android_AylaLibrary$AYLA_PUBLIC

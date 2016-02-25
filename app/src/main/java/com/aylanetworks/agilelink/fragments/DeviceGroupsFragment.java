@@ -110,7 +110,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     public void updateDeviceList() {
         if (_selectedGroup != null) {
             List<Device> selectedGroupDeviceList = _selectedGroup.getDevices();
-            _adapter = new DeviceListAdapter(selectedGroupDeviceList, this);
+            _adapter = DeviceListAdapter.fromDeviceList(selectedGroupDeviceList, this);
             _recyclerView.setAdapter(_adapter);
             if ( selectedGroupDeviceList.isEmpty() ) {
                 _emptyView.setText(R.string.no_devices_in_group);
