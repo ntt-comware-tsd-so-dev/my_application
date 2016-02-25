@@ -280,8 +280,7 @@ public class AddDeviceFragment extends Fragment
         for (Class<? extends DeviceUIProvider> c : deviceClasses) {
             try {
                 AylaDevice fakeDevice = new AylaDevice();
-                DeviceUIProvider d = c.getDeclaredConstructor(DeviceUIProvider.class).newInstance
-                        (fakeDevice);
+                DeviceUIProvider d = c.getConstructor(AylaDevice.class).newInstance(fakeDevice);
                 deviceList.add(d);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -425,8 +424,9 @@ public class AddDeviceFragment extends Fragment
         } else{
 
             if (USE_WELCOME_FRAGMENT) {
-                Device d = (Device) _spinnerProductType.getSelectedItem();
-                if (d.isGateway()) {
+                DeviceUIProvider provider = (DeviceUIProvider)
+                        _spinnerProductType.getSelectedItem();
+                if (provider instanceof GenericGateway) {
                     MenuHandler.handleGatewayWelcome();
                 } else {
                     doScan();
