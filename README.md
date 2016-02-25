@@ -16,13 +16,6 @@ $ git clone https://github.com/AylaNetworks/AMAP_Android.git
 $ cd AMAP_Android/gradle_scripts
 $ gradle -q execTasks
                                                                                                   
-To install the AMAP Framework, which is required to build AMAP:
-$ git clone https://github.com/AylaNetworks/AMAP_Android_Core_Framework.git
-
-Open Android Studio -> Import Project -> Select build.gradle file in project folder(Agile_Link_Android)                
-
-Add the AMAP framework by opening the Project configuration in Android Studio, tapping the '+' button to add a module, and select "Existing Gradle project". Navigate to the AMAP_Core directory within the AMAP_Android_Core_Framework directory and select the directory itself to add to the project. Choose the default module name AMAP_Core.
-
 To build the project in Android Studio, click 'Build' and select 'Make Project'
 
   Troubleshooting
