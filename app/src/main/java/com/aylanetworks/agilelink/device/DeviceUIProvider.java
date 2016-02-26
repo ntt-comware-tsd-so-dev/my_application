@@ -18,4 +18,7 @@ public interface DeviceUIProvider {
     int getItemViewType();
     void bindViewHolder(RecyclerView.ViewHolder holder);
     Fragment getDetailsFragment();
+    Fragment getScheduleFragment();
+    Fragment getTriggerFragment();
+    Fragment getRemoteFragment();
 }

@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -78,6 +79,21 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
 
     @Override
     public Fragment getDetailsFragment() {
+        return DeviceDetailFragment.newInstance(this);
+    }
+
+    @Override
+    public Fragment getScheduleFragment() {
+        return null;
+    }
+
+    @Override
+    public Fragment getTriggerFragment() {
+        return null;
+    }
+
+    @Override
+    public Fragment getRemoteFragment() {
         return null;
     }
 
