@@ -297,7 +297,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 .show();
         } else {
             int itemIndex = (int)v.getTag();
-            final Device d = _adapter.getItem(itemIndex);
+            final Device d = (Device)_adapter.getItem(itemIndex);
             if (d.isIcon()) {
                 // recall scene
                 onActivateScene();

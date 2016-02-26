@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
 import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
@@ -27,26 +28,29 @@ import java.util.List;
 public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final static String LOG_TAG = "DeviceListAdapter";
 
-    List<GenericDevice> _deviceList;
+    List<DeviceUIProvider> _deviceList;
     View.OnClickListener _onClickListener;
 
-    public DeviceListAdapter(List<GenericDevice> deviceList, View.OnClickListener listener) {
+    public DeviceListAdapter(List<DeviceUIProvider> deviceList, View.OnClickListener listener) {
         _onClickListener = listener;
         _deviceList = deviceList;
     }
 
     public static DeviceListAdapter fromDeviceList(List<Device>deviceList,
                                                    View.OnClickListener listener) {
-        List<GenericDevice> genericDevices = new ArrayList<>(deviceList.size());
+        List<DeviceUIProvider> uiProviders = new ArrayList<>(deviceList.size());
         for (Device d : deviceList) {
-            genericDevices.add((GenericDevice)d);
+            if (d instanceof DeviceUIProvider) {
+                uiProviders.add((DeviceUIProvider) d);
+            }
         }
-        return new DeviceListAdapter(genericDevices, listener);
+        return new DeviceListAdapter(uiProviders, listener);
     }
 
     @Override
     public int getItemViewType(int position) {
-        GenericDevice d = _deviceList.get(position);
+        DeviceUIProvider d = _deviceList.get(position);
+
         return d.getItemViewType();
     }
 
@@ -58,7 +62,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return _deviceList.size();
     }
 
-    public GenericDevice getItem(int index) {
+    public DeviceUIProvider getItem(int index) {
         return _deviceList.get(index);
     }
 
@@ -70,7 +74,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        GenericDevice d = _deviceList.get(position);
+        DeviceUIProvider d = _deviceList.get(position);
 
         // Set the onClickListener for this view and set the index as the tag so we can
         // retrieve it later

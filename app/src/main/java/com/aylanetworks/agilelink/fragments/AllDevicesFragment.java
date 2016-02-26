@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
 import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
@@ -131,7 +132,7 @@ public class AllDevicesFragment extends Fragment
                 gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                     @Override
                     public int getSpanSize(int position) {
-                        GenericDevice device = _adapter.getItem(position);
+                        DeviceUIProvider device = _adapter.getItem(position);
                         return device.getGridViewSpan();
                     }
                 });
@@ -296,7 +297,7 @@ public class AllDevicesFragment extends Fragment
         if ( changed ) {
             Log.i(LOG_TAG, "dev: device [" + device.getDeviceDsn() + "] changed");
             for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
-                Device d = _adapter.getItem(i);
+                Device d = (Device)_adapter.getItem(i);
                 if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
                     _adapter.notifyItemChanged(i);
                     break;
@@ -343,7 +344,7 @@ public class AllDevicesFragment extends Fragment
 
     protected void handleItemClick(View v) {
         int itemIndex = (int)v.getTag();
-        final GenericDevice d = _adapter.getItem(itemIndex);
+        final DeviceUIProvider d = _adapter.getItem(itemIndex);
         if (d != null) {
             ViewGroup expandedLayout = (ViewGroup)v.findViewById(R.id.expanded_layout);
             if ( expandedLayout != null ) {
