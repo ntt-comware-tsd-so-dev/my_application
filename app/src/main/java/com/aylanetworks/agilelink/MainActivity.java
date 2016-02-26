@@ -555,8 +555,9 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                         }
                     });
             _drawerMenu = _navigationView.getMenu();
-            _userView = (TextView)_navigationView.findViewById(R.id.username);
-            _emailView = (TextView)_navigationView.findViewById(R.id.email);
+            View header = _navigationView.getHeaderView(0);
+            _userView = (TextView)header.findViewById(R.id.username);
+            _emailView = (TextView)header.findViewById(R.id.email);
             onDrawerItemClicked(_drawerMenu.getItem(0));
         }
     }

@@ -7,10 +7,15 @@ package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 
 public interface DeviceUIProvider {
-    public Drawable getDeviceDrawable(Context context);
-    public int getGridViewSpan();
-    public String getName();
-    public String deviceTypeName();
+    Drawable getDeviceDrawable(Context context);
+    int getGridViewSpan();
+    String getName();
+    String deviceTypeName();
+    int getItemViewType();
+    void bindViewHolder(RecyclerView.ViewHolder holder);
+    Fragment getDetailsFragment();
 }
