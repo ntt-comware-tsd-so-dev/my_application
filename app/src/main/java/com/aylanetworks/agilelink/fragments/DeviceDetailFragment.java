@@ -36,6 +36,7 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
 import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
@@ -73,7 +74,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
 
-    private GenericDevice _device;
+    private Device _device;
     private ListView _listView;
     private PropertyListAdapter _adapter;
     private TextView _titleView;
@@ -100,7 +101,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _device = null;
         if (getArguments() != null ) {
             String dsn = getArguments().getString(ARG_DEVICE_DSN);
-            _device = (GenericDevice)SessionManager.deviceManager().deviceByDSN(dsn);
+            _device = SessionManager.deviceManager().deviceByDSN(dsn);
         }
      }
 
@@ -285,7 +286,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             // Set the device title and image
             _titleView.setText(_device.toString());
             _dsnView.setText(_device.isInLanMode() ? _device.getDeviceIP() : _device.getDeviceDsn());
-            _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
+            _imageView.setImageDrawable(((DeviceUIProvider) _device).getDeviceDrawable(getActivity()));
             _listView.setAdapter(_adapter);
         }
     }
@@ -588,17 +589,17 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void scheduleClicked() {
-        Fragment frag = _device.getScheduleFragment();
+        Fragment frag = ((DeviceUIProvider)_device).getScheduleFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void remoteClicked() {
-        Fragment frag = _device.getRemoteFragment();
+        Fragment frag = ((DeviceUIProvider)_device).getRemoteFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void triggerClicked() {
-        Fragment frag = _device.getTriggerFragment();
+        Fragment frag = ((DeviceUIProvider)_device).getTriggerFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -626,7 +627,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void sharingClicked() {
-        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _device);
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, (GenericDevice)_device);
         MainActivity.getInstance().pushFragment(frag);
     }
 
