@@ -58,7 +58,7 @@ AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-$AYLA_BUILD_BRANCH}
 
 green=`tput setaf 2`
 reset=`tput sgr0`
-styled_warning=${green}"Wanring: "${reset}
+styled_warning=${green}"Warning: "${reset}
 release_branch_pattern="release.*"
 if [[ $cur_branch =~ $release_branch_pattern ]]; then
     if [ "X$AYLA_LIB_BRANCH" == "X${AYLA_BUILD_BRANCH}" ]; then
