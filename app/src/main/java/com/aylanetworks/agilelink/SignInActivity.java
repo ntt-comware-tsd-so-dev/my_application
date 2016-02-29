@@ -19,8 +19,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
-import android.webkit.ValueCallback;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -36,7 +34,6 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
-import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import org.json.JSONException;
@@ -242,6 +239,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     protected void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "nod: onResume");
+
+        mContext = this;
+
         Uri uri = AccountConfirmActivity.uri;
         if (uri != null) {
             Log.i(LOG_TAG, "nod: onResume URI is " + uri);
@@ -602,12 +602,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             if (AylaNetworks.succeeded(msg)) {
                 SessionManager.startOAuthSession(msg);
             } else {
-                Toast.makeText(MainActivity.getInstance(), "Login Failed", Toast.LENGTH_LONG).show();
+                Toast.makeText(SignInActivity.getContext(), "Login Failed", Toast.LENGTH_LONG)
+                        .show();
             }
         }
     }
 
     private OauthHandler _oauthHandler = new OauthHandler(this);
 
+    private static Context mContext;
+    static Context getContext() {
+        return mContext;
+    }
 
 }
