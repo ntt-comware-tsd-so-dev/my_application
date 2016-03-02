@@ -388,7 +388,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void onDetach() {
         super.onDetach();
-        SessionManager.deviceManager().removeDeviceStatusListener(this);
+        if(SessionManager.deviceManager() != null){
+            SessionManager.deviceManager().removeDeviceStatusListener(this);
+        }
     }
 
     @Override
