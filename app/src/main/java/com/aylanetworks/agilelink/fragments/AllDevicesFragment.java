@@ -258,8 +258,9 @@ public class AllDevicesFragment extends Fragment
     protected void startListening() {
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (deviceManager != null) {
-            SessionManager.deviceManager().addDeviceListListener(this);
-            SessionManager.deviceManager().addDeviceStatusListener(this);
+            deviceManager.addDeviceListListener(this);
+            deviceManager.addDeviceStatusListener(this);
+            updateDeviceList();
         }
     }
 
