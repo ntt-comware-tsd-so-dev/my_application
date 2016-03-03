@@ -209,6 +209,11 @@ public class AllDevicesFragment extends Fragment
     public void updateDeviceList() {
         boolean hasDevices = false;
 
+        if (_recyclerView == null) {
+            // We're not ready yet
+            return;
+        }
+
         List<Device> deviceList = null;
         if (SessionManager.deviceManager() != null) {
             List<Device> all = SessionManager.deviceManager().deviceList();
