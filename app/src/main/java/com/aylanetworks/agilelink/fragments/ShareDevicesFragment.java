@@ -38,9 +38,7 @@ import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -69,12 +67,14 @@ public class ShareDevicesFragment extends Fragment {
          * any devices that can be shared. All fields will be null / false in that case.
          *
          * @param email          Email address of the user to share devices with, or null if canceled
+         * @param role           Enable the role based sharing feature, or null for regular sharing
          * @param startDate      Date the sharing begins, or null if none selected
          * @param endDate        Date the sharing ends, or null if none selected
          * @param readOnly       Set to true if the share can not be controlled by the recipient
          * @param devicesToShare A list of devices to be shared, or null if the user canceled
          */
-        void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare);
+        void shareDevices(String email, String role, Calendar startDate, Calendar endDate, boolean
+                readOnly, List<Device> devicesToShare);
     }
 
     /**
@@ -117,6 +117,7 @@ public class ShareDevicesFragment extends Fragment {
 
     private ListView _deviceList;
     private EditText _email;
+    private EditText _role;
     private RadioGroup _radioGroup;
     private Button _startButton;
     private Button _endButton;
@@ -145,6 +146,7 @@ public class ShareDevicesFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_share_devices, null);
         _deviceList = (ListView) root.findViewById(R.id.share_listview);
         _email = (EditText) root.findViewById(R.id.share_email);
+        _role = (EditText) root.findViewById(R.id.share_role);
         _radioGroup = (RadioGroup) root.findViewById(R.id.read_only_radio_group);
         _startButton = (Button)root.findViewById(R.id.button_starting_on);
         _endButton = (Button)root.findViewById(R.id.button_ending_on);
@@ -203,7 +205,7 @@ public class ShareDevicesFragment extends Fragment {
                 Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
                 if (_listener != null) {
                     // Nothing to share.
-                    _listener.shareDevices(null, null, null, false, null);
+                    _listener.shareDevices(null, null, null, null, false, null);
                     return root;
                 }
             }
@@ -316,6 +318,7 @@ public class ShareDevicesFragment extends Fragment {
         Log.d(LOG_TAG, "Add Shares: " + devicesToAdd);
         _listener.shareDevices(
                 _email.getText().toString(),
+                _role.getText().toString(),
                 _shareStartDate,
                 _shareEndDate,
                 _readOnly,
