@@ -23,11 +23,20 @@
         android:hint="@string/emailAddress"
         android:inputType="textEmailAddress"/>
 
+    <EditText
+        android:id="@+id/share_role"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/share_email"
+        android:layout_margin="8dp"
+        android:hint="@string/role"
+        android:inputType="text"/>
+
     <RelativeLayout
         android:id="@+id/date_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/share_email">
+        android:layout_below="@+id/share_role">
 
         <TextView
             android:id="@+id/text_starting_on"

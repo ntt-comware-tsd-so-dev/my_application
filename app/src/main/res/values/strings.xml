@@ -35,6 +35,7 @@
     <string name="signIn">Sign In</string>
     <string name="userInformation">User Information</string>
     <string name="emailAddress">Email Address</string>
+    <string name="role">Role</string>
     <string name="passwordHint">Password</string>
     <string name="currentPassword">Current Password</string>
     <string name="newPassword">New Password</string>
