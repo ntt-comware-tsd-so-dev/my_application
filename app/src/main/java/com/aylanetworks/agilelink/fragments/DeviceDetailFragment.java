@@ -309,7 +309,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     @Override
-    public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
+    public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
+                             boolean readOnly, List<Device> devicesToShare) {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         AylaShare share = new AylaShare();
@@ -320,7 +321,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         if ( endDate != null ) {
             share.endDateAt = df.format(endDate.getTime());
         }
-        share.operation = readOnly ? "read" : "write";
+        if ( TextUtils.isEmpty(role) ) {
+            share.operation = readOnly ? "read" : "write";
+        } else {
+            share.roleName = role;
+        }
+
 
         MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
         share.create(new CreateShareHandler(), _device.getDevice());
