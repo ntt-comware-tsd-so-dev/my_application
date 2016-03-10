@@ -52,7 +52,7 @@ import java.util.List;
  * This class does not itself set up the sharing, but rather provides the UI for doing so.
  * </p>
  */
-public class ShareDevicesFragment extends Fragment {
+public class ShareDevicesFragment extends Fragment implements View.OnFocusChangeListener {
     private final static String LOG_TAG = "ShareDevicesFragment";
     private ShareDevicesListener _listener;
     private Calendar _shareStartDate;
@@ -115,6 +115,7 @@ public class ShareDevicesFragment extends Fragment {
         _dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
     }
 
+    private TextView _Instructions;
     private ListView _deviceList;
     private EditText _email;
     private EditText _role;
@@ -144,9 +145,14 @@ public class ShareDevicesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_share_devices, null);
+        _Instructions = (TextView) root.findViewById(R.id.instructions);
         _deviceList = (ListView) root.findViewById(R.id.share_listview);
         _email = (EditText) root.findViewById(R.id.share_email);
         _role = (EditText) root.findViewById(R.id.share_role);
+
+        _email.setOnFocusChangeListener(this);
+        _role.setOnFocusChangeListener(this);
+
         _radioGroup = (RadioGroup) root.findViewById(R.id.read_only_radio_group);
         _startButton = (Button)root.findViewById(R.id.button_starting_on);
         _endButton = (Button)root.findViewById(R.id.button_ending_on);
@@ -324,4 +330,17 @@ public class ShareDevicesFragment extends Fragment {
                 _readOnly,
                 devicesToAdd);
     }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if ( v == _email) {
+            _Instructions.setText(R.string.share_instructions);
+            return;
+        }
+
+        if ( v == _role) {
+            _Instructions.setText(R.string.add_role_share_message );
+            return;
+        }
+    }// end of onFocusChange
 }
