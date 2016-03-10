@@ -86,13 +86,6 @@ public class AllDevicesFragment extends Fragment
         // Listen for login events. Our fragment exists before the user has logged in, so we need
         // to know when that happens so we can start listening to the device manager notifications.
         SessionManager.addSessionListener(this);
-
-        // See if we have a device manager yet
-        DeviceManager dm = SessionManager.deviceManager();
-        if (dm != null) {
-            _adapter = DeviceListAdapter.fromDeviceList(SessionManager.deviceManager().deviceList(), this);
-            startListening();
-        }
     }
 
     @Override
@@ -286,7 +279,11 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        if (SessionManager.deviceManager() != null) {
+
+        // See if we have a device manager yet
+        DeviceManager dm = SessionManager.deviceManager();
+        if (dm != null) {
+            _adapter = DeviceListAdapter.fromDeviceList(SessionManager.deviceManager().deviceList(), this);
             startListening();
             deviceListChanged();
         }
