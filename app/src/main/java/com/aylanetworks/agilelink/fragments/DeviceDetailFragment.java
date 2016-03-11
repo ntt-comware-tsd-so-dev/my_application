@@ -1,8 +1,8 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Paint;
@@ -83,6 +83,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private Button _scheduleButton;
     private Button _notificationsButton;
     private Switch _identifySwitch;
+
+    private Context mContext;
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -273,7 +275,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             AylaProperty[] props = _device.getDevice().properties;
             if ( props != null ) {
                 List<AylaProperty> propertyList = Arrays.asList(props);
-                _adapter = new PropertyListAdapter(getActivity(), propertyList);
+                _adapter = new PropertyListAdapter(mContext, propertyList);
             } else {
                 Log.e(LOG_TAG, "No properties found for device " + _device);
                 _adapter = new PropertyListAdapter(getActivity(), new ArrayList<AylaProperty>());
@@ -384,16 +386,30 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Activity act) {
+        super.onAttach(act);
 
-        // Add ourselves as a listener for device updates
+        mContext = (Context)act;
+    }
+
+    @Override
+    public void onAttach(Context cxt) {
+        super.onAttach(cxt);
+
+        mContext = cxt;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
         SessionManager.deviceManager().addDeviceStatusListener(this);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onPause() {
+        super.onPause();
         if(SessionManager.deviceManager() != null){
             SessionManager.deviceManager().removeDeviceStatusListener(this);
         }
