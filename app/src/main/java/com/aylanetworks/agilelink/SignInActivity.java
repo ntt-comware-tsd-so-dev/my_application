@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -602,7 +603,22 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             if (AylaNetworks.succeeded(msg)) {
                 SessionManager.startOAuthSession(msg);
             } else {
-                Toast.makeText(SignInActivity.getContext(), "Login Failed", Toast.LENGTH_LONG)
+                String errInfo = null;
+                try {
+                    JSONObject json = new JSONObject((String)msg.obj);
+                    String error = json.getString("error");
+                    if (!TextUtils.isEmpty(error)) {
+                        errInfo = error;
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (TextUtils.isEmpty(errInfo)) {
+                    errInfo = getContext().getString(R.string.login_failed);
+                }
+
+                Toast.makeText(SignInActivity.getContext(), errInfo, Toast.LENGTH_LONG)
                         .show();
             }
         }
