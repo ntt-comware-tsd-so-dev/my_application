@@ -38,11 +38,16 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     public static DeviceListAdapter fromDeviceList(List<Device>deviceList,
                                                    View.OnClickListener listener) {
-        List<DeviceUIProvider> uiProviders = new ArrayList<>(deviceList.size());
-        for (Device d : deviceList) {
-            if (d instanceof DeviceUIProvider) {
-                uiProviders.add((DeviceUIProvider) d);
+        List<DeviceUIProvider> uiProviders;
+        if (deviceList != null) {
+            uiProviders = new ArrayList<>(deviceList.size());
+            for (Device d : deviceList) {
+                if (d instanceof DeviceUIProvider) {
+                    uiProviders.add((DeviceUIProvider) d);
+                }
             }
+        } else {
+            uiProviders = new ArrayList<>(0);
         }
         return new DeviceListAdapter(uiProviders, listener);
     }
