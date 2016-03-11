@@ -16,6 +16,7 @@ import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -218,6 +219,9 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
 
             Device devices[] = deviceList.toArray(new Device[deviceList.size()]);
             _deviceList.setAdapter(new ArrayAdapter<Device>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
+            int unitHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48,
+                    this.getActivity().getResources().getDisplayMetrics());
+            _deviceList.getLayoutParams().height = devices.length * unitHeight;
         }
 
         _shareButton.setOnClickListener(new View.OnClickListener() {
