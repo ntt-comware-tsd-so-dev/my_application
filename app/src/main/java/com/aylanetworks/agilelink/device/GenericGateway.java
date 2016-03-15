@@ -7,7 +7,6 @@ package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -100,7 +99,9 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
     public static List<GenericGateway> fromGateways(List<Gateway> gatewayDevices) {
         List<GenericGateway> genericGateways = new ArrayList<>(gatewayDevices.size());
         for (Gateway g : gatewayDevices) {
-            genericGateways.add((GenericGateway)g);
+            if (g instanceof GenericGateway) {
+                genericGateways.add((GenericGateway)g);
+            }
         }
         return genericGateways;
     }
