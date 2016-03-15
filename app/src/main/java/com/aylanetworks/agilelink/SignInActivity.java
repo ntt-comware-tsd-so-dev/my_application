@@ -618,7 +618,10 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                     errInfo = getContext().getString(R.string.login_failed);
                 }
 
-                Toast.makeText(SignInActivity.getContext(), errInfo, Toast.LENGTH_LONG)
+                Toast.makeText(
+                        SignInActivity.getContext()
+                        , SignInActivity.getLocalizedString(errInfo)
+                        , Toast.LENGTH_LONG)
                         .show();
             }
         }
