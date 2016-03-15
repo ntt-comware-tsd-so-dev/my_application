@@ -631,4 +631,22 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         return mContext;
     }
 
+    /**
+     * Match a String and return a resource ID, which reference a localized string resource.
+     *
+     * @param str the string to be matched
+     * @return the string resId, default to R.string.login_failed as it serves login originally.
+     * */
+    public static int getLocalizedString(final String str) {
+        int resId = R.string.login_failed;
+        if (TextUtils.isEmpty(str)) {
+            return resId;
+        }
+        if ( "Your account is locked.".equalsIgnoreCase(str) ) {
+            resId = R.string.your_account_is_locked;
+        }
+        //TODO: Add more matches when necessary, SVC-2335.
+        return resId;
+    }// end of getLocalizedString
+
 }
