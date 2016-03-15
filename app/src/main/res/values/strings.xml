@@ -8,9 +8,11 @@
     <string name="login_failed">Login Failed</string>
     <string name="unknown_app_version">Unknown Version</string>
     <string name="ok">OK</string>
+    <string name="all_devices">All Devices</string>
     <string name="log_out">Log Out</string>
     <string name="login_register">Login / Register</string>
     <string name="please_log_in">Please log in</string>
+    <string name="no_devices_found">No devices were found.\n\n<i>Push \"Scan for Devices\" to retry or \"Register\" to find devices already connected to the WiFi network</i></string>
     <string name="open">OPEN</string>
     <string name="closed">CLOSED</string>
     <string name="on">Turn On</string>
@@ -153,6 +155,7 @@
     <string name="google">Google</string>
     <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
     <string name="invalid_email_password">Invalid email or password</string>
+    <string name="unknown_error">An unknown error has occurred</string>
     <string name="update_profile">Update Profile</string>
     <string name="fetching_user_info_title">Getting Profile</string>
     <string name="fetching_user_info_body">Updating current profile information. Please wait...</string>
@@ -168,6 +171,7 @@
     <string name="error_invalid_token">The token is invalid</string>
     <string name="error_account_confirm_failed">Failed to confirm your new account.</string>
     <string name="error_sign_up_title">Sign-up Error</string>
+    <string name="network_not_reachable">Network is unreachable</string>
     <string name="wlan_signin">Successful WLAN sign-in</string>
     <string name="dashboard">Dashboard</string>
     <string name="groups">Groups</string>
@@ -341,6 +345,7 @@
     <string name="no_devices_to_share">There are no devices that can be shared registered to this account.</string>
     <string name="share_removed">The shared device has been removed from your account.</string>
     <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
+    <string name="lan_login_message">Logging in LAN. The functionality will be limited.</string>
     <string name="share_read_only_message">Allow this user to:</string>
     <string name="share_control_only_message">Allow this user to control your device</string>
     <string name="share_read_only_button">View</string>
@@ -367,6 +372,12 @@
     <string name="about_app" formatted="false">About %s</string>
     <string name="about">About</string>
     <string name="more_options">More...</string>
+    <string name="service_type">Service Type</string>
+    <string name="field_service">Field Service</string>
+    <string name="production_service">Production Service</string>
+    <string name="staging_service">Staging Service</string>
+    <string name="demo_service">Demo Service</string>
+    <string name="unknown_service">Unknown Service Type: %d</string>
     <string name="app_version">Application Version</string>
     <string name="library_version">AAML Version</string>
     <string name="reachable">Reachable</string>
@@ -424,8 +435,18 @@
     <string name="delete_notification_title">Delete Notification?</string>
     <string name="delete_notification_message">Do you want to remove the notification \"%s\"?</string>
     <string name="warning_location_accuracy">Enable GPS in Android Settings to improve device location accuracy</string>
+    <string name="error_gateway_join_window">Unable to open registration window.</string>
+    <string name="error_no_gateway">No Gateway was found</string>
+    <string name="error_gateway_registration_candidates">No candidate was found to register</string>
+    <string name="gateway_registered_device_node">Registered a node</string>
+    <string name="error_gateway_register_device_node">Could not register node</string>
+    <string name="error_gateway_register_no_device">Scan for devices first</string>
+    <string name="error_no_gateway_instructions">No gateway found. Please register one first.</string>
     <string name="add_device_sensor_warning">Further setup for this device will occur in the background. The sensor may not respond immediately for the next couple of minutes.</string>
     <string name="message_attention">Attention</string>
+    <string name="lan_mode_enabled">LAN Mode enabled</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
 
     <string name="remote_pair_to_device">Select remote to pair</string>
     <string name="remote_pair_to_devices">Select devices to pair</string>

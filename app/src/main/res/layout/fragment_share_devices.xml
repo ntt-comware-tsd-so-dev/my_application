@@ -1,9 +1,13 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/app_theme_window_background"
                 tools:context="com.aylanetworks.agilelink.fragments.ShareDevicesFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/instructions"
@@ -100,7 +104,6 @@
         android:id="@+id/share_listview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/textview"
         android:layout_below="@id/device_to_share_text"
         android:layout_margin="8dp"
         android:elevation="2dp"/>
@@ -138,7 +141,7 @@
         android:id="@+id/textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/read_only_radio_group"
+        android:layout_below="@+id/share_listview"
         android:layout_margin="8dp"
         android:text="@string/share_read_only_message"
         />
@@ -147,7 +150,7 @@
         android:id="@+id/read_only_radio_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/share_button"
+        android:layout_below="@+id/textview"
         android:layout_margin="8dp"
         android:orientation="horizontal">
 
@@ -173,8 +176,10 @@
         style="@style/AgileLinkButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/read_only_radio_group"
         android:layout_margin="8dp"
         android:text="@string/share_button_title"/>
 
-</RelativeLayout>
+    </RelativeLayout>
+
+</ScrollView>
