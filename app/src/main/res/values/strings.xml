@@ -6,6 +6,7 @@
     <string name="username">Email Address</string>
     <string name="password">Password</string>
     <string name="login_failed">Login Failed</string>
+    <string name="your_account_is_locked">Your account is locked.</string>
     <string name="unknown_app_version">Unknown Version</string>
     <string name="ok">OK</string>
     <string name="all_devices">All Devices</string>

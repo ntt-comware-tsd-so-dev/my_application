@@ -6,6 +6,7 @@
     <string name="username">Email</string>
     <string name="password">Password</string>
     <string name="login_failed">No se pudo entrar</string>
+    <string name="your_account_is_locked">Tu cuenta esta bloqueada.</string>
     <string name="unknown_app_version">Versión Desconocida</string>
     <string name="ok">OK</string>
 
