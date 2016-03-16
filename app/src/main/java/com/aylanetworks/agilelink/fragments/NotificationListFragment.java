@@ -176,10 +176,8 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
                 AylaPropertyTrigger oldTrigger = fragTriggers.remove(_index);
                 AylaProperty prop = _frag.get()._device.getProperty(oldTrigger.propertyNickname);
                 if ( prop != null ) {
-                    prop.propertyTriggers = fragTriggers.toArray(new AylaPropertyTrigger[fragTriggers.size()]);
+                    _frag.get()._recyclerView.setAdapter(new TriggerAdapter(_frag.get(), _frag.get()._device, fragTriggers));
                 }
-
-                _frag.get().updateTriggerList();
             } else {
                 Toast.makeText(_frag.get().getActivity(), (String)msg.obj, Toast.LENGTH_LONG).show();
             }
