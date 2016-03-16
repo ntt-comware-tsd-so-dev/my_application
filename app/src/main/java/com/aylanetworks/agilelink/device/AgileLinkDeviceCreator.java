@@ -105,7 +105,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if ( "zigbee1".equals(aylaDevice.oemModel) || "liunxex1".equals(aylaDevice.oemModel) ){
             if (aylaDevice.model.equals("AY001MRT1") && aylaDevice.isGateway()) {
                 // This is a Zigbee gateway.
-                return new ZigbeeGateway(aylaDevice);
+                return new GenericZigbeeGateway(aylaDevice);
             }
             if (aylaDevice.model.equals("Smart_Plug") || aylaDevice.model.equals("4256050-RZHAC")) {
                 // This is a Zigbee smart plug.

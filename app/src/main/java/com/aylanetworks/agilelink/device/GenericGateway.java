@@ -97,40 +97,50 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
         return null;
     }
 
-    public static List<GenericGateway> fromGateways(List<Gateway> gatewayDevices) {
-        List<GenericGateway> genericGateways = new ArrayList<>(gatewayDevices.size());
+    public static List<DeviceUIProvider> fromGateways(List<Gateway> gatewayDevices) {
+        List<DeviceUIProvider> genericGateways = new ArrayList<>(gatewayDevices.size());
         for (Gateway g : gatewayDevices) {
-            genericGateways.add((GenericGateway)g);
+            if (g instanceof DeviceUIProvider) {
+                genericGateways.add((DeviceUIProvider) g);
+            }
         }
         return genericGateways;
     }
 
-    public static class GatewayTypeAdapter extends ArrayAdapter<GenericGateway> {
+    public static class GatewayTypeAdapter extends ArrayAdapter<DeviceUIProvider> {
 
         public boolean useProductName;
 
-        public GatewayTypeAdapter(Context c, GenericGateway[] objects) {
-            super(c, R.layout.spinner_device_selection, objects);
-        }
-
-        public GatewayTypeAdapter(Context c, GenericGateway[] objects, boolean productName) {
+        public GatewayTypeAdapter(Context c, DeviceUIProvider[] objects, boolean productName) {
             super(c, R.layout.spinner_device_selection, objects);
             useProductName = productName;
         }
 
+        public GatewayTypeAdapter(Context c, Gateway[] objects, boolean productName) {
+            super(c, R.layout.spinner_device_selection);
+            List<DeviceUIProvider> gateways = new ArrayList<>(objects.length);
+            for (Gateway g : objects) {
+                if (g instanceof DeviceUIProvider) {
+                    gateways.add((DeviceUIProvider) g);
+                }
+            }
+
+            addAll(gateways);
+            useProductName = productName;
+        }
 
         @Override
         public View getDropDownView(int position, View convertView, ViewGroup parent) {
             LayoutInflater inflater = LayoutInflater.from(getContext());
             View spinner = inflater.inflate(R.layout.spinner_device_selection, parent, false);
 
-            GenericGateway d = getItem(position);
+            DeviceUIProvider d = getItem(position);
 
             ImageView iv = (ImageView) spinner.findViewById(R.id.device_image);
             iv.setImageDrawable(d.getDeviceDrawable(SessionManager.getContext()));
 
             TextView name = (TextView) spinner.findViewById(R.id.device_name);
-            name.setText(useProductName ? d.getProductName() : d.deviceTypeName());
+            name.setText(useProductName ? d.getName() : d.deviceTypeName());
 
             return spinner;
         }
