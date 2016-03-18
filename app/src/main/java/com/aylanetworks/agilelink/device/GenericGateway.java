@@ -101,6 +101,7 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
         for (Gateway g : gatewayDevices) {
             if (g instanceof DeviceUIProvider) {
                 genericGateways.add((DeviceUIProvider) g);
+            }
         }
         return genericGateways;
     }
