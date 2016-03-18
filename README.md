@@ -8,7 +8,7 @@ Building in Android Studio
 =========================
 
 // Requires Gradle 2.1+
-// Requires Android 1.4+
+// supported Android version: 4.4 and higher
 // Each build requires the correct Ayla Mobile Library. export AYLA_LIB_BRANCH &
 // AYLA_ZLIB_BRANCH to the shell environment if using other than 'master'.
                                                                                        
