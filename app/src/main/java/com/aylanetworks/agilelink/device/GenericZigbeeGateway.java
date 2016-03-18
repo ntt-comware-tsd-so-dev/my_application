@@ -11,25 +11,17 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
-import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class GenericGateway extends Gateway implements DeviceUIProvider {
-    public GenericGateway(AylaDevice aylaDevice) {
+public class GenericZigbeeGateway extends ZigbeeGateway implements DeviceUIProvider {
+    public GenericZigbeeGateway(AylaDevice aylaDevice) {
         super(aylaDevice);
     }
 
@@ -95,58 +87,4 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
     public Fragment getRemoteFragment() {
         return null;
     }
-
-    public static List<DeviceUIProvider> fromGateways(List<Gateway> gatewayDevices) {
-        List<DeviceUIProvider> genericGateways = new ArrayList<>(gatewayDevices.size());
-        for (Gateway g : gatewayDevices) {
-            if (g instanceof DeviceUIProvider) {
-                genericGateways.add((DeviceUIProvider) g);
-        }
-        return genericGateways;
-    }
-
-    public static class GatewayTypeAdapter extends ArrayAdapter<DeviceUIProvider> {
-
-        public boolean useProductName;
-
-        public GatewayTypeAdapter(Context c, DeviceUIProvider[] objects, boolean productName) {
-            super(c, R.layout.spinner_device_selection, objects);
-            useProductName = productName;
-        }
-
-        public GatewayTypeAdapter(Context c, Gateway[] objects, boolean productName) {
-            super(c, R.layout.spinner_device_selection);
-            List<DeviceUIProvider> gateways = new ArrayList<>(objects.length);
-            for (Gateway g : objects) {
-                if (g instanceof DeviceUIProvider) {
-                    gateways.add((DeviceUIProvider) g);
-                }
-            }
-
-            addAll(gateways);
-            useProductName = productName;
-        }
-
-        @Override
-        public View getDropDownView(int position, View convertView, ViewGroup parent) {
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            View spinner = inflater.inflate(R.layout.spinner_device_selection, parent, false);
-
-            DeviceUIProvider d = getItem(position);
-
-            ImageView iv = (ImageView) spinner.findViewById(R.id.device_image);
-            iv.setImageDrawable(d.getDeviceDrawable(SessionManager.getContext()));
-
-            TextView name = (TextView) spinner.findViewById(R.id.device_name);
-            name.setText(useProductName ? d.getName() : d.deviceTypeName());
-
-            return spinner;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            return getDropDownView(position, convertView, parent);
-        }
-    }
 }
-

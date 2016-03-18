@@ -264,11 +264,11 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ArrayAdapter<GenericGateway> createGatewayAdapter() {
-        List<GenericGateway> gateways = GenericGateway.fromGateways(SessionManager.deviceManager()
+    ArrayAdapter<DeviceUIProvider> createGatewayAdapter() {
+        List<DeviceUIProvider> gateways = GenericGateway.fromGateways(SessionManager.deviceManager()
                 .getGatewayDevices());
         return new GenericGateway.GatewayTypeAdapter(getActivity(), gateways.toArray(new
-                GenericGateway[gateways.size()]), true);
+                DeviceUIProvider[gateways.size()]), true);
     }
 
     ArrayAdapter<DeviceUIProvider> createProductTypeAdapter() {
