@@ -275,7 +275,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             AylaProperty[] props = _device.getDevice().properties;
             if ( props != null ) {
                 List<AylaProperty> propertyList = Arrays.asList(props);
-                _adapter = new PropertyListAdapter(mContext, propertyList);
+                if(mContext != null) {
+                    _adapter = new PropertyListAdapter(mContext, propertyList);
+                }
             } else {
                 Log.e(LOG_TAG, "No properties found for device " + _device);
                 _adapter = new PropertyListAdapter(getActivity(), new ArrayList<AylaProperty>());
