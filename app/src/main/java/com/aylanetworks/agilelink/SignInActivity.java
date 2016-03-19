@@ -638,18 +638,94 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
      * Match a String and return a resource ID, which reference a localized string resource.
      *
      * @param str the string to be matched
-     * @return the string resId, default to R.string.login_failed as it serves login originally.
-     * */
+     * @return the string resId, default to R.string.unauthorized as it serves login originally.
+     * */ //TODO: This is originally for login only, now it covers more than that. Find a proper
+    // place for it.
     public static int getLocalizedString(final String str) {
-        int resId = R.string.login_failed;
         if (TextUtils.isEmpty(str)) {
-            return resId;
+            return R.string.unauthorized;
         }
         if ( "Your account is locked.".equalsIgnoreCase(str) ) {
-            resId = R.string.your_account_is_locked;
+            return R.string.your_account_is_locked;
+        }
+        if ( "Your access token is invalid".equalsIgnoreCase(str) ) {
+            return R.string.your_access_token_is_invalid;
+        }
+        if ( "Your access token has expired".equalsIgnoreCase(str) ) {
+            return R.string.your_access_token_has_expired;
+        }
+        if ( "Your access token is not linked with this application".equalsIgnoreCase(str) ) {
+            return R.string.your_access_token_is_not_linked_with_this_application;
+        }
+        if ( "Could not find application".equalsIgnoreCase(str) ) {
+            return R.string.could_not_find_application;
+        }
+        if ( "Could not authenticate access code".equalsIgnoreCase(str) ) {
+            return R.string.could_not_authenticate_access_code;
+        }
+        if ( "You must provide a client object".equalsIgnoreCase(str) ) {
+            return R.string.you_must_provide_a_client_object;
+        }
+        if ( "Login fails.".equalsIgnoreCase(str) ) {
+            return R.string.login_failed;
+        }
+        if ( "This application is not approved by Ayla Networks.".equalsIgnoreCase(str) ) {
+            return R.string.this_application_is_not_approved_by_ayla;
+        }
+        if ( "The authentication token is invalid.".equalsIgnoreCase(str) ) {
+            return R.string.the_authentication_token_is_invalid;
+        }
+        if ( "The refresh token is invalid.".equalsIgnoreCase(str) ) {
+            return R.string.the_refresh_token_is_invalid;
+        }
+        if ( "Could not find this application for sign-up!".equalsIgnoreCase(str) ) {
+            return R.string.could_not_find_this_application_for_sign_up;
+        }
+        if ( "You are forbidden to perform this operation".equalsIgnoreCase(str) ) {
+            return R.string.you_are_forbidden_to_perform_this_operation;
+        }
+        if ( "Missing OEM parameter.".equalsIgnoreCase(str) ) {
+            return R.string.missing_oem_parameter;
+        }
+        if ( "Unauthorized".equalsIgnoreCase(str) ) { // Just in case the default changes
+            return R.string.unauthorized;
+        }
+        if ( "Invalid Json format".equalsIgnoreCase(str) ) {
+            return R.string.invalid_json_format;
+        }
+        if ( "An unexpected error. Please try again later".equalsIgnoreCase(str) ) {
+            return R.string.an_unexpected_error_please_try_again_later;
+        }
+        if ( "You are already signed in.".equalsIgnoreCase(str) ) {
+            return R.string.you_are_already_sign_in;
+        }
+        if ( "You need to sign in or sign up before continuing.".equalsIgnoreCase(str) ) {
+            return R.string.you_need_to_sign_in_or_sign_up_before_continuing;
+        }
+        if ( "You have to confirm your account before continuing.".equalsIgnoreCase(str) ) {
+            return R.string.you_have_to_confirm_your_account_before_continuing;
+        }
+        if ( "Invalid email or password.".equalsIgnoreCase(str) ) {
+            return R.string.invalid_email_password;
+        }
+        if ( "Invalid authentication token.".equalsIgnoreCase(str) ) {
+            return R.string.invalid_authentication_token;
+        }
+        if ( "Your account was not activated yet.".equalsIgnoreCase(str) ) {
+            return R.string.your_account_was_not_activated_yet;
+        }
+        if ( "Your session expired, please sign in again to continue.".equalsIgnoreCase(str) ) {
+            return R.string.your_session_expired_please_sign_in_again_to_continue;
+        }
+        if ( "Your account has note been approved by an administrator yet.".equalsIgnoreCase(str) ) {
+            //TODO: a Typo on server side, notify them. Correct the text after they fix it.
+            return R.string.your_account_has_not_been_approved_by_an_administrator_yet;
+        }
+        if ( "The email address has not signed up for an account.".equalsIgnoreCase(str) ) {
+            return R.string.the_email_address_has_not_signed_up_for_an_account;
         }
         //TODO: Add more matches when necessary, SVC-2335.
-        return resId;
+        return R.string.unauthorized;
     }// end of getLocalizedString
 
 }
