@@ -5,44 +5,31 @@
     <string name="action_settings">Ajustes</string>
     <string name="username">Email</string>
     <string name="password">Password</string>
-    <string name="login_failed">No se pudo entrar</string>
-    <string name="your_account_is_locked">Tu cuenta esta bloqueada.</string>
- <string name="your_access_token_is_invalid">Your access token is invalid.</string>
- <string name="your_access_token_has_expired">Your access token has expired.</string>
-    <string name="your_access_token_is_not_linked_with_this_application">Your access token is not
-        linked with this application.</string>
- <string name="could_not_find_application">Could not find application.</string>
- <string name="could_not_authenticate_access_code">Could not authenticate access code.</string>
- <string name="you_must_provide_a_client_object">You must provide a client object.</string>
-    <string name="this_application_is_not_approved_by_ayla">This application is not approved by
-        Ayla Networks.</string>
- <string name="the_authentication_token_is_invalid">The authentication token is invalid.</string>
- <string name="the_refresh_token_is_invalid">The refresh token is invalid.</string>
-    <string name="could_not_find_this_application_for_sign_up">Could not find this application for
-        sign-up!</string>
-    <string name="you_are_forbidden_to_perform_this_operation">You are forbidden to perform this
-        operation</string>
- <string name="missing_oem_parameter">Missing OEM parameter.</string>
- <string name="unauthorized">Unauthorized.</string>
- <string name="invalid_json_format">Invalid Json format.</string>
-    <string name="an_unexpected_error_please_try_again_later">An unexpected error. Please try again
-        later.</string>
- <string name="you_are_already_sign_in">You are already signed in.</string>
-    <string name="you_need_to_sign_in_or_sign_up_before_continuing">You need to sign in or sign up
-        before continuing.</string>
-    <string name="you_have_to_confirm_your_account_before_continuing">You have to confirm your
-        account before continuing.</string>
- <string name="invalid_authentication_token">Invalid authentication token.</string>
-    <string name="your_session_expired_please_sign_in_again_to_continue">Your session expired,
-        please sign in again to continue.</string>
- <string name="your_account_was_not_activated_yet">Your account was not activated yet.</string>
-    <string name="your_account_has_not_been_approved_by_an_administrator_yet">Your account has not
-        been approved by an administrator
-        yet
-        .</string>
-    <string name="the_email_address_has_not_signed_up_for_an_account">The email address has not
-        signed up for an account
-        .</string>
+    <string name="login_failed">Iniciar sesión falla.</string>
+    <string name="your_account_is_locked">Su cuenta esta bloqueada.</string>
+    <string name="your_access_token_is_invalid">El token de acceso es inválido.</string>
+    <string name="your_access_token_has_expired">El token de acceso ha expirado.</string>
+    <string name="your_access_token_is_not_linked_with_this_application">El token de acceso no esta ligado a esta aplicación.</string>
+    <string name="could_not_find_application">No se encuentra la aplicación.</string>
+    <string name="could_not_authenticate_access_code">No se pudo verificat el token de acceso.</string>
+    <string name="you_must_provide_a_client_object">Debe proveer un objeto cliente.</string>
+    <string name="this_application_is_not_approved_by_ayla">Esta aplicación no esta aprobada por Ayla Networks.</string>
+    <string name="the_authentication_token_is_invalid">El token de autenticación es inválido..</string>
+    <string name="the_refresh_token_is_invalid">El token de refresco es inválido.</string>
+    <string name="could_not_find_this_application_for_sign_up">No se encuentra esta aplicación para registrarse!</string>
+    <string name="you_are_forbidden_to_perform_this_operation">No tiene permiso para realizar esta operación</string>
+    <string name="missing_oem_parameter">Falta el parámetro OEM.</string>
+    <string name="unauthorized">No autorizado.</string>
+    <string name="invalid_json_format">Formato JSON inválido.</string>
+    <string name="an_unexpected_error_please_try_again_later">Error inesperado. Reintente más tarde.</string>
+    <string name="you_are_already_sign_in">Ya ha iniciado sesión.</string>
+    <string name="you_need_to_sign_in_or_sign_up_before_continuing">Debe iniciar sesión antes de continuar.</string>
+    <string name="you_have_to_confirm_your_account_before_continuing">Debe confirmar su cuenta antes de continuar.</string>
+    <string name="invalid_authentication_token">Token de autenticación inválido.</string>
+    <string name="your_session_expired_please_sign_in_again_to_continue">Su sesión ha terminado, inicie de nuevo.</string>
+    <string name="your_account_was_not_activated_yet">Su cuenta aún no se ha activado.</string>
+    <string name="your_account_has_not_been_approved_by_an_administrator_yet">Su cuenta no ha sido aprobada por un administrador aún.</string>
+    <string name="the_email_address_has_not_signed_up_for_an_account">No existe una cuenta con este email.</string>
 
     <string name="unknown_app_version">Versión Desconocida</string>
     <string name="ok">OK</string>
