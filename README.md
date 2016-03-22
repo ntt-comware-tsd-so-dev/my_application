@@ -42,6 +42,28 @@ Jar file will be generated at libraries/Android_AylaLibrary_Public/build/libs.
 External jars required by the library need to be included in applications using this jar (gson-2.2.4, log4j-1.2.17). 
 
             
+AMAP v4.4.0 : AYLA_LIB_BRANCH=release/4.4.00, AYLA_ZLIB_BRANCH=release/4.4.00 (3/22/2016)
+- AMAP is now divided into two parts, AMAP_Core_Framework and AMAP_Android. This separation will allow developers much easier updates of the core functionality of AMAP while keeping custom UI elements separate. The standard AMAP install procedure will pull down the appropriate core framework. The code in AMAP_Core_Framework should not be modified locally, and contains no user interface elements. All user interface elements now live in the AMAP_Android project instead.
+
+New 
+- Unused permissions removed from manifest files
+- All required permissions are now documented in comments with reasons why they are required
+- Build SDK version is now 23
+- Avoid delay in transition to device detail page
+- New support for connecting a device to a hidden WiFi network in setup
+- Zigbee node unregister & reset functionality
+- Role-based sharing support
+
+Bug Fixes:
+- Android M wifi setup fixes
+- Fixed crash when encountering null BSSID
+- Fixed crash if user attempts to change password while offline
+- Fixed crash if user attempts to delete account while offline
+- Fixed keyboard not always dismissed when leaving Edit Profile screen
+- Fixed crash on profile update
+- Fixed crash on Schedules in device detail page
+
+
 AMAP v4.2.0 : AYLA_LIB_BRANCH=release/4.2.00, AYLA_ZLIB_BRANCH=release/4.2.00 (11/23/2015)
 - Multi-LAN Mode support
 - Full Generic Gateway and node support
