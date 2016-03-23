@@ -74,17 +74,6 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        // Change the name of the "Add Device" menu item
-        MenuItem addItem = menu.findItem(R.id.action_add_device);
-        if ( addItem != null ) {
-            addItem.setTitle(R.string.action_manage_devices_in_group);
-        }
-
-        super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add_group:
@@ -95,7 +84,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                 onDeleteGroup();
                 break;
 
-            case R.id.action_add_device:
+            case R.id.action_add_device_group:
                 onAddDeviceToGroup();
                 break;
 
@@ -110,7 +99,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     public void updateDeviceList() {
         if (_selectedGroup != null) {
             List<Device> selectedGroupDeviceList = _selectedGroup.getDevices();
-            _adapter = new DeviceListAdapter(selectedGroupDeviceList, this);
+            _adapter = DeviceListAdapter.fromDeviceList(selectedGroupDeviceList, this);
             _recyclerView.setAdapter(_adapter);
             if ( selectedGroupDeviceList.isEmpty() ) {
                 _emptyView.setText(R.string.no_devices_in_group);
@@ -244,8 +233,13 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     @Override
     public void deviceListChanged() {
         super.deviceListChanged();
-        createGroupButtonHeader();
-        updateDeviceList();
+        if(this.isAdded()){
+            createGroupButtonHeader();
+            updateDeviceList();
+        } else{
+            return;
+        }
+
     }
 
     protected void onAddDeviceToGroup() {

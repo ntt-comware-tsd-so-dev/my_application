@@ -1,3 +1,7 @@
 include ':app'
-include ':libraries:Android_AylaLibrary_Public'
-include ':libraries:Android_AylaZigbeeLibrary_Public'
+include ':AMAP_Core'
+project(':AMAP_Core').projectDir =
+        new File(settingsDir, "libraries/AMAP_Android_Core_Framework_Public/AMAP_Core")
+include ':Android_AylaLibrary_Public'
+project(':Android_AylaLibrary_Public').projectDir =
+        new File(settingsDir, "libraries/Android_AylaLibrary_Public")

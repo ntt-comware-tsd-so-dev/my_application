@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -145,11 +146,13 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
+    public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
+                             boolean readOnly, List<Device> devicesToShare) {
         // We got this call from the ShareDevicesFragment.
         getFragmentManager().popBackStack();
         if ( devicesToShare != null && !devicesToShare.isEmpty() ) {
-            AddSharesHandler handler = new AddSharesHandler(this, email, startDate, endDate, readOnly, devicesToShare);
+            AddSharesHandler handler = new AddSharesHandler(this, email, role, startDate, endDate,
+                    readOnly, devicesToShare);
             MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
             handler.addNextShare();
         }
@@ -159,6 +162,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         private WeakReference<SharesFragment> _frag;
         private List<Device> _devicesToAdd;
         private String _email;
+        private String _role;
         private Calendar _startDate;
         private Calendar _endDate;
         private boolean _readOnly;
@@ -170,12 +174,14 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
         public AddSharesHandler(SharesFragment frag,
                                 String email,
+                                String role,
                                 Calendar startDate,
                                 Calendar endDate,
                                 boolean readOnly,
                                 List<Device> devicesToAdd) {
             _frag = new WeakReference<SharesFragment>(frag);
             _email = email;
+            _role = role;
             _devicesToAdd = devicesToAdd;
             _startDate = startDate;
             _endDate = endDate;
@@ -198,7 +204,12 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             if ( _endDate != null ) {
                 share.endDateAt = _dateFormat.format(_endDate.getTime());
             }
-            share.operation = _readOnly ? "read" : "write";
+
+            if ( TextUtils.isEmpty(_role) ) {
+                share.operation = _readOnly ? "read" : "write";
+            } else {
+                share.roleName = _role;
+            }
 
             device.getDevice().createShare(this, share);
         }

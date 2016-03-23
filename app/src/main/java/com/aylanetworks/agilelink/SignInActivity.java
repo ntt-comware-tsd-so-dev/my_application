@@ -12,15 +12,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.internal.view.menu.MenuBuilder;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -36,7 +34,6 @@ import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
-import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import org.json.JSONException;
@@ -242,6 +239,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     protected void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "nod: onResume");
+
+        mContext = this;
+
         Uri uri = AccountConfirmActivity.uri;
         if (uri != null) {
             Log.i(LOG_TAG, "nod: onResume URI is " + uri);
@@ -281,8 +281,11 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
     }
 
+
+
     private void oAuthSignIn(String service) {
         _webView.setVisibility(View.VISIBLE);
+        CookieManager.getInstance().removeAllCookie();
 
         String serviceName = (service.equals(OAUTH_FACEBOOK)) ? getString(R.string.facebook) :
                 getString(R.string.google);
@@ -418,10 +421,13 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                     String json = (String) msg.obj;
                                     String errorMessage = null;
                                     try {
-                                        JSONObject result = new JSONObject(json);
-                                        String errorJSON = result.getString("errors");
-                                        JSONObject errors = new JSONObject(errorJSON);
-                                        errorMessage = errors.getString("email");
+                                        if (json != null) {
+                                            JSONObject result = new JSONObject(json);
+                                            String errorJSON = result.getString("errors");
+                                            JSONObject errors = new JSONObject(errorJSON);
+                                            errorMessage = errors.getString("email");
+                                        }
+
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
@@ -596,12 +602,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             if (AylaNetworks.succeeded(msg)) {
                 SessionManager.startOAuthSession(msg);
             } else {
-                Toast.makeText(MainActivity.getInstance(), "Login Failed", Toast.LENGTH_LONG).show();
+                Toast.makeText(SignInActivity.getContext(), "Login Failed", Toast.LENGTH_LONG)
+                        .show();
             }
         }
     }
 
     private OauthHandler _oauthHandler = new OauthHandler(this);
 
+    private static Context mContext;
+    static Context getContext() {
+        return mContext;
+    }
 
 }

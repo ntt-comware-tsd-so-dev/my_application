@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -13,7 +14,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.TextUtils;
@@ -44,7 +48,12 @@ import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
 import com.aylanetworks.aaml.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.Manifest;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
+import com.aylanetworks.agilelink.device.GenericDevice;
+import com.aylanetworks.agilelink.device.GenericGateway;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
@@ -60,6 +69,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.support.v4.app.ActivityCompat.*;
+
 /*
  * AddDeviceFragment.java
  * AgileLink Application Framework
@@ -69,8 +80,10 @@ import java.util.Map;
  */
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener {
+        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener, ActivityCompat.OnRequestPermissionsResultCallback{
     private static final String LOG_TAG = "AddDeviceFragment";
+    private static final int REQUEST_LOCATION = 2;
+    private static final int REQUEST_NETWORK = 0;
 
     private static final boolean USE_WELCOME_FRAGMENT = true;
 
@@ -106,7 +119,14 @@ public class AddDeviceFragment extends Fragment
 
     void updateConnectionInfo() {
         WifiInfo info = _wifiManager.getConnectionInfo();
+        if(info == null || info.getSSID() == null)
+            return;
+
         _ssid = info.getSSID().replaceAll("^\"|\"$", "");
+
+        if(info.getBSSID()==null)
+            return;
+
         _bssid = info.getBSSID().replaceAll("^\"|\"$", "");
     }
 
@@ -152,8 +172,11 @@ public class AddDeviceFragment extends Fragment
         if ((gateways != null) && (gateways.size() > 0)) {
             // If they have a gateway, then default to Zigbee Node
             int index = 0;
-            List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
-            for (Class<? extends Device> c : deviceClasses) {
+            AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
+                    .deviceCreator;
+
+            List<Class<? extends DeviceUIProvider>> deviceClasses = dc.getSupportedDeviceClasses();
+            for (Class<? extends DeviceUIProvider> c : deviceClasses) {
                 if (c.getSimpleName().equals("ZigbeeNodeDevice")) {
                     _nodeRegistrationGateway = gateways.get(0);
                     _registrationType = REG_TYPE_NODE;
@@ -210,7 +233,7 @@ public class AddDeviceFragment extends Fragment
         }
 
         if (_needsExit) {
-            exitSetup();
+            exitSetup(true);
         }
 
         try {
@@ -241,24 +264,30 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ArrayAdapter<Device> createGatewayAdapter() {
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        return new DeviceTypeAdapter(getActivity(), gateways.toArray(new Device[gateways.size()]), true);
+    ArrayAdapter<DeviceUIProvider> createGatewayAdapter() {
+        List<DeviceUIProvider> gateways = GenericGateway.fromGateways(SessionManager.deviceManager()
+                .getGatewayDevices());
+        return new GenericGateway.GatewayTypeAdapter(getActivity(), gateways.toArray(new
+                DeviceUIProvider[gateways.size()]), true);
     }
 
-    ArrayAdapter<Device> createProductTypeAdapter() {
-        List<Class<? extends Device>> deviceClasses = SessionManager.sessionParameters().deviceCreator.getSupportedDeviceClasses();
-        ArrayList<Device> deviceList = new ArrayList<>();
-        for (Class<? extends Device> c : deviceClasses) {
+    ArrayAdapter<DeviceUIProvider> createProductTypeAdapter() {
+        AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
+                .deviceCreator;
+
+        List<Class<? extends DeviceUIProvider>> deviceClasses = dc.getSupportedDeviceClasses();
+        ArrayList<DeviceUIProvider> deviceList = new ArrayList<>();
+        for (Class<? extends DeviceUIProvider> c : deviceClasses) {
             try {
                 AylaDevice fakeDevice = new AylaDevice();
-                Device d = c.getDeclaredConstructor(AylaDevice.class).newInstance(fakeDevice);
+                DeviceUIProvider d = c.getConstructor(AylaDevice.class).newInstance(fakeDevice);
                 deviceList.add(d);
-            } catch (java.lang.InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new Device[deviceList.size()]));
+        return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new DeviceUIProvider[deviceList
+                .size()]));
     }
 
     @Override
@@ -385,16 +414,28 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void scanButtonClick() {
-        if (USE_WELCOME_FRAGMENT) {
-            Device d = (Device) _spinnerProductType.getSelectedItem();
-            if (d.isGateway()) {
-                MenuHandler.handleGatewayWelcome();
+
+        //Check runtime permission before scanning.
+        //Scanning requires permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION
+        //TODO
+
+        if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+            requestScanPermissions();
+        } else{
+
+            if (USE_WELCOME_FRAGMENT) {
+                DeviceUIProvider provider = (DeviceUIProvider)
+                        _spinnerProductType.getSelectedItem();
+                if (provider instanceof GenericGateway) {
+                    MenuHandler.handleGatewayWelcome();
+                } else {
+                    doScan();
+                }
             } else {
                 doScan();
             }
-        } else {
-            doScan();
         }
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -412,7 +453,9 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    private static void exitSetup() {
+    //set cancelAylaSetup to false when exitSetup() is called based on an error message
+    // returned from the library.
+    private static void exitSetup(final boolean cancelAylaSetup) {
         if ( _needsExit ) {
             MainActivity activity = MainActivity.getInstance();
             if (activity != null) {
@@ -422,7 +465,9 @@ public class AddDeviceFragment extends Fragment
                 @Override
                 protected Void doInBackground(Void... params) {
                     Logger.logVerbose(LOG_TAG, "rn: calling AylaSetup.exit()...");
-                    AylaSetup.exit();
+                    if(cancelAylaSetup){
+                        AylaSetup.exit();
+                    }
                     return null;
                 }
 
@@ -609,7 +654,7 @@ public class AddDeviceFragment extends Fragment
         _chooseAPDialog = null;
         Logger.logDebug(LOG_TAG, "rn: choseAccessPoint: " + accessPoint + "[" + security + "]");
         if ( accessPoint == null ) {
-            exitSetup();
+            exitSetup(true);
         } else {
             connectDeviceToService(accessPoint, security, password);
         }
@@ -633,11 +678,17 @@ public class AddDeviceFragment extends Fragment
 
         if (gpsEnabled || netEnabled) {
             String locationProvider = locationManager.getBestProvider(criteria, false);
-            Location location = locationManager.getLastKnownLocation(locationProvider);
-            if(location != null){
-                callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
-                callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
+
+            if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+                requestScanPermissions();
+            } else{
+                Location location = locationManager.getLastKnownLocation(locationProvider);
+                if(location != null){
+                    callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
+                    callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
+                }
             }
+
         } else {
             Toast.makeText(context, R.string.warning_location_accuracy, Toast.LENGTH_SHORT).show();
         }
@@ -682,7 +733,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 // Something went wrong
                 Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
-                exitSetup();
+                exitSetup(false);
             }
         }
     }
@@ -787,7 +838,7 @@ public class AddDeviceFragment extends Fragment
                     errMsg = _frag.get().getString(R.string.error_wifi_not_enabled);
                 }
                 Toast.makeText(_frag.get().getActivity(), errMsg, Toast.LENGTH_SHORT).show();
-                exitSetup();
+                exitSetup(false);
             }
         }
     }
@@ -846,7 +897,7 @@ public class AddDeviceFragment extends Fragment
             } else {
                 Logger.logError(LOG_TAG, "rn: Connect handler error: " + msg);
                 Toast.makeText(activity, R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
-                exitSetup();
+                exitSetup(false);
             }
         }
     }
@@ -858,7 +909,7 @@ public class AddDeviceFragment extends Fragment
                 .setMessage(getString(R.string.push_registration_button))
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        exitSetup();
+                        exitSetup(true);
                     }
                 })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -926,7 +977,7 @@ public class AddDeviceFragment extends Fragment
                         message = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
                     }
                     Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-                    exitSetup();
+                    exitSetup(false);
                 }
             }
         }
@@ -991,9 +1042,18 @@ public class AddDeviceFragment extends Fragment
                     }
                     Logger.logError(LOG_TAG, "rn: Failed to connect to service. Calling exitSetup()");
                     Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
-                    exitSetup();
+                    exitSetup(false);
                 }
             }
         }
     }
+    
+
+    /*
+    * Scan needs location permissions. This method requests Location permission
+     */
+    private void requestScanPermissions(){
+        ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_COARSE_LOCATION"}, REQUEST_LOCATION);
+    }
+
 }

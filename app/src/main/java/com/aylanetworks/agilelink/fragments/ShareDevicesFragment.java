@@ -16,6 +16,7 @@ import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,12 +35,11 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
-
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -53,13 +53,13 @@ import java.util.List;
  * This class does not itself set up the sharing, but rather provides the UI for doing so.
  * </p>
  */
-public class ShareDevicesFragment extends Fragment {
+public class ShareDevicesFragment extends Fragment implements View.OnFocusChangeListener {
     private final static String LOG_TAG = "ShareDevicesFragment";
     private ShareDevicesListener _listener;
     private Calendar _shareStartDate;
     private Calendar _shareEndDate;
     private boolean _readOnly;
-    private Device _device;             // Only set if we're sharing exactly one device
+    private GenericDevice _device;             // Only set if we're sharing exactly one device
 
     public interface ShareDevicesListener {
         /**
@@ -68,12 +68,14 @@ public class ShareDevicesFragment extends Fragment {
          * any devices that can be shared. All fields will be null / false in that case.
          *
          * @param email          Email address of the user to share devices with, or null if canceled
+         * @param role           Enable the role based sharing feature, or null for regular sharing
          * @param startDate      Date the sharing begins, or null if none selected
          * @param endDate        Date the sharing ends, or null if none selected
          * @param readOnly       Set to true if the share can not be controlled by the recipient
          * @param devicesToShare A list of devices to be shared, or null if the user canceled
          */
-        void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare);
+        void shareDevices(String email, String role, Calendar startDate, Calendar endDate, boolean
+                readOnly, List<Device> devicesToShare);
     }
 
     /**
@@ -101,7 +103,8 @@ public class ShareDevicesFragment extends Fragment {
      * @param device   Device to be shared, or null to present a list of devices in the dialog
      * @return the new ShareDevicesFragment
      */
-    public static ShareDevicesFragment newInstance(ShareDevicesListener listener, Device device) {
+    public static ShareDevicesFragment newInstance(ShareDevicesListener listener,
+                                                   GenericDevice device) {
         ShareDevicesFragment frag = new ShareDevicesFragment();
         frag._listener = listener;
         frag._device = device;
@@ -113,8 +116,10 @@ public class ShareDevicesFragment extends Fragment {
         _dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
     }
 
+    private TextView _Instructions;
     private ListView _deviceList;
     private EditText _email;
+    private EditText _role;
     private RadioGroup _radioGroup;
     private Button _startButton;
     private Button _endButton;
@@ -141,8 +146,14 @@ public class ShareDevicesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_share_devices, null);
+        _Instructions = (TextView) root.findViewById(R.id.instructions);
         _deviceList = (ListView) root.findViewById(R.id.share_listview);
         _email = (EditText) root.findViewById(R.id.share_email);
+        _role = (EditText) root.findViewById(R.id.share_role);
+
+        _email.setOnFocusChangeListener(this);
+        _role.setOnFocusChangeListener(this);
+
         _radioGroup = (RadioGroup) root.findViewById(R.id.read_only_radio_group);
         _startButton = (Button)root.findViewById(R.id.button_starting_on);
         _endButton = (Button)root.findViewById(R.id.button_ending_on);
@@ -201,13 +212,16 @@ public class ShareDevicesFragment extends Fragment {
                 Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
                 if (_listener != null) {
                     // Nothing to share.
-                    _listener.shareDevices(null, null, null, false, null);
+                    _listener.shareDevices(null, null, null, null, false, null);
                     return root;
                 }
             }
 
             Device devices[] = deviceList.toArray(new Device[deviceList.size()]);
             _deviceList.setAdapter(new ArrayAdapter<Device>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
+            int unitHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48,
+                    this.getActivity().getResources().getDisplayMetrics());
+            _deviceList.getLayoutParams().height = devices.length * unitHeight;
         }
 
         _shareButton.setOnClickListener(new View.OnClickListener() {
@@ -314,9 +328,23 @@ public class ShareDevicesFragment extends Fragment {
         Log.d(LOG_TAG, "Add Shares: " + devicesToAdd);
         _listener.shareDevices(
                 _email.getText().toString(),
+                _role.getText().toString(),
                 _shareStartDate,
                 _shareEndDate,
                 _readOnly,
                 devicesToAdd);
     }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if ( v == _email) {
+            _Instructions.setText(R.string.share_instructions);
+            return;
+        }
+
+        if ( v == _role) {
+            _Instructions.setText(R.string.add_role_share_message );
+            return;
+        }
+    }// end of onFocusChange
 }

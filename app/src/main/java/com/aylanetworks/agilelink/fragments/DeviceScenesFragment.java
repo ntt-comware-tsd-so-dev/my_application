@@ -34,7 +34,6 @@ import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
 import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.ZigbeeGateway;
 import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceSelectionAdapter;
@@ -43,6 +42,7 @@ import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 import com.aylanetworks.agilelink.framework.ZigbeeSceneManager;
 
 import java.util.ArrayList;
@@ -297,7 +297,7 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
                 .show();
         } else {
             int itemIndex = (int)v.getTag();
-            final Device d = _adapter.getItem(itemIndex);
+            final Device d = (Device)_adapter.getItem(itemIndex);
             if (d.isIcon()) {
                 // recall scene
                 onActivateScene();
@@ -310,8 +310,13 @@ public class DeviceScenesFragment extends AllDevicesFragment implements DeviceMa
     @Override
     public void deviceListChanged() {
         super.deviceListChanged();
-        createSceneButtonHeader();
-        updateDeviceList();
+        if(this.isAdded()){
+            createSceneButtonHeader();
+            updateDeviceList();
+        } else{
+            return;
+        }
+
     }
 
     static class SceneAction implements Gateway.AylaGatewayCompletionHandler {

@@ -1,8 +1,8 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Paint;
@@ -36,6 +36,8 @@ import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.aaml.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
 import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
 import com.aylanetworks.agilelink.framework.Device;
@@ -81,6 +83,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private Button _scheduleButton;
     private Button _notificationsButton;
     private Switch _identifySwitch;
+
+    private Context mContext;
 
     public static DeviceDetailFragment newInstance(Device device) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
@@ -271,7 +275,9 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             AylaProperty[] props = _device.getDevice().properties;
             if ( props != null ) {
                 List<AylaProperty> propertyList = Arrays.asList(props);
-                _adapter = new PropertyListAdapter(getActivity(), propertyList);
+                if(mContext != null) {
+                    _adapter = new PropertyListAdapter(mContext, propertyList);
+                }
             } else {
                 Log.e(LOG_TAG, "No properties found for device " + _device);
                 _adapter = new PropertyListAdapter(getActivity(), new ArrayList<AylaProperty>());
@@ -284,7 +290,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             // Set the device title and image
             _titleView.setText(_device.toString());
             _dsnView.setText(_device.isInLanMode() ? _device.getDeviceIP() : _device.getDeviceDsn());
-            _imageView.setImageDrawable(_device.getDeviceDrawable(getActivity()));
+            _imageView.setImageDrawable(((DeviceUIProvider) _device).getDeviceDrawable(getActivity()));
             _listView.setAdapter(_adapter);
         }
     }
@@ -307,7 +313,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     @Override
-    public void shareDevices(String email, Calendar startDate, Calendar endDate, boolean readOnly, List<Device> devicesToShare) {
+    public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
+                             boolean readOnly, List<Device> devicesToShare) {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         AylaShare share = new AylaShare();
@@ -318,7 +325,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         if ( endDate != null ) {
             share.endDateAt = df.format(endDate.getTime());
         }
-        share.operation = readOnly ? "read" : "write";
+        if ( TextUtils.isEmpty(role) ) {
+            share.operation = readOnly ? "read" : "write";
+        } else {
+            share.roleName = role;
+        }
+
 
         MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
         share.create(new CreateShareHandler(), _device.getDevice());
@@ -354,7 +366,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             case R.id.action_factory_reset_device:
                 if ( _device.getDevice().amOwner() ) {
-                    factoryResetDevice();
+                    unregisterDevice();
                 } else {
                     removeShare();
                 }
@@ -376,17 +388,33 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Activity act) {
+        super.onAttach(act);
 
-        // Add ourselves as a listener for device updates
+        mContext = (Context)act;
+    }
+
+    @Override
+    public void onAttach(Context cxt) {
+        super.onAttach(cxt);
+
+        mContext = cxt;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
         SessionManager.deviceManager().addDeviceStatusListener(this);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        SessionManager.deviceManager().removeDeviceStatusListener(this);
+    public void onPause() {
+        super.onPause();
+        if(SessionManager.deviceManager() != null){
+            SessionManager.deviceManager().removeDeviceStatusListener(this);
+        }
     }
 
     @Override
@@ -587,17 +615,17 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void scheduleClicked() {
-        Fragment frag = _device.getScheduleFragment();
+        Fragment frag = ((DeviceUIProvider)_device).getScheduleFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void remoteClicked() {
-        Fragment frag = _device.getRemoteFragment();
+        Fragment frag = ((DeviceUIProvider)_device).getRemoteFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void triggerClicked() {
-        Fragment frag = _device.getTriggerFragment();
+        Fragment frag = ((DeviceUIProvider)_device).getTriggerFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -625,7 +653,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void sharingClicked() {
-        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _device);
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, (GenericDevice)_device);
         MainActivity.getInstance().pushFragment(frag);
     }
 

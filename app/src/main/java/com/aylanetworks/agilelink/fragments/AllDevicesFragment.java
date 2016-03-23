@@ -22,6 +22,8 @@ import android.widget.TextView;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.device.DeviceUIProvider;
+import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
@@ -84,13 +86,6 @@ public class AllDevicesFragment extends Fragment
         // Listen for login events. Our fragment exists before the user has logged in, so we need
         // to know when that happens so we can start listening to the device manager notifications.
         SessionManager.addSessionListener(this);
-
-        // See if we have a device manager yet
-        DeviceManager dm = SessionManager.deviceManager();
-        if (dm != null) {
-            _adapter = new DeviceListAdapter(SessionManager.deviceManager().deviceList(), this);
-            startListening();
-        }
     }
 
     @Override
@@ -112,7 +107,6 @@ public class AllDevicesFragment extends Fragment
         // Set up the list view
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
-        _recyclerView.getItemAnimator().setSupportsChangeAnimations(true);
         _recyclerView.setVisibility(View.GONE);
 
         _emptyView.setVisibility(View.VISIBLE);
@@ -131,7 +125,7 @@ public class AllDevicesFragment extends Fragment
                 gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                     @Override
                     public int getSpanSize(int position) {
-                        Device device = _adapter.getItem(position);
+                        DeviceUIProvider device = _adapter.getItem(position);
                         return device.getGridViewSpan();
                     }
                 });
@@ -208,6 +202,11 @@ public class AllDevicesFragment extends Fragment
     public void updateDeviceList() {
         boolean hasDevices = false;
 
+        if (_recyclerView == null) {
+            // We're not ready yet
+            return;
+        }
+
         List<Device> deviceList = null;
         if (SessionManager.deviceManager() != null) {
             List<Device> all = SessionManager.deviceManager().deviceList();
@@ -248,7 +247,7 @@ public class AllDevicesFragment extends Fragment
                     _emptyView.setVisibility(View.GONE);
                     _recyclerView.setVisibility(View.VISIBLE);
                 }
-                _adapter = new DeviceListAdapter(deviceList, this);
+                _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
                 _recyclerView.setAdapter(_adapter);
             }
         }
@@ -257,8 +256,9 @@ public class AllDevicesFragment extends Fragment
     protected void startListening() {
         DeviceManager deviceManager = SessionManager.deviceManager();
         if (deviceManager != null) {
-            SessionManager.deviceManager().addDeviceListListener(this);
-            SessionManager.deviceManager().addDeviceStatusListener(this);
+            deviceManager.addDeviceListListener(this);
+            deviceManager.addDeviceStatusListener(this);
+            updateDeviceList();
         }
     }
 
@@ -279,7 +279,11 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        if (SessionManager.deviceManager() != null) {
+
+        // See if we have a device manager yet
+        DeviceManager dm = SessionManager.deviceManager();
+        if (dm != null) {
+            _adapter = DeviceListAdapter.fromDeviceList(SessionManager.deviceManager().deviceList(), this);
             startListening();
             deviceListChanged();
         }
@@ -296,7 +300,7 @@ public class AllDevicesFragment extends Fragment
         if ( changed ) {
             Log.i(LOG_TAG, "dev: device [" + device.getDeviceDsn() + "] changed");
             for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
-                Device d = _adapter.getItem(i);
+                Device d = (Device)_adapter.getItem(i);
                 if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
                     _adapter.notifyItemChanged(i);
                     break;
@@ -343,7 +347,7 @@ public class AllDevicesFragment extends Fragment
 
     protected void handleItemClick(View v) {
         int itemIndex = (int)v.getTag();
-        final Device d = _adapter.getItem(itemIndex);
+        final DeviceUIProvider d = _adapter.getItem(itemIndex);
         if (d != null) {
             ViewGroup expandedLayout = (ViewGroup)v.findViewById(R.id.expanded_layout);
             if ( expandedLayout != null ) {
@@ -361,21 +365,8 @@ public class AllDevicesFragment extends Fragment
                     _adapter.notifyItemChanged(lastExpanded);
                 }
             } else {
-                // Put the device into LAN mode before pushing the detail fragment
-                // Sometime this can take forever... so make it cancelable.
-                Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connecting to device");
-                MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body), this);
-                Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] enterLANMode");
-                SessionManager.deviceManager().enterLANMode(new DeviceManager.LANModeListener(d) {
-                    @Override
-                    public void lanModeResult(boolean isInLANMode) {
-                        Logger.logDebug(LOG_TAG, "lm: [" + getDevice().getDeviceDsn() + "] lanModeResult " + isInLANMode);
-                        MainActivity.getInstance().dismissWaitDialog();
-                        Fragment frag = d.getDetailsFragment();
-                        MainActivity.getInstance().pushFragment(frag);
-                        Logger.logDebug(LOG_TAG, "lm: [" + d.getDeviceDsn() + "] connected to device");
-                    }
-                });
+                Fragment frag = d.getDetailsFragment();
+                MainActivity.getInstance().pushFragment(frag);
             }
         }
     }

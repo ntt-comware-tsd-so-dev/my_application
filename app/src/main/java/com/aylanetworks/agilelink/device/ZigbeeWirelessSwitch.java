@@ -13,6 +13,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 import com.aylanetworks.agilelink.framework.ZigbeeGroupManager;
 
 import java.util.Arrays;
@@ -26,7 +27,7 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class ZigbeeWirelessSwitch extends Device implements RemoteSwitchDevice {
+public class ZigbeeWirelessSwitch extends GenericDevice implements RemoteSwitchDevice {
 
     private final static String LOG_TAG = "ZigbeeWirelessSwitch";
 
