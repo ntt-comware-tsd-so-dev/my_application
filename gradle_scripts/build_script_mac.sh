@@ -19,8 +19,9 @@
 
 # You can change the following variables to configure your build
 AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-}  # or: AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/4.4.00}
-AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$AYLA_BUILD_BRANCH} # or: -release/4.4.00
-AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$AYLA_BUILD_BRANCH} # or -release/4.4.00
+AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-release/4.4.02} # or: -release/4.4.00
+AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-release/4.4.00} # or -release/4.4.00
+AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/4.4.00}
 AYLA_REMOTE=${AYLA_REMOTE:-origin}
 AYLA_PUBLIC=${AYLA_PUBLIC:-}
 AYLA_LIB_REPO=${AYLA_LIB_REPO:-} # or: -https://github.com/AylaNetworks/Android_AylaLibrary.git
