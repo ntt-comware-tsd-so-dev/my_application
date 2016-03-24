@@ -283,7 +283,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         private WeakReference<EditProfileFragment> _editProfileDialog;
 
         public UpdateProfileHandler(EditProfileFragment editProfileFragment) {
-            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
+            _editProfileDialog = new WeakReference<>(editProfileFragment);
         }
 
         @Override
@@ -314,7 +314,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
                         @Override
                         public void contactListUpdated(ContactManager manager, boolean succeeded) {
-                            _editProfileDialog.get().getFragmentManager().popBackStack();
+                            if(_editProfileDialog.get().getFragmentManager() != null){
+                                _editProfileDialog.get().getFragmentManager().popBackStack();
+                            }
                             Toast.makeText(MainActivity.getInstance(),
                                     succeeded ? R.string.profile_updated : R.string.error_changing_profile,
                                     Toast.LENGTH_LONG).show();
