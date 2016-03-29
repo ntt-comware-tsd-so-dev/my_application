@@ -49,6 +49,11 @@ public class GenericNodeDevice extends GenericDevice implements View.OnClickList
     }
 
     @Override
+    public int getItemViewType() {
+        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE;
+    }
+
+    @Override
     public boolean isDeviceNode() {
         return true;
     }
@@ -88,7 +93,7 @@ public class GenericNodeDevice extends GenericDevice implements View.OnClickList
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         super.bindViewHolder(holder);
 
-        SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder)holder;
+        GenericNodeDeviceViewHolder h = (GenericNodeDeviceViewHolder)holder;
         h._deviceNameTextView.setText(getProductName());
         h._switchButton.setOnClickListener(this);
 

@@ -35,6 +35,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
     public final static int ITEM_VIEW_TYPE_WITH_STATUS = 4;
+    public final static int ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE = 5;
 
     /**
      * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
@@ -170,6 +171,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                                 R.layout.cardview_generic_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
+
+            case ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_switched_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
+                                R.layout.cardview_switched_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new GenericNodeDeviceViewHolder(v);
 
             case ITEM_VIEW_TYPE_WITH_STATUS:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_text_status_grid :
