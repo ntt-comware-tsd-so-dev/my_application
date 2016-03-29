@@ -215,6 +215,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         classList.add(SwitchedDevice.class);
         classList.add(GenericGateway.class);
         classList.add(ZigbeeNodeDevice.class);
+        classList.add(GenericNodeDevice.class);
         return classList;
     }
 }
