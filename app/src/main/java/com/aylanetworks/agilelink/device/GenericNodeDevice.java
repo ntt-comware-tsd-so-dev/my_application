@@ -88,6 +88,17 @@ public class GenericNodeDevice extends GenericDevice implements View.OnClickList
         return 1;
     }
 
+    public Drawable getNodeDeviceDrawable(Resources res, boolean isOn) {
+        return res.getDrawable(isOn ? R.drawable.ic_power_on : R.drawable.ic_power_off);
+    }
+
+    protected Drawable getSwitchedDrawable(Resources res) {
+        return getNodeDeviceDrawable(res, isNodeDeviceOn());
+    }
+
+    public Drawable getPendingDrawable(Resources res) {
+        return res.getDrawable(R.drawable.ic_power_pending);
+    }
 
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
@@ -115,14 +126,15 @@ public class GenericNodeDevice extends GenericDevice implements View.OnClickList
 
     @Override
     public void onClick(View v) {
+        // Update the image view to show the transient state
+        ImageButton button = (ImageButton) v;
+        button.setImageDrawable( getPendingDrawable(v.getResources()) );
+
         if (isNodeDeviceOn()) {
             setOff();
         } else {
             setOn();
         }
-        // Update the image view to show the transient state
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
     }// end of onClick
 
     private boolean isNodeDeviceOn() {
