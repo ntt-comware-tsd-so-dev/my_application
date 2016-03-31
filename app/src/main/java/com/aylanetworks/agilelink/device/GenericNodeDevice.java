@@ -109,8 +109,7 @@ public class GenericNodeDevice extends GenericDevice implements View.OnClickList
         h._switchButton.setOnClickListener(this);
 
         Resources res = MainActivity.getInstance().getResources();
-        int imgID = isNodeDeviceOn()? R.drawable.ic_power_on : R.drawable.ic_power_off;
-        h._switchButton.setImageDrawable(res.getDrawable(imgID));
+        h._switchButton.setImageDrawable(getSwitchedDrawable(res));
     }// end of bindViewHolder
 
     @Override
