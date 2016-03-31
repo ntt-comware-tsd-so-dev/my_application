@@ -119,7 +119,7 @@ public class GenericNodeDevice extends GenericDevice implements View.OnClickList
 
         pNames.add(PROPERTY_OFF_CMD);
         pNames.add(PROPERTY_ON_CMD);
-        pNames.add(PROPERTY_OFF_CMD);
+        pNames.add(PROPERTY_ONOFF_STATUS);
 
         return pNames;
     }// end of getPropertyNames
