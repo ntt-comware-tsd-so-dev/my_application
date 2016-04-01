@@ -14,7 +14,6 @@ import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
-import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,19 +83,19 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if ( "GenericNode".equals(aylaDevice.model) || "Generic Node".equals(aylaDevice.model) ) {
             if (aylaDevice.oemModel.equals("NexturnSmartPlug")) {
                 // This is a Generic Gateway smart plug.
-                return new ZigbeeSwitchedDevice(aylaDevice);
+                return new GenericSwitchedDevice(aylaDevice);
             }
             if (aylaDevice.oemModel.equals("NexturnSmart_Bulb_Converter")) {
                 // This is a Generic Gateway smart bulb.
-                return new ZigbeeLightDevice(aylaDevice);
+                return new GenericLightDevice(aylaDevice);
             }
             if (aylaDevice.oemModel.equals("NexturnMotion_Sensor")) {
                 // This is a Generic Gateway motion sensor.
-                return new ZigbeeMotionSensor(aylaDevice);
+                return new GenericMotionSensor(aylaDevice);
             }
             if (aylaDevice.model.equals("NXPZHA-DimmableLight")) {
                 // This is a Generic Gateway dimmable light.
-                return new ZigbeeDimmableLightDevice(aylaDevice);
+                return new GenericDimmableLightDevice(aylaDevice);
             }
             // NexturnZHA-Thermostat
 
