@@ -7,7 +7,7 @@ import com.aylanetworks.aaml.AylaDevice;
  * <p/>
  * Copyright 2016 Ayla Networks Inc, all rights reserved
  */
-public class GenericDimmableLightDevice extends GenericNodeDevice {
+public class GenericDimmableLightDevice extends GenericLightDevice {
     private final static String LOG_TAG = GenericDimmableLightDevice.class.getSimpleName();
 
     //TODO: Do not have a dimmablelight for now, now sure about the light strength integer.
