@@ -45,11 +45,9 @@ External jars required by the library need to be included in applications using 
 
 Release Notes
 ===========================
-AMAP v4.4.03
-Remove static receiver registration from manifest for AylaConnectivityListener.
-
-AMAP v4.4.0 : AYLA_LIB_BRANCH=release/4.4.00, AYLA_ZLIB_BRANCH=release/4.4.00 (3/22/2016)
+AMAP v4.4.0 : AYLA_LIB_BRANCH=release/4.4.03, AYLA_ZIGBEE_LIB_BRANCH=release/4.4.00, AYLA_CORE_BRANCH=release/4.4.03 (4/6/2016)
 - AMAP is now divided into two parts, AMAP_Core_Framework and AMAP_Android. This separation will allow developers much easier updates of the core functionality of AMAP while keeping custom UI elements separate. The standard AMAP install procedure will pull down the appropriate core framework. The code in AMAP_Core_Framework should not be modified locally, and contains no user interface elements. All user interface elements now live in the AMAP_Android project instead.
+- Remove static receiver registration from manifest for AylaConnectivityListener.
 
 New
 - Unused permissions removed from manifest files
