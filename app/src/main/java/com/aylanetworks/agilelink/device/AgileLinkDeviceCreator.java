@@ -14,7 +14,6 @@ import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
-import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +34,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
     public final static int ITEM_VIEW_TYPE_WITH_STATUS = 4;
+    public final static int ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE = 5;
 
     /**
      * This is the default device creator for AMAP.  Provide your own DeviceCreator and devices.
@@ -83,19 +83,19 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         if ( "GenericNode".equals(aylaDevice.model) || "Generic Node".equals(aylaDevice.model) ) {
             if (aylaDevice.oemModel.equals("NexturnSmartPlug")) {
                 // This is a Generic Gateway smart plug.
-                return new ZigbeeSwitchedDevice(aylaDevice);
+                return new GenericSwitchedDevice(aylaDevice);
             }
             if (aylaDevice.oemModel.equals("NexturnSmart_Bulb_Converter")) {
                 // This is a Generic Gateway smart bulb.
-                return new ZigbeeLightDevice(aylaDevice);
+                return new GenericLightDevice(aylaDevice);
             }
             if (aylaDevice.oemModel.equals("NexturnMotion_Sensor")) {
                 // This is a Generic Gateway motion sensor.
-                return new ZigbeeMotionSensor(aylaDevice);
+                return new GenericMotionSensor(aylaDevice);
             }
             if (aylaDevice.model.equals("NXPZHA-DimmableLight")) {
                 // This is a Generic Gateway dimmable light.
-                return new ZigbeeDimmableLightDevice(aylaDevice);
+                return new GenericDimmableLightDevice(aylaDevice);
             }
             // NexturnZHA-Thermostat
 
@@ -171,6 +171,13 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericDeviceViewHolder(v);
 
+            case ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE:
+                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_switched_device_grid :
+                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
+                                R.layout.cardview_switched_device;
+                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
+                return new GenericNodeDeviceViewHolder(v);
+
             case ITEM_VIEW_TYPE_WITH_STATUS:
                 resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_text_status_grid :
                         listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
@@ -207,6 +214,7 @@ public class AgileLinkDeviceCreator extends DeviceCreator {
         classList.add(SwitchedDevice.class);
         classList.add(GenericGateway.class);
         classList.add(ZigbeeNodeDevice.class);
+        classList.add(GenericNodeDevice.class);
         return classList;
     }
 }

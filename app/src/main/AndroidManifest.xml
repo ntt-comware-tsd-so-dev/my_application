@@ -55,7 +55,7 @@
 
     <application
         android:name=".AgileLinkApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
@@ -121,13 +121,6 @@
 
 
         <service android:name="com.aylanetworks.aaml.AylaExecuteRequest"/>
-
-        <receiver android:name="com.aylanetworks.aaml.AylaConnectivityListener">
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
-            </intent-filter>
-        </receiver>
-
 
         <!--
              WakefulBroadcastReceiver that will receive intents from GCM

@@ -7,7 +7,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.aylanetworks.aaml.AylaDatapoint;
 import com.aylanetworks.aaml.AylaDevice;
@@ -15,7 +14,6 @@ import com.aylanetworks.aaml.AylaNetworks;
 import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
@@ -33,6 +31,7 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
     private final static String LOG_TAG = "SwitchedDevice";
     private final static String PROPERTY_OUTLET = "outlet1";
 
+    //TODO: This has bias towards zigbee, generic solution uses two property to control a switch.
     public SwitchedDevice(AylaDevice device) {
         super(device);
     }

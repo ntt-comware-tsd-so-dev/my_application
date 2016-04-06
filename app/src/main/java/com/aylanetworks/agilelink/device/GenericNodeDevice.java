@@ -2,12 +2,12 @@ package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 
 import com.aylanetworks.aaml.AylaDevice;
 import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.aaml.AylaProperty;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 
 /*
  * GenericNodeDevice.java
@@ -19,7 +19,7 @@ import com.aylanetworks.agilelink.framework.Device;
 
 public class GenericNodeDevice extends GenericDevice {
 
-    private final static String LOG_TAG = "GenericNodeDevice";
+    private final static String LOG_TAG = GenericNodeDevice.class.getSimpleName();
 
     public GenericNodeDevice(AylaDevice device) {
         super(device);
@@ -27,10 +27,11 @@ public class GenericNodeDevice extends GenericDevice {
 
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
-        if (propertyName.equals(ZigbeeSwitchedDevice.PROPERTY_ZB_INPUT)) {
-            return MainActivity.getInstance().getString(R.string.property_zigbee_input_friendly_name);
+        AylaProperty ap = getProperty(propertyName);
+        if (ap == null || TextUtils.isEmpty(ap.displayName)) {
+            return super.friendlyNameForPropertyName(propertyName);
         }
-        return super.friendlyNameForPropertyName(propertyName);
+        return ap.displayName;
     }
 
     @Override
@@ -45,11 +46,11 @@ public class GenericNodeDevice extends GenericDevice {
 
     @Override
     public String deviceTypeName() {
-        return "Generic Node";
+        return LOG_TAG;
     }
 
     @Override
     public Drawable getDeviceDrawable(Context c) {
-        return c.getResources().getDrawable(R.drawable.ic_generic_node_red);
+        return c.getResources().getDrawable(R.drawable.smart_bulb);
     }
-}
+}// end of GenericSwitchedDevice class
