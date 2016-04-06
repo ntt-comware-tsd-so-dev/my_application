@@ -1,0 +1,2 @@
+Assign Everwin Smart Plug as a switched vs DevKit device
+First cut at schedules

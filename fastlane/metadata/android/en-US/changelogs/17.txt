@@ -1,0 +1,11 @@
+- Multi-LAN Mode support
+- Full Generic Gateway and node support
+- Spanish localization
+- Multi-gateway support
+- New email and sms property & device notifications
+- WiFi Setup and Registration improvements
+- Scheduling and Timer improvements
+- UI & UX Improvements
+- Bug fixes
+- Known Issues
+  Android 6.x is not supported (Some devices work and some do not)

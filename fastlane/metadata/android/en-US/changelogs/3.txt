@@ -1,0 +1,2 @@
+Handle null _device.get() in Device.java GetPropertiesHandler.handleMessage()
+Don't use oemModel to determine the product type

@@ -1,0 +1,7 @@
+First cut at Alpha
+
+Account CRUD including oAuth
+All Devices View
+Group CRUD using user datum
+5 Schedules & Timers for smart plugs
+Settings
