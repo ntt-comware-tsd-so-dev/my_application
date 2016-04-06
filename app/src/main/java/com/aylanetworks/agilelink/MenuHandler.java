@@ -275,7 +275,12 @@ public class MenuHandler {
             // Confirm
             Resources res = activity.getResources();
             AylaUser currentUser = AylaUser.getCurrent();
-            String msg = res.getString(R.string.confirm_sign_out_message, currentUser.email);
+            String email ="";
+            if(currentUser != null && currentUser.email != null) {
+                email = currentUser.email;
+            }
+
+            String msg = res.getString(R.string.confirm_sign_out_message, email);
             new AlertDialog.Builder(activity)
                     .setIcon(R.drawable.ic_launcher)
                     .setTitle(R.string.confirm_sign_out)
