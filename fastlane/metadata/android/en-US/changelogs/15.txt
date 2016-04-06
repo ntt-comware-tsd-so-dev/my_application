@@ -1,0 +1,1 @@
+Development build support EVBs, Smart Plugs, and Zigbee Gateways, and basic Generic Gateways. Uses Multi-LAN Mode. All device must use the Ayla OEM ID.

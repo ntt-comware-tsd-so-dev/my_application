@@ -1,0 +1,103 @@
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/docs
+# All available actions: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Actions.md
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# By default, fastlane will send which actions are used
+# No personal data is shared, more information on https://github.com/fastlane/enhancer
+# Uncomment the following line to opt out
+# opt_out_usage
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "1.69.0"
+
+default_platform :android
+
+platform :android do
+  before_all do
+    # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+  desc "Submit a new Beta Build to Crashlytics Beta"
+  lane :beta do
+    gradle(task: "assembleRelease")
+    crashlytics
+
+    # sh "your_script.sh"
+    # You can also use other beta testing services here
+  end
+
+  desc "Deploy a new version to the Google Play. export SUPPLY_TRACK=beta to deploy to Google Beta"
+  desc "need to set your Google signing key credentails in envrionmemnt variables KEYSTORE, KEYSTORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD"
+  lane :deploy do
+    gradle(task: "assembleRelease")
+    supply
+  end
+
+  desc "make a release. This lane requires: 1) developers should have already added release notes in README.md and modified version number strings in various files;"
+  desc " 2) there is already a release/x.y.z branch existing. Developers make a PR from release branch to master branch, release engineer merges PR, than run command like"
+  desc " fastlane release version_number:\"1.3.00\""
+  lane :release do |options|
+    repo_name="AylaNetworks/AMAP_Android"
+    release_number= options[:version_number]
+    v="v"+release_number
+
+    # push master branch from internal repo to public repo
+    git_command(full_command: "git checkout master")
+    ensure_git_branch(branch: "master")
+    git_pull
+    ensure_git_status_clean
+    git_command(full_command: "git push public master");
+
+    #publish a release which will create the tag on public. this requires you to set your own environment variable GITHUB_API_TOKEN
+    set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: repo_name, tag_name: v, name: v+" Release", description: "see README.md for details")
+    # pull tag to local
+    git_command(full_command: "git pull public master --tags");
+    # push tag to internal repo
+    git_command(full_command: "git push origin #{v}");
+
+    # push a release branch
+    git_command(full_command: "git checkout release/#{release_number}")
+    # origin must have this release branch already
+    git_command(full_command: "git pull")
+    ensure_git_branch(branch: "release/#{release_number}")
+    ensure_git_status_clean
+    git_command(full_command: "git push public release/#{release_number}")
+
+    # create PR to merge master back to develop and notify tech lead
+    # send release notification email
+  end
+
+  # You can define as many lanes as you want
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+    
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end
+
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/docs/Platforms.md
+# All available actions: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Actions.md
