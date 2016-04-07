@@ -48,15 +48,6 @@
             android:textStyle="italic"
             android:inputType="textCapWords|textPersonName" />
 
-        <EditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:ems="10"
-            android:hint="@string/emailAddress"
-            android:inputType="textEmailAddress"
-            android:textStyle="italic"/>
 
         <EditText
             android:id="@+id/etCountry"
@@ -90,6 +81,47 @@
 
         <Button
             android:id="@+id/btnUpdate"
+            style="@style/AgileLinkButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:layout_gravity="right"
+            android:layout_marginRight="8dp"
+            android:text="@string/update" />
+
+
+        <TextView
+            android:id="@+id/email_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="@string/emailAddress"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:ems="10"
+            android:hint="@string/emailAddress"
+            android:inputType="textEmailAddress"
+            android:textStyle="italic"/>
+
+        <EditText
+            android:id="@+id/etNewEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:ems="10"
+            android:hint="@string/newEmailAddress"
+            android:inputType="textEmailAddress"
+            android:textStyle="italic"/>
+
+        <Button
+            android:id="@+id/btnUpdateEmail"
             style="@style/AgileLinkButton"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
