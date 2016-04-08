@@ -330,6 +330,12 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                 SessionManager.stopSession();
             } else {
                 Log.e(LOG_TAG, "user: Failed to update email: " + msg);
+                if (msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS) {
+                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "UpdateEmail", "errors", msg.obj.toString(), "updateEmail");
+                    Toast.makeText(MainActivity.getInstance(), R.string.invalid_email, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.error_updating_email, Toast.LENGTH_LONG).show();
+                }
             }
         }
     }

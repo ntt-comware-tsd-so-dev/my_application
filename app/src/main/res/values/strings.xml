@@ -205,6 +205,7 @@
     <string name="fetching_user_info_title">Getting Profile</string>
     <string name="fetching_user_info_body">Updating current profile information. Please wait...</string>
     <string name="error_changing_profile">An error occurred while trying to update your profile. Please try again later.</string>
+    <string name="error_updating_email">An error occurred while trying to update your email. Please try again later.</string>
     <string name="updating_profile_title">Updating Profile</string>
     <string name="updating_profile_body">Updating your profile. Please wait...</string>
     <string name="profile_updated">Your profile has been successfully updated.</string>

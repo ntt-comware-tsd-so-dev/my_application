@@ -635,6 +635,7 @@
     <string name="updating_email_title">Actualizando Email</string>
     <string name="update_email_confirm_title">Actualizar Email?</string>
     <string name="update_email_confirm_msg">Once your email changed, you have to sigin with the new email.</string>
+ <string name="error_updating_email">Ocurrió un error al actualizar el Email. Reintente más tarde.</string>
 
 
 </resources>
