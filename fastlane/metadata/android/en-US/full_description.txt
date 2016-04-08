@@ -1,0 +1,1 @@
+The AMAP app allows you to set up, view and remotely control your Ayla-enabled devices from anywhere on the Internet via an Android phone or tablet. You must have an active, in-service Ayla-enabled device and an available wireless access point in order to use this app.

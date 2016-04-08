@@ -1,0 +1,8 @@
+- Unused permissions removed from manifest files
+- All required permissions are now documented in comments with reasons why they are required
+- Build SDK version is now 23
+- Avoid delay in transition to device detail page
+- New support for connecting a device to a hidden WiFi network in setup
+- Zigbee node unregister & reset functionality
+- Role-based sharing support
+- bug fixes

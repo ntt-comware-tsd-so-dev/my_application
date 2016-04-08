@@ -1,0 +1,2 @@
+json_key_file "/Users/GWang/Documents/key_files/Goolge_Play_Android_Developer-2983a1260eda.json" # Path to the json secret file - Follow https://github.com/fastlane/supply#setup to get one
+package_name "com.aylanetworks.agilelink" # e.g. com.krausefx.app

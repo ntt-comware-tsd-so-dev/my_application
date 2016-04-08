@@ -1,0 +1,1 @@
+Handle null _device in Device.java GetPropertiesHandler.handleMessage()
