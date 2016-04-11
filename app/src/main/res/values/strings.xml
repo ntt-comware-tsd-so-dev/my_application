@@ -75,6 +75,7 @@
     <string name="signIn">Sign In</string>
     <string name="userInformation">User Information</string>
     <string name="emailAddress">Email Address</string>
+    <string name="newEmailAddress">New Email</string>
     <string name="role">Role</string>
     <string name="passwordHint">Password</string>
     <string name="currentPassword">Current Password</string>
@@ -193,11 +194,18 @@
     <string name="google">Google</string>
     <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
     <string name="invalid_email_password">Invalid email or password</string>
+    <string name="invalid_email">Invalid email</string>
+    <string name="update_email_success">Update email success</string>
+    <string name="updating_email_title">Updating Email</string>
+    <string name="updating_email_body">Updating your email. Please wait...</string>
+    <string name="update_email_confirm_title">Change email?</string>
+    <string name="update_email_confirm_msg">Once your email changed, you have to sigin with the new email.</string>
     <string name="unknown_error">An unknown error has occurred</string>
     <string name="update_profile">Update Profile</string>
     <string name="fetching_user_info_title">Getting Profile</string>
     <string name="fetching_user_info_body">Updating current profile information. Please wait...</string>
     <string name="error_changing_profile">An error occurred while trying to update your profile. Please try again later.</string>
+    <string name="error_updating_email">An error occurred while trying to update your email. Please try again later.</string>
     <string name="updating_profile_title">Updating Profile</string>
     <string name="updating_profile_body">Updating your profile. Please wait...</string>
     <string name="profile_updated">Your profile has been successfully updated.</string>

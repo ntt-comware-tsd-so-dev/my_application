@@ -628,6 +628,14 @@
         <item>Slow Connection</item>
         <item>LAN Mode</item>
     </string-array>
+    <string name="newEmailAddress">Nuevo Email</string>
+    <string name="invalid_email">Email inválido</string>
+    <string name="update_email_success">éxito alerta por correo electrónico</string>
+    <string name="updating_email_body">Actualizando Email. Espere por favor...</string>
+    <string name="updating_email_title">Actualizando Email</string>
+    <string name="update_email_confirm_title">Actualizar Email?</string>
+    <string name="update_email_confirm_msg">Once your email changed, you have to sigin with the new email.</string>
+ <string name="error_updating_email">Ocurrió un error al actualizar el Email. Reintente más tarde.</string>
 
 
 </resources>

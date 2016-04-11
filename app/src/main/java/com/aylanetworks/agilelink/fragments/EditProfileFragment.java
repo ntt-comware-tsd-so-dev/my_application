@@ -1,5 +1,7 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -43,6 +45,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     private EditText _firstName;
     private EditText _lastName;
     private EditText _email;
+    private EditText _newEmail;
     private EditText _country;
     private EditText _phoneCountryCode;
     private EditText _phoneNumber;
@@ -70,10 +73,12 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         root.findViewById(R.id.btnChangePassword).setOnClickListener(this);
         root.findViewById(R.id.btnLogOut).setOnClickListener(this);
         root.findViewById(R.id.btnDeleteAccount).setOnClickListener(this);
+        root.findViewById(R.id.btnUpdateEmail).setOnClickListener(this);
 
         _firstName = (EditText) root.findViewById(R.id.etFirstName);
         _lastName = (EditText) root.findViewById(R.id.etLastName);
         _email = (EditText) root.findViewById(R.id.etEmail);
+        _newEmail = (EditText) root.findViewById(R.id.etNewEmail);
         _country = (EditText) root.findViewById(R.id.etCountry);
         _phoneCountryCode = (EditText) root.findViewById(R.id.etPhoneCountryCode);
         _phoneNumber = (EditText) root.findViewById(R.id.etPhoneNumber);
@@ -180,6 +185,31 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    void onUpdateEmailClicked() {
+        String currentEmail = _email.getText().toString();
+        final String newEmail = _newEmail.getText().toString();
+        if (TextUtils.isEmpty(newEmail) || newEmail.contains("@") == false
+                || currentEmail.equals(newEmail)) {
+            Toast.makeText(MainActivity.getInstance(), R.string.invalid_email, Toast.LENGTH_SHORT).show();
+            _newEmail.requestFocus();
+        } else {
+            new AlertDialog.Builder(MainActivity.getInstance())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.update_email_confirm_title)
+                    .setMessage(R.string.update_email_confirm_msg)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Update the email
+                            MainActivity.getInstance().showWaitDialog(R.string.updating_email_title, R.string.updating_email_body);
+                            AylaUser.updateEmailAddress(_updateEmailHandler, newEmail);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .create().show();
+        }
+    }
+
     void onLogOutClicked() {
         MenuHandler.signOut();
     }
@@ -202,6 +232,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                 break;
             case R.id.btnDeleteAccount:
                 onDeleteAccountClicked();
+                break;
+            case R.id.btnUpdateEmail:
+                onUpdateEmailClicked();
                 break;
         }
     }
@@ -278,6 +311,36 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     }
 
     private GetInfoHandler _getInfoHandler = new GetInfoHandler(this);
+
+    static class UpdateEmailHandler extends Handler {
+        private WeakReference<EditProfileFragment> _editProfileFragment;
+
+        public UpdateEmailHandler(EditProfileFragment editProfileFragment) {
+            _editProfileFragment = new WeakReference<EditProfileFragment>(editProfileFragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(LOG_TAG, "user: UpdateEmail handleMessage [" + msg + "]");
+            Logger.logMessage(LOG_TAG, msg, "UpdateEmail");
+            MainActivity.getInstance().dismissWaitDialog();
+            if (AylaNetworks.succeeded(msg)) {
+                Toast.makeText(MainActivity.getInstance(), R.string.update_email_success, Toast.LENGTH_SHORT).show();
+                // Once change email, sign in with new email is required
+                SessionManager.stopSession();
+            } else {
+                Log.e(LOG_TAG, "user: Failed to update email: " + msg);
+                if (msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS) {
+                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "UpdateEmail", "errors", msg.obj.toString(), "updateEmail");
+                    Toast.makeText(MainActivity.getInstance(), R.string.invalid_email, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), R.string.error_updating_email, Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
+    private UpdateEmailHandler _updateEmailHandler = new UpdateEmailHandler(this);
 
     static class UpdateProfileHandler extends Handler {
         private WeakReference<EditProfileFragment> _editProfileDialog;
