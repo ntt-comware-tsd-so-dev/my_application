@@ -24,7 +24,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaModuleScanResults;
+import com.aylanetworks.aylasdk.AylaModuleScanResults;
 import com.aylanetworks.agilelink.R;
 
 import java.util.ArrayList;

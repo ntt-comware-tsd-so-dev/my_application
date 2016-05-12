@@ -28,10 +28,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.aaml.zigbee.AylaSceneZigbee;
-import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaSystemUtils;
+import com.aylanetworks.aylasdk.zigbee.AylaSceneZigbee;
+import com.aylanetworks.aylasdk.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;

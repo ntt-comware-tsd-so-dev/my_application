@@ -22,10 +22,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaApplicationTrigger;
-import com.aylanetworks.aaml.AylaContact;
-import com.aylanetworks.aaml.AylaProperty;
-import com.aylanetworks.aaml.AylaPropertyTrigger;
+import com.aylanetworks.aylasdk.AylaApplicationTrigger;
+import com.aylanetworks.aylasdk.AylaContact;
+import com.aylanetworks.aylasdk.AylaProperty;
+import com.aylanetworks.aylasdk.AylaPropertyTrigger;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;

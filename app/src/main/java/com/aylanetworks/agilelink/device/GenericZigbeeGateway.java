@@ -13,7 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;

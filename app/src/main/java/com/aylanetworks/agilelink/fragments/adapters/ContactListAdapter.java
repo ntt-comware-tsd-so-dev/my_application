@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaContact;
+import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.SessionManager;
 

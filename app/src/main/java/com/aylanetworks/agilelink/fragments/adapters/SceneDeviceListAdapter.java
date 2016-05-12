@@ -3,7 +3,7 @@ package com.aylanetworks.agilelink.fragments.adapters;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeEntity;
+import com.aylanetworks.aylasdk.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.DeviceUIProvider;

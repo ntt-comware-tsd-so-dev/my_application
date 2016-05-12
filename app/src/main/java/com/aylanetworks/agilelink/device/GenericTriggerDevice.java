@@ -2,8 +2,8 @@ package com.aylanetworks.agilelink.device;
 
 import android.text.TextUtils;
 
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 

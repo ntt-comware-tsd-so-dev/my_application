@@ -12,8 +12,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaLogManager;
-import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aylasdk.AylaLogManager;
+import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.agilelink.BuildConfig;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.SessionManager;

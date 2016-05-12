@@ -6,8 +6,8 @@ import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.zigbee.AylaSceneZigbeeNodeProperty;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.zigbee.AylaSceneZigbeeNodeProperty;
 import com.aylanetworks.agilelink.MainActivity;
 
 /*

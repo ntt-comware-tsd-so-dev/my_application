@@ -20,7 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.aylanetworks.aaml.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.agilelink.R;
 
 /*

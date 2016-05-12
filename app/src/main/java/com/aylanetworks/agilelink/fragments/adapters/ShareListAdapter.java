@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaShare;
-import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.aylasdk.AylaShare;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.SessionManager;

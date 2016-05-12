@@ -1,6 +1,6 @@
 package com.aylanetworks.agilelink.device;
 
-import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDevice;
 
 /**
  * AMAP4.x

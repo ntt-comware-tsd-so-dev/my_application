@@ -12,9 +12,9 @@ import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.Spinner;
 
-import com.aylanetworks.aaml.AylaCache;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaSystemUtils;
+import com.aylanetworks.aylasdk.AylaCache;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.agilelink.fragments.ChooseAPDialog;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
