@@ -786,8 +786,31 @@ public class AddDeviceFragment extends Fragment
     }
 
     RegisterHandler _registerHandler;
+
     private void registerNewDevice(AylaDevice device) {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+
+        Context context = this.getActivity();
+
+        //This is optional. Add location information to send latitude and longitude during
+        // registration of device.
+        if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+            requestScanPermissions();
+        } else{
+            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            Location currentLocation;
+            List<String> locationProviders = locationManager.getAllProviders();
+            for(String provider: locationProviders){
+                currentLocation = locationManager.getLastKnownLocation(provider);
+                if(currentLocation != null){
+                    device.lat = String.valueOf(currentLocation.getLatitude());
+                    device.lng = String.valueOf(currentLocation.getLongitude());
+                    break;
+                }
+            }
+        }
         Logger.logVerbose(LOG_TAG, "rn: Calling registerNewDevice...");
         _registerHandler = new RegisterHandler(this);
         device.registerNewDevice(_registerHandler);
