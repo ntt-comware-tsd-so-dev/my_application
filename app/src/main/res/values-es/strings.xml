@@ -145,6 +145,7 @@
     <string name="gateway_find_devices"><![CDATA[Encienda su dispositivo y presione \"Buscar Dispositivos\".\nDespues mantenga la varita magnética contra el icono de asociación en su dispositivo hasta que la luz deje de parpadear. El dispositivo aparecerá en la lista en unos momentos. Selecciónela y presione \"Registrar\".]]></string>
 
     <string name="registration_display_instructions">Por favor asegúrese de que el LED naranja en el dispositivo este encendido.</string>
+    <string name="enter_reg_token">Introduzca el registration token.</string>
     <string name="please_wait">Por favor espere...</string>
     <string name="registration_success">Registro exitoso!</string>
     <string name="registration_failure">No se pudo registrar. Asegúrese de que el dispositivo esté listo.</string>

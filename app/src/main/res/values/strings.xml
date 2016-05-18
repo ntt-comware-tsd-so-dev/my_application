@@ -158,6 +158,7 @@
     <string name="gateway_find_devices"><![CDATA[Plug in your device or add batteries and tap \"Scan Devices\" below.\nThen hold the magnetic wand against the pairing icon on your device until the light stops flashing.\nYour device should appear in the list below momentarily. Once it does, select it, and tap on \"Register\".]]></string>
 
     <string name="registration_display_instructions">Please make sure that the orange LED on the device is on.</string>
+    <string name="enter_reg_token">Enter registration token.</string>
     <string name="please_wait">Please wait...</string>
     <string name="registration_success">Registration Successful!</string>
     <string name="registration_failure">Could not register the device. Make sure the device is ready for registration.</string>

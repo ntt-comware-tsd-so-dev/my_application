@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,12 +13,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +29,7 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,13 +45,10 @@ import com.aylanetworks.aaml.AylaSetup;
 import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.aaml.AylaUser;
 import com.aylanetworks.aaml.AylaWiFiStatus;
-import com.aylanetworks.aaml.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.Manifest;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.device.DeviceUIProvider;
-import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.device.GenericGateway;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.Device;
@@ -63,13 +59,10 @@ import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.support.v4.app.ActivityCompat.*;
 
 /*
  * AddDeviceFragment.java
@@ -409,7 +402,14 @@ public class AddDeviceFragment extends Fragment
             MainActivity.getInstance().showWaitDialog(null, null);
             AylaDevice newDevice = new AylaDevice();
             newDevice.registrationType = getSelectedRegistrationType();
-            registerNewDevice(newDevice);
+            if(newDevice.registrationType.equals(AylaNetworks.AML_REGISTRATION_TYPE_DISPLAY)){
+                showDisplayRegDialog(newDevice);
+            } else if(newDevice.registrationType.equals(AylaNetworks
+                    .AML_REGISTRATION_TYPE_BUTTON_PUSH)){
+                showPushButtonDialog(newDevice);
+            } else{
+                registerDevice(newDevice);
+            }
         }
     }
 
@@ -944,6 +944,31 @@ public class AddDeviceFragment extends Fragment
                 .show();
     }
 
+    private void showDisplayRegDialog(final AylaDevice device) {
+
+        final EditText regTokenEditText = new EditText(getContext());
+        regTokenEditText.setInputType(InputType.TYPE_CLASS_TEXT );
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(R.string.enter_reg_token)
+                .setView(regTokenEditText)
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        exitSetup(true);
+                    }
+                })
+                .setPositiveButton(R.string.register, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String token = regTokenEditText.getText().toString();
+                        device.registrationType = AylaNetworks.AML_REGISTRATION_TYPE_DISPLAY;
+                        device.registrationToken = token;
+                        registerDevice(device);
+                    }
+                })
+                .create()
+                .show();
+    }
     private void registerDevice(final AylaDevice device) {
         // We need to wait a bit before attempting to register. The service needs some
         // time to get itself in order first.
@@ -978,6 +1003,9 @@ public class AddDeviceFragment extends Fragment
                     if (_frag.get()._registrationType == REG_TYPE_BUTTON_PUSH) {
                         // we need to prompt the user to press the Button for registration
                         _frag.get().showPushButtonDialog(device);
+                    } else if (_frag.get()._registrationType == REG_TYPE_DISPLAY) {
+                        // we need the user to enter registration token.
+                        _frag.get().showDisplayRegDialog(device);
                     } else {
                         _frag.get().registerDevice(device);
                     }
