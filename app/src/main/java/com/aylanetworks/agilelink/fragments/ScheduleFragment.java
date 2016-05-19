@@ -355,6 +355,10 @@ public class ScheduleFragment extends Fragment {
            errorMessage = R.string.no_actions_set;
         }
 
+        if ( _schedule.getStartTimeEachDay() == null) {
+            errorMessage = R.string.configure_a_timer_or_a_schedule_before_saving;
+        }
+
         if ( errorMessage != 0 ) {
             Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();
         }

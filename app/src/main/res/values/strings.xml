@@ -332,6 +332,8 @@
     <string name="green_led">Green LED</string>
     <string name="schedule_properties_description">Select which action you would like to update with this schedule:</string>
     <string name="no_actions_set">Please select at least one action to update with this schedule</string>
+    <string name="configure_a_timer_or_a_schedule_before_saving">Configure a timer or a schedule
+        before saving.</string>
     <string name="timezone_button_text">Timezone...</string>
     <string name="sharing_button_text">Share Device...</string>
     <string name="choose_timezone">Select the time zone for this device</string>
