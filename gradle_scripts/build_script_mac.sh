@@ -19,7 +19,7 @@
 
 # You can change the following variables to configure your build
 AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-}  # or: AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/4.4.00}
-AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-release/4.4.03} # or: -release/4.4.00
+AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-release/4.4.04} # or: -release/4.4.00
 AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-release/4.4.00} # or -release/4.4.00
 AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/4.4.03}
 AYLA_REMOTE=${AYLA_REMOTE:-origin}
