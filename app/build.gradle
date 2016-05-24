@@ -1,4 +1,3 @@
-
 apply plugin: 'com.android.application'
 
 android {
@@ -17,7 +16,7 @@ android {
         release {
             try {
                 storeFile file(System.getenv("KEYSTORE"))
-            } catch(all) {
+            } catch (all) {
             }
             storePassword System.getenv("KEYSTORE_PASSWORD")
             keyAlias System.getenv("KEY_ALIAS")
@@ -44,15 +43,18 @@ task initialize {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.volley:volley:1.0.0'
-    compile 'com.android.support:appcompat-v7:23.3.0'
-    compile 'com.android.support:recyclerview-v7:23.3.0'
-    compile 'com.android.support:cardview-v7:23.3.0'
-    compile 'com.android.support:design:23.3.0'
-    compile 'com.google.android.gms:play-services:8.4.0'
     compile project(':websocketLibrary')
     compile project(':Android_AylaSDK')
     compile project(':AMAP_Core')
+    compile 'com.android.volley:volley:1.0.0'
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:recyclerview-v7:23.4.0'
+    compile 'com.android.support:cardview-v7:23.4.0'
+    compile 'com.android.support:design:23.4.0'
+    compile 'com.google.android.gms:play-services:9.0.0'
+    compile 'com.google.android.gms:play-services-ads:9.0.0'
+    compile 'com.google.android.gms:play-services-auth:9.0.0'
+    compile 'com.google.android.gms:play-services-gcm:9.0.0'
 }
 
 android.applicationVariants.all { variant ->
@@ -63,7 +65,7 @@ android.applicationVariants.all { variant ->
         classpath = files(variant.javaCompile.classpath.files, project.android.getBootClasspath()) + files(ext.androidJar)
         options {
             links "http://docs.oracle.com/javase/7/docs/api/"
-            linksOffline "http://d.android.com/reference","${android.sdkDirectory}/docs/reference"
+            linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
         }
         options.overview = "overview.html"
         options.setWindowTitle("Agile Link Application Framework")
