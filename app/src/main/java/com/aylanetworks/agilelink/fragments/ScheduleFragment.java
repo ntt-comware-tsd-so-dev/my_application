@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -242,6 +243,13 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            initSchedule(_scheduleTimePicker.getCurrentHour()
+                    , _scheduleTimePicker.getCurrentMinute());
+        } else { // version >= M
+            initSchedule(_scheduleTimePicker.getHour()
+                    , _scheduleTimePicker.getMinute());
+        }
 
         _timerTimePicker.setIs24HourView(true);
         _timerTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
@@ -317,13 +325,22 @@ public class ScheduleFragment extends Fragment {
             return;
         }
 
+        setSchedule(hourOfDay, minute, _scheduleOnTimeButton.isSelected());
+    }
+
+    private void initSchedule(int hourOfDay, int minute) {
+        setSchedule(hourOfDay, minute, true);
+        setSchedule(hourOfDay, minute+1, false);
+    }
+
+    private void setSchedule(int hourOfDay, int minute, boolean isOnTimeButtonSelected) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(getTimeZone());
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
-        if (_scheduleOnTimeButton.isSelected()) {
+        if (isOnTimeButtonSelected) {
             _schedule.setStartTimeEachDay(cal);
         } else {
             _schedule.setEndTimeEachDay(cal);
@@ -355,7 +372,7 @@ public class ScheduleFragment extends Fragment {
            errorMessage = R.string.no_actions_set;
         }
 
-        if ( _schedule.getStartTimeEachDay() == null) {
+        if ( !_schedule.isTimer() && _schedule.getStartTimeEachDay() == null) {
             errorMessage = R.string.configure_a_timer_or_a_schedule_before_saving;
         }
 
@@ -383,6 +400,8 @@ public class ScheduleFragment extends Fragment {
         if ( _schedule.isTimer() ) {
             // Set up the schedule
             _schedule.setTimer(_timerOnDuration, _timerOffDuration);
+        } else { // now cloud side forces endDate validation
+            _schedule.setEndDate(cal);
         }
 
         Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
