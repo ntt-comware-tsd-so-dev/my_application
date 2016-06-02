@@ -5,12 +5,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.framework.ViewModelProvider;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.deprecated.Device;
-import com.aylanetworks.agilelink.framework.Gateway;
+import com.aylanetworks.agilelink.framework.deprecated.Gateway;
 import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
@@ -37,105 +38,78 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
     public final static int ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE = 5;
 
     /**
-     * This is the default device creator for AMAP.  Provide your own ViewModelProvider and devices.
-     * @param aylaDevice The AylaDevice object to be wrapped
+     * This is the default view model creator for AMAP.  Provide your own ViewModelProvider and
+     * ViewModel classes to provide custom implementations tailored to your own devices
+     *
+     * @param device The AylaDevice object to be wrapped
      * @return Device
      */
-    public Device deviceForAylaDevice(AylaDevice aylaDevice) {
-
-        if (aylaDevice.oemModel == null) {
-            Logger.logError(LOG_TAG, "No oemModel set on device: " + aylaDevice);
+    public ViewModel viewModelForDevice(AylaDevice device) {
+        String oemModel = device.getOemModel();
+        String model = device.getModel();
+        if (oemModel == null) {
+            Logger.logError(LOG_TAG, "No oemModel set on device: " + device);
 
             // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
-            if ("AY001MRT1".equals(aylaDevice.model)) {
+            if ("AY001MRT1".equals(model)) {
                 // This is a gateway.
-                return new Gateway(aylaDevice);
+                return new GenericGateway(device);
             }
-            return new GenericDevice(aylaDevice);
+            return new GenericDevice(device);
         }
 
-        if ( "ledevb".equals(aylaDevice.oemModel) ) {
+        if ( "ledevb".equals(oemModel) ) {
             // This is the Ayla devkit.
-            return new AylaEVBDevice(aylaDevice);
+            return new AylaEVBDevice(device);
         }
 
-        if ( "smartplug1".equals(aylaDevice.oemModel) ) {
+        if ( "smartplug1".equals(oemModel) ) {
             // This is the Ayla Demo Smart plug
-            return new SwitchedDevice(aylaDevice);
+            return new SwitchedDevice(device);
         }
 
-        if ( "EWPlug1".equals(aylaDevice.oemModel) ) {
+        if ( "EWPlug1".equals(oemModel) ) {
             // This is an Everwin MFI/Homekit enabled smart plug.
-            return new SwitchedDevice(aylaDevice);
+            return new SwitchedDevice(device);
         }
 
         // Gateway, including Zigbee, devices
-        if ( "generic".equals(aylaDevice.oemModel) ) {
-            if (aylaDevice.model.equals("AY001MRT1")) {
+        if ( "generic".equals(oemModel) ) {
+            if (model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new GenericGateway(aylaDevice);
+                return new GenericGateway(device);
             }
-            if (aylaDevice.model.equals("GenericNode") || aylaDevice.model.equals("Generic Node")) {
+            if (model.equals("GenericNode") || model.equals("Generic Node")) {
                 // This is a generic node
-                return new GenericNodeDevice(aylaDevice);
+                return new GenericNodeDevice(device);
             }
         }
-        if ( "GenericNode".equals(aylaDevice.model) || "Generic Node".equals(aylaDevice.model) ) {
-            if (aylaDevice.oemModel.equals("NexturnSmartPlug")) {
+        if ( "GenericNode".equals(model) || "Generic Node".equals(model) ) {
+            if (oemModel.equals("NexturnSmartPlug")) {
                 // This is a Generic Gateway smart plug.
-                return new GenericSwitchedDevice(aylaDevice);
+                return new GenericSwitchedDevice(device);
             }
-            if (aylaDevice.oemModel.equals("NexturnSmart_Bulb_Converter")) {
+            if (oemModel.equals("NexturnSmart_Bulb_Converter")) {
                 // This is a Generic Gateway smart bulb.
-                return new GenericLightDevice(aylaDevice);
+                return new GenericLightDevice(device);
             }
-            if (aylaDevice.oemModel.equals("NexturnMotion_Sensor")) {
+            if (oemModel.equals("NexturnMotion_Sensor")) {
                 // This is a Generic Gateway motion sensor.
-                return new GenericMotionSensor(aylaDevice);
+                return new GenericMotionSensor(device);
             }
-            if (aylaDevice.model.equals("NXPZHA-DimmableLight")) {
+            if (model.equals("NXPZHA-DimmableLight")) {
                 // This is a Generic Gateway dimmable light.
-                return new GenericDimmableLightDevice(aylaDevice);
+                return new GenericDimmableLightDevice(device);
             }
             // NexturnZHA-Thermostat
 
             // This is a generic node
-            return new GenericNodeDevice(aylaDevice);
-        }
-        if ( "zigbee1".equals(aylaDevice.oemModel) || "liunxex1".equals(aylaDevice.oemModel) ){
-            if (aylaDevice.model.equals("AY001MRT1") && aylaDevice.isGateway()) {
-                // This is a Zigbee gateway.
-                return new GenericZigbeeGateway(aylaDevice);
-            }
-            if (aylaDevice.model.equals("Smart_Plug") || aylaDevice.model.equals("4256050-RZHAC")) {
-                // This is a Zigbee smart plug.
-                return new ZigbeeSwitchedDevice(aylaDevice);
-            }
-            if (aylaDevice.model.equals("Smart_Bulb_Converter")) {
-                // This is a Zigbee smart bulb.
-                return new ZigbeeLightDevice(aylaDevice);
-            }
-            if (aylaDevice.model.equals("ZHA-DimmableLight")) {
-                // This is a Zigbee dimmable light.
-                return new ZigbeeDimmableLightDevice(aylaDevice);
-            }
-            if (aylaDevice.model.equals("Wireless_Switch")) {
-                // This is a Zigbee remote switch.
-                return new ZigbeeWirelessSwitch(aylaDevice);
-            }
-            if (aylaDevice.model.equals("Motion_Sensor") || aylaDevice.model.equals("Motion_Sens")) {
-                // This is a Zigbee motion sensor.
-                return new ZigbeeMotionSensor(aylaDevice);
-            }
-            if (aylaDevice.model.equals("Door_Sensor")) {
-                // This is a Zigbee door sensor.
-                return new ZigbeeDoorSensor(aylaDevice);
-            }
+            return new GenericNodeDevice(device);
         }
 
         //  We don't know what this is. Create a generic device.
-        Logger.logError(LOG_TAG, "Could not identify this device: " + aylaDevice);
-        return new GenericDevice(aylaDevice);
+        Logger.logError(LOG_TAG, "Could not identify this device: " + device);
+        return new GenericDevice(device);
     }
 
     public RecyclerView.ViewHolder viewHolderForViewType(ViewGroup parent, int viewType) {
@@ -201,8 +175,8 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
      * device returned from this method:
      *
      * <ul>
-     *     <li>{@link Device#registrationType()}</li>
-     *     <li>{@link Device#deviceTypeName()}</li>
+     *     <li>{@link ViewModel#registrationType()}</li>
+     *     <li>{@link ViewModel#deviceTypeName()}</li>
      * </ul>
      *
      * @return A list of Class objects, one for each supported Device class
@@ -213,7 +187,6 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);
         classList.add(GenericGateway.class);
-        classList.add(ZigbeeNodeDevice.class);
         classList.add(GenericNodeDevice.class);
         return classList;
     }
