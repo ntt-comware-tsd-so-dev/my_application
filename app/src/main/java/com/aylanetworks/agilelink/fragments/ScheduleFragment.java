@@ -329,8 +329,9 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void initSchedule(int hourOfDay, int minute) {
-        setSchedule(hourOfDay, minute, true);
-        setSchedule(hourOfDay, minute+1, false);
+        if ( _schedule.getStartTimeEachDay() == null ) {
+            setSchedule(hourOfDay, minute, true);
+        }
     }
 
     private void setSchedule(int hourOfDay, int minute, boolean isOnTimeButtonSelected) {
@@ -400,8 +401,6 @@ public class ScheduleFragment extends Fragment {
         if ( _schedule.isTimer() ) {
             // Set up the schedule
             _schedule.setTimer(_timerOnDuration, _timerOffDuration);
-        } else { // now cloud side forces endDate validation
-            _schedule.setEndDate(cal);
         }
 
         Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
