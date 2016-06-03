@@ -11,17 +11,22 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaReachability;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.AylaSystemSettings;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Brian King on 4/7/15.
+/*
+ * AboutFragment.java
+ * AgileLink Application Framework
+ *
+ * Created by Brian King on 1/21/15.
+ * Copyright (c) 2015 Ayla. All rights reserved.
  */
+
 public class AboutFragment extends Fragment {
     protected ListView _listView;
     protected TextView _headerTextView;
@@ -42,27 +47,23 @@ public class AboutFragment extends Fragment {
 
     protected void populateList() {
         List<AboutItem> items = new ArrayList<>();
-        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
+        AylaSystemSettings settings = AylaNetworks.sharedInstance().getSystemSettings();
 
-        items.add(new AboutItem(getString(R.string.service_type), SessionManager.getServiceTypeString()));
+        items.add(new AboutItem(getString(R.string.service_type), settings.serviceType.toString()));
         items.add(new AboutItem(getString(R.string.app_version), params.appVersion));
-        items.add(new AboutItem(getString(R.string.library_version), AylaNetworks.getAamlVersion()));
+        items.add(new AboutItem(getString(R.string.library_version), AylaNetworks.getVersion()));
 
-        String connectivity;
-        switch (AylaReachability.getConnectivity()) {
-            case AylaNetworks.AML_REACHABILITY_REACHABLE:
-                connectivity = getString(R.string.reachable);
-                break;
+        boolean cellEnabled = AylaNetworks.sharedInstance().getConnectivity().isCellEnabled();
+        boolean wifiEnabled = AylaNetworks.sharedInstance().getConnectivity().isWifiEnabled();
 
-            case AylaNetworks.AML_REACHABILITY_UNREACHABLE:
-                connectivity = getString(R.string.unreachable);
-                break;
+        String cellText = cellEnabled ? getString(android.R.string.yes) : getString(android.R
+                .string.no);
+        String wifiText = wifiEnabled ? getString(android.R.string.yes) : getString(android.R
+                .string.no);
 
-            case AylaNetworks.AML_REACHABILITY_UNKNOWN:
-            default:
-                connectivity = getString(R.string.unknown);
-        }
-        items.add(new AboutItem(getString(R.string.service_reachability), connectivity));
+        items.add(new AboutItem(getString(R.string.wifi_enabled), wifiText));
+        items.add(new AboutItem(getString(R.string.cellular_enabled), cellText));
 
         _listView.setAdapter(new AboutListAdapter(getActivity(), items.toArray(new AboutItem[items.size()])));
     }
