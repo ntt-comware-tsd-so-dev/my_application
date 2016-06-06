@@ -243,12 +243,14 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            initSchedule(_scheduleTimePicker.getCurrentHour()
-                    , _scheduleTimePicker.getCurrentMinute());
-        } else { // version >= M
-            initSchedule(_scheduleTimePicker.getHour()
-                    , _scheduleTimePicker.getMinute());
+        if ( _schedule.getStartTimeEachDay() == null ) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                setSchedule(_scheduleTimePicker.getCurrentHour()
+                        , _scheduleTimePicker.getCurrentMinute(), true);
+            } else { // version >= M
+                setSchedule(_scheduleTimePicker.getHour()
+                        , _scheduleTimePicker.getMinute(), true);
+            }
         }
 
         _timerTimePicker.setIs24HourView(true);
@@ -326,12 +328,6 @@ public class ScheduleFragment extends Fragment {
         }
 
         setSchedule(hourOfDay, minute, _scheduleOnTimeButton.isSelected());
-    }
-
-    private void initSchedule(int hourOfDay, int minute) {
-        if ( _schedule.getStartTimeEachDay() == null ) {
-            setSchedule(hourOfDay, minute, true);
-        }
     }
 
     private void setSchedule(int hourOfDay, int minute, boolean isOnTimeButtonSelected) {
