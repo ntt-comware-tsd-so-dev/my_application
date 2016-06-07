@@ -24,8 +24,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.aylanetworks.aylasdk.AylaModuleScanResults;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.aylasdk.setup.AylaWifiScanResults;
+import com.aylanetworks.aylasdk.setup.AylaWifiScanResults.Result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,13 +60,14 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         void choseAccessPoint(String accessPoint, String security, String password);
     }
 
-    public static ChooseAPDialog newInstance(AylaModuleScanResults[] scanArray, String ssid, String bssid) {
+    public static ChooseAPDialog newInstance(Result[] scanArray, String ssid,
+                                             String bssid) {
 
         // show highest strength signal first
-        List<AylaModuleScanResults> scanResults = new ArrayList<>(Arrays.asList(scanArray));
-        Collections.sort(scanResults, new Comparator<AylaModuleScanResults>() {
+        List<Result> scanResults = new ArrayList<>(Arrays.asList(scanArray));
+        Collections.sort(scanResults, new Comparator<Result>() {
             @Override
-            public int compare(AylaModuleScanResults lhs, AylaModuleScanResults rhs) {
+            public int compare(Result lhs, Result rhs) {
                 if (lhs.signal == rhs.signal) {
                     return lhs.ssid.compareToIgnoreCase(rhs.ssid);
                 }
@@ -76,7 +78,7 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         // Convert scanResults into something parcelable that we can pass as arguments
         ArrayList<String>ssids = new ArrayList<>();
         ArrayList<String>keyMgmt = new ArrayList<>();
-        for ( AylaModuleScanResults result : scanResults ) {
+        for ( Result result : scanResults ) {
             ssids.add(result.ssid);
             keyMgmt.add(result.security);
         }

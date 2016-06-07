@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -17,7 +16,7 @@ import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 
 import java.lang.ref.WeakReference;
 

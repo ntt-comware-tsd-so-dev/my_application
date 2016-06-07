@@ -30,7 +30,7 @@ Code residing within the {@link com.aylanetworks.agilelink.framework} package ge
 designed to work with a wide range of devices with various needs. Application customization should be done via the 
 Device object classes, which can return custom Fragments for details via {@link com.aylanetworks.agilelink.framework.Device#getDetailsFragment},
 custom CardViews when displayed in a RecyclerView as a list or grid item via {@link com.aylanetworks.agilelink.framework.Device#bindViewHolder},
-{@link com.aylanetworks.agilelink.framework.Device#getItemViewType} and {@link com.aylanetworks.agilelink.framework.DeviceCreator#viewHolderForViewType}. Additional UI customization can be performed via updating the {@link com.aylanetworks.agilelink.framework.UIConfig} parameters returned from
+{@link com.aylanetworks.agilelink.framework.Device#getItemViewType} and {@link com.aylanetworks.agilelink.framework.ViewModelProvider#viewHolderForViewType}. Additional UI customization can be performed via updating the {@link com.aylanetworks.agilelink.framework.UIConfig} parameters returned from
 {@link com.aylanetworks.agilelink.MainActivity#getUIConfig} or changing the app_theme colors in colors.xml.
 <br><br>
 While the fragment classes found in {@link com.aylanetworks.agilelink.fragments} are designed to work well with customized Device objects, 
@@ -60,14 +60,14 @@ toward getting an Agile Link application running quickly are:
 The Agile Link framework should take care of the rest.
 
 <h3>Session Parameters</h3>
-The first step towards creating an Agile Link application is to define the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters}.
+The first step towards creating an Agile Link application is to define the {@link com.aylanetworks.agilelink.framework.deprecated.SessionManager.SessionParameters}.
 Session Parameters are used to configure the Ayla library for your application. Modify {@link com.aylanetworks.agilelink.MainActivity#getAppParameters} 
 to return a SessionParameters object configured with your application's settings.
 <br>
 Each application will have its own unique app ID and app secret. These need to be set correctly in the SessionParameters structure.
 <br>
 Each device that supports wifi setup (creates an access point) will have a string created for the access point's SSID. Make sure that the 
-{@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceSsidRegex} value will pass through all possible SSIDs that 
+{@link com.aylanetworks.agilelink.framework.deprecated.SessionManager.SessionParameters#deviceSsidRegex} value will pass through all possible SSIDs that
 your devices may create.
 <br>
 
@@ -100,15 +100,15 @@ Device classes can override these methods to provide additional functionality:
 
 
 Your new device class will need to be instantiated whenever a matching device is found. This is done in the
-{@link com.aylanetworks.agilelink.framework.DeviceCreator} class. Create a new object derived from
-{@link com.aylanetworks.agilelink.framework.DeviceCreator} that creates your own Device-derived objects from 
-an AylaDevice object. See {@link com.aylanetworks.agilelink.device.AgileLinkDeviceCreator} for an example of
+{@link com.aylanetworks.agilelink.framework.ViewModelProvider} class. Create a new object derived from
+{@link com.aylanetworks.agilelink.framework.ViewModelProvider} that creates your own Device-derived objects from
+an AylaDevice object. See {@link com.aylanetworks.agilelink.device.AgileLinkViewModelProvider} for an example of
 a DeviceCreator object configured to return specific devices from an AylaDevice object. Once this class has been
-created, an instance of it should be assigned to the {@link com.aylanetworks.agilelink.framework.SessionManager.SessionParameters#deviceCreator}
+created, an instance of it should be assigned to the {@link com.aylanetworks.agilelink.framework.deprecated.SessionManager.SessionParameters#deviceCreator}
 member of the session parameters.
 <br><br>
 In order for your device to appear in the drop-down list when adding a new device, make sure the device class is returned from
-{@link com.aylanetworks.agilelink.framework.DeviceCreator#getSupportedDeviceClasses}. The devices returned from this method
+{@link com.aylanetworks.agilelink.framework.ViewModelProvider#getSupportedDeviceClasses}. The devices returned from this method
 are used to populate the list of devices available to register.
 
 <h3>UI Customization</h3>

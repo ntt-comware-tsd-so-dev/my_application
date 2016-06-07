@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;

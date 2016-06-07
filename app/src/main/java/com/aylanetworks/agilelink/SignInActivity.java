@@ -35,7 +35,7 @@ import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;

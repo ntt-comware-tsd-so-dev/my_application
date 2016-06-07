@@ -15,20 +15,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaSetup;
-import com.aylanetworks.aylasdk.AylaSystemUtils;
-import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.setup.AylaRegistration;
+import com.aylanetworks.aylasdk.setup.AylaRegistrationCandidate;
 
-import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -44,6 +42,8 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private Timer timer;
     private TimerTask timerTask;
+
+    private AylaRegistration _aylaRegistration;
 
     private final Handler uiHandler = new Handler();
 
@@ -67,88 +67,61 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     private void registerButtonClick() {
         Log.i(LOG_TAG, "rn: registerNewGateway");
         MainActivity.getInstance().showWaitDialog(null, null);
-        AylaDevice newDevice = new AylaDevice();
-        newDevice.registrationType = AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;    //Gateway is always push button
-        registerNewDevice(newDevice);
+        AylaRegistrationCandidate candidate = new AylaRegistrationCandidate();
+        candidate.setRegistrationType(AylaDevice.RegistrationType.ButtonPush);
+        //Gateway is always push button
+        registerNewDevice(candidate);
     }
 
-    RegisterHandler _handler;
-
-    private void registerNewDevice(AylaDevice device) {
+    private void registerNewDevice(AylaRegistrationCandidate candidate) {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
         Log.i(LOG_TAG, "rn: Calling registerNewDevice...");
-        _handler = new RegisterHandler(this);
-        device.registerNewDevice(_handler);
-    }
 
-    static class RegisterHandler extends Handler {
-        private WeakReference<ConnectGatewayFragment> _connectGatewayFragment;
-
-        public RegisterHandler(ConnectGatewayFragment connectGatewayFragment) {
-            _connectGatewayFragment = new WeakReference<ConnectGatewayFragment>(connectGatewayFragment);
+        if (_aylaRegistration == null) {
+            _aylaRegistration = new AylaRegistration(AMAPCore.sharedInstance().getDeviceManager());
         }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logInfo(LOG_TAG, "rn: register handler called: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
-            if (msg.arg1 >= 200 && msg.arg1 < 300) {
-                // Success!
-                // start the device refresh now!
-                SessionManager.deviceManager().refreshDeviceList();
-                AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
-                Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(aylaDevice);
-                MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-                // Now update the device notifications
-                DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-                helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+        _aylaRegistration.registerCandidate(candidate, new Response.Listener<AylaDevice>() {
                     @Override
-                    public void newDeviceUpdated(Device device, int error) {
-                        Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
-                        MainActivity mainActivity = MainActivity.getInstance();
-                        mainActivity.dismissWaitDialog();
-                        int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                        if (error == AylaNetworks.AML_ERROR_OK) {
-                            // Go to the Gateway display
-                            Log.v(LOG_TAG, "rn: registration successful. select gateways.");
-                            MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
-                        } else {
-                            Log.w(LOG_TAG, "rn: registration unsuccessful.");
-                        }
+                    public void onResponse(AylaDevice device) {
+                        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+                        // Now update the device notifications
+                        DeviceNotificationHelper helper = new DeviceNotificationHelper(device);
+                        helper.initializeNewDeviceNotifications(
+                                new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                                    @Override
+                                    public void newDeviceUpdated
+                                            (AylaDevice device,
+                                             AylaError error) {
+                                        Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
+                                        MainActivity mainActivity = MainActivity.getInstance();
+                                        mainActivity.dismissWaitDialog();
+                                        int msgId = (error == null ? R.string.registration_success :
+                                                R.string.registration_success_notification_fail);
+                                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                                        if (error == null) {
+                                            // Go to the Gateway display
+                                            Log.v(LOG_TAG, "rn: registration successful. select gateways.");
+                                            MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
+                                        } else {
+                                            Log.w(LOG_TAG, "rn: registration unsuccessful.");
+                                        }
+                                    }
+                                });
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Log.w(LOG_TAG, "rn: could not register device.");
+                        Toast.makeText(getActivity(), R.string.registration_failure,
+                                Toast.LENGTH_LONG).show();
+                        exitSetup();
                     }
                 });
-
-            } else {
-                // Something went wrong
-                Log.w(LOG_TAG, "rn: could not register device.");
-                Toast.makeText(_connectGatewayFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
-                exitSetup();
-            }
-        }
     }
 
-    private static void exitSetup() {
-        //if ( _needsExit ) {
-            MainActivity.getInstance().showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    //Looper.prepare();
-                    Logger.logVerbose(LOG_TAG, "calling AylaSetup.exit()...");
-                    AylaSetup.exit();
-                    //Looper.loop();
-                    return null;
-                }
 
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    Logger.logVerbose(LOG_TAG, "AylaSetup.exit() completed.");
-                   // _needsExit = false;
-                    MainActivity.getInstance().dismissWaitDialog();
-                }
-            }.execute();
-        //}
+    private static void exitSetup() {
     }
 
     @Override

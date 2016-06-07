@@ -46,10 +46,10 @@ public class GenericTriggerDevice extends GenericDevice {
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
         AylaProperty ap = getProperty(propertyName);
-        if (ap == null || TextUtils.isEmpty(ap.displayName)) {
+        if (ap == null || TextUtils.isEmpty(ap.getDisplayName())) {
             return super.friendlyNameForPropertyName(propertyName);
         }
-        return ap.displayName;
+        return ap.getDisplayName();
     }
 
 }// end of GenericTriggerDevice class

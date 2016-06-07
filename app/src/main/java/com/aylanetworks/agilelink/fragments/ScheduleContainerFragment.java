@@ -15,8 +15,11 @@ import android.widget.TextView;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.aylasdk.AylaDevice;
 
 /*
  * ScheduleContainerFragment.java
@@ -30,17 +33,17 @@ public class ScheduleContainerFragment extends Fragment {
     private final static String ARG_DEVICE_DSN = "deviceDSN";
 
     private ViewPager _pager;
-    private Device _device;
+    private ViewModel _deviceModel;
     private SchedulePagerAdapter _adapter;
 
     public ScheduleContainerFragment() {
         // Required empty public constructor
     }
 
-    public static ScheduleContainerFragment newInstance(Device device) {
+    public static ScheduleContainerFragment newInstance(ViewModel deviceModel) {
         ScheduleContainerFragment frag = new ScheduleContainerFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
+        args.putString(ARG_DEVICE_DSN, deviceModel.getDevice().getDsn());
         frag.setArguments(args);
         return frag;
     }
@@ -52,8 +55,14 @@ public class ScheduleContainerFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_schedule_container, container, false);
 
         _pager = (ViewPager)root.findViewById(R.id.pager);
-        _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DEVICE_DSN));
-        _device.fetchSchedules(new Device.DeviceStatusListener() {
+        String dsn = getArguments().getString(ARG_DEVICE_DSN);
+
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                .deviceWithDSN(dsn);
+        _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                .viewModelForDevice(device);
+
+        _deviceModel.fetchSchedules(new Device.DeviceStatusListener() {
             @Override
             public void statusUpdated(Device device, boolean changed) {
                 MainActivity.getInstance().dismissWaitDialog();
@@ -92,31 +101,31 @@ public class ScheduleContainerFragment extends Fragment {
 
         @Override
         public Fragment getItem(int position) {
-            if ( _device.getSchedules().size() == 0 ) {
+            if ( _deviceModel.getSchedules().size() == 0 ) {
                 return new EmptyFragment();
             }
 
-            ScheduleFragment frag = ScheduleFragment.newInstance(_device, position);
+            ScheduleFragment frag = ScheduleFragment.newInstance(_deviceModel, position);
             return frag;
         }
 
         @Override
         public int getCount() {
-            int count = _device.getSchedules().size();
+            int count = _deviceModel.getSchedules().size();
             if ( count == 0 ) {
                 return 1;
             }
 
-            return _device.getSchedules().size();
+            return _deviceModel.getSchedules().size();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if ( _device.getSchedules().size() == 0 ) {
+            if ( _deviceModel.getSchedules().size() == 0 ) {
                 return getString(R.string.no_schedules_found);
             }
 
-            return _device.getSchedules().get(position).getName();
+            return _deviceModel.getSchedules().get(position).getName();
         }
     }
 }

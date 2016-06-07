@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class ContactListAdapter extends RecyclerView.Adapter {
 
     public ContactListAdapter(boolean includeOwner, ContactCardListener listener) {
         _listener = listener;
-        _aylaContacts = SessionManager.getInstance().getContactManager().getContacts(includeOwner);
+        _aylaContacts = AMAPCore.sharedInstance().getContactManager().getContacts(includeOwner);
     }
 
     @Override
@@ -54,14 +54,18 @@ public class ContactListAdapter extends RecyclerView.Adapter {
         ContactViewHolder h = (ContactViewHolder) holder;
         h._contact = _aylaContacts.get(position);
 
-        if (TextUtils.isEmpty(h._contact.displayName) || TextUtils.isEmpty(h._contact.displayName.trim())) {
-            if (TextUtils.isEmpty(h._contact.firstname) && TextUtils.isEmpty(h._contact.lastname)) {
-                h._contactNameTextView.setText(h._contact.email);
+        if (TextUtils.isEmpty(h._contact.getDisplayName()) ||
+                TextUtils.isEmpty(h._contact.getDisplayName().trim()
+        )) {
+            if (TextUtils.isEmpty(h._contact.getFirstname()) &&
+                    TextUtils.isEmpty(h._contact.getLastname())) {
+                h._contactNameTextView.setText(h._contact.getEmail());
             } else {
-                h._contactNameTextView.setText(h._contact.firstname + " " + h._contact.lastname);
+                h._contactNameTextView.setText(h._contact.getFirstname() + " " +
+                        h._contact.getLastname());
             }
         } else {
-            h._contactNameTextView.setText(h._contact.displayName);
+            h._contactNameTextView.setText(h._contact.getDisplayName());
         }
 
         h._isOwner = _listener.isOwner(h._contact);

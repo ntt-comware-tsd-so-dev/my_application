@@ -9,8 +9,8 @@ import android.view.ViewGroup;
 
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;

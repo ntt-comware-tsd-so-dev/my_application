@@ -34,14 +34,13 @@ import com.aylanetworks.aylasdk.zigbee.AylaSceneZigbee;
 import com.aylanetworks.aylasdk.zigbee.AylaSceneZigbeeNodeEntity;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.ZigbeeSwitchedDevice;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceListAdapter;
 import com.aylanetworks.agilelink.fragments.adapters.SceneDeviceSelectionAdapter;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.Gateway;
+import com.aylanetworks.agilelink.framework.deprecated.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 import com.aylanetworks.agilelink.framework.ZigbeeSceneManager;
 

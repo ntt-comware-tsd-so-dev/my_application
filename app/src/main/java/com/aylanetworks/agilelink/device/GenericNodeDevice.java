@@ -28,20 +28,20 @@ public class GenericNodeDevice extends GenericDevice {
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
         AylaProperty ap = getProperty(propertyName);
-        if (ap == null || TextUtils.isEmpty(ap.displayName)) {
+        if (ap == null || TextUtils.isEmpty(ap.getDisplayName())) {
             return super.friendlyNameForPropertyName(propertyName);
         }
-        return ap.displayName;
+        return ap.getDisplayName();
     }
 
     @Override
-    public boolean isDeviceNode() {
+    public boolean isNode() {
         return true;
     }
 
     @Override
-    public String registrationType() {
-        return AylaNetworks.AML_REGISTRATION_TYPE_NODE;
+    public AylaDevice.RegistrationType registrationType() {
+        return AylaDevice.RegistrationType.Node;
     }
 
     @Override

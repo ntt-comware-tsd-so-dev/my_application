@@ -10,9 +10,6 @@ import com.aylanetworks.agilelink.framework.ViewModelProvider;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.deprecated.Device;
-import com.aylanetworks.agilelink.framework.deprecated.Gateway;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
 
@@ -34,7 +31,6 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
     public final static int ITEM_VIEW_TYPE_SWITCHED = 2;
     public final static int ITEM_VIEW_TYPE_DIMMABLE = 3;
-    public final static int ITEM_VIEW_TYPE_WITH_STATUS = 4;
     public final static int ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE = 5;
 
     /**
@@ -151,13 +147,6 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
                                 R.layout.cardview_switched_device;
                 v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
                 return new GenericNodeDeviceViewHolder(v);
-
-            case ITEM_VIEW_TYPE_WITH_STATUS:
-                resId = listStyle == UIConfig.ListStyle.Grid ? R.layout.cardview_text_status_grid :
-                        listStyle == UIConfig.ListStyle.ExpandingList ? R.layout.cardview_switched_device_expandable :
-                                R.layout.cardview_text_status;
-                v = LayoutInflater.from(parent.getContext()).inflate(resId, parent, false);
-                return new ZigbeeStatusDeviceHolder(v);
         }
 
         return null;
@@ -181,8 +170,8 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
      *
      * @return A list of Class objects, one for each supported Device class
      */
-    public List<Class<? extends DeviceUIProvider>> getSupportedDeviceClasses() {
-        List<Class<? extends DeviceUIProvider>> classList = new ArrayList<>();
+    public List<Class<? extends ViewModel>> getSupportedDeviceClasses() {
+        List<Class<? extends ViewModel>> classList = new ArrayList<>();
 
         classList.add(AylaEVBDevice.class);
         classList.add(SwitchedDevice.class);

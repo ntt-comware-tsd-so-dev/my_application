@@ -10,13 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aylanetworks.aylasdk.AylaLogManager;
 import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.agilelink.BuildConfig;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 
 /**
  * Created by Emmanuel Luna on 06/16/15.

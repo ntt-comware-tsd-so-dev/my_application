@@ -3,7 +3,6 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,15 +18,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
-import com.aylanetworks.agilelink.framework.DeviceManager;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaServiceApp;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 /**
  * PropertyNotificationFragment.java
@@ -78,16 +79,15 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         // Do a deep fetch of the contact list
         MainActivity.getInstance().showWaitDialog(R.string.fetching_contacts_title, R.string.fetching_contacts_body);
 
-        ContactManager cm = SessionManager.getInstance().getContactManager();
+        ContactManager cm = AMAPCore.sharedInstance().getContactManager();
         _ownerContact = cm.getOwnerContact();
         cm.fetchContacts(new ContactManager.ContactManagerListener() {
             @Override
-            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+            public void contactListUpdated(ContactManager manager, AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
                 _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
             }
-        }, true);
-
+        });
 
         return view;
     }
@@ -141,7 +141,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
     public void contactLongTapped(final AylaContact contact) {
         // Confirm delete
         String body = String.format(MainActivity.getInstance().getString(R.string.confirm_delete_contact_body),
-                contact.displayName);
+                contact.getDisplayName());
 
         new AlertDialog.Builder(MainActivity.getInstance())
                 .setTitle(R.string.confirm_delete_contact_title)
@@ -167,24 +167,25 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         if ((contact == null) || (_ownerContact == null)) {
             return false;
         }
-        if (contact.id == _ownerContact.id) {
+        if (contact.getId() == _ownerContact.getId()) {
             return true;
         }
-        if (TextUtils.equals(contact.email, _ownerContact.email)) {
+        if (TextUtils.equals(contact.getEmail(), _ownerContact.getEmail())) {
             return true;
         }
         return false;
     }
 
     boolean stateForIcon(AylaContact contact, IconType iconType) {
-        AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+        AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
         boolean isOwner = isOwner(contact);
         boolean checked = false;
 
         switch ( iconType ) {
             case ICON_PUSH: {
                 if (accountSettings != null) {
-                    checked = accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH);
+                    checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.BaiduPush) ||
+                            accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.GooglePush);
                 }
                 break;
             }
@@ -192,10 +193,10 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             case ICON_EMAIL: {
                 if (isOwner) {
                     if (accountSettings != null) {
-                        checked = accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL);
+                        checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.EMail);
                     }
                 } else {
-                    checked = contact.emailNotification;
+                    checked = !TextUtils.isEmpty(contact.getEmailAccept());
                 }
                 break;
             }
@@ -203,10 +204,10 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             case ICON_SMS: {
                 if (isOwner) {
                     if (accountSettings != null) {
-                        checked = accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS);
+                        checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.SMS);
                     }
                 } else {
-                    checked = contact.smsNotification;
+                    checked = !TextUtils.isEmpty(contact.getSmsAccept());
                 }
                 break;
             }
@@ -214,18 +215,19 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         return checked;
     }
 
-    void enableNotification(final String notificationMethod, final boolean enable) {
-        AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+    void enableNotification(final AylaServiceApp.NotificationType notificationMethod, final boolean enable) {
+        AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
         if ( accountSettings == null ) {
             // Fetch the account settings now
             MainActivity.getInstance().showWaitDialog(R.string.fetching_account_info_title, R.string.fetching_account_info_body);
-            SessionManager.getInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
+            AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
                 @Override
-                public void settingsUpdated(AccountSettings settings, Message msg) {
+                public void settingsUpdated(AccountSettings settings, AylaError error) {
                     MainActivity.getInstance().dismissWaitDialog();
                     if ( settings != null ) {
                         enableNotification(notificationMethod, enable);
                     } else {
+                        AylaLog.e(LOG_TAG, "Error fetching account settings: " + error);
                         Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -242,17 +244,18 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         updateNotifications(notificationMethod, enable);
     }
 
-    void updateNotifications(String notificationType, boolean enable) {
-        SessionManager.deviceManager().updateDeviceNotifications(
+    void updateNotifications(AylaServiceApp.NotificationType notificationType, boolean enable) {
+        AMAPCore.sharedInstance().updateDeviceNotifications(
                 notificationType,
                 enable,
-                new DeviceManager.DeviceNotificationListener() {
+                new AMAPCore.DeviceNotificationListener() {
                     @Override
-                    public void notificationsUpdated(boolean succeeded, Message failureMessage) {
+                    public void notificationsUpdated(AylaError error) {
                         MainActivity.getInstance().dismissWaitDialog();
-                        if (succeeded) {
+                        if (error == null) {
                             Toast.makeText(getActivity(), R.string.notifications_updated, Toast.LENGTH_SHORT).show();
                         } else {
+                            AylaLog.e(LOG_TAG, "Failed updating notifications: " + error);
                             Toast.makeText(getActivity(), R.string.notification_update_failed, Toast.LENGTH_LONG).show();
                         }
                     }
@@ -269,7 +272,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             _dismissDialogWhenDone = dismissDialogWhenDone;
         }
         @Override
-        public void settingsUpdated(AccountSettings settings, Message msg) {
+        public void settingsUpdated(AccountSettings settings, AylaError error) {
             updateCheckboxes();
             if ( _dismissDialogWhenDone ) {
                 MainActivity.getInstance().dismissWaitDialog();
@@ -280,23 +283,24 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
     @Override
     public void pushTapped(AylaContact contact) {
         boolean isChecked = stateForIcon(contact, IconType.ICON_PUSH);
-        Log.d(LOG_TAG, "contact: Push tapped " + contact.email + " - " + isChecked);
-        enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH, !isChecked);
+        Log.d(LOG_TAG, "contact: Push tapped " + contact.getEmail() + " - " + isChecked);
+        // TODO: BSK: Baidu support. Need to have a global setting of Baidu vs. Google.
+        enableNotification(AylaServiceApp.NotificationType.GooglePush, !isChecked);
     }
 
     @Override
     public void emailTapped(AylaContact contact) {
         boolean isOwner = isOwner(contact);
         boolean isChecked = stateForIcon(contact, IconType.ICON_EMAIL);
-        Log.d(LOG_TAG, "contact: Email tapped " + contact.email + " - " + isChecked);
+        Log.d(LOG_TAG, "contact: Email tapped " + contact.getEmail() + " - " + isChecked);
         if (isOwner) {
-            enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, !isChecked);
+            enableNotification(AylaServiceApp.NotificationType.GooglePush, !isChecked);
         } else{
-            if(contact.email != null){
-                if(!TextUtils.isEmpty(contact.email)){
-                    contact.emailNotification = !isChecked;
+            if(contact.getEmail() != null){
+                if(!TextUtils.isEmpty(contact.getEmail())){
+                    contact.setWantsEmailNotification(!isChecked);
                     MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
-                    SessionManager.getInstance().getContactManager().updateContact(contact, listener);
+                    AMAPCore.sharedInstance().getContactManager().updateContact(contact, listener);
                 }
 
             }
@@ -306,9 +310,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
     final ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
         @Override
-        public void contactListUpdated(ContactManager manager, boolean succeeded) {
+        public void contactListUpdated(ContactManager manager, AylaError error) {
             MainActivity.getInstance().dismissWaitDialog();
-            if (succeeded) {
+            if (error == null) {
                 Toast.makeText(getActivity(), R.string.contact_updated, Toast.LENGTH_LONG).show();
                 _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
             } else {
@@ -321,24 +325,23 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
             }
         }
     };
+
     @Override
     public void smsTapped(AylaContact contact) {
         boolean isOwner = isOwner(contact);
         boolean isChecked = stateForIcon(contact, IconType.ICON_SMS);
-        Log.d(LOG_TAG, "contact: Sms tapped " + contact.email + " - " + isChecked);
+        Log.d(LOG_TAG, "contact: Sms tapped " + contact.getEmail() + " - " + isChecked);
         if (isOwner) {
-            enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, !isChecked);
+            enableNotification(AylaServiceApp.NotificationType.SMS, !isChecked);
         } else{
             //update contact
-            if(contact.phoneNumber != null){
-                if(!TextUtils.isEmpty(contact.phoneNumber)){
-                    contact.smsNotification = !isChecked;
+            if(contact.getPhoneNumber() != null){
+                if(!TextUtils.isEmpty(contact.getPhoneNumber())){
+                    contact.setWantsSmsNotification(!isChecked);
                     MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_title);
-                    SessionManager.getInstance().getContactManager().updateContact(contact, listener);
+                    AMAPCore.sharedInstance().getContactManager().updateContact(contact, listener);
                 }
-
             }
-
         }
     }
 
@@ -353,11 +356,11 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
     private void deleteContactConfirmed(final AylaContact contact) {
         MainActivity.getInstance().showWaitDialog(R.string.deleting_contact_title, R.string.deleting_contact_body);
-        SessionManager.getInstance().getContactManager().deleteContact(contact, new ContactManager.ContactManagerListener() {
+        AMAPCore.sharedInstance().getContactManager().deleteContact(contact, new ContactManager.ContactManagerListener() {
             @Override
-            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+            public void contactListUpdated(ContactManager manager, AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
-                if ( succeeded ) {
+                if ( error == null ) {
                     ContactListAdapter adapter = new ContactListAdapter(false, ContactListFragment.this);
                     _recyclerView.setAdapter(adapter);
                 } else {

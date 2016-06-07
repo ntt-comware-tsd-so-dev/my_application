@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,13 +9,10 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -35,41 +31,35 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.internal.util.Predicate;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 import com.aylanetworks.aylasdk.AylaDeviceNode;
-import com.aylanetworks.aylasdk.AylaHostScanResults;
-import com.aylanetworks.aylasdk.AylaLanMode;
-import com.aylanetworks.aylasdk.AylaModule;
-import com.aylanetworks.aylasdk.AylaModuleScanResults;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaSetup;
-import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.aylasdk.AylaUser;
-import com.aylanetworks.aylasdk.AylaWiFiStatus;
-import com.aylanetworks.aylasdk.mdns.NetUtil;
 import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.Manifest;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
-import com.aylanetworks.agilelink.device.DeviceUIProvider;
-import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.device.GenericGateway;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
-import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
-import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.setup.AylaRegistration;
+import com.aylanetworks.aylasdk.setup.AylaSetup;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.support.v4.app.ActivityCompat.*;
 
 /*
  * AddDeviceFragment.java
@@ -80,20 +70,21 @@ import static android.support.v4.app.ActivityCompat.*;
  */
 public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, Gateway.GatewayNodeRegistrationListener, DialogInterface.OnCancelListener, ActivityCompat.OnRequestPermissionsResultCallback{
+        ChooseAPDialog.ChooseAPResults, GenericGateway.GatewayNodeRegistrationListener,
+        DialogInterface.OnCancelListener, ActivityCompat.OnRequestPermissionsResultCallback{
     private static final String LOG_TAG = "AddDeviceFragment";
     private static final int REQUEST_LOCATION = 2;
-    private static final int REQUEST_NETWORK = 0;
 
     private static final boolean USE_WELCOME_FRAGMENT = true;
 
-    private static final int REG_TYPE_SAME_LAN = 0;
-    private static final int REG_TYPE_BUTTON_PUSH = 1;
-    private static final int REG_TYPE_DISPLAY = 2;
-    private static final int REG_TYPE_NODE = 3;
-
     /** Time to delay after completing wifi setup and trying to register the new device */
     private static final int REGISTRATION_DELAY_MS = 9000;
+
+    private static final AylaDevice.RegistrationType[] __supportedRegTypes = {AylaDevice
+            .RegistrationType.SameLan,
+            AylaDevice.RegistrationType.ButtonPush,
+            AylaDevice.RegistrationType.Display,
+            AylaDevice.RegistrationType.Node};
 
     /**
      * Default instance creator class method
@@ -113,9 +104,11 @@ public class AddDeviceFragment extends Fragment
     private Spinner _spinnerRegistrationType;
     private Spinner _spinnerGatewaySelection;
     private TextView _descriptionTextView;
-    private int _registrationType = REG_TYPE_SAME_LAN;
+    private AylaDevice.RegistrationType _registrationType = AylaDevice.RegistrationType.SameLan;
     private Spinner _spinnerProductType;
     private static boolean _needsExit;
+    private AylaRegistration _aylaRegistration;
+    private AylaSetup _aylaSetup;
 
     void updateConnectionInfo() {
         WifiInfo info = _wifiManager.getConnectionInfo();
@@ -135,13 +128,18 @@ public class AddDeviceFragment extends Fragment
         Logger.logVerbose(LOG_TAG, "rn: onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        _aylaRegistration = new AylaRegistration(AMAPCore.sharedInstance().getDeviceManager());
+        try {
+            _aylaSetup = new AylaSetup(AMAPCore.sharedInstance().getContext(),
+                    AMAPCore.sharedInstance().getSessionManager());
+        } catch (AylaError aylaError) {
+            AylaLog.e(LOG_TAG, "Failed to create AylaSetup object: " + aylaError);
+            Toast.makeText(AMAPCore.sharedInstance().getContext(), aylaError.toString(),
+                    Toast.LENGTH_LONG).show();
+        }
 
         _wifiManager = (WifiManager)getActivity().getSystemService(Context.WIFI_SERVICE);
         updateConnectionInfo();
-
-        // Stop polling & LAN mode
-        SessionManager.deviceManager().stopPolling();
-        SessionManager.getInstance().setRegistrationMode(true);
     }
 
     @Override
@@ -168,18 +166,26 @@ public class AddDeviceFragment extends Fragment
         // Populate the spinners for product type & registration type
         _spinnerProductType = (Spinner) view.findViewById(R.id.spinner_product_type);
         _spinnerProductType.setAdapter(createProductTypeAdapter());
-        List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
-        if ((gateways != null) && (gateways.size() > 0)) {
-            // If they have a gateway, then default to Zigbee Node
-            int index = 0;
-            AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
-                    .deviceCreator;
+        List<AylaDevice> gateways = AMAPCore.sharedInstance().getSessionManager()
+                .getDeviceManager().getDevices(new Predicate<AylaDevice>() {
+                    @Override
+                    public boolean apply(AylaDevice aylaDevice) {
+                        return aylaDevice.isGateway();
+                    }
+                });
 
-            List<Class<? extends DeviceUIProvider>> deviceClasses = dc.getSupportedDeviceClasses();
-            for (Class<? extends DeviceUIProvider> c : deviceClasses) {
-                if (c.getSimpleName().equals("ZigbeeNodeDevice")) {
-                    _nodeRegistrationGateway = gateways.get(0);
-                    _registrationType = REG_TYPE_NODE;
+        if ((gateways != null) && (gateways.size() > 0)) {
+            // If they have a gateway, then default to Generic Node
+            int index = 0;
+            AgileLinkViewModelProvider dc = (AgileLinkViewModelProvider)AMAPCore.sharedInstance()
+                    .getSessionParameters().viewModelProvider;
+
+            List<Class<? extends ViewModel>> deviceClasses = dc.getSupportedDeviceClasses();
+            for (Class<? extends ViewModel> c : deviceClasses) {
+                if (c.getSimpleName().equals("GenericNodeDevice")) {
+                    _nodeRegistrationGateway = (GenericGateway)
+                            dc.viewModelForDevice(gateways.get(0));
+                    _registrationType = AylaDevice.RegistrationType.Node;
                     _spinnerProductType.setSelection(index);
                     break;
                 }
@@ -191,7 +197,7 @@ public class AddDeviceFragment extends Fragment
         _spinnerRegistrationType = (Spinner)view.findViewById(R.id.spinner_registration_type);
         ArrayAdapter<CharSequence>  adapter = ArrayAdapter.createFromResource(getActivity(), R.array.registration_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        _spinnerRegistrationType.setSelection(_registrationType);
+        _spinnerRegistrationType.setSelection(registrationTypeIndex(_registrationType));
         _spinnerRegistrationType.setOnItemSelectedListener(this);
         _spinnerRegistrationType.setAdapter(adapter);
 
@@ -206,20 +212,27 @@ public class AddDeviceFragment extends Fragment
         _registerButton = (Button) view.findViewById(R.id.register_button);
         _registerButton.setOnClickListener(this);
 
-        // Stop polling
-        SessionManager.deviceManager().stopPolling();
-
         return view;
+    }
+
+    /**
+     * Returns the index for the spinner for the provided registration type
+     * @param regType Registration type to check
+     * @return index into the spinner array for this registration type, or -1 if not found
+     */
+    private int registrationTypeIndex(AylaDevice.RegistrationType regType) {
+        for (int i = 0; i< __supportedRegTypes.length; i++) {
+            if (__supportedRegTypes[i] == regType) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
-            Log.i(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
-        } else {
-            Log.e(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
-        }
         updateConnectionInfo();
     }
 
@@ -233,15 +246,7 @@ public class AddDeviceFragment extends Fragment
         }
 
         if (_needsExit) {
-            exitSetup(true);
-        }
-
-        try {
-            // Start polling
-            SessionManager.getInstance().setRegistrationMode(false);
-            SessionManager.deviceManager().startPolling();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            exitSetup();
         }
     }
 
@@ -264,29 +269,37 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ArrayAdapter<DeviceUIProvider> createGatewayAdapter() {
-        List<DeviceUIProvider> gateways = GenericGateway.fromGateways(SessionManager.deviceManager()
-                .getGatewayDevices());
+    ArrayAdapter<ViewModel> createGatewayAdapter() {
+        List<AylaDevice> gatewayDevices = AMAPCore.sharedInstance().getDeviceManager()
+                .getDevices(new Predicate<AylaDevice>() {
+                    @Override
+                    public boolean apply(AylaDevice aylaDevice) {
+                        return aylaDevice.isGateway();
+                    }
+                });
+
+        List<ViewModel> gateways = ViewModel.fromDeviceList(gatewayDevices);
         return new GenericGateway.GatewayTypeAdapter(getActivity(), gateways.toArray(new
-                DeviceUIProvider[gateways.size()]), true);
+                ViewModel[gateways.size()]), true);
     }
 
-    ArrayAdapter<DeviceUIProvider> createProductTypeAdapter() {
-        AgileLinkDeviceCreator dc = (AgileLinkDeviceCreator)SessionManager.sessionParameters()
-                .deviceCreator;
+    ArrayAdapter<ViewModel> createProductTypeAdapter() {
+        AgileLinkViewModelProvider viewModelProvider =
+                (AgileLinkViewModelProvider)AMAPCore.sharedInstance().getSessionParameters()
+                        .viewModelProvider;
 
-        List<Class<? extends DeviceUIProvider>> deviceClasses = dc.getSupportedDeviceClasses();
-        ArrayList<DeviceUIProvider> deviceList = new ArrayList<>();
-        for (Class<? extends DeviceUIProvider> c : deviceClasses) {
+        List<Class<? extends ViewModel>> deviceClasses = viewModelProvider.getSupportedDeviceClasses();
+        ArrayList<ViewModel> deviceList = new ArrayList<>();
+        for (Class<? extends ViewModel> c : deviceClasses) {
             try {
                 AylaDevice fakeDevice = new AylaDevice();
-                DeviceUIProvider d = c.getConstructor(AylaDevice.class).newInstance(fakeDevice);
+                ViewModel d = c.getConstructor(AylaDevice.class).newInstance(fakeDevice);
                 deviceList.add(d);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return new DeviceTypeAdapter(getActivity(), deviceList.toArray(new DeviceUIProvider[deviceList
+        return new DeviceTypeAdapter(getContext(), deviceList.toArray(new ViewModel[deviceList
                 .size()]));
     }
 
@@ -301,14 +314,14 @@ public class AddDeviceFragment extends Fragment
             }
             Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
 
-            Device d = (Device) parent.getAdapter().getItem(position);
+            ViewModel d = (ViewModel) parent.getAdapter().getItem(position);
 
             // Find the index of the preferred registration type of the selected device
             Adapter adapter = regTypeSpinner.getAdapter();
             int i;
             for (i = 0; i < adapter.getCount(); i++) {
                 String type = (String) adapter.getItem(i);
-                if (type.equals(d.registrationType()))
+                if (type.equals(d.registrationType().stringValue()))
                     break;
             }
 
@@ -317,7 +330,7 @@ public class AddDeviceFragment extends Fragment
                 regTypeSpinner.setSelection(i, true);
             } else {
                 Logger.logError(LOG_TAG, "rn: Unknown registration type: " + d.registrationType());
-                regTypeSpinner.setSelection(REG_TYPE_SAME_LAN, true);
+                regTypeSpinner.setSelection(registrationTypeIndex(AylaDevice.RegistrationType.SameLan), true);
             }
 
         } else if (parent.getId() == R.id.spinner_registration_type) {
@@ -325,25 +338,32 @@ public class AddDeviceFragment extends Fragment
             int spinnerVisible = View.VISIBLE;
             boolean showGateways = false;
             int textId;
-            _registrationType = position;
-            switch (position) {
-                case REG_TYPE_BUTTON_PUSH:
+            _registrationType = __supportedRegTypes[position];
+            switch (_registrationType) {
+                case ButtonPush:
                 default:
                     textId = R.string.registration_button_push_instructions;
                     break;
 
-                case REG_TYPE_SAME_LAN:
+                case SameLan:
                     textId = R.string.registration_same_lan_instructions;
                     break;
 
-                case REG_TYPE_DISPLAY:
+                case Display:
                     textId = R.string.registration_display_instructions;
                     break;
 
-                case REG_TYPE_NODE: {
+                case Node: {
                     textId = R.string.gateway_find_devices;
                     showGateways = true;
-                    List<Gateway> gateways = SessionManager.deviceManager().getGatewayDevices();
+                    List<AylaDevice> gateways = AMAPCore.sharedInstance().getDeviceManager()
+                            .getDevices(new Predicate<AylaDevice>() {
+                                @Override
+                                public boolean apply(AylaDevice aylaDevice) {
+                                    return aylaDevice.isGateway();
+                                }
+                            });
+
                     if ((gateways == null) || (gateways.size() == 0)) {
                         textId = R.string.error_no_gateway_instructions;
                         spinnerVisible = View.GONE;
@@ -358,9 +378,10 @@ public class AddDeviceFragment extends Fragment
             _spinnerRegistrationType.setVisibility(showGateways ? View.GONE : View.VISIBLE);
             _spinnerGatewaySelection.setVisibility(showGateways ? spinnerVisible : View.GONE);
         } else if (parent.getId() == R.id.spinner_gateway_selection) {
-            Gateway gateway = (Gateway) parent.getAdapter().getItem(position);
+            GenericGateway gateway = (GenericGateway) parent.getAdapter().getItem(position);
             if (gateway != null) {
-                Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDeviceDsn() + "]");
+                Logger.logInfo(LOG_TAG, "rn: selected gateway [" + gateway.getDevice().getDsn() +
+                        "]");
                 _nodeRegistrationGateway = gateway;
             } else {
                 Logger.logError(LOG_TAG, "rn: no gateway");
@@ -370,17 +391,17 @@ public class AddDeviceFragment extends Fragment
         Logger.logInfo(LOG_TAG, "rn: Selected " + position);
     }
 
-    private String getSelectedRegistrationType() {
+    private AylaDevice.RegistrationType getSelectedRegistrationType() {
         Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
-        switch (regTypeSpinner.getSelectedItemPosition()) {
-            case REG_TYPE_SAME_LAN:
-                return AylaNetworks.AML_REGISTRATION_TYPE_SAME_LAN;
-            case REG_TYPE_BUTTON_PUSH:
-                return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
-            case REG_TYPE_DISPLAY:
-                return AylaNetworks.AML_REGISTRATION_TYPE_DISPLAY;
-            case REG_TYPE_NODE:
-                return AylaNetworks.AML_REGISTRATION_TYPE_NODE;
+        switch (__supportedRegTypes[regTypeSpinner.getSelectedItemPosition()]) {
+            case SameLan:
+                return AylaDevice.RegistrationType.SameLan;
+            case ButtonPush:
+                return AylaDevice.RegistrationType.ButtonPush;
+            case Display:
+                return AylaDevice.RegistrationType.Display;
+            case Node:
+                return AylaDevice.RegistrationType.Node;
         }
         return null;
     }
@@ -393,23 +414,21 @@ public class AddDeviceFragment extends Fragment
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// Node Scanning & Registration
 
-    private Gateway _nodeRegistrationGateway;
+    private GenericGateway _nodeRegistrationGateway;
 
     private void registerButtonClick() {
         // Register button clicked
-        Device d = (Device)_spinnerProductType.getSelectedItem();
+        ViewModel d = (ViewModel) _spinnerProductType.getSelectedItem();
         if (USE_WELCOME_FRAGMENT && d.isGateway()) {
             MenuHandler.handleGatewayWelcome();
-        } else if (_registrationType == REG_TYPE_NODE) {
+        } else if (_registrationType == AylaDevice.RegistrationType.Node) {
             // we need something to register...
             Logger.logError(LOG_TAG, "rn: Register node no device node to register!");
             Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_no_device, Toast.LENGTH_LONG).show();
         } else {
             Logger.logInfo(LOG_TAG, "rn: registerNewDevice");
             MainActivity.getInstance().showWaitDialog(null, null);
-            AylaDevice newDevice = new AylaDevice();
-            newDevice.registrationType = getSelectedRegistrationType();
-            registerNewDevice(newDevice);
+            registerNewDevice();
         }
     }
 
@@ -424,7 +443,7 @@ public class AddDeviceFragment extends Fragment
         } else{
 
             if (USE_WELCOME_FRAGMENT) {
-                DeviceUIProvider provider = (DeviceUIProvider)
+                ViewModel provider = (ViewModel)
                         _spinnerProductType.getSelectedItem();
                 if (provider instanceof GenericGateway) {
                     MenuHandler.handleGatewayWelcome();
@@ -455,29 +474,19 @@ public class AddDeviceFragment extends Fragment
 
     //set cancelAylaSetup to false when exitSetup() is called based on an error message
     // returned from the library.
-    private static void exitSetup(final boolean cancelAylaSetup) {
-        if ( _needsExit ) {
-            MainActivity activity = MainActivity.getInstance();
-            if (activity != null) {
-                activity.showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
-            }
-            new AsyncTask<Void, Void, Void>() {
+    private void exitSetup() {
+        if (_aylaSetup != null) {
+            _aylaSetup.exitSetup(new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                 @Override
-                protected Void doInBackground(Void... params) {
-                    Logger.logVerbose(LOG_TAG, "rn: calling AylaSetup.exit()...");
-                    if(cancelAylaSetup){
-                        AylaSetup.exit();
-                    }
-                    return null;
+                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                    AylaLog.d(LOG_TAG, "AylaSetup.exitSetup returned success");
                 }
-
+            }, new ErrorListener() {
                 @Override
-                protected void onPostExecute(Void aVoid) {
-                    Logger.logVerbose(LOG_TAG, "rn: AylaSetup.exit() completed.");
-                    _needsExit = false;
-                    dismissWaitDialog();
+                public void onErrorResponse(AylaError error) {
+                    AylaLog.e(LOG_TAG, "AylaSetup.exitSetup returned " + error);
                 }
-            }.execute();
+            });
         }
     }
 
@@ -495,31 +504,12 @@ public class AddDeviceFragment extends Fragment
                 .show();
     }
 
-    public void gatewayRegistrationCandidateAdded(Device device, boolean moreComing, Object tag) {
+    @Override
+    public void gatewayRegistrationCandidateAdded(AylaDevice device, boolean moreComing, Object
+            tag) {
         Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDeviceDsn(), device.getProductName());
-
-        /*
-        int resourceId = device.hasPostRegistrationProcessingResourceId();
-        if (resourceId > 0) {
-            showMessage(resourceId);
-        }
-
-        // TODO: This shouldn't be here... this should be in the Device class...
-        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-        // Now update the device notifications
-        DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-        helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
-            @Override
-            public void newDeviceUpdated(Device device, int error) {
-                MainActivity mainActivity = MainActivity.getInstance();
-                mainActivity.dismissWaitDialog();
-                int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                SessionManager.deviceManager().refreshDeviceList();
-            }
-        });
-        */
+        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDsn(),
+                device.getProductName());
 
         if (!moreComing) {
             MainActivity.getInstance().onSelectMenuItemById(R.id.action_all_devices);
@@ -533,6 +523,7 @@ public class AddDeviceFragment extends Fragment
      */
     boolean _useSingleSelect = false;
 
+    @Override
     public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
         _scanTag = null;
         dismissWaitDialog();
@@ -605,8 +596,9 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    public void gatewayRegistrationComplete(Message msg, int messageResourceId, Object tag) {
-        Logger.logMessage(LOG_TAG, msg, "rn: gatewayRegistrationComplete");
+    @Override
+    public void gatewayRegistrationComplete(AylaError error, int messageResourceId, Object tag) {
+        Logger.logDebug(LOG_TAG, "rn: gatewayRegistrationComplete, error: " + error);
         _scanTag = null;
         dismissWaitDialog();
         if (messageResourceId != 0) {
@@ -626,14 +618,15 @@ public class AddDeviceFragment extends Fragment
 
     DeviceScanHandler _deviceScanHandler;
     private void doScan() {
-        if (_registrationType==REG_TYPE_NODE) {
+        if (_registrationType == AylaDevice.RegistrationType.Node) {
             if (_nodeRegistrationGateway == null) {
                 MenuHandler.handleGatewayWelcome();
             } else {
                 // Put up a progress dialog
                 if(_nodeRegistrationGateway.isOnline()){
                     MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title), getString(R.string.scanning_for_gateway_devices_message), this);
-                    Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway.getDeviceDsn() + "]");
+                    Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway
+                            .getDevice().getDsn() + "]");
                     _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
                 } else{
                     Toast.makeText(getActivity(), getResources().getString(R.string.gateway_offline), Toast.LENGTH_LONG).show();
@@ -645,6 +638,7 @@ public class AddDeviceFragment extends Fragment
             Logger.logVerbose(LOG_TAG, "rn: returnHostScanForNewDevices");
             _deviceScanHandler = new DeviceScanHandler(this);
             AylaSetup.returnHostScanForNewDevices(_deviceScanHandler);
+            Toast.makeText(getActivity(), "This is some test", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -654,7 +648,7 @@ public class AddDeviceFragment extends Fragment
         _chooseAPDialog = null;
         Logger.logDebug(LOG_TAG, "rn: choseAccessPoint: " + accessPoint + "[" + security + "]");
         if ( accessPoint == null ) {
-            exitSetup(true);
+            exitSetup();
         } else {
             connectDeviceToService(accessPoint, security, password);
         }
@@ -711,7 +705,7 @@ public class AddDeviceFragment extends Fragment
             if (msg.arg1 >= 200 && msg.arg1 < 300) {
                 // Success!
                 AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
-                Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(aylaDevice);
+                Device device = SessionManager.sessionParameters()._viewModelProvider.deviceForAylaDevice(aylaDevice);
                 MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
                 // Now update the device notifications
                 DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
@@ -786,9 +780,11 @@ public class AddDeviceFragment extends Fragment
     }
 
     RegisterHandler _registerHandler;
-    private void registerNewDevice(AylaDevice device) {
+    private void registerNewDevice() {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
         Logger.logVerbose(LOG_TAG, "rn: Calling registerNewDevice...");
+
+        AylaRegistration
         _registerHandler = new RegisterHandler(this);
         device.registerNewDevice(_registerHandler);
     }

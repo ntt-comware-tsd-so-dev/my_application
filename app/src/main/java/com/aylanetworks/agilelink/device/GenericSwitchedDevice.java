@@ -10,10 +10,10 @@ import android.widget.ImageButton;
 
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 
@@ -36,17 +36,7 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SWITCHED;
-    }
-
-    @Override
-    public boolean isDeviceNode() {
-        return true;
-    }
-
-    @Override
-    public String registrationType() {
-        return AylaNetworks.AML_REGISTRATION_TYPE_NODE;
+        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override
@@ -91,7 +81,7 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
         super.bindViewHolder(holder);
 
         SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder)holder;
-        h._deviceNameTextView.setText(getProductName());
+        h._deviceNameTextView.setText(getDevice().getProductName());
         h._switchButton.setOnClickListener(this);
 
         Resources res = MainActivity.getInstance().getResources();
@@ -124,7 +114,7 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
 
     private boolean isDeviceOn() {
         AylaProperty prop = getProperty(PROPERTY_ONOFF_STATUS);
-        if (prop!=null && prop.value !=null && Integer.parseInt(prop.value) != 0) {
+        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
             return true;
         }
         return false;
@@ -133,8 +123,8 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     private void setOn() {
         setDatapoint(PROPERTY_ON_CMD, 1, new SetDatapointListener(){
             @Override
-            public void  setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "setON: " + succeeded + " ***^^^");
+            public void  setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                Log.d(LOG_TAG, "setON error: " + error + " ***^^^");
             }
         });
     }
@@ -142,8 +132,8 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     private void setOff() {
         setDatapoint(PROPERTY_OFF_CMD, 1, new SetDatapointListener(){
             @Override
-            public void  setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "setOFF: " + succeeded + " ***^^^");
+            public void  setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                Log.d(LOG_TAG, "setOFF error: " + error + " ***^^^");
             }
         });
     }

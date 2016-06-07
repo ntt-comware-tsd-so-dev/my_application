@@ -10,11 +10,10 @@ import android.widget.ImageButton;
 
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 
@@ -41,16 +40,15 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
             AylaProperty prop = getProperty(getObservablePropertyName());
             if (prop == null) {
                 Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
-                SessionManager.deviceManager().refreshDeviceStatus(this);
                 return;
             }
 
             // Get the opposite boolean value and set it
-            Boolean newValue = "0".equals(prop.value);
+            Boolean newValue = ((Integer)prop.getValue() == 0);
             setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
                 @Override
-                public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                    Log.d(LOG_TAG, "lm: setSwitch: " + succeeded + " ***^^^");
+                public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                    Log.d(LOG_TAG, "lm: setSwitch error: " + error + " ***^^^");
                 }
             });
         }
@@ -59,7 +57,7 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
 
     public boolean isOn() {
         AylaProperty prop = getProperty(getObservablePropertyName());
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
             return true;
         }
 
@@ -117,13 +115,13 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
     }
 
     @Override
-    public String registrationType() {
-        return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
+    public AylaDevice.RegistrationType registrationType() {
+        return AylaDevice.RegistrationType.ButtonPush;
     }
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SWITCHED;
+        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override

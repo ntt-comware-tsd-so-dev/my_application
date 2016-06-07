@@ -7,14 +7,13 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 
@@ -43,8 +42,8 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     }
 
     public boolean isBlueButtonPressed() {
-        AylaProperty prop = getProperty(PROPERTY_BLUE_BUTTON);
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        AylaProperty prop = _device.getProperty(PROPERTY_BLUE_BUTTON);
+        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
             return true;
         }
         return false;
@@ -54,8 +53,8 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     public void setGreenLED(boolean on) {
        setDatapoint(PROPERTY_GREEN_LED, on, new SetDatapointListener() {
            @Override
-           public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-               Log.d(LOG_TAG, "lm: setGreenLED: " + succeeded + " ***^^^");
+           public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+               Log.d(LOG_TAG, "lm: setGreenLED error: " + error + " ***^^^");
            }
        });
     }
@@ -63,23 +62,23 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     public void setBlueLED(boolean on) {
         setDatapoint(PROPERTY_BLUE_LED, on, new SetDatapointListener() {
             @Override
-            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "lm: setBlueLED: " + succeeded + " ***^^^");
+            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                Log.d(LOG_TAG, "lm: setBlueLED error: " + error + " ***^^^");
             }
         });
     }
 
     public boolean isGreenLEDOn() {
-        AylaProperty prop = getProperty(PROPERTY_GREEN_LED);
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        AylaProperty prop = _device.getProperty(PROPERTY_GREEN_LED);
+        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
             return true;
         }
         return false;
     }
 
     public boolean isBlueLEDOn() {
-        AylaProperty prop = getProperty(PROPERTY_BLUE_LED);
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        AylaProperty prop = _device.getProperty(PROPERTY_BLUE_LED);
+        if (prop != null && prop.getValue() != null &&  (Integer)prop.getValue() != 0) {
             return true;
         }
         return false;
@@ -162,7 +161,7 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         AylaEVBDeviceViewHolder h = (AylaEVBDeviceViewHolder) holder;
         Resources res = MainActivity.getInstance().getResources();
         
-        h._deviceNameTextView.setText(getProductName());
+        h._deviceNameTextView.setText(_device.getProductName());
 
         // Blue button state
         int imageId = isBlueButtonPressed() ? R.drawable.buttondown : R.drawable.buttonup;

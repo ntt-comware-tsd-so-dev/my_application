@@ -17,14 +17,19 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.PropertyNotificationHelper.FetchNotificationsListener;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaPropertyTrigger;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -41,10 +46,10 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     private static final String ARG_DSN = "dsn";
     private static final String LOG_TAG = "NotListFrag";
 
-    public static NotificationListFragment newInstance(Device device) {
+    public static NotificationListFragment newInstance(ViewModel deviceModel) {
         NotificationListFragment frag = new NotificationListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDeviceDsn());
+        args.putString(ARG_DSN, deviceModel.getDevice().getDsn());
         frag.setArguments(args);
         return frag;
     }
@@ -53,14 +58,17 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
 
     private RecyclerView _recyclerView;
     private TextView _emptyView;
-    private Device _device;
+    private ViewModel _deviceModel;
     private PropertyNotificationHelper _propertyNotificationHelper;
     private List<AylaPropertyTrigger> _propertyTriggers;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DSN));
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                .deviceWithDSN(getArguments().getString(ARG_DSN));
+        _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                .viewModelForDevice(device);
     }
 
     @Override
@@ -84,13 +92,14 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
         b.setOnClickListener(this);
 
         // Get the notifications
-        _propertyNotificationHelper = new PropertyNotificationHelper(_device);
+        _propertyNotificationHelper = new PropertyNotificationHelper(_deviceModel.getDevice());
+
         MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
-        _propertyNotificationHelper.fetchNotifications(new Device.FetchNotificationsListener() {
+        _propertyNotificationHelper.fetchNotifications(new FetchNotificationsListener() {
             @Override
-            public void notificationsFetched(Device device, boolean succeeded) {
+            public void notificationsFetched(AylaDevice device, AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
-                Log.d(LOG_TAG, "notificationsFetched: " + succeeded);
+                Log.d(LOG_TAG, "notificationsFetched: " + error);
 
                 updateTriggerList();
             }
@@ -102,20 +111,19 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     @Override
     public void onResume() {
         super.onResume();
-        SessionManager.deviceManager().stopPolling();
     }
 
     private void updateTriggerList() {
         // Gather all of the property triggers
         _propertyTriggers = new ArrayList<>();
-        if ( _device.getDevice().properties == null ) {
+        if ( _deviceModel.getDevice().getProperties() == null ) {
             Log.e(LOG_TAG, "No properties found on device");
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
 
             getFragmentManager().popBackStack();
             return;
         }
-        for (AylaProperty prop : _device.getDevice().properties) {
+        for (AylaProperty prop : _deviceModel.getDevice().properties) {
             if ( prop.propertyTriggers != null && prop.propertyTriggers.length > 0 ) {
                 for ( AylaPropertyTrigger trigger : prop.propertyTriggers ) {
                     _propertyTriggers.add(trigger);
@@ -131,13 +139,13 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
             _recyclerView.setVisibility(View.VISIBLE);
             _emptyView.setVisibility(View.GONE);
         }
-        _recyclerView.setAdapter(new TriggerAdapter(this, _device, _propertyTriggers));
+        _recyclerView.setAdapter(new TriggerAdapter(this, _deviceModel, _propertyTriggers));
     }
 
     @Override
     public void onClick(View v) {
         // Add button tapped
-        PropertyNotificationFragment frag = PropertyNotificationFragment.newInstance(_device, null);
+        PropertyNotificationFragment frag = PropertyNotificationFragment.newInstance(_deviceModel, null);
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -174,9 +182,9 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
             if (AylaNetworks.succeeded(msg)) {
                 List<AylaPropertyTrigger> fragTriggers = _frag.get()._propertyTriggers;
                 AylaPropertyTrigger oldTrigger = fragTriggers.remove(_index);
-                AylaProperty prop = _frag.get()._device.getProperty(oldTrigger.propertyNickname);
+                AylaProperty prop = _frag.get()._deviceModel.getProperty(oldTrigger.propertyNickname);
                 if ( prop != null ) {
-                    _frag.get()._recyclerView.setAdapter(new TriggerAdapter(_frag.get(), _frag.get()._device, fragTriggers));
+                    _frag.get()._recyclerView.setAdapter(new TriggerAdapter(_frag.get(), _frag.get()._deviceModel, fragTriggers));
                 }
             } else {
                 Toast.makeText(_frag.get().getActivity(), (String)msg.obj, Toast.LENGTH_LONG).show();

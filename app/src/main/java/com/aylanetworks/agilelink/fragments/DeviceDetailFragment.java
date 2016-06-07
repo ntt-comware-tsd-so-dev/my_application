@@ -29,22 +29,24 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaGrant;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.DeviceUIProvider;
 import com.aylanetworks.agilelink.device.GenericDevice;
-import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
-import com.aylanetworks.agilelink.device.ZigbeeTriggerDevice;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.change.Change;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
@@ -66,7 +68,9 @@ import java.util.TimeZone;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class DeviceDetailFragment extends Fragment implements Device.DeviceStatusListener, View.OnClickListener, ShareDevicesFragment.ShareDevicesListener, Gateway.AylaGatewayCompletionHandler {
+public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceChangeListener,
+        View.OnClickListener,
+        ShareDevicesFragment.ShareDevicesListener {
 
     public final static String LOG_TAG = "DeviceDetailFragment";
 
@@ -74,7 +78,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     public final static String ARG_DEVICE_DSN = "DeviceDSN";
 
-    private Device _device;
+    private ViewModel _deviceModel;
     private ListView _listView;
     private PropertyListAdapter _adapter;
     private TextView _titleView;
@@ -82,14 +86,13 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private ImageView _imageView;
     private Button _scheduleButton;
     private Button _notificationsButton;
-    private Switch _identifySwitch;
 
     private Context mContext;
 
-    public static DeviceDetailFragment newInstance(Device device) {
+    public static DeviceDetailFragment newInstance(ViewModel deviceModel) {
         DeviceDetailFragment frag = new DeviceDetailFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
+        args.putString(ARG_DEVICE_DSN, deviceModel.getDevice().getDsn());
         frag.setArguments(args);
 
         return frag;
@@ -100,10 +103,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         super.onCreate(savedInstanceState);
 
         setHasOptionsMenu(true);
-        _device = null;
+        _deviceModel = null;
         if (getArguments() != null ) {
             String dsn = getArguments().getString(ARG_DEVICE_DSN);
-            _device = SessionManager.deviceManager().deviceByDSN(dsn);
+            AylaDevice d = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
+            _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(d);
         }
      }
 
@@ -111,9 +116,6 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public void onDestroy() {
         super.onDestroy();
         ensureIdentifyOff();
-        if(SessionManager.deviceManager() != null){
-            SessionManager.deviceManager().exitLANMode(new DeviceManager.LANModeListener(_device));
-        }
     }
 
     @Override
@@ -132,12 +134,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         _scheduleButton.setOnClickListener(this);
 
         Button sharingButton = (Button)view.findViewById(R.id.sharing_button);
-        if(_device.isDeviceNode()){
+        if(_deviceModel.isNode()){
             sharingButton.setVisibility(View.GONE);
         } else{
             sharingButton.setOnClickListener(this);
         }
-        if ( !_device.getDevice().amOwner() ) {
+        if ( _deviceModel.getDevice().getGrant() != null ) {
             // This device was shared with us
             sharingButton.setVisibility(View.GONE);
             _dsnView.setVisibility(View.GONE);
@@ -156,55 +158,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         Button remoteButton = (Button)view.findViewById(R.id.remote_button);
         remoteButton.setOnClickListener(this);
 
-        _identifySwitch = (Switch)view.findViewById(R.id.identify_button);
-        _identifySwitch.setOnClickListener(this);
-
         Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
         triggerButton.setOnClickListener(this);
-
-        if (_device.isDeviceNode()) {
-            Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
-            _identifySwitch.setVisibility(gateway.isZigbeeGateway() ? View.VISIBLE : View.GONE);
-
-            if (_device instanceof ZigbeeTriggerDevice) {
-                Logger.logDebug(LOG_TAG, "we are a trigger device.");
-                triggerButton.setVisibility(View.VISIBLE);
-            } else {
-                triggerButton.setVisibility(View.GONE);
-            }
-
-            if (_device instanceof RemoteSwitchDevice) {
-                Logger.logDebug(LOG_TAG, "rm: we are a remote.");
-            } else {
-                List<Device> remotes = gateway.getDevicesOfClass(new Class[]{RemoteSwitchDevice.class});
-                if ((remotes != null) && (remotes.size() > 0)) {
-                    Logger.logInfo(LOG_TAG, "rm: we have %d remotes.", remotes.size());
-                    boolean pairable = false;
-                    // Right now we have only one type of remote switch, but at some point there could be
-                    // multiple types of remotes
-                    for (Device device : remotes) {
-                        RemoteSwitchDevice remote = (RemoteSwitchDevice) device;
-                        if (remote.isPairableDevice(_device)) {
-                            Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is pairable with remote [%s:%s]",
-                                    _device.getDeviceDsn(), _device.getClass().getSimpleName(),
-                                    device.getDeviceDsn(), device.getClass().getSimpleName());
-                            pairable = true;
-                        }
-                    }
-                    if (!pairable) {
-                        remoteButton.setVisibility(View.GONE);
-                        Logger.logInfo(LOG_TAG, "rm: device [%s:%s] is not pairable with any of the available remotes.");
-                    }
-                } else {
-                    remoteButton.setVisibility(View.GONE);
-                    Logger.logInfo(LOG_TAG, "rm: we don't have any remotes.");
-                }
-            }
-        } else {
-            remoteButton.setVisibility(View.GONE);
-            triggerButton.setVisibility(View.GONE);
-            _identifySwitch.setVisibility(View.GONE);
-        }
 
         updateUI();
 
@@ -215,7 +170,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         // Let the user change the title
         final EditText editText = new EditText(getActivity());
         editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        editText.setText(_device.toString());
+        editText.setText(_deviceModel.toString());
         editText.setSelectAllOnFocus(true);
         editText.requestFocus();
 
@@ -234,65 +189,68 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         editText.requestFocus();
     }
 
-    private static class ChangeNameHandler extends Handler {
-        private WeakReference<DeviceDetailFragment> _frag;
-        private String _newDeviceName;
+    @Override
+    public void deviceChanged(AylaDevice device, Change change) {
+        AylaLog.i(LOG_TAG, "Device changed: " + device + ": " + change);
+        updateUI();
+    }
 
-        public ChangeNameHandler(DeviceDetailFragment frag, String newDeviceName) {
-            _frag = new WeakReference<DeviceDetailFragment>(frag);
-            _newDeviceName = newDeviceName;
-        }
+    @Override
+    public void deviceError(AylaDevice device, AylaError error) {
+        AylaLog.e(LOG_TAG, "Device error " + device + " " + error);
+        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast.LENGTH_LONG).show();
+        updateUI();
+    }
 
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg)) {
-                _frag.get()._device.getDevice().productName = _newDeviceName;
-                _frag.get().updateUI();
-
-                // Let the world know something is different
-                SessionManager.deviceManager().deviceChanged(_frag.get()._device);
-            } else {
-                Log.e(LOG_TAG, "Change name failed: " + msg);
-                Toast.makeText(_frag.get().getActivity(), R.string.change_name_fail, Toast.LENGTH_LONG).show();
-            }
-        }
+    @Override
+    public void deviceLanStateChanged(AylaDevice device, boolean lanModeEnabled) {
+        AylaLog.i(LOG_TAG, "Device " + device + " LAN state chagned: " + lanModeEnabled);
+        updateUI();
     }
 
     private void changeDeviceName(String newDeviceName) {
         Map<String, String> params = new HashMap<>();
         params.put("productName", newDeviceName);
-        _device.getDevice().update(new ChangeNameHandler(this, newDeviceName), params);
+        _deviceModel.getDevice().updateProductName(newDeviceName,
+                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                    @Override
+                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        updateUI();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                                .LENGTH_LONG).show();
+                    }
+                });
     }
 
     void updateUI() {
-        if ( _device == null ) {
+        if ( _deviceModel == null ) {
             Log.e(LOG_TAG, "Unable to find device!");
             getFragmentManager().popBackStack();
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
         } else {
             // Get the property list and set up our adapter
-            AylaProperty[] props = _device.getDevice().properties;
-            if ( props != null ) {
-                List<AylaProperty> propertyList = Arrays.asList(props);
-                if(mContext != null) {
-                    _adapter = new PropertyListAdapter(mContext, propertyList);
-                }
-            } else {
-                Log.e(LOG_TAG, "No properties found for device " + _device);
-                _adapter = new PropertyListAdapter(getActivity(), new ArrayList<AylaProperty>());
+            List<AylaProperty> propertyList = _deviceModel.getDevice().getProperties();
+            if(mContext != null) {
+                _adapter = new PropertyListAdapter(mContext, propertyList);
             }
-
-            // Can this device set schedules or property notifications?
-            _scheduleButton.setVisibility(_device.getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
-            _notificationsButton.setVisibility(_device.getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
-
-            // Set the device title and image
-            _titleView.setText(_device.toString());
-            _dsnView.setText(_device.isInLanMode() ? _device.getDeviceIP() : _device.getDeviceDsn());
-            _imageView.setImageDrawable(((DeviceUIProvider) _device).getDeviceDrawable(getActivity()));
-            _listView.setAdapter(_adapter);
         }
+
+        // Can this device set schedules or property notifications?
+        _scheduleButton.setVisibility(_deviceModel.getSchedulablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+        _notificationsButton.setVisibility(_deviceModel.getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
+
+        // Set the device title and image
+        _titleView.setText(_deviceModel.toString());
+        _dsnView.setText(_deviceModel.isInLanMode() ? _deviceModel.getDevice().getLanIp() :
+                _deviceModel.getDevice().getDsn());
+        _imageView.setImageDrawable(((ViewModel) _deviceModel).getDeviceDrawable(getActivity()));
+        _listView.setAdapter(_adapter);
+
     }
 
     @Override
@@ -301,10 +259,10 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
         MainActivity.getInstance().getMenuInflater().inflate(R.menu.menu_device_details, menu);
 
         boolean hasFactoryReset = false;
-        if (_device != null) {
+        if (_deviceModel != null) {
             // djunod: I have never been able to do Factory Reset on a Zigbee Gateway
-            //hasFactoryReset = (_device.isGateway() || _device.isDeviceNode());
-            hasFactoryReset = _device.isDeviceNode();
+            //hasFactoryReset = (_deviceModel.isGateway() || _deviceModel.isDeviceNode());
+            hasFactoryReset = _deviceModel.getDevice().isNode();
         }
         menu.getItem(1).setVisible(hasFactoryReset);
         menu.getItem(0).setVisible(!hasFactoryReset);
@@ -314,26 +272,41 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     @Override
     public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
-                             boolean readOnly, List<Device> devicesToShare) {
+                             boolean readOnly, List<AylaDevice> devicesToShare) {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        AylaShare share = new AylaShare();
-        share.userEmail = email;
+        String startDateString = null;
+        String endDateString = null;
+        String roleName = null;
+
         if ( startDate != null ) {
-            share.startDateAt = df.format(startDate.getTime());
+            startDateString = df.format(startDate.getTime());
         }
         if ( endDate != null ) {
-            share.endDateAt = df.format(endDate.getTime());
-        }
-        if ( TextUtils.isEmpty(role) ) {
-            share.operation = readOnly ? "read" : "write";
-        } else {
-            share.roleName = role;
+            endDateString = df.format(endDate.getTime());
         }
 
+        AylaShare share = new AylaShare(email, readOnly ? "read" : "write", _deviceModel
+                .getDevice().getDsn(), role, startDateString, endDateString);
+
+        AMAPCore.sharedInstance().getSessionManager().createShare(share, null,
+                new Response.Listener<AylaShare>() {
+                    @Override
+                    public void onResponse(AylaShare response) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        MainActivity.getInstance().getSupportFragmentManager().popBackStack();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                                .LENGTH_LONG).show();
+                    }
+                });
 
         MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
-        share.create(new CreateShareHandler(), _device.getDevice());
     }
 
     private static class DeleteShareHandler extends Handler {
@@ -357,7 +330,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId() ) {
             case R.id.action_unregister_device:
-                if ( _device.getDevice().amOwner() ) {
+                if ( _deviceModel.getDevice().amOwner() ) {
                     unregisterDevice();
                 } else {
                     removeShare();
@@ -365,7 +338,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 break;
 
             case R.id.action_factory_reset_device:
-                if ( _device.getDevice().amOwner() ) {
+                if ( _deviceModel.getDevice().amOwner() ) {
                     unregisterDevice();
                 } else {
                     removeShare();
@@ -420,7 +393,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     @Override
     public void statusUpdated(Device device, boolean changed) {
         Log.d(LOG_TAG, "statusUpdated: " + device);
-        if ( changed && device.equals(_device) ) {
+        if ( changed && device.equals(_deviceModel) ) {
             updateUI();
         }
     }
@@ -440,7 +413,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             Logger.logMessage(LOG_TAG, msg, "fr: unregister device");
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) ) {
-                Log.i(LOG_TAG, "Device unregistered: " + _deviceDetailFragment.get()._device);
+                Log.i(LOG_TAG, "Device unregistered: " + _deviceDetailFragment.get()._deviceModel);
 
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
 
@@ -448,7 +421,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 _deviceDetailFragment.get().getFragmentManager().popBackStack();
                 SessionManager.deviceManager().refreshDeviceList();
             } else {
-                Log.e(LOG_TAG, "Unregister device failed for " + _deviceDetailFragment.get()._device + ": " + msg.obj);
+                Log.e(LOG_TAG, "Unregister device failed for " + _deviceDetailFragment.get()._deviceModel + ": " + msg.obj);
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
 
                 // if timeout, ask if they want to do it again?
@@ -460,7 +433,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     void unregisterDeviceTimeout() {
-        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _device.getDeviceDsn());
+        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _deviceModel.getDeviceDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -473,8 +446,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                         MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_unregister_title),
                                 getString(R.string.waiting_unregister_body));
 
-                        Log.i(LOG_TAG, "Unregister Device: " + _device);
-                        _device.unregisterDevice(_unregisterDeviceHandler);
+                        Log.i(LOG_TAG, "Unregister Device: " + _deviceModel);
+                        _deviceModel.unregisterDevice(_unregisterDeviceHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -498,8 +471,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                         MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_unregister_title),
                                 getString(R.string.waiting_unregister_body));
 
-                        Log.i(LOG_TAG, "Unregister Device: " + _device);
-                        _device.unregisterDevice(_unregisterDeviceHandler);
+                        Log.i(LOG_TAG, "Unregister Device: " + _deviceModel);
+                        _deviceModel.unregisterDevice(_unregisterDeviceHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -520,7 +493,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
             Logger.logMessage(LOG_TAG, msg, "fr: factory reset device");
             MainActivity.getInstance().dismissWaitDialog();
             if ( AylaNetworks.succeeded(msg) || (msg.arg1 == 404)) {
-                Log.i(LOG_TAG, "fr: Device factory reset: " + _deviceDetailFragment.get()._device);
+                Log.i(LOG_TAG, "fr: Device factory reset: " + _deviceDetailFragment.get()._deviceModel);
 
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.factory_reset_success, Toast.LENGTH_SHORT).show();
 
@@ -528,7 +501,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 _deviceDetailFragment.get().getFragmentManager().popBackStack();
                 SessionManager.deviceManager().refreshDeviceList();
             } else {
-                Log.e(LOG_TAG, "fr: Factory reset device failed for " + _deviceDetailFragment.get()._device + ": " + msg.obj);
+                Log.e(LOG_TAG, "fr: Factory reset device failed for " + _deviceDetailFragment.get()._deviceModel + ": " + msg.obj);
                 Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.factory_reset_failed, Toast.LENGTH_LONG).show();
 
                 // if timeout, ask if they want to do it again?
@@ -540,7 +513,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     void factoryResetDeviceTimeout() {
-        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _device.getDeviceDsn());
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _deviceModel.getDeviceDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -553,8 +526,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                         MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_factory_reset_title),
                                 getString(R.string.waiting_factory_reset_body));
 
-                        Log.i(LOG_TAG, "Factory Reset Device: " + _device);
-                        _device.factoryResetDevice(_factoryResetDeviceHandler);
+                        Log.i(LOG_TAG, "Factory Reset Device: " + _deviceModel);
+                        _deviceModel.factoryResetDevice(_factoryResetDeviceHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -564,7 +537,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private FactoryResetDeviceHandler _factoryResetDeviceHandler = new FactoryResetDeviceHandler(this);
 
     void factoryResetDevice() {
-        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _device.getDeviceDsn());
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _deviceModel.getDeviceDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -577,8 +550,8 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                         MainActivity.getInstance().showWaitDialog(getString(R.string.waiting_factory_reset_title),
                                 getString(R.string.waiting_factory_reset_body));
 
-                        Log.i(LOG_TAG, "Factory Reset Device: " + _device);
-                        _device.factoryResetDevice(_factoryResetDeviceHandler);
+                        Log.i(LOG_TAG, "Factory Reset Device: " + _deviceModel);
+                        _deviceModel.factoryResetDevice(_factoryResetDeviceHandler);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -598,10 +571,10 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Log.i(LOG_TAG, "Un-share Device: " + _device);
+                        Log.i(LOG_TAG, "Un-share Device: " + _deviceModel);
 
                         AylaShare share = new AylaShare();
-                        AylaGrant grant = _device.getDevice().grant;
+                        AylaGrant grant = _deviceModel.getDevice().grant;
                         share.id = grant.shareId;
                         share.delete(new DeleteShareHandler());
                     }
@@ -611,49 +584,49 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void notificationsClicked() {
-        MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(_device));
+        MainActivity.getInstance().pushFragment(NotificationListFragment.newInstance(_deviceModel));
     }
 
     private void scheduleClicked() {
-        Fragment frag = ((DeviceUIProvider)_device).getScheduleFragment();
+        Fragment frag = ((ViewModel) _deviceModel).getScheduleFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void remoteClicked() {
-        Fragment frag = ((DeviceUIProvider)_device).getRemoteFragment();
+        Fragment frag = ((ViewModel) _deviceModel).getRemoteFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void triggerClicked() {
-        Fragment frag = ((DeviceUIProvider)_device).getTriggerFragment();
+        Fragment frag = ((ViewModel) _deviceModel).getTriggerFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
         Switch control = (Switch)tag;
         control.setEnabled(true);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _device.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _deviceModel.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
     }
 
     private void identifyClicked(View v) {
         Switch control = (Switch)v;
         control.setEnabled(false);
-        Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _device.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
-        gateway.identifyDeviceNode(_device, control.isChecked(), 255, v, this);
+        Gateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _deviceModel.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
+        gateway.identifyDeviceNode(_deviceModel, control.isChecked(), 255, v, this);
     }
 
     private void ensureIdentifyOff() {
-        if ((_device != null) && _device.isDeviceNode()) {
-            Gateway gateway = Gateway.getGatewayForDeviceNode(_device);
+        if ((_deviceModel != null) && _deviceModel.isDeviceNode()) {
+            Gateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
             // we don't care about the results
-            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _device.getDeviceDsn());
-            gateway.identifyDeviceNode(_device, false, 0, null, null);
+            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _deviceModel.getDeviceDsn());
+            gateway.identifyDeviceNode(_deviceModel, false, 0, null, null);
         }
     }
 
     private void sharingClicked() {
-        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, (GenericDevice)_device);
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, (GenericDevice) _deviceModel);
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -678,7 +651,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     private void updateTimezone() {
         // Fetch the timezone for the device
         MainActivity.getInstance().showWaitDialog(R.string.fetching_timezone_title, R.string.fetching_timezone_body);
-        _device.fetchTimezone(new Device.DeviceStatusListener() {
+        _deviceModel.fetchTimezone(new Device.DeviceStatusListener() {
             @Override
             public void statusUpdated(Device device, boolean changed) {
                 MainActivity.getInstance().dismissWaitDialog();
@@ -695,12 +668,12 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     private void showDetails() {
         Log.d(LOG_TAG, "showDetails");
-        DeviceDetailListFragment frag = DeviceDetailListFragment.newInstance(_device);
+        DeviceDetailListFragment frag = DeviceDetailListFragment.newInstance(_deviceModel);
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void chooseTimezone() {
-        String currentTimezone = _device.getDevice().timezone.tzId;
+        String currentTimezone = _deviceModel.getDevice().timezone.tzId;
         final String[] timezones = TimeZone.getAvailableIDs();
         int checkedItem = -1;
         if ( currentTimezone != null ) {
@@ -775,7 +748,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
     private void setDeviceTimezone(String timezoneName) {
         MainActivity.getInstance().showWaitDialog(R.string.updating_timezone_title, R.string.updating_timezone_body);
-        _device.setTimeZone(timezoneName, new Device.DeviceStatusListener() {
+        _deviceModel.setTimeZone(timezoneName, new Device.DeviceStatusListener() {
             @Override
             public void statusUpdated(Device device, boolean changed) {
                 MainActivity.getInstance().dismissWaitDialog();
@@ -808,7 +781,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
             Log.d(LOG_TAG, "Property: " + prop.name() + " Type: " + prop.baseType + " Value: " + prop.value);
 
-            propName.setText(_device.friendlyNameForPropertyName(prop.name()));
+            propName.setText(_deviceModel.friendlyNameForPropertyName(prop.name()));
             propValueText.setOnClickListener(null);
             if ( prop.direction().equals("output")) {
                 // This is a read-only property
@@ -824,7 +797,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
                 switch ( prop.baseType ) {
                     case "boolean":
                         propValueSwitch.setVisibility(View.VISIBLE);
-                        propValueSwitch.setEnabled(_device.isOnline());
+                        propValueSwitch.setEnabled(_deviceModel.isOnline());
                         propValueText.setVisibility(View.GONE);
                         propValueSwitch.setOnCheckedChangeListener(null);
                         propValueSwitch.setChecked("1".equals(prop.value));
@@ -840,7 +813,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
 
                                 MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
                                 Boolean newValue = isChecked;
-                                _device.setDatapoint(prop.name(), newValue, new Device.SetDatapointListener() {
+                                _deviceModel.setDatapoint(prop.name(), newValue, new Device.SetDatapointListener() {
                                     @Override
                                     public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
                                         MainActivity.getInstance().dismissWaitDialog();

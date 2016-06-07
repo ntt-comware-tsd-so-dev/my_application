@@ -36,8 +36,9 @@ import android.widget.Toast;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.GenericDevice;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.aylasdk.AylaDevice;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -75,7 +76,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
          * @param devicesToShare A list of devices to be shared, or null if the user canceled
          */
         void shareDevices(String email, String role, Calendar startDate, Calendar endDate, boolean
-                readOnly, List<Device> devicesToShare);
+                readOnly, List<AylaDevice> devicesToShare);
     }
 
     /**

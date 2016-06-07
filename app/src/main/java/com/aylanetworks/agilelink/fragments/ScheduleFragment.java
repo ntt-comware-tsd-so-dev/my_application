@@ -28,9 +28,9 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
 import com.aylanetworks.agilelink.framework.Schedule;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 
 import java.util.Calendar;
 import java.util.HashMap;

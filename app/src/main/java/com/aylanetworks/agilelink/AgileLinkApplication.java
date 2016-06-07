@@ -127,6 +127,7 @@ public class AgileLinkApplication extends Application implements ComponentCallba
      */
     @Override
     public void onTerminate() {
+        super.onTerminate();
         sInstance = null;
     }
 

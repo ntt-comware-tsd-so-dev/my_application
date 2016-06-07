@@ -23,8 +23,6 @@ import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
-import com.aylanetworks.agilelink.fragments.TriggerFragment;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +36,7 @@ import java.util.List;
  * <li>{@link #friendlyNameForPropertyName(String)}</li>
  * </ul>
  */
-public class GenericDevice extends ViewModel implements DeviceUIProvider {
+public class GenericDevice extends ViewModel {
     /**
      * Constructor using the AylaDevice parameter
      *
@@ -46,20 +44,6 @@ public class GenericDevice extends ViewModel implements DeviceUIProvider {
      */
     public GenericDevice(AylaDevice aylaDevice) {
         super(aylaDevice);
-    }
-
-    /**
-     * Helper method to turn a list of Devices into a list of GenericDevices. All of the Device
-     * objects in the list must be GenericDevice-derived objects.
-     * @param deviceList List of Devices
-     * @return list of GenericDevices
-     */
-    public static List<GenericDevice> fromDeviceList(List<ViewModel> deviceList) {
-        List<GenericDevice> genericDevices = new ArrayList<>(deviceList.size());
-        for ( ViewModel d : deviceList) {
-            genericDevices.add((GenericDevice)d);
-        }
-        return genericDevices;
     }
 
     /**
@@ -189,10 +173,6 @@ public class GenericDevice extends ViewModel implements DeviceUIProvider {
      */
     public Fragment getRemoteFragment() {
         return RemoteFragment.newInstance(this);
-    }
-
-    public Fragment getTriggerFragment() {
-        return TriggerFragment.newInstance(this);
     }
 
     /**

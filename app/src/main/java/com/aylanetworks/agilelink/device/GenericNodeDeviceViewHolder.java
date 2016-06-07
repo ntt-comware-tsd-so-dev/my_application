@@ -4,7 +4,6 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 
 /**
  * AMAP4.x

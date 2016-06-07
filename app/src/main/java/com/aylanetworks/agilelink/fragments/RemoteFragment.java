@@ -26,19 +26,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.zigbee.AylaBindingZigbee;
 import com.aylanetworks.aylasdk.zigbee.AylaGroupZigbee;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.GenericDevice;
-import com.aylanetworks.agilelink.device.RemoteSwitchDevice;
-import com.aylanetworks.agilelink.device.ZigbeeWirelessSwitch;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.deprecated.Device;
 import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.Gateway;
+import com.aylanetworks.agilelink.framework.deprecated.Gateway;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 import com.aylanetworks.agilelink.framework.ZigbeeGateway;
 
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     private static final String ARG_DSN = "dsn";
 
     GenericDevice _device;
-    ZigbeeGateway _gateway;
     ListView _listView;
     SimpleDeviceListAdapter _adapter;
     TextView _titleView;
@@ -67,9 +65,9 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
     View _errorContainer;
     TextView _errorMessage;
 
-    class SimpleDeviceListAdapter extends ArrayAdapter<Device> {
+    class SimpleDeviceListAdapter extends ArrayAdapter<ViewModel> {
 
-        public SimpleDeviceListAdapter(Context c, Device[] objects) {
+        public SimpleDeviceListAdapter(Context c, ViewModel[] objects) {
             super(c, android.R.layout.simple_list_item_1, objects);
         }
 
@@ -78,24 +76,24 @@ public class RemoteFragment extends Fragment implements View.OnClickListener, De
             View v = super.getView(position, convertView, parent);
             TextView tv = (TextView)v.findViewById(android.R.id.text1);
 
-            Device device = getItem(position);
-            tv.setText(device.getProductName());
+            ViewModel deviceModel = getItem(position);
+            tv.setText(deviceModel.getDevice().getProductName());
             tv.setTextAppearance(tv.getContext(), android.R.style.TextAppearance_Medium);
             tv.setTypeface(null, Typeface.BOLD);
             return v;
         }
     }
 
-    SimpleDeviceListAdapter newSimpleDeviceListAdapter(List<Device> list) {
-        Device[] objects = new Device[list.size()];
+    SimpleDeviceListAdapter newSimpleDeviceListAdapter(List<ViewModel> list) {
+        ViewModel[] objects = new ViewModel[list.size()];
         list.toArray(objects);
         return new SimpleDeviceListAdapter(getActivity(), objects);
     }
 
-    public static RemoteFragment newInstance(Device device) {
+    public static RemoteFragment newInstance(ViewModel deviceModel) {
         RemoteFragment frag = new RemoteFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDeviceDsn());
+        args.putString(ARG_DSN, deviceModel.getDevice().getDsn());
         frag.setArguments(args);
 
         return frag;
