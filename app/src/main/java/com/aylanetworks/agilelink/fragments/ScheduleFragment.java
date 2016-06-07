@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -242,6 +243,15 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
+        if ( _schedule.getStartTimeEachDay() == null ) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                setSchedule(_scheduleTimePicker.getCurrentHour()
+                        , _scheduleTimePicker.getCurrentMinute(), true);
+            } else { // version >= M
+                setSchedule(_scheduleTimePicker.getHour()
+                        , _scheduleTimePicker.getMinute(), true);
+            }
+        }
 
         _timerTimePicker.setIs24HourView(true);
         _timerTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
@@ -317,13 +327,17 @@ public class ScheduleFragment extends Fragment {
             return;
         }
 
+        setSchedule(hourOfDay, minute, _scheduleOnTimeButton.isSelected());
+    }
+
+    private void setSchedule(int hourOfDay, int minute, boolean isOnTimeButtonSelected) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(getTimeZone());
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
-        if (_scheduleOnTimeButton.isSelected()) {
+        if (isOnTimeButtonSelected) {
             _schedule.setStartTimeEachDay(cal);
         } else {
             _schedule.setEndTimeEachDay(cal);
@@ -353,6 +367,10 @@ public class ScheduleFragment extends Fragment {
         int errorMessage = 0;
         if ( _schedule.isActive() && _schedule.getActions().size() == 0 ) {
            errorMessage = R.string.no_actions_set;
+        }
+
+        if ( !_schedule.isTimer() && _schedule.getStartTimeEachDay() == null) {
+            errorMessage = R.string.configure_a_timer_or_a_schedule_before_saving;
         }
 
         if ( errorMessage != 0 ) {
