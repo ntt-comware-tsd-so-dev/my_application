@@ -286,8 +286,10 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
             endDateString = df.format(endDate.getTime());
         }
 
-        AylaShare share = new AylaShare(email, readOnly ? "read" : "write", _deviceModel
-                .getDevice().getDsn(), role, startDateString, endDateString);
+        AylaShare share = new AylaShare(email, readOnly ? "read" : "write",
+                _deviceModel.getDevice().getDsn(),
+                _deviceModel.getDevice().getProductName(),
+                role, startDateString, endDateString);
 
         AMAPCore.sharedInstance().getSessionManager().createShare(share, null,
                 new Response.Listener<AylaShare>() {
