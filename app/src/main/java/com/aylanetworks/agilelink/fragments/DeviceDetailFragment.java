@@ -435,7 +435,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     void unregisterDeviceTimeout() {
-        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _deviceModel.getDeviceDsn());
+        Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _deviceModel.getDevice().getDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -515,7 +515,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     void factoryResetDeviceTimeout() {
-        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _deviceModel.getDeviceDsn());
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s] timeout. ask again.", _deviceModel.getDevice().getDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -539,7 +539,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     private FactoryResetDeviceHandler _factoryResetDeviceHandler = new FactoryResetDeviceHandler(this);
 
     void factoryResetDevice() {
-        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _deviceModel.getDeviceDsn());
+        Logger.logInfo(LOG_TAG, "fr: factory reset device [%s]", _deviceModel.getDevice().getDsn());
         Resources res = getActivity().getResources();
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -607,14 +607,14 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
         Switch control = (Switch)tag;
         control.setEnabled(true);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _deviceModel.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _deviceModel.getDevice().getDsn(), (control.isChecked() ? "ON" : "OFF"));
     }
 
     private void identifyClicked(View v) {
         Switch control = (Switch)v;
         control.setEnabled(false);
         Gateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _deviceModel.getDeviceDsn(), (control.isChecked() ? "ON" : "OFF"));
+        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _deviceModel.getDevice().getDsn(), (control.isChecked() ? "ON" : "OFF"));
         gateway.identifyDeviceNode(_deviceModel, control.isChecked(), 255, v, this);
     }
 
@@ -622,7 +622,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         if ((_deviceModel != null) && _deviceModel.isDeviceNode()) {
             Gateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
             // we don't care about the results
-            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _deviceModel.getDeviceDsn());
+            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _deviceModel.getDevice().getDsn());
             gateway.identifyDeviceNode(_deviceModel, false, 0, null, null);
         }
     }
@@ -670,7 +670,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
     private void showDetails() {
         Log.d(LOG_TAG, "showDetails");
-        DeviceDetailListFragment frag = DeviceDetailListFragment.newInstance(_deviceModel);
+        DeviceDetailListFragment frag = DeviceDetailListFragment.newInstance(_deviceModel.getDevice());
         MainActivity.getInstance().pushFragment(frag);
     }
 

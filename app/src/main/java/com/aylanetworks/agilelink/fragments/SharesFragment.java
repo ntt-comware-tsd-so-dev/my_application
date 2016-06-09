@@ -25,6 +25,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
@@ -121,10 +123,10 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
     private void confirmRemoveShare(final AylaShare share, boolean amOwner) {
         String email = amOwner ? share.userProfile.email : share.ownerProfile.email;
-        Device device = SessionManager.deviceManager().deviceByDSN(share.resourceId);
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(share.resourceId);
         String deviceName = "[unknown device]";
         if ( device != null ) {
-            deviceName = device.toString();
+            deviceName = device.getDeviceName();
         }
 
         int messageID = amOwner ? R.string.confirm_remove_share_message : R.string.confirm_remove_shared_device_message;
@@ -147,7 +149,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
     @Override
     public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
-                             boolean readOnly, List<Device> devicesToShare) {
+                             boolean readOnly, List<AylaDevice> devicesToShare) {
         // We got this call from the ShareDevicesFragment.
         getFragmentManager().popBackStack();
         if ( devicesToShare != null && !devicesToShare.isEmpty() ) {
@@ -160,7 +162,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
     private static class AddSharesHandler extends Handler {
         private WeakReference<SharesFragment> _frag;
-        private List<Device> _devicesToAdd;
+        private List<AylaDevice> _devicesToAdd;
         private String _email;
         private String _role;
         private Calendar _startDate;
@@ -178,7 +180,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                                 Calendar startDate,
                                 Calendar endDate,
                                 boolean readOnly,
-                                List<Device> devicesToAdd) {
+                                List<AylaDevice> devicesToAdd) {
             _frag = new WeakReference<SharesFragment>(frag);
             _email = email;
             _role = role;
@@ -195,7 +197,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 return;
             }
 
-            Device device = _devicesToAdd.remove(0);
+            AylaDevice device = _devicesToAdd.remove(0);
             AylaShare share = new AylaShare();
             share.userEmail = _email;
             if ( _startDate != null ) {

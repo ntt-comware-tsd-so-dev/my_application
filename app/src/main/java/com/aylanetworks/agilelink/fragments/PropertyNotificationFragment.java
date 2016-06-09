@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.aylasdk.AylaApplicationTrigger;
 import com.aylanetworks.aylasdk.AylaContact;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaPropertyTrigger;
 import com.aylanetworks.agilelink.MainActivity;
@@ -72,14 +73,14 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     private LinearLayout _integerLayout;
     private LinearLayout _motionSensorLayout;
 
-    public static PropertyNotificationFragment newInstance(Device device) {
+    public static PropertyNotificationFragment newInstance(AylaDevice device) {
         return newInstance(device, null);
     }
 
-    public static PropertyNotificationFragment newInstance(Device device, AylaPropertyTrigger triggerToEdit) {
+    public static PropertyNotificationFragment newInstance(AylaDevice device, AylaPropertyTrigger triggerToEdit) {
         PropertyNotificationFragment frag = new PropertyNotificationFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDeviceDsn());
+        args.putString(ARG_DSN, device.getDsn());
         if ( triggerToEdit != null ) {
             args.putString(ARG_TRIGGER, triggerToEdit.deviceNickname);
         }
@@ -95,7 +96,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         _smsContacts = new ArrayList<>();
     }
 
-    private Device _device;
+    private AylaDevice _device;
     private AylaContact _ownerContact;
 
     private RecyclerView _recyclerView;

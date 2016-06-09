@@ -28,9 +28,9 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.deprecated.Device;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Schedule;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.aylasdk.AylaDevice;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ public class ScheduleFragment extends Fragment {
     private final static String ARG_DEVICE_DSN = "deviceDSN";
     private final static String ARG_SCHEDULE_INDEX = "scheduleIndex";
 
-    private Device _device;
+    private AylaDevice _device;
     private Schedule _schedule;
     private int _scheduleIndex;
 
@@ -94,9 +94,9 @@ public class ScheduleFragment extends Fragment {
             R.id.button_saturday
     };
 
-    public static ScheduleFragment newInstance(Device device, int scheduleIndex) {
+    public static ScheduleFragment newInstance(AylaDevice device, int scheduleIndex) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
+        args.putString(ARG_DEVICE_DSN, device.getDsn());
         args.putInt(ARG_SCHEDULE_INDEX, scheduleIndex);
         ScheduleFragment frag = new ScheduleFragment();
         frag.setArguments(args);
@@ -113,7 +113,7 @@ public class ScheduleFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Get our device argument
-        _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DEVICE_DSN));
+        _device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(getArguments().getString(ARG_DEVICE_DSN));
         _scheduleIndex = getArguments().getInt(ARG_SCHEDULE_INDEX);
 
         // Make a copy to work with.

@@ -537,7 +537,7 @@ public class AddDeviceFragment extends Fragment
             isSelectedArray[i] = true;
             AylaDeviceNode adn = list.get(i);
             Logger.logVerbose(LOG_TAG, "rn: candidate [%s]", adn);
-            apNames[i] = adn.productName;
+            apNames[i] = adn.getProductName();
             selected.add(adn);
         }
 
@@ -555,7 +555,7 @@ public class AddDeviceFragment extends Fragment
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             AylaDeviceNode adn = list.get(which);
-                            Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s]", adn.dsn, adn.model);
+                            Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s]", adn.getDsn(), adn.getModel());
                             List<AylaDeviceNode> tmp = new ArrayList<AylaDeviceNode>();
                             tmp.add(adn);
                             MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
@@ -573,7 +573,7 @@ public class AddDeviceFragment extends Fragment
                         @Override
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                             AylaDeviceNode adn = list.get(which);
-                            Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s] %s", adn.dsn, adn.model, (isChecked ? "YES" : "NO"));
+                            Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s] %s", adn.getDsn(), adn.getModel(), (isChecked ? "YES" : "NO"));
                             if (isChecked) {
                                 selected.add(adn);
                             } else {

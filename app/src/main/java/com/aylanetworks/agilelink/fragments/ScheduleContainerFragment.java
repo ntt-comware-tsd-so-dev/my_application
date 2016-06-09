@@ -17,8 +17,6 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
-import com.aylanetworks.agilelink.framework.deprecated.Device;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 import com.aylanetworks.aylasdk.AylaDevice;
 
 /*

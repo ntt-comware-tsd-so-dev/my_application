@@ -36,8 +36,7 @@ import android.widget.Toast;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.GenericDevice;
-import com.aylanetworks.agilelink.framework.deprecated.Device;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaDevice;
 
 import java.text.DateFormat;
@@ -60,7 +59,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
     private Calendar _shareStartDate;
     private Calendar _shareEndDate;
     private boolean _readOnly;
-    private GenericDevice _device;             // Only set if we're sharing exactly one device
+    private AylaDevice _device;             // Only set if we're sharing exactly one device
 
     public interface ShareDevicesListener {
         /**
@@ -105,7 +104,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
      * @return the new ShareDevicesFragment
      */
     public static ShareDevicesFragment newInstance(ShareDevicesListener listener,
-                                                   GenericDevice device) {
+                                                   AylaDevice device) {
         ShareDevicesFragment frag = new ShareDevicesFragment();
         frag._listener = listener;
         frag._device = device;
@@ -186,7 +185,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             _deviceTextView.setText(_device.toString());
             _deviceImageView.setImageDrawable(_device.getDeviceDrawable(MainActivity.getInstance()));
 
-            if(_device.getDevice().lanEnabled){
+            if(_device.isLanEnabled()){
 
                 _radioGroup.setVisibility(View.INVISIBLE);
                 _radioGroup.check(R.id.radio_read_write);
@@ -200,11 +199,11 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
         } else {
             // Set up the list view with a set of devices that the owner can share
             _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-            List<Device> deviceList = SessionManager.deviceManager().deviceList();
+            List<AylaDevice> deviceList = AMAPCore.sharedInstance().getDeviceManager().getDevices();
             // Remove devices that we don't own from this list
-            List<Device> filteredList = new ArrayList<Device>();
-            for (Device d : deviceList) {
-                if (d.getDevice().amOwner()) {
+            List<AylaDevice> filteredList = new ArrayList<AylaDevice>();
+            for (AylaDevice d : deviceList) {
+                if (d.amOwner()) {
                     filteredList.add(d);
                 }
             }
@@ -218,8 +217,8 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
                 }
             }
 
-            Device devices[] = deviceList.toArray(new Device[deviceList.size()]);
-            _deviceList.setAdapter(new ArrayAdapter<Device>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
+            AylaDevice devices[] = deviceList.toArray(new AylaDevice[deviceList.size()]);
+            _deviceList.setAdapter(new ArrayAdapter<AylaDevice>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
             int unitHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48,
                     this.getActivity().getResources().getDisplayMetrics());
             _deviceList.getLayoutParams().height = devices.length * unitHeight;
@@ -284,7 +283,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
     }
 
     private void shareDevices() {
-        List<Device> devicesToAdd = new ArrayList<Device>();
+        List<AylaDevice> devicesToAdd = new ArrayList<AylaDevice>();
 
         if ( _device != null ) {
             // This is the only device we care about
@@ -300,7 +299,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             SparseBooleanArray checkedItems = _deviceList.getCheckedItemPositions();
             for (int i = 0; i < _deviceList.getAdapter().getCount(); i++) {
                 if (checkedItems.get(i)) {
-                    Device device = (Device) _deviceList.getAdapter().getItem(i);
+                    AylaDevice device = (AylaDevice) _deviceList.getAdapter().getItem(i);
                     devicesToAdd.add(device);
                 }
             }
