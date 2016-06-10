@@ -52,14 +52,21 @@ import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.MenuHandler;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.RequestFuture;
 import com.aylanetworks.aylasdk.setup.AylaRegistration;
+import com.aylanetworks.aylasdk.setup.AylaRegistrationCandidate;
 import com.aylanetworks.aylasdk.setup.AylaSetup;
+import com.aylanetworks.aylasdk.setup.AylaSetupDevice;
+import com.aylanetworks.aylasdk.setup.AylaWifiStatus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /*
  * AddDeviceFragment.java
@@ -654,21 +661,18 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    private void connectDeviceToService(String ssid, String security, String password) {
-        AylaSetup.lanSsid = ssid;
-        AylaSetup.lanPassword = password;
-        AylaSetup.lanSecurityType = security;
-
+    private void connectDeviceToService(AylaSetup setup, String ssid, String password, String setupToken) {
         MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_network_title),
                 getString(R.string.connecting_to_network_body));
 
         //adding location details
-        Context context = this.getActivity();
-        Map<String, Object> callParams = new HashMap<String, Object>();
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean netEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        boolean locationAcquired = false;
+        double lat = 0;
+        double lng = 0;
 
         if (gpsEnabled || netEnabled) {
             String locationProvider = locationManager.getBestProvider(criteria, false);
@@ -677,59 +681,53 @@ public class AddDeviceFragment extends Fragment
                 requestScanPermissions();
             } else{
                 Location location = locationManager.getLastKnownLocation(locationProvider);
-                if(location != null){
-                    callParams.put(AylaSetup.AML_SETUP_LOCATION_LATITUDE, location.getLatitude());
-                    callParams.put(AylaSetup.AML_SETUP_LOCATION_LONGITUDE, location.getLongitude());
+                if(location != null) {
+                    locationAcquired = true;
+                    lat = location.getLatitude();
+                    lng = location.getLongitude();
                 }
             }
-
         } else {
-            Toast.makeText(context, R.string.warning_location_accuracy, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), R.string.warning_location_accuracy, Toast.LENGTH_SHORT).show();
         }
 
-        Logger.logVerbose(LOG_TAG, "rn: calling connectNewDeviceToService: ssid = " + ssid + " security: " + security + "pass: " + password);
-        AylaSetup.connectNewDeviceToService(new ConnectToServiceHandler(this), callParams);
-    }
-
-    static class RegisterHandler extends Handler {
-        private WeakReference<AddDeviceFragment> _addDeviceFragment;
-
-        public RegisterHandler(AddDeviceFragment addDeviceFragment) {
-            _addDeviceFragment = new WeakReference<>(addDeviceFragment);
+        RequestFuture<AylaWifiStatus> reconnectFuture = RequestFuture.newFuture();
+        AylaAPIRequest reconnectRequest = setup.connectDeviceToService(ssid, password,
+                setupToken,
+                locationAcquired ? lat : null,
+                locationAcquired ? lng : null,
+                15,
+                reconnectFuture,
+                reconnectFuture);
+        AylaWifiStatus status;
+        try {
+            status = reconnectFuture.get(15 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to connect to service. Exiting setup.", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to connect to service. Exiting setup.", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to connect to service. Exiting setup.", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
         }
 
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logInfo(LOG_TAG, "rn: Register handler called: " + msg);
-            dismissWaitDialog();
-            if (msg.arg1 >= 200 && msg.arg1 < 300) {
-                // Success!
-                AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
-                Device device = SessionManager.sessionParameters()._viewModelProvider.deviceForAylaDevice(aylaDevice);
-                MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-                // Now update the device notifications
-                DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-                helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
-                    @Override
-                    public void newDeviceUpdated(Device device, int error) {
-                        MainActivity mainActivity = MainActivity.getInstance();
-                        mainActivity.dismissWaitDialog();
-                        int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                        SessionManager.deviceManager().refreshDeviceList();
-                        if (error == AylaNetworks.AML_ERROR_OK) {
-                            // TODO: Major! unfortunately, we aren't able to transition from nodevicesmode to having devices!
-                            MenuHandler.handleAllDevices();
-                        }
-                    }
-                });
-
-            } else {
-                // Something went wrong
-                Toast.makeText(_addDeviceFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
-                exitSetup(false);
-            }
+        if (status == null) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to connect to service. Exiting setup.", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
         }
+
+        dismissWaitDialog();
+
+        // Confirm service connection. We need to do this to get the device information
+        // to register it.
+        MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
+        // TODO: CONFIRM CONNECTION TO SERVICE
     }
 
     private AylaHostScanResults _hostScanResults[];
@@ -760,33 +758,205 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ConnectHandler _connectHandler;
-    private void connectToAP(AylaHostScanResults scanResult) {
-        if (AylaLanMode.isLanModeRunning() || AylaLanMode.isLanModeEnabled()) {
-            Log.i(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
-        } else {
-            Log.e(LOG_TAG, "rn: lanModeState " + AylaLanMode.getLanModeState());
+    private void connectToAP(AylaSetup setup, String ssid) {
+        MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body));
+
+        RequestFuture<AylaSetupDevice> setupFuture = RequestFuture.newFuture();
+        AylaAPIRequest setupRequest = setup.connectToNewDevice(ssid, 15,
+                setupFuture, setupFuture);
+        AylaSetupDevice setupDevice;
+        try {
+            setupDevice = setupFuture.get(15 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
         }
 
-        AylaSetup.newDevice.hostScanResults = scanResult;
-        AylaSetup.lanSsid = scanResult.ssid;
-        AylaSetup.lanSecurityType = scanResult.keyMgmt;
+        // We've mucked with our wifi access point. Make sure we go back to our original
+        // AP when we're done with setup, regardless of whether or not it succeeds.
+        Logger.logDebug(LOG_TAG, "rn: set _needsExit");
+        _needsExit = true;
 
-        // Connect to the device
-        MainActivity.getInstance().showWaitDialog(getString(R.string.connecting_to_device_title), getString(R.string.connecting_to_device_body));
-        Logger.logVerbose(LOG_TAG, "rn: calling connectToNewDevice: ssid = " + scanResult.ssid + " key mgt: " + scanResult.keyMgmt);
-        _connectHandler = new ConnectHandler(this);
-        AylaSetup.connectToNewDevice(_connectHandler);
+        if (setupDevice == null) {
+            Toast.makeText(getActivity(), R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        MainActivity activity = MainActivity.getInstance();
+        dismissWaitDialog();
+
+        Logger.logVerbose(LOG_TAG, "rn: calling getNewDeviceScanForAPs. newDevice = " + setupDevice.toString());
+        //TODO: SCAN FOR AP
+        activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title), activity.getString(R.string.scanning_for_aps_body));
     }
 
-    RegisterHandler _registerHandler;
+    private void confirmConnection(AylaSetup setup, String dsn,
+                                      String setupToken) {
+        // Part 1: Reconnect mobile to original wifi network
+        RequestFuture<AylaAPIRequest.EmptyResponse> emptyFuture = RequestFuture.newFuture();
+        AylaAPIRequest request = setup.reconnectToOriginalNetwork(10,
+                emptyFuture, emptyFuture);
+        try {
+            AylaAPIRequest.EmptyResponse response = emptyFuture.get(10 * 1000,
+                    TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to connect mobile to original wifi network", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to connect mobile to original wifi network", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to connect mobile to original wifi network", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        // Part 2: Check device connection to Ayla service
+        RequestFuture<AylaSetupDevice> confirmFuture = RequestFuture.newFuture();
+        AylaAPIRequest confirmRequest = setup.confirmDeviceConnected(10, dsn, setupToken,
+                confirmFuture, confirmFuture);
+        AylaSetupDevice device = null;
+        try {
+            device = confirmFuture.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to confirm device connection to Ayla service", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to confirm device connection to Ayla service", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to confirm device connection to Ayla service", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        if (device == null) {
+            Toast.makeText(getActivity(), "Failed to confirm device connection to Ayla service", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        dismissWaitDialog();
+
+        // Set up the new device if it's not already registered
+        if (AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(device.getDsn()) == null) {
+            if (_frag.get()._registrationType == REG_TYPE_BUTTON_PUSH) {
+                // we need to prompt the user to press the Button for registration
+                _frag.get().showPushButtonDialog(device);
+            } else {
+                // TODO: REGISTER DEVICE
+            }
+        } else {
+            Logger.logDebug(LOG_TAG, "rn: device [" + device.getDsn() + "] already registered");
+            MainActivity.getInstance().popBackstackToRoot();
+            Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void fetchCandidateWithDsn(String dsn, AylaRegistration registration) {
+        AylaDevice.RegistrationType regType = AylaDevice.RegistrationType.valueOf("SameLan");
+        RequestFuture<AylaRegistrationCandidate> candidateFuture = RequestFuture.newFuture();
+        AylaAPIRequest candidateRequest = registration.fetchCandidate(dsn, regType,
+                candidateFuture,
+                candidateFuture);
+        AylaRegistrationCandidate candidate = null;
+        try {
+            candidate = candidateFuture.get(5000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to fetch registration candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to fetch registration candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to fetch registration candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        if (candidate == null) {
+            Toast.makeText(getActivity(), "Failed to fetch registration candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        registerCandidate(candidate, dsn, registration);
+    }
+
+    /* Register the device candidate */
+    private void registerCandidate(AylaRegistrationCandidate candidate, String dsn, AylaRegistration registration) {
+        candidate.setDsn(dsn);
+        candidate.setRegistrationToken("");
+        candidate.setRegistrationType(AylaDevice.RegistrationType.valueOf("SameLan"));
+
+        RequestFuture<AylaDevice> registrationFuture = RequestFuture.newFuture();
+        final AylaAPIRequest registrationRequest = registration.registerCandidate(candidate,
+                registrationFuture,
+                registrationFuture);
+        AylaDevice registeredDevice;
+        try {
+            registeredDevice = registrationFuture.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to register candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to register candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to register candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        if (registeredDevice == null) {
+            Toast.makeText(getActivity(), "Failed to register candidate", Toast.LENGTH_LONG).show();
+            exitSetup();
+            return;
+        }
+
+        dismissWaitDialog();
+
+        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+
+        // Now update the device notifications
+        DeviceNotificationHelper helper = new DeviceNotificationHelper(registeredDevice, AylaUser.getCurrent());
+        helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+            @Override
+            public void newDeviceUpdated(AylaDevice device, int error) {
+                MainActivity mainActivity = MainActivity.getInstance();
+                mainActivity.dismissWaitDialog();
+                int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
+                Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                SessionManager.deviceManager().refreshDeviceList();
+                if (error == AylaNetworks.AML_ERROR_OK) {
+                    // TODO: Major! unfortunately, we aren't able to transition from nodevicesmode to having devices!
+                    MenuHandler.handleAllDevices();
+                }
+            }
+        });
+    }
+
     private void registerNewDevice() {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-        Logger.logVerbose(LOG_TAG, "rn: Calling registerNewDevice...");
-
-        AylaRegistration
-        _registerHandler = new RegisterHandler(this);
-        device.registerNewDevice(_registerHandler);
+        fetchCandidateWithDsn();
     }
 
     private ChooseAPDialog _chooseAPDialog;
@@ -839,65 +1009,6 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    /**
-     * Handler called with the results for the AP scan (the device is scanning for APs)
-     */
-    static class ScanForAPsHandler extends Handler {
-        private WeakReference<AddDeviceFragment> _fragment;
-
-        public ScanForAPsHandler(AddDeviceFragment fragment) {
-            _fragment = new WeakReference<AddDeviceFragment>(fragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            dismissWaitDialog();
-            Logger.logDebug(LOG_TAG, "rn: getNewDeviceScanForAPs results: " + msg);
-            if ( AylaNetworks.succeeded(msg) ) {
-                String json = (String)msg.obj;
-                _fragment.get().chooseAP(AylaSystemUtils.gson.fromJson(json, AylaModuleScanResults[].class));
-            }
-        }
-    }
-
-    /**
-     * Handler called when attempting to connect to the device's AP
-     */
-    static class ConnectHandler extends Handler {
-        private WeakReference<AddDeviceFragment> _fragment;
-        ScanForAPsHandler _scanForAPsHandler;
-
-        public ConnectHandler(AddDeviceFragment frag) {
-            _fragment = new WeakReference<>(frag);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logDebug(LOG_TAG, "rn: Connect handler: " + msg);
-
-            // We've mucked with our wifi access point. Make sure we go back to our original
-            // AP when we're done with setup, regardless of whether or not it succeeds.
-            Logger.logDebug(LOG_TAG, "rn: set _needsExit");
-            _needsExit = true;
-
-            MainActivity activity = MainActivity.getInstance();
-            dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                String json = (String)msg.obj;
-
-                AylaSetup.newDevice = AylaSystemUtils.gson.fromJson(json, AylaModule.class);
-                Logger.logVerbose(LOG_TAG, "rn: calling getNewDeviceScanForAPs. newDevice = " + AylaSetup.newDevice);
-                _scanForAPsHandler = new ScanForAPsHandler(_fragment.get());
-                AylaSetup.getNewDeviceScanForAPs(_scanForAPsHandler);
-                activity.showWaitDialog(activity.getString(R.string.scanning_for_aps_title), activity.getString(R.string.scanning_for_aps_body));
-            } else {
-                Logger.logError(LOG_TAG, "rn: Connect handler error: " + msg);
-                Toast.makeText(activity, R.string.wifi_connect_failed, Toast.LENGTH_LONG).show();
-                exitSetup(false);
-            }
-        }
-    }
-
     private void showPushButtonDialog(final AylaDevice device) {
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -931,125 +1042,10 @@ public class AddDeviceFragment extends Fragment
         }, REGISTRATION_DELAY_MS);
     }
 
-    static class ConfirmNewDeviceHandler extends Handler {
-        private WeakReference<AddDeviceFragment> _frag;
-        GetNewDeviceWiFiStatusHandler _getNewDeviceWiFiStatusHandler;
-
-        public ConfirmNewDeviceHandler(AddDeviceFragment frag) {
-            _frag = new WeakReference<AddDeviceFragment>(frag);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                final AylaDevice device = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaDevice.class);
-                Logger.logDebug(LOG_TAG, "rn: New device: " + device);
-
-                // Set up the new device if it's not already registered
-                if ( SessionManager.deviceManager().deviceByDSN(device.dsn) == null ) {
-                    if (_frag.get()._registrationType == REG_TYPE_BUTTON_PUSH) {
-                        // we need to prompt the user to press the Button for registration
-                        _frag.get().showPushButtonDialog(device);
-                    } else {
-                        _frag.get().registerDevice(device);
-                    }
-
-                } else {
-                    Logger.logDebug(LOG_TAG, "rn: device [" + device.dsn + "] already registered");
-                    MainActivity.getInstance().popBackstackToRoot();
-                    Toast.makeText(MainActivity.getInstance(), R.string.connect_to_service_success, Toast.LENGTH_LONG).show();
-                }
-            } else {
-                Logger.logError(LOG_TAG, "rn: Confirm new device failed: " + msg);
-                if ( msg.arg1 == AylaNetworks.AML_ERROR_NOT_FOUND ) {
-                    // The service did not find the new device. Check with the device to see why.
-                    MainActivity.getInstance().showWaitDialog(R.string.reconnecting_device_title, R.string.reconnecting_device_message);
-                    _getNewDeviceWiFiStatusHandler = new GetNewDeviceWiFiStatusHandler(_frag.get());
-                    AylaSetup.getNewDeviceWiFiStatus(_getNewDeviceWiFiStatusHandler);
-                } else {
-                    String message = (String) msg.obj;
-                    if (TextUtils.isEmpty(message)) {
-                        message = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
-                    }
-                    Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-                    exitSetup(false);
-                }
-            }
-        }
-    }
-
-    static class GetNewDeviceWiFiStatusHandler extends Handler {
-        private WeakReference<AddDeviceFragment> _frag;
-        public GetNewDeviceWiFiStatusHandler(AddDeviceFragment fragment) {
-            _frag = new WeakReference<AddDeviceFragment>(fragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logDebug(LOG_TAG, "rn: GetNewDeviceWiFiStatusHandler: " + msg);
-            dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                AylaWiFiStatus status = AylaSystemUtils.gson.fromJson((String)msg.obj, AylaWiFiStatus.class);
-                Logger.logDebug(LOG_TAG, "rn: Wifi status: " + status);
-                if ( status != null && status.connectHistory != null ) {
-                    String connectionMessage = AylaNetworks.AML_wifiErrorMsg[status.connectHistory[0].error];
-                    if ( !TextUtils.isEmpty(connectionMessage) ) {
-                        Toast.makeText(MainActivity.getInstance(), connectionMessage, Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                }
-            }
-
-            // Failed to connect for an unknown reason
-            Toast.makeText(MainActivity.getInstance(), R.string.device_connection_failed, Toast.LENGTH_LONG).show();
-        }
-    }
-
-    static class ConnectToServiceHandler extends Handler {
-        private WeakReference<AddDeviceFragment> _frag;
-        ConfirmNewDeviceHandler _confirmNewDeviceHandler;
-        public ConnectToServiceHandler(AddDeviceFragment frag) {
-            _frag = new WeakReference<AddDeviceFragment>(frag);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logDebug(LOG_TAG, "rn: Connect to service handler: " + msg);
-            dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                // Confirm service connection. We need to do this to get the device information
-                // to register it.
-                MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
-                Logger.logVerbose(LOG_TAG, "rn: calling confirmNewDeviceToServiceConnection...");
-                _confirmNewDeviceHandler = new ConfirmNewDeviceHandler(_frag.get());
-                AylaSetup.confirmNewDeviceToServiceConnection(_confirmNewDeviceHandler);
-            } else {
-                // Check for invalid key present in the error message
-                String emsg = (String) msg.obj;
-                if (emsg != null && emsg.contains("invalid key")) {
-                    Toast.makeText(MainActivity.getInstance(), R.string.bad_wifi_password, Toast.LENGTH_LONG).show();
-                    Logger.logDebug(LOG_TAG, "rn: chooseAP bad wifi password. try again.");
-                    _frag.get().chooseAP(_frag.get()._savedScanResults);
-                } else {
-                    String anErrMsg = (String) msg.obj;
-                    if ( anErrMsg == null ) {
-                        anErrMsg = MainActivity.getInstance().getResources().getString(R.string.unknown_error);
-                    }
-                    Logger.logError(LOG_TAG, "rn: Failed to connect to service. Calling exitSetup()");
-                    Toast.makeText(MainActivity.getInstance(), anErrMsg, Toast.LENGTH_LONG).show();
-                    exitSetup(false);
-                }
-            }
-        }
-    }
-    
-
     /*
     * Scan needs location permissions. This method requests Location permission
      */
     private void requestScanPermissions(){
         ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_COARSE_LOCATION"}, REQUEST_LOCATION);
     }
-
 }
