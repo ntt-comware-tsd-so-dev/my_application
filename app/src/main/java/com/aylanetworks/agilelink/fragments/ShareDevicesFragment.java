@@ -37,6 +37,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaDevice;
 
 import java.text.DateFormat;
@@ -60,6 +61,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
     private Calendar _shareEndDate;
     private boolean _readOnly;
     private AylaDevice _device;             // Only set if we're sharing exactly one device
+    private ViewModel _deviceModel;
 
     public interface ShareDevicesListener {
         /**
@@ -183,7 +185,9 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             _deviceList.setVisibility(View.GONE);
             _deviceLayout.setVisibility(View.VISIBLE);
             _deviceTextView.setText(_device.toString());
-            _deviceImageView.setImageDrawable(_device.getDeviceDrawable(MainActivity.getInstance()));
+            _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(_device);
+            _deviceImageView.setImageDrawable(_deviceModel.getDeviceDrawable(MainActivity.getInstance()));
 
             if(_device.isLanEnabled()){
 
@@ -203,9 +207,10 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             // Remove devices that we don't own from this list
             List<AylaDevice> filteredList = new ArrayList<AylaDevice>();
             for (AylaDevice d : deviceList) {
-                if (d.amOwner()) {
-                    filteredList.add(d);
-                }
+                //TODO:Brian check if it is owner
+//                if (d.amOwner()) {
+//                    filteredList.add(d);
+//                }
             }
 
             if (filteredList.isEmpty()) {

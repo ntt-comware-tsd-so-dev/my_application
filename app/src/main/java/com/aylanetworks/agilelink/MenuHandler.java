@@ -23,7 +23,6 @@ import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
-import com.aylanetworks.agilelink.fragments.DeviceScenesFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;

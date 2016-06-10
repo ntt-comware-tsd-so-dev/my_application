@@ -10,11 +10,8 @@ package com.aylanetworks.agilelink.fragments;
 import android.view.View;
 
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
-import com.aylanetworks.agilelink.framework.deprecated.Device;
 import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,26 +29,27 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
 
     @Override
     public void updateDeviceList() {
-        List<Device> deviceList = new ArrayList<Device>();
-        if (SessionManager.deviceManager() != null) {
-            deviceList.addAll(SessionManager.deviceManager().getGatewayDevices());
-        }
-
-        if ( deviceList != null ) {
-            MainActivity.getInstance().setNoDevicesMode(false);
-            if ( _emptyView != null ) {
-                if (deviceList.isEmpty()) {
-                    _emptyView.setVisibility(View.VISIBLE);
-                    _emptyView.setText(R.string.no_gateways);
-                    _recyclerView.setVisibility(View.GONE);
-                } else {
-                    _emptyView.setVisibility(View.GONE);
-                    _recyclerView.setVisibility(View.VISIBLE);
-                    _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
-                    _recyclerView.setAdapter(_adapter);
-                }
-            }
-        }
+        //TODO : Brian check this if we need this method
+//        List<Device> deviceList = new ArrayList<Device>();
+//        if (AMAPCore.sharedInstance().getDeviceManager() != null) {
+//            deviceList.addAll(AMAPCore.sharedInstance().getDeviceManager().getGatewayDevices());
+//        }
+//
+//        if ( deviceList != null ) {
+//            MainActivity.getInstance().setNoDevicesMode(false);
+//            if ( _emptyView != null ) {
+//                if (deviceList.isEmpty()) {
+//                    _emptyView.setVisibility(View.VISIBLE);
+//                    _emptyView.setText(R.string.no_gateways);
+//                    _recyclerView.setVisibility(View.GONE);
+//                } else {
+//                    _emptyView.setVisibility(View.GONE);
+//                    _recyclerView.setVisibility(View.VISIBLE);
+//                    _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
+//                    _recyclerView.setAdapter(_adapter);
+//                }
+//            }
+//        }
     }
 
     @Override

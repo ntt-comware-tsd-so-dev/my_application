@@ -21,7 +21,6 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
-import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 
 import java.util.ArrayList;
@@ -164,15 +163,6 @@ public class GenericDevice extends ViewModel {
      */
     public Fragment getNotificationsFragment() {
         return NotificationListFragment.newInstance(this);
-    }
-
-    /**
-     * Returns a fragment used to set up remote switch pairing for this device.
-     *
-     * @return a Fragment used to configure remote switch pairing for this device.
-     */
-    public Fragment getRemoteFragment() {
-        return RemoteFragment.newInstance(this);
     }
 
     /**

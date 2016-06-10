@@ -12,12 +12,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaSchedule;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 /*
  * ScheduleContainerFragment.java
@@ -33,6 +38,7 @@ public class ScheduleContainerFragment extends Fragment {
     private ViewPager _pager;
     private ViewModel _deviceModel;
     private SchedulePagerAdapter _adapter;
+    private AylaSchedule[] _schedules;
 
     public ScheduleContainerFragment() {
         // Required empty public constructor
@@ -59,14 +65,21 @@ public class ScheduleContainerFragment extends Fragment {
                 .deviceWithDSN(dsn);
         _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
                 .viewModelForDevice(device);
-
-        _deviceModel.fetchSchedules(new Device.DeviceStatusListener() {
-            @Override
-            public void statusUpdated(Device device, boolean changed) {
-                MainActivity.getInstance().dismissWaitDialog();
-                onDeviceUpdated();
-            }
-        });
+        device.fetchSchedules(
+                new Response.Listener<AylaSchedule[]>() {
+                    @Override
+                    public void onResponse(AylaSchedule[] response) {
+                        _schedules=response;
+                        onDeviceUpdated();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.getInstance(), error.toString(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
 
@@ -99,31 +112,32 @@ public class ScheduleContainerFragment extends Fragment {
 
         @Override
         public Fragment getItem(int position) {
-            if ( _deviceModel.getSchedules().size() == 0 ) {
+            if ( _schedules.length == 0 ) {
                 return new EmptyFragment();
             }
 
-            ScheduleFragment frag = ScheduleFragment.newInstance(_deviceModel, position);
+            ScheduleFragment frag = ScheduleFragment.newInstance(_deviceModel.getDevice(),
+                    _schedules[position].getName());
             return frag;
         }
 
         @Override
         public int getCount() {
-            int count = _deviceModel.getSchedules().size();
+            int count = _schedules.length ;
             if ( count == 0 ) {
                 return 1;
             }
 
-            return _deviceModel.getSchedules().size();
+            return _schedules.length  ;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if ( _deviceModel.getSchedules().size() == 0 ) {
+            if ( _schedules.length  == 0 ) {
                 return getString(R.string.no_schedules_found);
             }
 
-            return _deviceModel.getSchedules().get(position).getName();
+            return _schedules[position].getName();
         }
     }
 }

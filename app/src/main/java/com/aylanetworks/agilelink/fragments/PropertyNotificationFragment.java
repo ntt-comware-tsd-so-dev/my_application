@@ -22,9 +22,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aylasdk.AylaApplicationTrigger;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaPropertyTrigger;
 import com.aylanetworks.agilelink.MainActivity;
@@ -32,9 +36,11 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
-import com.aylanetworks.agilelink.framework.deprecated.Device;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.aylasdk.AylaPropertyTriggerApp;
+import com.aylanetworks.aylasdk.AylaServiceApp;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +88,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         Bundle args = new Bundle();
         args.putString(ARG_DSN, device.getDsn());
         if ( triggerToEdit != null ) {
-            args.putString(ARG_TRIGGER, triggerToEdit.deviceNickname);
+            args.putString(ARG_TRIGGER, triggerToEdit.getDeviceNickname());
         }
         frag.setArguments(args);
 
@@ -96,7 +102,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         _smsContacts = new ArrayList<>();
     }
 
-    private AylaDevice _device;
+    private ViewModel _deviceModel;
     private AylaContact _ownerContact;
 
     private RecyclerView _recyclerView;
@@ -107,31 +113,48 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         super.onCreate(savedInstanceState);
 
         setHasOptionsMenu(true);
-        _device = null;
+        _deviceModel = null;
         if (getArguments() != null ) {
             String dsn = getArguments().getString(ARG_DSN);
-            _device = SessionManager.deviceManager().deviceByDSN(dsn);
-            Log.d(LOG_TAG, "My device: " + _device);
+            AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                    .deviceWithDSN(getArguments().getString(ARG_DSN));
+            _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(device);
 
-            _propertyNotificationHelper = new PropertyNotificationHelper(_device);
+            Log.d(LOG_TAG, "My device: " + device);
+
+            _propertyNotificationHelper = new PropertyNotificationHelper(device);
 
             _originalTriggerName = getArguments().getString(ARG_TRIGGER);
             if ( _originalTriggerName != null ) {
                 // Try to find the trigger
-                for ( AylaProperty prop : _device.getDevice().properties ) {
-
-                    if(prop.propertyTriggers != null){
-                        for ( AylaPropertyTrigger trigger : prop.propertyTriggers ) {
-                            if ( _originalTriggerName.equals(trigger.deviceNickname) ) {
-                                _originalTrigger = trigger;
-                                break;
-                            }
-                        }
-                    }
-
+                for (AylaProperty prop : device.getProperties()) {
+                    prop.fetchTriggers(
+                            new Response.Listener<AylaPropertyTrigger[]>() {
+                                @Override
+                                public void onResponse(AylaPropertyTrigger[] response) {
+                                    if (response != null && response.length > 0) {
+                                        for (AylaPropertyTrigger trigger : response) {
+                                            if (_originalTriggerName.equals
+                                                    (trigger.getDeviceNickname())) {
+                                                _originalTrigger = trigger;
+                                                updateUI();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            new ErrorListener() {
+                                @Override
+                                public void onErrorResponse(AylaError error) {
+                                    Toast.makeText(MainActivity.getInstance(), error.toString(),
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            });
                 }
 
-                if ( _originalTrigger == null ) {
+                if (_originalTrigger == null) {
                     Log.e(LOG_TAG, "Unable to find original trigger!");
                 }
             }
@@ -168,10 +191,10 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         _booleanRadioGroup = (RadioGroup)view.findViewById(R.id.radio_group_boolean);
         _motionRadioGroup = (RadioGroup)view.findViewById(R.id.radio_group_motion);
 
-        String propertyNames[] = _device.getNotifiablePropertyNames();
+        String propertyNames[] = _deviceModel.getNotifiablePropertyNames();
         String friendlyNames[] = new String[propertyNames.length];
         for ( int i = 0; i < propertyNames.length; i++ ) {
-            friendlyNames[i] = _device.friendlyNameForPropertyName(propertyNames[i]);
+            friendlyNames[i] = _deviceModel.friendlyNameForPropertyName(propertyNames[i]);
         }
 
         _propertySpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, friendlyNames));
@@ -181,10 +204,9 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         final TextView emptyView = (TextView)view.findViewById(R.id.empty);
 
         // Fetch the list of contacts, including the owner contact, and show them in the list
-        ContactManager cm = SessionManager.getInstance().getContactManager();
+        ContactManager cm = AMAPCore.sharedInstance().getContactManager();
         _ownerContact = cm.getOwnerContact();
         ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
-            @Override
             public void contactListUpdated(ContactManager manager, boolean succeeded) {
                 _recyclerView.setAdapter(new ContactListAdapter(false, PropertyNotificationFragment.this));
                 emptyView.setVisibility(View.INVISIBLE);
@@ -193,9 +215,9 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         };
 
         if ( cm.getContacts(false).isEmpty() ) {
-            cm.fetchContacts(listener, true);
+            cm.fetchContacts(listener);
         } else {
-            listener.contactListUpdated(cm, true);
+            listener.contactListUpdated(cm, null);
         }
 
         if ( _propertySpinner.getCount() > 0 ) {
@@ -218,26 +240,27 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         }
         //Log.d(LOG_TAG, "trigger: _originalTrigger=[" + _originalTrigger + "]");
 
-        if ( _originalTrigger.propertyNickname == null ) {
+        if ( _originalTrigger.getPropertyNickname() == null ) {
             Log.e(LOG_TAG, "trigger: No property nickname");
         } else {
             // Select the property in our list
-            String[] props = _device.getNotifiablePropertyNames();
+            String[] props = _deviceModel.getNotifiablePropertyNames();
             for ( int i = 0; i < props.length; i++ ) {
-                if ( props[i].equals(_originalTrigger.propertyNickname) ) {
+                if ( props[i].equals(_originalTrigger.getPropertyNickname()) ) {
                     _propertySpinner.setSelection(i);
                     break;
                 }
             }
         }
 
-        _nameEditText.setText(_originalTrigger.deviceNickname);
+        _nameEditText.setText(_originalTrigger.getDeviceNickname());
 
-        switch(_originalTrigger.baseType) {
+        switch(_originalTrigger.getBaseType()) {
             case "boolean":
-                if ( _originalTrigger.triggerType.equals(TRIGGER_COMPARE_ABSOLUTE)) {
+                if ( _originalTrigger.getTriggerType().equals(TRIGGER_COMPARE_ABSOLUTE)) {
                     // This is either turn on or turn off
-                    _booleanRadioGroup.check(_originalTrigger.value.equals("1") ? R.id.radio_turn_on : R.id.radio_turn_off);
+                    _booleanRadioGroup.check(_originalTrigger.getValue().equals("1") ? R.id.radio_turn_on :
+                            R.id.radio_turn_off);
                 } else {
                     _booleanRadioGroup.check(R.id.radio_on_or_off);
                 }
@@ -245,9 +268,11 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
             case "integer":
             case "decimal":
-                _numberEditText.setText(_originalTrigger.value);
-                if ( _originalTrigger.triggerType.equals(TRIGGER_COMPARE_ABSOLUTE) && _originalTrigger.value != null ) {
-                    _numberRadioGroup.check(_originalTrigger.value.equals("<") ? R.id.radio_integer_less_than : R.id.radio_integer_greater_than);
+                _numberEditText.setText(_originalTrigger.getValue());
+                if ( _originalTrigger.getTriggerType().equals(TRIGGER_COMPARE_ABSOLUTE) &&
+                        _originalTrigger.getValue() != null ) {
+                    _numberRadioGroup.check(_originalTrigger.getValue().equals("<") ? R.id
+                            .radio_integer_less_than : R.id.radio_integer_greater_than);
                 } else {
                     _numberRadioGroup.check(R.id.radio_integer_changes);
                 }
@@ -255,23 +280,43 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         }
 
         // Update our list of contacts from the apps on this trigger
-        if ( _originalTrigger.applicationTriggers == null ) {
-            Log.e(LOG_TAG, "trigger: No triggers found for this notification");
-        } else {
-            for ( AylaApplicationTrigger trigger : _originalTrigger.applicationTriggers ) {
-                //Log.d(LOG_TAG, "trigger: [" + trigger + "]");
-                AylaContact contact = SessionManager.getInstance().getContactManager().getContactByID(Integer.parseInt(trigger.contactId));
-                if ( contact != null ) {
-                    if ( trigger.name.equals("push_android") ) {
-                        _pushContacts.add(contact);
-                    } else if ( trigger.name.equals("email") ) {
-                        _emailContacts.add(contact);
-                    } else {
-                        _smsContacts.add(contact);
+
+        _originalTrigger.fetchApps(
+                new Response.Listener<AylaPropertyTriggerApp[]>() {
+                    @Override
+                    public void onResponse(AylaPropertyTriggerApp[] response) {
+                        for (AylaPropertyTriggerApp propertyTriggerApp : response) {
+                            String contactId = propertyTriggerApp.getContactId();
+                            if (contactId == null) {
+                                continue;
+                            }
+                            AylaContact contact= AMAPCore.sharedInstance().getContactManager().getContactByID(Integer.parseInt
+                                    (contactId));
+                            if(contact == null) {
+                                return;
+                            }
+                            switch (propertyTriggerApp.getNotificationType()) {
+                                case SMS:
+                                    _smsContacts.add(contact);
+                                    break;
+                                case EMail:
+                                    _emailContacts.add(contact);
+                                    break;
+                                case GooglePush:
+                                    _pushContacts.add(contact);
+                                    break;
+                            }
+                        }
+                        _recyclerView.getAdapter().notifyDataSetChanged();
                     }
-                }
-            }
-        }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.getInstance(), error.toString(), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
 
         _recyclerView.getAdapter().notifyDataSetChanged();
     }
@@ -281,10 +326,10 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         if ((contact == null) || (_ownerContact == null)) {
             return false;
         }
-        if (contact.id == _ownerContact.id) {
+        if (contact.getId() == _ownerContact.getId()) {
             return true;
         }
-        if (TextUtils.equals(contact.email, _ownerContact.email)) {
+        if (TextUtils.equals(contact.getEmail(), _ownerContact.getEmail())) {
             return true;
         }
         return false;
@@ -310,7 +355,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public void emailTapped(AylaContact contact) {
         Log.d(LOG_TAG, "Email tapped: " + contact);
-        if (TextUtils.isEmpty(contact.email)) {
+        if (TextUtils.isEmpty(contact.getEmail())) {
             Toast.makeText(getActivity(), R.string.contact_email_required, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -325,7 +370,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public void smsTapped(AylaContact contact) {
         Log.d(LOG_TAG, "SMS tapped: " + contact);
-        if (TextUtils.isEmpty(contact.phoneNumber)) {
+        if (TextUtils.isEmpty(contact.getPhoneNumber())) {
             Toast.makeText(getActivity(), R.string.contact_phone_required, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -345,16 +390,16 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             _emailContacts.remove(contact);
             _pushContacts.remove(contact);
         } else {
-            AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+            AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
             if (accountSettings != null) {
                 if (isOwner(contact)) {
                     _pushContacts.add(contact);
                 }
             }
-            if ( !TextUtils.isEmpty(contact.phoneNumber) ) {
+            if ( !TextUtils.isEmpty(contact.getPhoneNumber()) ) {
                 _smsContacts.add(contact);
             }
-            if ( !TextUtils.isEmpty(contact.email) ) {
+            if ( !TextUtils.isEmpty(contact.getEmail()) ) {
                 _emailContacts.add(contact);
             }
         }
@@ -405,8 +450,9 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             return;
         }
 
-        String propName = _device.getNotifiablePropertyNames()[_propertySpinner.getSelectedItemPosition()];
-        AylaProperty prop = _device.getProperty(propName);
+        String propName = _deviceModel.getNotifiablePropertyNames()[_propertySpinner
+                .getSelectedItemPosition()];
+        AylaProperty prop = _deviceModel.getProperty(propName);
         if ( prop == null ) {
             // Uh oh.
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
@@ -428,7 +474,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             numberValue = null;
         }
 
-        if ( ("integer".equals(prop.baseType) || "decimal".equals(prop.baseType)) &&
+        if ( ("integer".equals(prop.getBaseType()) || "decimal".equals(prop.getBaseType())) &&
                 (_numberRadioGroup.getCheckedRadioButtonId() != R.id.radio_integer_changes && _integerLayout.getVisibility() == View.VISIBLE) ){
             if ( numberValue == null ) {
                 _numberEditText.requestFocus();
@@ -440,56 +486,57 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         // Now we should be set to create the trigger and trigger apps.
         AylaPropertyTrigger trigger = new AylaPropertyTrigger();
 
-        trigger.deviceNickname = _nameEditText.getText().toString();
-        trigger.baseType = prop.baseType;
-        trigger.active = true;
+        trigger.setDeviceNickname(_nameEditText.getText().toString());
+        trigger.setBaseType(prop.getBaseType());
+        trigger.setActive(true);
 
-        if ( prop.baseType.equals("boolean")) {
+        if ( prop.getBaseType().equals("boolean")) {
             switch ( _booleanRadioGroup.getCheckedRadioButtonId() ) {
                 case R.id.radio_turn_on:
-                    trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
-                    trigger.compareType = "==";
-                    trigger.value = "1";
+                    trigger.setTriggerType(TRIGGER_COMPARE_ABSOLUTE);
+                    trigger.setCompareType("==");
+                    trigger.setValue("1");
                     break;
 
                 case R.id.radio_turn_off:
-                    trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
-                    trigger.compareType = "==";
-                    trigger.value = "0";
+                    trigger.setTriggerType(TRIGGER_COMPARE_ABSOLUTE);
+                    trigger.setCompareType("==");
+                    trigger.setValue("0");
                     break;
 
                 case R.id.radio_on_or_off:
-                    trigger.triggerType = TRIGGER_ALWAYS;
+                    trigger.setTriggerType(TRIGGER_ALWAYS);
                     break;
             }
-        } else if(prop.baseType.equals("integer")){
-            if(_device.friendlyNameForPropertyName(propName).equals(MainActivity.getInstance().getString(R.string.property_motion_sensor_friendly_name))) {
+        } else if(prop.getBaseType().equals("integer")){
+            if(_deviceModel.friendlyNameForPropertyName(propName).equals(MainActivity.getInstance()
+                    .getString(R.string
+                    .property_motion_sensor_friendly_name))) {
                 switch (_motionRadioGroup.getCheckedRadioButtonId()){
                     case R.id.radio_detected:
-                        trigger.triggerType = TRIGGER_ALWAYS;
+                        trigger.setTriggerType(TRIGGER_ALWAYS);
                         break;
                     case R.id.radio_stopped:
-                        trigger.triggerType = TRIGGER_ALWAYS;
+                        trigger.setTriggerType(TRIGGER_ALWAYS);
                         break;
                 }
             } else{
                 switch ( _numberRadioGroup.getCheckedRadioButtonId() ) {
                     case R.id.radio_integer_changes:
-                        trigger.triggerType = TRIGGER_ALWAYS;
+                        trigger.setTriggerType(TRIGGER_ALWAYS);
                         break;
 
                     case R.id.radio_integer_greater_than:
-                        trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
-                        trigger.compareType = ">";
+                        trigger.setTriggerType(TRIGGER_COMPARE_ABSOLUTE);
+                        trigger.setCompareType(">");
                         break;
 
                     case R.id.radio_integer_less_than:
-                        trigger.triggerType = TRIGGER_COMPARE_ABSOLUTE;
-                        trigger.compareType = "<";
+                        trigger.setTriggerType(TRIGGER_COMPARE_ABSOLUTE);
+                        trigger.setCompareType("<");
                         break;
                 }
             }
-
         }
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
@@ -500,39 +547,37 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                 _emailContacts,
                 _smsContacts,
                 new PropertyNotificationHelper.SetNotificationListener() {
-            @Override
-            public void notificationsSet(AylaProperty property, AylaPropertyTrigger propertyTrigger, boolean succeeded) {
-                MainActivity.getInstance().dismissWaitDialog();
-                if ( succeeded ) {
-                    Toast.makeText(getActivity(), R.string.notification_created, Toast.LENGTH_LONG).show();
-
-                    // Delete the old notification. We won't wait for the response.
-                    if ( _originalTrigger != null ) {
-                        _originalTrigger.destroyTrigger(new Handler() {
-                            @Override
-                            public void handleMessage(Message msg) {
-                                Log.d(LOG_TAG, "Old trigger deletion: " + msg);
-                            }
-                        });
+                    public void notificationsSet(AylaProperty property, AylaPropertyTrigger
+                            propertyTrigger, AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        if (_originalTrigger != null) {
+                            property.deleteTrigger(_originalTrigger, new Response.Listener<
+                                            AylaAPIRequest.EmptyResponse>() {
+                                        @Override
+                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                            AylaLog.d(LOG_TAG, "Successfully Deleted the old trigger");
+                                            getFragmentManager().popBackStack();
+                                        }
+                                    },
+                                    new ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(AylaError error) {
+                                            Toast.makeText(MainActivity.getInstance(), error.toString(), Toast.LENGTH_LONG)
+                                                    .show();
+                                        }
+                                    });
+                        }
+                        else {
+                            getFragmentManager().popBackStack();
+                        }
                     }
-                    getFragmentManager().popBackStack();
-                } else {
-                    Log.e(LOG_TAG, "Failed to set notifications");
-                    String msg = (String)_lastMessage.obj;
-                    if ( TextUtils.isEmpty(msg) ) {
-                        msg = getActivity().getString(R.string.unknown_error);
-                    }
-                    Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+                });
     }
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        String propertyName = _device.getNotifiablePropertyNames()[position];
+        String propertyName = _deviceModel.getNotifiablePropertyNames()[position];
         Log.d(LOG_TAG, "onItemSelected: "+ _propertySpinner.getSelectedItem() + " == " + propertyName);
-        AylaProperty prop = _device.getProperty(propertyName);
+        AylaProperty prop = _deviceModel.getProperty(propertyName);
         if ( prop == null ) {
             Log.e(LOG_TAG, "Failed to get property: " + propertyName);
             return;
@@ -542,9 +587,9 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         _booleanLayout.setVisibility(View.INVISIBLE);
         _integerLayout.setVisibility(View.INVISIBLE);
         _motionSensorLayout.setVisibility(View.INVISIBLE);
-        Log.d(LOG_TAG, "Property " + propertyName + " base type: " + prop.baseType);
+        Log.d(LOG_TAG, "Property " + propertyName + " base type: " + prop.getBaseType());
         _numberRadioGroup.clearCheck();
-        switch ( prop.baseType ) {
+        switch ( prop.getBaseType() ) {
             case "boolean":
                 _booleanLayout.setVisibility(View.VISIBLE);
                 break;
@@ -556,7 +601,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
             case "integer":
 
-                if(_device.friendlyNameForPropertyName(propertyName).equals(MainActivity.getInstance().getString(R.string.property_motion_sensor_friendly_name))){
+                if(_deviceModel.friendlyNameForPropertyName(propertyName).equals(MainActivity
+                        .getInstance().getString(R.string.property_motion_sensor_friendly_name))){
                     _motionSensorLayout.setVisibility(View.VISIBLE);
 
                 } else{

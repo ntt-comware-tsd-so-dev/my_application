@@ -43,7 +43,7 @@ public class GenericDoorSensor extends GenericTriggerDevice {
 
     @Override
     public int getItemViewType() {
-        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_WITH_STATUS;
+        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE;
     }
 
     @Override

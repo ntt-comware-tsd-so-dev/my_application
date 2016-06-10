@@ -10,9 +10,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aylanetworks.agilelink.BuildConfig;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.util.SystemInfoUtils;
 
 /**
  * Created by Emmanuel Luna on 06/16/15.
@@ -25,6 +30,7 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     private View mTermsAndConditionView;
     private View mEmailLogsView;
     private View mView;
+    public static final String supportEmail = "mobile-libraries@aylanetworks.com";
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -69,17 +75,31 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
                 break;
 
             case R.id.terms_and_condition:
-                Intent termsAndConditionIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(	getResources().getString(R.string.terms_and_condition_link)));
+                Intent termsAndConditionIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.terms_and_condition_link)));
                 startActivity(termsAndConditionIntent);
                 break;
 
             case R.id.email_logs:
-                Intent emailLogsIntent = AylaSystemUtils.emailLogsToSupport(SessionManager.sessionParameters().appId);
-                if (emailLogsIntent != null) {
-                    startActivity(emailLogsIntent);
-                }
+                handleSendEmail();
                 break;
         }
     }
+    public void handleSendEmail(){
+        String[] supportEmailAddress = {supportEmail};
+        StringBuilder strBuilder = new StringBuilder(200);
+        strBuilder.append( "Latest logs from Aura app attached");
+        strBuilder.append("\n\n OS Version: " + SystemInfoUtils.getOSVersion());
+        strBuilder.append("\n SDK Version: " + SystemInfoUtils.getSDKVersion());
+        strBuilder.append("\nCountry: " + SystemInfoUtils.getCountry());
+        strBuilder.append("\nLanguage: " + SystemInfoUtils.getLanguage());
+        strBuilder.append("\nNetwork Operator: " + SystemInfoUtils.getNetworkOperator());
+        strBuilder.append("\nAyla SDK version: " + AylaNetworks.getVersion());
+        strBuilder.append("\nAura app version: " + MainActivity.getInstance().getAppVersion());
+        Intent emailIntent = AylaLog.getEmailIntent(supportEmailAddress, "Aura Logs",
+                strBuilder.toString() );
+        if(emailIntent != null){
+            startActivity(emailIntent);
+        }
 
+    }
 }
