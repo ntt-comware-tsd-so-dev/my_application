@@ -823,29 +823,29 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
             TextView propValueText = (TextView)convertView.findViewById(R.id.property_value_textview);
             final Switch propValueSwitch = (Switch)convertView.findViewById(R.id.property_value_switch);
 
-            Log.d(LOG_TAG, "Property: " + prop.name() + " Type: " + prop.baseType + " Value: " + prop.value);
+            Log.d(LOG_TAG, "Property: " + prop.getName() + " Type: " + prop.getBaseType() + " Value: " + prop.getValue());
 
-            propName.setText(_deviceModel.friendlyNameForPropertyName(prop.name()));
+            propName.setText(_deviceModel.friendlyNameForPropertyName(prop.getName()));
             propValueText.setOnClickListener(null);
-            if ( prop.direction().equals("output")) {
+            if ( prop.getDirection().equals("output")) {
                 // This is a read-only property
                 propValueSwitch.setVisibility(View.GONE);
                 propValueText.setVisibility(View.VISIBLE);
-                propValueText.setText(prop.value);
+                propValueText.setText(prop.getValue().toString());
                 propName.setTextColor(_context.getResources().getColor(R.color.disabled_text));
             } else {
                 // This property can be set
                 propName.setTextColor(_context.getResources().getColor(R.color.card_text));
 
                 // Configure based on the base type of the property
-                switch ( prop.baseType ) {
+                switch ( prop.getBaseType() ) {
                     case "boolean":
                         propValueSwitch.setVisibility(View.VISIBLE);
                         propValueSwitch.setEnabled(_deviceModel.isOnline());
                         propValueText.setVisibility(View.GONE);
                         propValueSwitch.setOnCheckedChangeListener(null);
-                        propValueSwitch.setChecked("1".equals(prop.value));
-                        Log.d(LOG_TAG, "Checked: " + propValueSwitch.isChecked() + " prop.value: " + prop.value);
+                        propValueSwitch.setChecked("1".equals(prop.getValue()));
+                        Log.d(LOG_TAG, "Checked: " + propValueSwitch.isChecked() + " prop.value: " + prop.getValue());
                         propValueSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             boolean _setting = false;
 
@@ -857,13 +857,13 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
                                 MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
                                 Boolean newValue = isChecked;
-                                _deviceModel.setDatapoint(prop.name(), newValue, new Device.SetDatapointListener() {
+                                _deviceModel.setDatapoint(prop.getName(), newValue, new Device.SetDatapointListener() {
                                     @Override
                                     public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
                                         MainActivity.getInstance().dismissWaitDialog();
                                         if (succeeded && newDatapoint != null) {
                                             _setting = true;
-                                            propValueSwitch.setChecked("1".equals(newDatapoint.value()));
+                                            propValueSwitch.setChecked("1".equals(newDatapoint.getValue().toString()));
                                             _setting = false;
                                         } else {
                                             Log.e(LOG_TAG, "Set property failed");
@@ -880,7 +880,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     default:
                         propValueSwitch.setVisibility(View.GONE);
                         propValueText.setVisibility(View.VISIBLE);
-                        propValueText.setText(prop.value);
+                        propValueText.setText(prop.getValue().toString());
                         propValueText.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -897,6 +897,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
     private void editProperty(AylaProperty property) {
         Log.d(LOG_TAG, "Edit Property: " +  property);
-        Toast.makeText(getActivity(), "Edit " + property.baseType + " property: Coming soon!", Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(), "Edit " + property.getBaseType() + " property: Coming soon!", Toast.LENGTH_LONG).show();
     }
 }

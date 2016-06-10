@@ -4,8 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -13,13 +11,10 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
 import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaSystemUtils;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -92,14 +87,14 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
         }
 
         AylaUser user = new AylaUser();
-        user.email = email.getText().toString();
-        user.password = password.getText().toString();
-        user.firstname = firstName.getText().toString();
-        user.lastname = lastName.getText().toString();
-        user.country = country.getText().toString();
-        user.zip = zip.getText().toString();
-        user.phone = phone.getText().toString();
-        user.aylaDevKitNum = evb.getText().toString();
+        user.setEmail(email.getText().toString());
+        user.setPassword(password.getText().toString());
+        user.setFirstname(firstName.getText().toString());
+        user.setLastname(lastName.getText().toString());
+        user.setCountry(country.getText().toString());
+        user.setZip(zip.getText().toString());
+        user.setPhone(phone.getText().toString());
+        user.setAylaDevKitNum(evb.getText().toString());
 
         progress.setVisibility(View.VISIBLE);
 
