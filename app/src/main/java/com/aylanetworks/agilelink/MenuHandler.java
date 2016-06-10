@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.framework;
+package com.aylanetworks.agilelink;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -12,11 +12,11 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaUser;
-import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -28,9 +28,14 @@ import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
+import com.aylanetworks.aylasdk.error.RequestFuture;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /*
  * MenuHandler.java
@@ -71,10 +76,6 @@ public class MenuHandler {
 
             case R.id.action_device_groups:
                 handleDeviceGroups();
-                break;
-
-            case R.id.action_device_scenes:
-                handleDeviceScenes();
                 break;
 
             case R.id.action_gateways:
@@ -143,10 +144,6 @@ public class MenuHandler {
         replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
-    public static void handleDeviceScenes() {
-        replaceFragmentToRoot(DeviceScenesFragment.newInstance());
-    }
-
     public static void handleAddDevice() {
         MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
     }
@@ -192,7 +189,7 @@ public class MenuHandler {
                         // Actually delete the account
                         Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
 
-                        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+                        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
                         if(params.ssoLogin){
                             _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
                             params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
@@ -216,7 +213,7 @@ public class MenuHandler {
             if ( AylaNetworks.succeeded(msg) ) {
                 // Log out and show a toast
                 SessionManager.clearSavedUser();
-                SessionManager.stopSession();
+                shutdownSession();
                 Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
             } else {
                 // Look for an error message in the returned JSON
@@ -247,7 +244,7 @@ public class MenuHandler {
             if (msg.arg1 >= 200 && msg.arg1 <300)  {
                 // Log out and show a toast
                 SessionManager.clearSavedUser();
-                SessionManager.stopSession();
+                shutdownSession();
                 Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
             } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
                 // Look for an error message in the returned JSON
@@ -289,14 +286,31 @@ public class MenuHandler {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Logger.logInfo(LOG_TAG, "signOut: stop session.");
-                            SessionManager.stopSession();
+                            shutdownSession();
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)
                     .create().show();
         } else {
             Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed, stop session.");
-            SessionManager.stopSession();
+            shutdownSession();
+        }
+    }
+
+    private static void shutdownSession() {
+        RequestFuture<AylaAPIRequest.EmptyResponse> future = RequestFuture.newFuture();
+        final AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().shutDown(future, future);
+        try {
+            AylaAPIRequest.EmptyResponse response = future.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+            return;
         }
     }
 
