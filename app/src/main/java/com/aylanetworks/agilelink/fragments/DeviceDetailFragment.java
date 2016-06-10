@@ -7,12 +7,10 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +34,7 @@ import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceGateway;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaGrant;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
@@ -45,21 +44,25 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.aylasdk.AylaTimeZone;
 import com.aylanetworks.aylasdk.change.Change;
+import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.RequestFuture;
 
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * DeviceDetailFragment.java
@@ -312,23 +315,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
     }
 
-    private static class DeleteShareHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Delete share: " + msg);
-            if ( AylaNetworks.succeeded(msg) ) {
-                Toast.makeText(MainActivity.getInstance(), R.string.share_removed, Toast.LENGTH_LONG).show();
-                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
-            } else {
-                String message = MainActivity.getInstance().getResources().getString(R.string.remove_share_failure);
-                if ( msg.obj != null ) {
-                    message = (String)msg.obj;
-                }
-                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId() ) {
@@ -367,7 +353,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     public void onAttach(Activity act) {
         super.onAttach(act);
 
-        mContext = (Context)act;
+        mContext = act;
     }
 
     @Override
@@ -382,19 +368,18 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     public void onResume() {
         super.onResume();
 
-        SessionManager.deviceManager().addDeviceStatusListener(this);
+        _deviceModel.getDevice().addListener(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if(SessionManager.deviceManager() != null){
-            SessionManager.deviceManager().removeDeviceStatusListener(this);
-        }
+
+        _deviceModel.getDevice().removeListener(this);
     }
 
     @Override
-    public void statusUpdated(Device device, boolean changed) {
+    public void statusUpdated(AylaDevice device, boolean changed) {
         Log.d(LOG_TAG, "statusUpdated: " + device);
         if ( changed && device.equals(_deviceModel) ) {
             updateUI();
@@ -402,38 +387,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Handler for device unregister call
-    static class UnregisterDeviceHandler extends Handler {
-        private WeakReference<DeviceDetailFragment> _deviceDetailFragment;
-
-        public UnregisterDeviceHandler(DeviceDetailFragment deviceDetailFragment) {
-            _deviceDetailFragment = new WeakReference<DeviceDetailFragment>(deviceDetailFragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "fr: unregister device");
-            MainActivity.getInstance().dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                Log.i(LOG_TAG, "Device unregistered: " + _deviceDetailFragment.get()._deviceModel);
-
-                Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
-
-                // Pop ourselves off of the back stack and force a refresh of the device list
-                _deviceDetailFragment.get().getFragmentManager().popBackStack();
-                SessionManager.deviceManager().refreshDeviceList();
-            } else {
-                Log.e(LOG_TAG, "Unregister device failed for " + _deviceDetailFragment.get()._deviceModel + ": " + msg.obj);
-                Toast.makeText(_deviceDetailFragment.get().getActivity(), R.string.unregister_failed, Toast.LENGTH_LONG).show();
-
-                // if timeout, ask if they want to do it again?
-                if (msg.arg1 == AylaNetworks.AML_ERROR_TIMEOUT) {
-                    _deviceDetailFragment.get().unregisterDeviceTimeout();
-                }
-            }
-        }
-    }
 
     void unregisterDeviceTimeout() {
         Logger.logInfo(LOG_TAG, "fr: unregister device [%s] timeout. ask again.", _deviceModel.getDevice().getDsn());
@@ -450,14 +403,12 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                 getString(R.string.waiting_unregister_body));
 
                         Log.i(LOG_TAG, "Unregister Device: " + _deviceModel);
-                        _deviceModel.unregisterDevice(_unregisterDeviceHandler);
+                        doUnregisterDevice(_deviceModel.getDevice());
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
     }
-
-    private UnregisterDeviceHandler _unregisterDeviceHandler = new UnregisterDeviceHandler(this);
 
     private void unregisterDevice() {
         // Unregister Device clicked
@@ -475,15 +426,41 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                 getString(R.string.waiting_unregister_body));
 
                         Log.i(LOG_TAG, "Unregister Device: " + _deviceModel);
-                        _deviceModel.unregisterDevice(_unregisterDeviceHandler);
+                        doUnregisterDevice(_deviceModel.getDevice());
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
     }
 
+    private void doUnregisterDevice(AylaDevice device) {
+        RequestFuture<AylaAPIRequest.EmptyResponse> future = RequestFuture.newFuture();
+        final AylaAPIRequest request = device.unregister(future, future);
+        try {
+            AylaAPIRequest.EmptyResponse response = future.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
+            unregisterDeviceTimeout();
+            return;
+        }
+
+        Log.i(LOG_TAG, "Device unregistered: " + device);
+        Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
+
+        // Pop ourselves off of the back stack and force a refresh of the device list
+        getFragmentManager().popBackStack();
+        AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
     static class FactoryResetDeviceHandler extends Handler {
         private WeakReference<DeviceDetailFragment> _deviceDetailFragment;
 
@@ -560,6 +537,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 .setNegativeButton(android.R.string.no, null)
                 .show();
     }
+        */
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -575,15 +553,72 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.i(LOG_TAG, "Un-share Device: " + _deviceModel);
-
-                        AylaShare share = new AylaShare();
-                        AylaGrant grant = _deviceModel.getDevice().grant;
-                        share.id = grant.shareId;
-                        share.delete(new DeleteShareHandler());
+                        doRemoveShare();
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
+    }
+
+    private void doRemoveShare() {
+        AylaShare[] shares = fetchReceivedShares();
+        if (shares == null) {
+            return;
+        }
+
+        String dsn = _deviceModel.getDevice().getDsn();
+        for (AylaShare share : shares) {
+            if (share.getResourceId().equals(dsn)) {
+                String shareId = share.getId();
+
+                RequestFuture<AylaAPIRequest.EmptyResponse> future = RequestFuture.newFuture();
+                final AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().deleteShare(shareId, future, future);
+                try {
+                    AylaAPIRequest.EmptyResponse response = future.get(10 * 1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
+                    return;
+                } catch (ExecutionException e) {
+                    Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
+                    return;
+                } catch (TimeoutException e) {
+                    Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                Toast.makeText(MainActivity.getInstance(), R.string.share_removed, Toast.LENGTH_LONG).show();
+                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
+
+                return;
+            }
+        }
+
+        Toast.makeText(MainActivity.getInstance(), "This device was not shared with you", Toast.LENGTH_LONG).show();
+    }
+
+    private AylaShare[] fetchReceivedShares() {
+        RequestFuture<AylaShare[]> future = RequestFuture.newFuture();
+        final AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().fetchReceivedShares(future, future);
+        AylaShare[] shares = null;
+        try {
+            shares = future.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
+            return null;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
+            return null;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
+            return null;
+        }
+
+        if (shares == null || shares.length == 0) {
+            Toast.makeText(getActivity(), "No shares available", Toast.LENGTH_LONG).show();
+            return null;
+        }
+
+        return shares;
     }
 
     private void notificationsClicked() {
@@ -591,17 +626,17 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     private void scheduleClicked() {
-        Fragment frag = ((ViewModel) _deviceModel).getScheduleFragment();
+        Fragment frag = _deviceModel.getScheduleFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void remoteClicked() {
-        Fragment frag = ((ViewModel) _deviceModel).getRemoteFragment();
+        Fragment frag = _deviceModel.getRemoteFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void triggerClicked() {
-        Fragment frag = ((ViewModel) _deviceModel).getTriggerFragment();
+        Fragment frag = _deviceModel.getTriggerFragment();
         MainActivity.getInstance().pushFragment(frag);
     }
 
@@ -620,7 +655,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     private void ensureIdentifyOff() {
-        if ((_deviceModel != null) && _deviceModel.isDeviceNode()) {
+        if ((_deviceModel != null) && _deviceModel.getDevice().isNode()) {
             AylaDeviceGateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
             // we don't care about the results
             Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _deviceModel.getDevice().getDsn());
@@ -629,44 +664,33 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     private void sharingClicked() {
-        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, (GenericDevice) _deviceModel);
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _deviceModel.getDevice());
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private static class CreateShareHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "CreateShareHandler: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                Toast.makeText(MainActivity.getInstance(), R.string.share_device_success, Toast.LENGTH_SHORT).show();
-                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
-            } else {
-                String error = (String)msg.obj;
-                if (TextUtils.isEmpty(error)) {
-                    error = MainActivity.getInstance().getString(R.string.share_device_fail);
-                }
-                Toast.makeText(MainActivity.getInstance(), error, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     private void updateTimezone() {
-        // Fetch the timezone for the device
-        MainActivity.getInstance().showWaitDialog(R.string.fetching_timezone_title, R.string.fetching_timezone_body);
-        _deviceModel.fetchTimezone(new Device.DeviceStatusListener() {
-            @Override
-            public void statusUpdated(Device device, boolean changed) {
-                MainActivity.getInstance().dismissWaitDialog();
-                if (changed) {
-                    chooseTimezone();
-                } else {
-                    Toast.makeText(MainActivity.getInstance(),
-                            R.string.timezone_fetch_failed,
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        RequestFuture<AylaTimeZone> future = RequestFuture.newFuture();
+        final AylaAPIRequest request = _deviceModel.getDevice().fetchTimeZone(future, future);
+        AylaTimeZone tz = null;
+        try {
+            tz = future.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (tz == null) {
+            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        chooseTimezone(tz);
     }
 
     private void showDetails() {
@@ -675,15 +699,15 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private void chooseTimezone() {
-        String currentTimezone = _deviceModel.getDevice().timezone.tzId;
+    private void chooseTimezone(AylaTimeZone tz) {
+        String currentTimezone = tz.tzId;
         final String[] timezones = TimeZone.getAvailableIDs();
         int checkedItem = -1;
         if ( currentTimezone != null ) {
             // Find the index of the item to check in our dialog's list
             for ( int i = 0; i < timezones.length; i++ ) {
-                String tz = timezones[i];
-                if (tz.equals(currentTimezone)) {
+                String tzStr = timezones[i];
+                if (tzStr.equals(currentTimezone)) {
                     checkedItem = i;
                     break;
                 }
@@ -751,15 +775,32 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
     private void setDeviceTimezone(String timezoneName) {
         MainActivity.getInstance().showWaitDialog(R.string.updating_timezone_title, R.string.updating_timezone_body);
-        _deviceModel.setTimeZone(timezoneName, new Device.DeviceStatusListener() {
-            @Override
-            public void statusUpdated(Device device, boolean changed) {
-                MainActivity.getInstance().dismissWaitDialog();
-                Toast.makeText(MainActivity.getInstance(),
-                        changed ? R.string.timezone_update_success : R.string.timezone_update_failure,
-                        Toast.LENGTH_LONG).show();
-            }
-        });
+
+        RequestFuture<AylaTimeZone> future = RequestFuture.newFuture();
+        final AylaAPIRequest request = _deviceModel.getDevice().updateTimeZone(timezoneName, future, future);
+        AylaTimeZone tz = null;
+        try {
+            tz = future.get(10 * 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
+            return;
+        } catch (ExecutionException e) {
+            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
+            return;
+        } catch (TimeoutException e) {
+            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (tz == null) {
+            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        MainActivity.getInstance().dismissWaitDialog();
+        Toast.makeText(MainActivity.getInstance(),
+                R.string.timezone_update_success,
+                Toast.LENGTH_LONG).show();
     }
 
     public class PropertyListAdapter extends ArrayAdapter<AylaProperty> {

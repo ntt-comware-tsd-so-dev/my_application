@@ -144,10 +144,6 @@ public class MenuHandler {
         replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
-    public static void handleDeviceScenes() {
-        replaceFragmentToRoot(DeviceScenesFragment.newInstance());
-    }
-
     public static void handleAddDevice() {
         MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
     }
