@@ -35,6 +35,7 @@ import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 import com.aylanetworks.aylasdk.AylaGrant;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
@@ -332,7 +333,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId() ) {
             case R.id.action_unregister_device:
-                if ( _deviceModel.getDevice().amOwner() ) {
+                if ( _deviceModel.getDevice().getGrant() == null ) {
                     unregisterDevice();
                 } else {
                     removeShare();
@@ -340,7 +341,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 break;
 
             case R.id.action_factory_reset_device:
-                if ( _deviceModel.getDevice().amOwner() ) {
+                if ( _deviceModel.getDevice().getGrant() == null ) {
                     unregisterDevice();
                 } else {
                     removeShare();
@@ -604,7 +605,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    public void gatewayCompletion(Gateway gateway, Message msg, Object tag) {
+    public void gatewayCompletion(AylaDeviceGateway gateway, Message msg, Object tag) {
         Switch control = (Switch)tag;
         control.setEnabled(true);
         Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _deviceModel.getDevice().getDsn(), (control.isChecked() ? "ON" : "OFF"));
@@ -613,14 +614,14 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     private void identifyClicked(View v) {
         Switch control = (Switch)v;
         control.setEnabled(false);
-        Gateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
+        AylaDeviceGateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
         Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _deviceModel.getDevice().getDsn(), (control.isChecked() ? "ON" : "OFF"));
         gateway.identifyDeviceNode(_deviceModel, control.isChecked(), 255, v, this);
     }
 
     private void ensureIdentifyOff() {
         if ((_deviceModel != null) && _deviceModel.isDeviceNode()) {
-            Gateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
+            AylaDeviceGateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
             // we don't care about the results
             Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _deviceModel.getDevice().getDsn());
             gateway.identifyDeviceNode(_deviceModel, false, 0, null, null);
