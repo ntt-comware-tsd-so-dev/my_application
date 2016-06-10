@@ -26,7 +26,7 @@ import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
-import com.aylanetworks.agilelink.framework.MenuHandler;
+import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;

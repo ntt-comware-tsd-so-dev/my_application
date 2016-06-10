@@ -10,11 +10,7 @@ package com.aylanetworks.agilelink.fragments;
 import android.view.View;
 
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-
-
-import java.util.ArrayList;
-import java.util.List;
+import com.aylanetworks.agilelink.MenuHandler;
 
 public class GatewayDevicesFragment extends AllDevicesFragment {
 

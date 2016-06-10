@@ -23,7 +23,7 @@ import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.ContactManager;
-import com.aylanetworks.agilelink.framework.MenuHandler;
+import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.util.EmptyListener;

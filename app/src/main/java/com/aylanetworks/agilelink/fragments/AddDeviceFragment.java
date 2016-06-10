@@ -12,9 +12,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -48,7 +46,7 @@ import com.aylanetworks.agilelink.device.GenericGateway;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.MenuHandler;
+import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.error.RequestFuture;
@@ -59,7 +57,6 @@ import com.aylanetworks.aylasdk.setup.AylaSetupDevice;
 import com.aylanetworks.aylasdk.setup.AylaWifiScanResults;
 import com.aylanetworks.aylasdk.setup.AylaWifiStatus;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -1035,7 +1032,7 @@ public class AddDeviceFragment extends Fragment
 
                 int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
                 Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                SessionManager.deviceManager().refreshDeviceList();
+                AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
 
                 if (error == AylaNetworks.AML_ERROR_OK) {
                     // TODO: Major! unfortunately, we aren't able to transition from nodevicesmode to having devices!

@@ -32,7 +32,7 @@ import com.aylanetworks.agilelink.R;
 
 public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.OnItemSelectedListener, TextWatcher {
 
-    static final String[] SECURITY_MODES = {AylaNetworks.AML_OPEN, AylaNetworks.AML_WEP, AylaNetworks.AML_WPA, AylaNetworks.AML_WPA2, AylaNetworks.AML_WPA_EAP,AylaNetworks.AML_IEEE8021X};
+    // static final String[] SECURITY_MODES = {AylaNetworks.AML_OPEN, AylaNetworks.AML_WEP, AylaNetworks.AML_WPA, AylaNetworks.AML_WPA2, AylaNetworks.AML_WPA_EAP,AylaNetworks.AML_IEEE8021X};
     private final static String LOG_TAG = "ConnectToHiddenWiFi";
     private EditText _wifiNameEditText;
     private Spinner _spinnerSecurityType;
@@ -91,7 +91,7 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
         _cancelButton = (Button) view.findViewById(R.id.button_cancel);
 
 
-        ArrayAdapter securityTypeAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, SECURITY_MODES);
+        ArrayAdapter securityTypeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, new String[]{"All"});
         securityTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         _spinnerSecurityType.setAdapter(securityTypeAdapter);
         _spinnerSecurityType.setOnItemSelectedListener(this);
@@ -113,12 +113,13 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         view.setSelected(true);
-        _selectedSecurity = SECURITY_MODES[position];
+        // _selectedSecurity = SECURITY_MODES[position];
 
         // Hide any visible keyboards
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(_passwordEditText.getWindowToken(), 0);
 
+        /**
         if (_selectedSecurity.equals(AylaNetworks.AML_OPEN)) {
             // No need for the password field
             _passwordContainer.setVisibility(View.GONE);
@@ -135,6 +136,12 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
             _passwordEditText.setEnabled(true);
             _connectButton.setEnabled(false);
         }
+         */
+
+        _passwordContainer.setVisibility(View.VISIBLE);
+        _passwordEditText.setText("");
+        _passwordEditText.setEnabled(true);
+        _connectButton.setEnabled(false);
         Log.d(LOG_TAG, "onItemClick: " + " [" + _selectedSecurity + "]");
     }
 
@@ -157,6 +164,7 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
 
     @Override
     public void afterTextChanged(Editable s) {
+        /**
         if(_selectedSecurity == null)
             return;
         //If the user chooses security as Open then make sure that the WiFi name is entered
@@ -166,6 +174,7 @@ public class ConnectToHiddenWiFi extends DialogFragment implements AdapterView.O
             //If security is other than none make sure they enter both wifiname and password
             _connectButton.setEnabled(_wifiNameEditText.getText().length() > 0 && _passwordEditText.getText().length() > 0);
         }
+        */
     }
 
     public interface AddHiddenWiFi {
