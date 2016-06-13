@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
@@ -33,7 +32,6 @@ import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaDeviceGateway;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaShare;
@@ -44,7 +42,6 @@ import com.aylanetworks.aylasdk.AylaTimeZone;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
-import com.aylanetworks.aylasdk.error.RequestFuture;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -54,9 +51,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * DeviceDetailFragment.java
@@ -322,7 +316,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 break;
 
             case R.id.action_timezone:
-                updateTimezone();
+                fetchTimeZones();
                 break;
 
             case R.id.action_device_details:
@@ -412,29 +406,25 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 .show();
     }
 
-    private void doUnregisterDevice(AylaDevice device) {
-        RequestFuture<AylaAPIRequest.EmptyResponse> future = RequestFuture.newFuture();
-        final AylaAPIRequest request = device.unregister(future, future);
-        try {
-            AylaAPIRequest.EmptyResponse response = future.get(10 * 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
-            return;
-        } catch (ExecutionException e) {
-            Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
-            return;
-        } catch (TimeoutException e) {
-            Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
-            unregisterDeviceTimeout();
-            return;
-        }
+    private void doUnregisterDevice(final AylaDevice device) {
+        device.unregister(
+                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                    @Override
+                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        Log.i(LOG_TAG, "Device unregistered: " + device);
+                        Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
 
-        Log.i(LOG_TAG, "Device unregistered: " + device);
-        Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
-
-        // Pop ourselves off of the back stack and force a refresh of the device list
-        getFragmentManager().popBackStack();
-        AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+                        // Pop ourselves off of the back stack and force a refresh of the device list
+                        getFragmentManager().popBackStack();
+                        AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -532,72 +522,52 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.i(LOG_TAG, "Un-share Device: " + _deviceModel);
-                        doRemoveShare();
+                        fetchReceivedSharesAndRemoveCurrent();
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
     }
 
-    private void doRemoveShare() {
-        AylaShare[] shares = fetchReceivedShares();
-        if (shares == null) {
-            return;
-        }
-
+    private void removeCurrentShare(AylaShare[] shares) {
         String dsn = _deviceModel.getDevice().getDsn();
         for (AylaShare share : shares) {
             if (share.getResourceId().equals(dsn)) {
                 String shareId = share.getId();
 
-                RequestFuture<AylaAPIRequest.EmptyResponse> future = RequestFuture.newFuture();
-                final AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().deleteShare(shareId, future, future);
-                try {
-                    AylaAPIRequest.EmptyResponse response = future.get(10 * 1000, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
-                    return;
-                } catch (ExecutionException e) {
-                    Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
-                    return;
-                } catch (TimeoutException e) {
-                    Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                Toast.makeText(MainActivity.getInstance(), R.string.share_removed, Toast.LENGTH_LONG).show();
-                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
-
+                AMAPCore.sharedInstance().getSessionManager().deleteShare(shareId,
+                        new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                            @Override
+                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                Toast.makeText(MainActivity.getInstance(), R.string.share_removed, Toast.LENGTH_LONG).show();
+                                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
+                            }
+                        },
+                        new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
+                            }
+                        });
                 return;
             }
         }
-
-        Toast.makeText(MainActivity.getInstance(), "This device was not shared with you", Toast.LENGTH_LONG).show();
     }
 
-    private AylaShare[] fetchReceivedShares() {
-        RequestFuture<AylaShare[]> future = RequestFuture.newFuture();
-        final AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().fetchReceivedShares(future, future);
-        AylaShare[] shares = null;
-        try {
-            shares = future.get(10 * 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
-            return null;
-        } catch (ExecutionException e) {
-            Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
-            return null;
-        } catch (TimeoutException e) {
-            Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
-            return null;
-        }
-
-        if (shares == null || shares.length == 0) {
-            Toast.makeText(getActivity(), "No shares available", Toast.LENGTH_LONG).show();
-            return null;
-        }
-
-        return shares;
+    private void fetchReceivedSharesAndRemoveCurrent() {
+        AMAPCore.sharedInstance().getSessionManager().fetchReceivedShares(
+                new Response.Listener<AylaShare[]>() {
+                    @Override
+                    public void onResponse(AylaShare[] response) {
+                        removeCurrentShare(response);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void notificationsClicked() {
@@ -614,29 +584,20 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private void updateTimezone() {
-        RequestFuture<AylaTimeZone> future = RequestFuture.newFuture();
-        final AylaAPIRequest request = _deviceModel.getDevice().fetchTimeZone(future, future);
-        AylaTimeZone tz = null;
-        try {
-            tz = future.get(10 * 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
-            return;
-        } catch (ExecutionException e) {
-            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
-            return;
-        } catch (TimeoutException e) {
-            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (tz == null) {
-            Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        chooseTimezone(tz);
+    private void fetchTimeZones() {
+        _deviceModel.getDevice().fetchTimeZone(
+                new Response.Listener<AylaTimeZone>() {
+                    @Override
+                    public void onResponse(AylaTimeZone response) {
+                        chooseTimezone(response);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void showDetails() {
@@ -710,31 +671,22 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     private void setDeviceTimezone(String timezoneName) {
         MainActivity.getInstance().showWaitDialog(R.string.updating_timezone_title, R.string.updating_timezone_body);
 
-        RequestFuture<AylaTimeZone> future = RequestFuture.newFuture();
-        final AylaAPIRequest request = _deviceModel.getDevice().updateTimeZone(timezoneName, future, future);
-        AylaTimeZone tz = null;
-        try {
-            tz = future.get(10 * 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
-            return;
-        } catch (ExecutionException e) {
-            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
-            return;
-        } catch (TimeoutException e) {
-            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (tz == null) {
-            Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        MainActivity.getInstance().dismissWaitDialog();
-        Toast.makeText(MainActivity.getInstance(),
-                R.string.timezone_update_success,
-                Toast.LENGTH_LONG).show();
+        _deviceModel.getDevice().updateTimeZone(timezoneName,
+                new Response.Listener<AylaTimeZone>() {
+                    @Override
+                    public void onResponse(AylaTimeZone response) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        Toast.makeText(MainActivity.getInstance(),
+                                R.string.timezone_update_success,
+                                Toast.LENGTH_LONG).show();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     public class PropertyListAdapter extends ArrayAdapter<AylaProperty> {
