@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Resources;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -161,8 +159,6 @@ public class MenuHandler {
 
     public static AlertDialog _confirmDeleteDialog;
 
-    static SsoDeleteAccountHandler _ssoDeleteAccoutnHandler;
-
     public static void deleteAccount() {
         // First confirm
         Resources res = MainActivity.getInstance().getResources();
@@ -184,8 +180,23 @@ public class MenuHandler {
 
                         AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
                         if(params.ssoLogin){
-                            _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
-                            params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
+                            params.ssoManager.deleteUser(
+                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                        @Override
+                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                            MainActivity.getInstance().dismissWaitDialog();
+                                            shutdownSession();
+                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+                                        }
+                                    },
+                                    new ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(AylaError error) {
+                                            MainActivity.getInstance().dismissWaitDialog();
+                                            Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                            );
                         } else{
                             AylaNetworks.sharedInstance().getLoginManager().deleteAccount(
                                     AMAPCore.sharedInstance().getSessionParameters().sessionName,
@@ -209,28 +220,6 @@ public class MenuHandler {
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
-    }
-
-    static class SsoDeleteAccountHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-            if (msg.arg1 >= 200 && msg.arg1 <300)  {
-                // Log out and show a toast
-                shutdownSession();
-                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-            } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
-                // Look for an error message in the returned JSON
-                String errorMessage = msg.obj.toString();
-                if ( errorMessage != null ) {
-                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-                }
-            } else {
-                Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-            }
-        }
     }
 
     public static void handleShares() {

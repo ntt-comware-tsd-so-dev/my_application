@@ -30,12 +30,17 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
+import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -156,14 +161,26 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }, 500);
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                                imm.hideSoftInputFromWindow(_loginButton.getWindowToken(), 0);
-                                                showSigningInDialog();
-                                                SessionManager.startSession(_username.getText().toString(), _password.getText().toString());
-                                            }
-                                        }
+                @Override
+                public void onClick(View v) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(_loginButton.getWindowToken(), 0);
+                    showSigningInDialog();
+                    AMAPCore.sharedInstance().startSession(_username.getText().toString(), _password.getText().toString(),
+                            new Response.Listener<AylaAuthorization>() {
+                                @Override
+                                public void onResponse(AylaAuthorization response) {
+                                    Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
+                                }
+                            },
+                            new ErrorListener() {
+                                @Override
+                                public void onErrorResponse(AylaError error) {
+                                    Toast.makeText(getContext(), "Failed to login", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                }
+            }
         );
 
         _facebookLoginButton.setOnClickListener(new View.OnClickListener() {
@@ -326,34 +343,21 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                             params.put(AylaNetworks.AML_EMAIL_TEMPLATE_ID, sessionParams.registrationEmailTemplateId);
                         }
                         params.put(AylaNetworks.AML_EMAIL_SUBJECT, sessionParams.registrationEmailSubject);
-                        AylaUser.resendConfirmation(new Handler() {
-                            @Override
-                            public void handleMessage(Message msg) {
-                                Log.d(LOG_TAG, "Resend email result: " + msg);
 
-                                if (AylaNetworks.succeeded(msg)) {
-                                    Toast.makeText(SignInActivity.this, R.string.email_confirmation_sent, Toast.LENGTH_LONG).show();
-                                } else {
-                                    // Get the error out of the message if we can
-                                    String json = (String) msg.obj;
-                                    String errorMessage = null;
-                                    try {
-                                        JSONObject result = new JSONObject(json);
-                                        String errorJSON = result.getString("errors");
-                                        JSONObject errors = new JSONObject(errorJSON);
-                                        errorMessage = errors.getString("email");
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
+                        //TODO: USE CORRECT EMAIL AND TEMPALTE
+                        AylaNetworks.sharedInstance().getLoginManager().resendConfirmationEmail(null, null,
+                                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                    @Override
+                                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                        Toast.makeText(SignInActivity.this, R.string.email_confirmation_sent, Toast.LENGTH_LONG).show();
                                     }
-
-                                    if (errorMessage == null) {
-                                        errorMessage = getResources().getString(R.string.error_account_confirm_failed);
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(SignInActivity.this, error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                                     }
-
-                                    Toast.makeText(SignInActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        }, emailEditText.getText().toString(), sessionParams.appId, sessionParams.appSecret, params);
+                                });
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -409,38 +413,22 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                             params.put(AylaNetworks.AML_EMAIL_TEMPLATE_ID, sessionParams.resetPasswordEmailTemplateId);
                         }
                         params.put(AylaNetworks.AML_EMAIL_SUBJECT, sessionParams.resetPasswordEmailSubject);
-                        AylaUser.resetPassword(new Handler() {
-                            @Override
-                            public void handleMessage(Message msg) {
-                                Log.d(LOG_TAG, "Reset password result: " + msg);
 
-                                if (AylaNetworks.succeeded(msg)) {
-                                    Toast.makeText(SignInActivity.this, R.string.password_reset_sent, Toast.LENGTH_LONG).show();
-                                    _username.setText(emailEditText.getText().toString());
-                                } else {
-                                    // Get the error out of the message if we can
-                                    String json = (String) msg.obj;
-                                    String errorMessage = null;
-                                    try {
-                                        if (json != null) {
-                                            JSONObject result = new JSONObject(json);
-                                            String errorJSON = result.getString("errors");
-                                            JSONObject errors = new JSONObject(errorJSON);
-                                            errorMessage = errors.getString("email");
-                                        }
-
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
+                        //TODO: USE CORRECT EMAIL AND TEMPLATE
+                        AylaNetworks.sharedInstance().getLoginManager().requestPasswordReset(null, null,
+                                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                    @Override
+                                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                        Toast.makeText(SignInActivity.this, R.string.password_reset_sent, Toast.LENGTH_LONG).show();
+                                        _username.setText(emailEditText.getText().toString());
                                     }
-
-                                    if (errorMessage == null) {
-                                        errorMessage = getResources().getString(R.string.error_password_reset_failed);
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(SignInActivity.this, error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                                     }
-
-                                    Toast.makeText(SignInActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        }, emailEditText.getText().toString(), sessionParams.appId, sessionParams.appSecret, params);
+                                });
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -506,16 +494,43 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
     }
 
-    SignUpConfirmationHandler _signUpConfirmationHandler;
-
     private void handleUserSignupToken(String token) {
         Log.d(LOG_TAG, "nod: handleUserSignupToken: " + token);
-
-        // authenticate the token
-        Map<String, String> callParams = new HashMap<String, String>();
-        callParams.put("confirmation_token", token); // required
-        _signUpConfirmationHandler = new SignUpConfirmationHandler(this);
-        AylaUser.signUpConfirmation(_signUpConfirmationHandler, callParams);
+        AylaNetworks.sharedInstance().getLoginManager().confirmSignUp(token,
+                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                    @Override
+                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        /**
+                        AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
+                        AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
+                        String toastMessage = getString(R.string.welcome_new_account);
+                        Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show();
+                        _username.setText(aylaUser.getEmail());
+                        _password.setText(aylaUser.getPassword());
+                        Log.d(LOG_TAG, "nod: SignUpConfirmationHandler set user & password");
+                         */
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        /**
+                        AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "userSignUpConfirmation", "Failed", "userSignUpConfirmation_handler");
+                        int resID;
+                        if (msg.arg1 == 422) {
+                            resID = R.string.error_invalid_token; // Invalid token
+                        } else {
+                            resID = R.string.error_account_confirm_failed; // Unknown error occurred
+                        }
+                        AlertDialog.Builder ad = new AlertDialog.Builder(this);
+                        ad.setIcon(R.drawable.ic_launcher);
+                        ad.setTitle(R.string.error_sign_up_title);
+                        ad.setMessage(resID);
+                        ad.setPositiveButton(android.R.string.ok, null);
+                        ad.show();
+                         */
+                    }
+                });
     }
 
     private void handleUserResetPasswordToken(String token) {
@@ -537,55 +552,13 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     }
 
     @Override
-    public void reachabilityChanged(int reachabilityState) { }
+    public void sessionClosed(String sessionName, AylaError error) {
 
-    @Override
-    public void lanModeChanged(boolean lanModeEnabled) { }
-
-    void confirmationComplete(Message msg) {
-        String jsonResults = (String) msg.obj;
-        if (AylaNetworks.succeeded(msg)) {
-            // save auth info of current user
-            AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
-            AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
-            String toastMessage = getString(R.string.welcome_new_account);
-            Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show();
-            _username.setText(aylaUser.getEmail());
-            _password.setText(aylaUser.getPassword());
-            Log.d(LOG_TAG, "nod: SignUpConfirmationHandler set user & password");
-        } else {
-            AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "userSignUpConfirmation", "Failed", "userSignUpConfirmation_handler");
-            int resID;
-            if (msg.arg1 == 422) {
-                resID = R.string.error_invalid_token; // Invalid token
-            } else {
-                resID = R.string.error_account_confirm_failed; // Unknown error occurred
-            }
-            AlertDialog.Builder ad = new AlertDialog.Builder(this);
-            ad.setIcon(R.drawable.ic_launcher);
-            ad.setTitle(R.string.error_sign_up_title);
-            ad.setMessage(resID);
-            ad.setPositiveButton(android.R.string.ok, null);
-            ad.show();
-        }
     }
 
-    static class SignUpConfirmationHandler extends Handler {
-        private WeakReference<SignInActivity> _activity;
-        public SignUpConfirmationHandler(SignInActivity activity) {
-            _activity = new WeakReference<SignInActivity>(activity);
-        }
+    @Override
+    public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
 
-        public void handleMessage(final Message msg) {
-            // clear sign-up token
-            Log.d(LOG_TAG, "nod: SignUpConfirmationHandler [" + msg + "]");
-            _activity.get().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    _activity.get().confirmationComplete(msg);
-                }
-            });
-        }
     }
 
     static class OauthHandler extends Handler {
