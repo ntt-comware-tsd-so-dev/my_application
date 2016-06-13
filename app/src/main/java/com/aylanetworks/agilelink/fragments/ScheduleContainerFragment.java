@@ -69,6 +69,7 @@ public class ScheduleContainerFragment extends Fragment {
                 new Response.Listener<AylaSchedule[]>() {
                     @Override
                     public void onResponse(AylaSchedule[] response) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         _schedules=response;
                         onDeviceUpdated();
                     }
@@ -76,6 +77,7 @@ public class ScheduleContainerFragment extends Fragment {
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(MainActivity.getInstance(), error.toString(),
                                 Toast.LENGTH_LONG).show();
                     }
