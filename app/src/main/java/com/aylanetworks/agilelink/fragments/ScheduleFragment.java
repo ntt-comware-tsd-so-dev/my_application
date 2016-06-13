@@ -146,6 +146,7 @@ public class ScheduleFragment extends Fragment {
                                             for (AylaSchedule schedule : response) {
                                                 if (_scheduleName.equals(schedule.getName())) {
                                                     _schedule = new Schedule(schedule,_tz);
+                                                    updateUI();
                                                     break;
                                                 }
                                             }
@@ -338,28 +339,6 @@ public class ScheduleFragment extends Fragment {
         return root;
     }
 
-    void getTimeZone() {
-        final AylaAPIRequest request = _device.fetchTimeZone(
-                new Response.Listener<AylaTimeZone>() {
-                    @Override
-                    public void onResponse(AylaTimeZone response) {
-                        if (response.tzId != null) {
-                            _tz = TimeZone.getTimeZone(response.tzId);
-                        } else {
-                            _tz = TimeZone.getTimeZone("UTC");
-                        }
-                    }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-
-                        Toast.makeText(MainActivity.getInstance(), "Error while getting " +
-                                "TimeZone:"+error.toString(), Toast.LENGTH_LONG).show();
-                    }
-                });
-    }
-
     private void scheduleTimeChanged(int hourOfDay, int minute) {
         if ( _updatingUI ) {
             return;
@@ -444,6 +423,7 @@ public class ScheduleFragment extends Fragment {
                 },
                 new ErrorListener() {
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(MainActivity.getInstance(), error.toString(),
                                 Toast.LENGTH_LONG).show();
                     }

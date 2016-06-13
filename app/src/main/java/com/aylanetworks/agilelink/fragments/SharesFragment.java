@@ -97,6 +97,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 _ownedShares = response;
                 _ownedShareAdapter.clear();
                 _ownedShareAdapter.addAll(_ownedShares);
+                _ownedShareAdapter.notifyDataSetChanged();
             }
         }, new ErrorListener() {
             @Override
@@ -112,6 +113,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 _receivedShares = response;
                 _receivedShareAdapter.clear();
                 _receivedShareAdapter.addAll(_receivedShares);
+                _receivedShareAdapter.notifyDataSetChanged();
             }
         }, new ErrorListener() {
             @Override
@@ -119,9 +121,6 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 AylaLog.e(LOG_TAG, "Error in fetching shares "+ error.getLocalizedMessage());
             }
         });
-
-        _ownedShareAdapter.notifyDataSetChanged();
-        _receivedShareAdapter.notifyDataSetChanged();
     }
 
     private void addTapped() {
@@ -166,11 +165,13 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                                 new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                             @Override
                             public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                MainActivity.getInstance().dismissWaitDialog();
                                 fetchShares();
                             }
                         }, new ErrorListener() {
                             @Override
                             public void onErrorResponse(AylaError error) {
+                                MainActivity.getInstance().dismissWaitDialog();
                                 Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
                                         .LENGTH_LONG).show();
                             }
@@ -182,34 +183,45 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
-                             boolean readOnly, List<AylaDevice> devicesToShare) {
+    public void shareDevices(final String email, final String role, Calendar startDate, Calendar
+            endDate,
+                             boolean readOnly, final List<AylaDevice> devicesToShare) {
         // We got this call from the ShareDevicesFragment.
         getFragmentManager().popBackStack();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        if ( devicesToShare != null && !devicesToShare.isEmpty() ) {
-          //  AddSharesHandler handler = new AddSharesHandler(this, email, role, startDate, endDate,
-          ///          readOnly, devicesToShare);
+        if (devicesToShare != null && !devicesToShare.isEmpty()) {
+            //  AddSharesHandler handler = new AddSharesHandler(this, email, role, startDate, endDate,
+            ///          readOnly, devicesToShare);
             MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
-            for(AylaDevice device:devicesToShare){
-                String strStartDate= dateFormat.format(startDate.getTime());
-                String strEndDate =  dateFormat.format(endDate.getTime());
-                AylaShare share = device.shareWithEmail(email, "read", role, strStartDate, strEndDate );
-                AMAPCore.sharedInstance().getSessionManager().createShare(share,null,new Response.Listener<AylaShare>(){
-                            @Override
-                            public void onResponse(AylaShare response) {
-                            }
-                        },
-                        new ErrorListener() {
-                            @Override
-                            public void onErrorResponse(AylaError error) {
-                                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                                        .LENGTH_LONG).show();
-                            }
-                        });
-            }
+            AylaDevice device = devicesToShare.remove(0);
+            final String strStartDate = dateFormat.format(startDate.getTime());
+            final String strEndDate = dateFormat.format(endDate.getTime());
+            AylaShare share = device.shareWithEmail(email, "read", role, strStartDate, strEndDate);
 
+            final ErrorListener errorListener = new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    MainActivity.getInstance().dismissWaitDialog();
+                    Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                            .LENGTH_LONG).show();
+                }
+            };
 
+            AMAPCore.sharedInstance().getSessionManager().createShare(share, null, new Response.Listener<AylaShare>() {
+                @Override
+                public void onResponse(AylaShare response) {
+                    AylaDevice device = devicesToShare.remove(0);
+                    if (device == null) {
+                        //No more shares to create
+                        MainActivity.getInstance().dismissWaitDialog();
+                    } else {
+                        device = devicesToShare.remove(0);
+                        AylaShare share = device.shareWithEmail(email, "read", role, strStartDate, strEndDate);
+                        AMAPCore.sharedInstance().getSessionManager().createShare
+                                (share, null, this, errorListener);
+                    }
+                }
+            }, errorListener);
         }
     }
 }

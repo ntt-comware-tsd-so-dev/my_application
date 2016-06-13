@@ -153,10 +153,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                                 }
                             });
                 }
-
-                if (_originalTrigger == null) {
-                    Log.e(LOG_TAG, "Unable to find original trigger!");
-                }
             }
         }
     }
@@ -317,8 +313,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                                 .show();
                     }
                 });
-
-        _recyclerView.getAdapter().notifyDataSetChanged();
     }
 
     @Override

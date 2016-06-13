@@ -207,10 +207,9 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             // Remove devices that we don't own from this list
             List<AylaDevice> filteredList = new ArrayList<AylaDevice>();
             for (AylaDevice d : deviceList) {
-                //TODO:Brian check if it is owner
-//                if (d.amOwner()) {
-//                    filteredList.add(d);
-//                }
+                if (d.getGrant() == null) {
+                    filteredList.add(d);
+                }
             }
 
             if (filteredList.isEmpty()) {
