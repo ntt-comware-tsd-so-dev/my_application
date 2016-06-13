@@ -258,10 +258,10 @@ public class ChooseAPDialog extends DialogFragment implements AdapterView.OnItem
         d.show(this.getFragmentManager(), "ConnectToHiddenWiFi");
     }
     @Override
-    public void addHiddenWifi(String accessPoint, String security, String password){
+    public void addHiddenWifi(String accessPoint, String password){
         final ChooseAPResults listener = (ChooseAPResults)getTargetFragment();
         if (listener != null) {
-            listener.choseAccessPoint(accessPoint, security, password);
+            listener.choseAccessPoint(accessPoint, null, password);
         }
     }
 }

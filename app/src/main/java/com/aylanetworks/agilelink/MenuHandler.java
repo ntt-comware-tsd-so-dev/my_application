@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -28,14 +29,11 @@ import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
-import com.aylanetworks.aylasdk.error.RequestFuture;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /*
  * MenuHandler.java
@@ -298,20 +296,19 @@ public class MenuHandler {
     }
 
     private static void shutdownSession() {
-        RequestFuture<AylaAPIRequest.EmptyResponse> future = RequestFuture.newFuture();
-        final AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().shutDown(future, future);
-        try {
-            AylaAPIRequest.EmptyResponse response = future.get(10 * 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
-            return;
-        } catch (ExecutionException e) {
-            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
-            return;
-        } catch (TimeoutException e) {
-            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
-            return;
-        }
+        AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().shutDown(
+                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                    @Override
+                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     public static void about() {

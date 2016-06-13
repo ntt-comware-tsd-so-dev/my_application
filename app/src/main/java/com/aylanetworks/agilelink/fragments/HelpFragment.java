@@ -87,19 +87,19 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     public void handleSendEmail(){
         String[] supportEmailAddress = {supportEmail};
         StringBuilder strBuilder = new StringBuilder(200);
-        strBuilder.append( "Latest logs from Aura app attached");
-        strBuilder.append("\n\n OS Version: " + SystemInfoUtils.getOSVersion());
-        strBuilder.append("\n SDK Version: " + SystemInfoUtils.getSDKVersion());
-        strBuilder.append("\nCountry: " + SystemInfoUtils.getCountry());
-        strBuilder.append("\nLanguage: " + SystemInfoUtils.getLanguage());
-        strBuilder.append("\nNetwork Operator: " + SystemInfoUtils.getNetworkOperator());
-        strBuilder.append("\nAyla SDK version: " + AylaNetworks.getVersion());
-        strBuilder.append("\nAura app version: " + MainActivity.getInstance().getAppVersion());
+        strBuilder.append( "Latest logs from Aura app attached")
+        .append("\n\n OS Version: ").append(SystemInfoUtils.getOSVersion())
+        .append("\n SDK Version: ").append(SystemInfoUtils.getSDKVersion())
+        .append("\nCountry: ").append(SystemInfoUtils.getCountry())
+        .append("\nLanguage: ").append(SystemInfoUtils.getLanguage())
+        .append("\nNetwork Operator: ").append(SystemInfoUtils.getNetworkOperator())
+        .append("\nAyla SDK version: ").append(AylaNetworks.getVersion())
+        .append("\nAura app version: ").append(MainActivity.getInstance().getAppVersion());
+
         Intent emailIntent = AylaLog.getEmailIntent(supportEmailAddress, "Aura Logs",
                 strBuilder.toString() );
         if(emailIntent != null){
             startActivity(emailIntent);
         }
-
     }
 }
