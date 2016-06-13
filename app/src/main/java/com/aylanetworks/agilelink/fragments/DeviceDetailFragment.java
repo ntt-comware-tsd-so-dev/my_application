@@ -113,7 +113,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     @Override
     public void onDestroy() {
         super.onDestroy();
-        ensureIdentifyOff();
     }
 
     @Override
@@ -152,12 +151,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 }
             });
         }
-
-        Button remoteButton = (Button)view.findViewById(R.id.remote_button);
-        remoteButton.setOnClickListener(this);
-
-        Button triggerButton = (Button)view.findViewById(R.id.trigger_button);
-        triggerButton.setOnClickListener(this);
 
         updateUI();
 
@@ -370,14 +363,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         super.onPause();
 
         _deviceModel.getDevice().removeListener(this);
-    }
-
-    @Override
-    public void statusUpdated(AylaDevice device, boolean changed) {
-        Log.d(LOG_TAG, "statusUpdated: " + device);
-        if ( changed && device.equals(_deviceModel) ) {
-            updateUI();
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -624,39 +609,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    private void remoteClicked() {
-        Fragment frag = _deviceModel.getRemoteFragment();
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    private void triggerClicked() {
-        Fragment frag = _deviceModel.getTriggerFragment();
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    public void gatewayCompletion(AylaDeviceGateway gateway, Message msg, Object tag) {
-        Switch control = (Switch)tag;
-        control.setEnabled(true);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - done", _deviceModel.getDevice().getDsn(), (control.isChecked() ? "ON" : "OFF"));
-    }
-
-    private void identifyClicked(View v) {
-        Switch control = (Switch)v;
-        control.setEnabled(false);
-        AylaDeviceGateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
-        Logger.logInfo(LOG_TAG, "adn: identify [%s] %s - start", _deviceModel.getDevice().getDsn(), (control.isChecked() ? "ON" : "OFF"));
-        gateway.identifyDeviceNode(_deviceModel, control.isChecked(), 255, v, this);
-    }
-
-    private void ensureIdentifyOff() {
-        if ((_deviceModel != null) && _deviceModel.getDevice().isNode()) {
-            AylaDeviceGateway gateway = Gateway.getGatewayForDeviceNode(_deviceModel);
-            // we don't care about the results
-            Logger.logInfo(LOG_TAG, "adn: identify [%s] OFF - start", _deviceModel.getDevice().getDsn());
-            gateway.identifyDeviceNode(_deviceModel, false, 0, null, null);
-        }
-    }
-
     private void sharingClicked() {
         ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _deviceModel.getDevice());
         MainActivity.getInstance().pushFragment(frag);
@@ -744,18 +696,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
             case R.id.schedule_button:
                 scheduleClicked();
-                break;
-
-            case R.id.remote_button:
-                remoteClicked();
-                break;
-
-            case R.id.trigger_button:
-                triggerClicked();
-                break;
-
-            case R.id.identify_button:
-                identifyClicked(v);
                 break;
 
             case R.id.sharing_button:
@@ -851,19 +791,15 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
                                 MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
                                 Boolean newValue = isChecked;
-                                _deviceModel.setDatapoint(prop.getName(), newValue, new Device.SetDatapointListener() {
+                                _deviceModel.setDatapoint(prop.getName(), newValue, new ViewModel.SetDatapointListener() {
                                     @Override
-                                    public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+                                    public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                                         MainActivity.getInstance().dismissWaitDialog();
-                                        if (succeeded && newDatapoint != null) {
-                                            _setting = true;
-                                            propValueSwitch.setChecked("1".equals(newDatapoint.getValue().toString()));
-                                            _setting = false;
-                                        } else {
-                                            Log.e(LOG_TAG, "Set property failed");
-                                        }
+                                        Log.d(LOG_TAG, "setDatapoint error: " + error + " ***^^^");
                                     }
                                 });
+
+
                             }
                         });
                         break;
