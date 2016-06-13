@@ -32,9 +32,6 @@ import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /*
  * MenuHandler.java
  * AgileLink Application Framework
@@ -164,14 +161,12 @@ public class MenuHandler {
 
     public static AlertDialog _confirmDeleteDialog;
 
-    static DeleteAccountHandler _deleteAccountHandler;
     static SsoDeleteAccountHandler _ssoDeleteAccoutnHandler;
 
     public static void deleteAccount() {
         // First confirm
         Resources res = MainActivity.getInstance().getResources();
-        AylaUser currentUser = AylaUser.getCurrent();
-        String msg = res.getString(R.string.confirm_delete_account_message, currentUser.email);
+        String msg = res.getString(R.string.confirm_delete_account_message);
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
@@ -192,8 +187,23 @@ public class MenuHandler {
                             _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
                             params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
                         } else{
-                            _deleteAccountHandler = new DeleteAccountHandler();
-                            AylaUser.delete(_deleteAccountHandler);
+                            AylaNetworks.sharedInstance().getLoginManager().deleteAccount(
+                                    AMAPCore.sharedInstance().getSessionParameters().sessionName,
+                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                        @Override
+                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                            // Log out and show a toast
+                                            shutdownSession();
+                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+                                        }
+                                    },
+                                    new ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(AylaError error) {
+                                            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                            );
                         }
                     }
                 })
@@ -201,47 +211,12 @@ public class MenuHandler {
                 .show();
     }
 
-    static class DeleteAccountHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "user: DeleteAccountHandler");
-            Log.d(LOG_TAG, "DeleteAccountHandler Message: " + msg.toString());
-
-            MainActivity.getInstance().dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                // Log out and show a toast
-                SessionManager.clearSavedUser();
-                shutdownSession();
-                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-            } else {
-                // Look for an error message in the returned JSON
-                String errorMessage = null;
-                try {
-                    if(msg !=null && msg.obj !=null) {
-                        JSONObject results = new JSONObject((String)msg.obj);
-                        errorMessage = results.getString("error");
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                if ( errorMessage != null ) {
-                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
     static class SsoDeleteAccountHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "user: SSo DeleteAccountHandler");
             MainActivity.getInstance().dismissWaitDialog();
             if (msg.arg1 >= 200 && msg.arg1 <300)  {
                 // Log out and show a toast
-                SessionManager.clearSavedUser();
                 shutdownSession();
                 Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
             } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
@@ -269,10 +244,10 @@ public class MenuHandler {
         if (activity != null) {
             // Confirm
             Resources res = activity.getResources();
-            AylaUser currentUser = AylaUser.getCurrent();
+            AylaUser currentUser = AMAPCore.sharedInstance().getCurrentUser();
             String email ="";
-            if(currentUser != null && currentUser.email != null) {
-                email = currentUser.email;
+            if(currentUser != null && currentUser.getEmail() != null) {
+                email = currentUser.getEmail();
             }
 
             String msg = res.getString(R.string.confirm_sign_out_message, email);
@@ -296,7 +271,7 @@ public class MenuHandler {
     }
 
     private static void shutdownSession() {
-        AylaAPIRequest request = AMAPCore.sharedInstance().getSessionManager().shutDown(
+        AMAPCore.sharedInstance().getSessionManager().shutDown(
                 new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                     @Override
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {

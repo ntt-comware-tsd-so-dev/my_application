@@ -30,12 +30,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaSystemUtils;
+import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
-import com.aylanetworks.agilelink.framework.deprecated.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,7 +52,7 @@ import java.util.Map;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class SignInActivity extends FragmentActivity implements SignUpDialog.SignUpListener, SessionManager.SessionListener {
+public class SignInActivity extends FragmentActivity implements SignUpDialog.SignUpListener, AylaSessionManager.SessionManagerListener {
     public static final String ARG_LOGIN_TYPE = "loginType";
     public static final String ARG_USERNAME = "username";
     public static final String ARG_PASSWORD = "password";
@@ -223,7 +223,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             });
         }
 
-        SessionManager.addSessionListener(this);
+        AMAPCore.sharedInstance().getSessionManager().addListener(this);
     }
 
     @Override
@@ -232,7 +232,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         if ( _progressDialog != null ) {
             _progressDialog.dismiss();
         }
-        SessionManager.removeSessionListener(this);
+        AMAPCore.sharedInstance().getSessionManager().removeListener(this);
         super.onDestroy();
     }
 
@@ -299,7 +299,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
         _loginButton.setVisibility(View.INVISIBLE);
         AylaSystemUtils.serviceReachableTimeout = AylaNetworks.AML_SERVICE_REACHABLE_TIMEOUT;
-        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
         AylaUser.loginThroughOAuth(_oauthHandler, service, _webView, params.appId, params.appSecret);
     }
 
@@ -318,7 +318,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(emailEditText.getWindowToken(), 0);
 
-                        SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
+                        AMAPCore.SessionParameters sessionParams = AMAPCore.sharedInstance().getSessionParameters();
                         Map<String, String> params = new HashMap<>();
                         if (sessionParams.registrationEmailTemplateId == null) {
                             params.put(AylaNetworks.AML_EMAIL_BODY_HTML, sessionParams.registrationEmailBodyHTML);
@@ -401,7 +401,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                            }
                         }
 
-                        SessionManager.SessionParameters sessionParams = SessionManager.sessionParameters();
+                        AMAPCore.SessionParameters sessionParams = AMAPCore.sharedInstance().getSessionParameters();
                         Map<String, String> params = new HashMap<>();
                         if (sessionParams.registrationEmailTemplateId == null) {
                             params.put(AylaNetworks.AML_EMAIL_BODY_HTML, sessionParams.resetPasswordEmailBodyHTML);
@@ -461,8 +461,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     @Override
     public void signUpSucceeded(AylaUser newUser) {
         Toast.makeText(this, R.string.sign_up_success, Toast.LENGTH_LONG).show();
-        _username.setText(newUser.email);
-        _password.setText(newUser.password);
+        _username.setText(newUser.getEmail());
+        _password.setText(newUser.getPassword());
     }
 
     private void handleOpenURI(Uri uri) {
@@ -550,8 +550,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             AylaSystemUtils.saveSetting(SessionManager.AYLA_SETTING_CURRENT_USER, jsonResults);
             String toastMessage = getString(R.string.welcome_new_account);
             Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show();
-            _username.setText(aylaUser.email);
-            _password.setText(aylaUser.password);
+            _username.setText(aylaUser.getEmail());
+            _password.setText(aylaUser.getPassword());
             Log.d(LOG_TAG, "nod: SignUpConfirmationHandler set user & password");
         } else {
             AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "userSignUpConfirmation", "Failed", "userSignUpConfirmation_handler");
