@@ -211,7 +211,7 @@ public class MenuHandler {
                                     new ErrorListener() {
                                         @Override
                                         public void onErrorResponse(AylaError error) {
-                                            Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                                         }
                                     }
                             );
@@ -270,7 +270,7 @@ public class MenuHandler {
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(MainActivity.getInstance(), "Failed to propagate signout to server", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }

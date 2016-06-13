@@ -422,7 +422,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), "Failed to unregister device", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -546,7 +546,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                         new ErrorListener() {
                             @Override
                             public void onErrorResponse(AylaError error) {
-                                Toast.makeText(getActivity(), "Failed to delete share", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                             }
                         });
                 return;
@@ -565,7 +565,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), "Failed to fetch shares", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -595,7 +595,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), "Failed to fetch current timezone", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -684,7 +684,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), "Failed to update current timezone", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
