@@ -493,6 +493,12 @@
     <string name="error_gateway_register_no_device">Scan for devices first</string>
     <string name="error_no_gateway_instructions">No gateway found. Please register one first.</string>
     <string name="add_device_sensor_warning">Further setup for this device will occur in the background. The sensor may not respond immediately for the next couple of minutes.</string>
+    <string name="error_device_scan">An error occurred while scanning for devices</string>
+    <string name="error_device_connect">An error occurred while connecting to the device</string>
+    <string name="error_device_connect_service">An error occurred while connecting the device to the WiFi network</string>
+    <string name="error_fetch_candidates">An error occurred while fetching device registration candidates</string>
+    <string name="error_register_candidate">An error occurred while registering the device candidate</string>
+    <string name="error_confirm_device">An error occurred while confirming the device connection</string>
     <string name="message_attention">Attention</string>
     <string name="lan_mode_enabled">LAN Mode enabled</string>
     <string name="online">Online</string>

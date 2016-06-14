@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.android.internal.util.Predicate;
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
@@ -562,11 +563,7 @@ public class AddDeviceFragment extends Fragment
                         public void onClick(DialogInterface dialog, int which) {
                             AylaDeviceNode adn = list.get(which);
                             Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s]", adn.getDsn(), adn.getModel());
-                            List<AylaDeviceNode> tmp = new ArrayList<AylaDeviceNode>();
-                            tmp.add(adn);
-                            MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-                            _nodeRegistrationGateway.registerCandidates(tmp, _nodeRegistrationGateway, AddDeviceFragment.this);
-                            dialog.dismiss();
+                            registerNewDevice(adn.getDsn());
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
@@ -619,8 +616,6 @@ public class AddDeviceFragment extends Fragment
             _scanTag.cancel();
         }
     }
-
-    Gateway.AylaGatewayScanCancelHandler _scanTag;
 
     private void doScan() {
         if (_registrationType == AylaDevice.RegistrationType.Node) {
@@ -677,7 +672,9 @@ public class AddDeviceFragment extends Fragment
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_scan),
+                                    Toast.LENGTH_LONG).show();
                             exitSetup();
                         }
                     });
@@ -742,7 +739,9 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_connect_service),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -769,7 +768,9 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_connect),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -787,7 +788,9 @@ public class AddDeviceFragment extends Fragment
                 }, new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.unknown_error),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -817,7 +820,9 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.unknown_error),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -835,7 +840,9 @@ public class AddDeviceFragment extends Fragment
                 }, new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.unknown_error),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -854,7 +861,7 @@ public class AddDeviceFragment extends Fragment
                                 // we need to prompt the user to press the Button for registration
                                 showPushButtonDialog(device);
                             } else {
-                                fetchCandidateWithDsn(dsn);
+                                registerNewDevice(dsn);
                             }
                         } else {
                             Logger.logDebug(LOG_TAG, "rn: device [" + device.getDsn() + "] already registered");
@@ -866,7 +873,9 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_confirm_device),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -886,7 +895,9 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });
@@ -922,7 +933,9 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_register_candidate),
+                                Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
                 });

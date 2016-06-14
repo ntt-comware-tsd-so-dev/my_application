@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -40,6 +41,7 @@ import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.AylaOAuthProvider;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -160,6 +162,11 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 @Override
                                 public void onResponse(AylaAuthorization response) {
                                     Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
+
+                                    // Cache the authorization
+                                    CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
+
+                                    finish();
                                 }
                             },
                             new ErrorListener() {
@@ -310,6 +317,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                     @Override
                     public void onResponse(AylaAuthorization response) {
                         // Cache the authorization
+                        CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
+
                         finish();
                     }
                 },
