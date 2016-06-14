@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -57,8 +56,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     public static final String ARG_LOGIN_TYPE = "loginType";
     public static final String ARG_USERNAME = "username";
     public static final String ARG_PASSWORD = "password";
-    public static final String ARG_OAUTH_MESSAGE = "oauth_msg";
-    public static final String ARG_MESSAGE_OBJECT = "msg_obj";
 
     public static final int LOGIN_TYPE_PASSWORD = 1;
     public static final int LOGIN_TYPE_OAUTH = 2;
@@ -77,11 +74,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private EditText _username;
     private EditText _password;
     private Button _loginButton;
-    private ImageButton _googleLoginButton;
-    private ImageButton _facebookLoginButton;
-    private TextView _signUpTextView;
-    private TextView _resendEmailTextView;
-    private TextView _forgotPasswordTextView;
     private WebView _webView;
     private Spinner _serviceTypeSpinner;
 
@@ -105,13 +97,13 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         _username = (EditText) findViewById(R.id.userNameEditText);
         _password = (EditText) findViewById(R.id.passwordEditText);
         _loginButton = (Button) findViewById(R.id.buttonSignIn);
-        _facebookLoginButton = (ImageButton) findViewById(R.id.facebook_login);
-        _googleLoginButton = (ImageButton) findViewById(R.id.google_login);
-        _signUpTextView = (TextView) findViewById(R.id.signUpTextView);
-        _resendEmailTextView = (TextView) findViewById(R.id.resendConfirmationTextView);
-        _forgotPasswordTextView = (TextView) findViewById(R.id.forgot_password);
-        _webView = (WebView) findViewById(R.id.webview);
         _serviceTypeSpinner = (Spinner) findViewById(R.id.service_type_spinner);
+        _webView = (WebView) findViewById(R.id.webview);
+        ImageButton facebookLoginButton = (ImageButton) findViewById(R.id.facebook_login);
+        ImageButton googleLoginButton = (ImageButton) findViewById(R.id.google_login);
+        TextView signUpTextView = (TextView) findViewById(R.id.signUpTextView);
+        TextView resendEmailTextView = (TextView) findViewById(R.id.resendConfirmationTextView);
+        TextView forgotPasswordTextView = (TextView) findViewById(R.id.forgot_password);
 
         // The serviceTypeSpinner is only shown if the user taps "Forgot Password" and enters
         // "aylarocks" for the email address. This is a developer-only spinner.
@@ -127,21 +119,11 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        if (position == AylaSystemSettings.ServiceType.Field.ordinal()) {
-                            SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
-                            Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
-                        } else if (position == AylaSystemSettings.ServiceType.Staging.ordinal()) {
-                            SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
-                            Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
-                        } else {
-                            String message = "No app ID for " + _serviceTypes[position] +
-                                    " service, but I'll set the type anyway. You probably can't log in.";
-                            Log.e(LOG_TAG, message);
-                            Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.getInstance(), _serviceTypes[position], Toast.LENGTH_LONG).show();
 
-                            // The positions in our array happen to coincide with the service types they represent.
-                            SessionManager.getInstance().setServiceType(position);
-                        }
+                        AylaSystemSettings settings = AylaNetworks.sharedInstance().getSystemSettings();
+                        settings.serviceType = AylaSystemSettings.ServiceType.values()[position];
+                        AylaNetworks.initialize(settings);
                     }
 
                     @Override
@@ -173,7 +155,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 @Override
                                 public void onErrorResponse(AylaError error) {
                                     Toast.makeText(MainActivity.getInstance(),
-                                            ErrorUtils.getUserMessage(getContext(), error, "Error starting session"),
+                                            ErrorUtils.getUserMessage(getContext(), error, R.string.error_signing_in),
                                             Toast.LENGTH_LONG).show();
                                 }
                             });
@@ -181,21 +163,21 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             }
         );
 
-        _facebookLoginButton.setOnClickListener(new View.OnClickListener() {
+        facebookLoginButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     oAuthSignIn(AylaOAuthProvider.AccountType.facebook);
                 }
         });
 
-        _googleLoginButton.setOnClickListener(new View.OnClickListener() {
+        googleLoginButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     oAuthSignIn(AylaOAuthProvider.AccountType.google);
                 }
         });
 
-        _signUpTextView.setOnClickListener(new View.OnClickListener() {
+        signUpTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Log.i(LOG_TAG, "Sign up");
@@ -203,14 +185,14 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                     d.show();
                 }});
 
-        _resendEmailTextView.setOnClickListener(new View.OnClickListener() {
+        resendEmailTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     onResendEmail();
                 }
         });
 
-        _forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
+        forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onForgotPassword();
@@ -540,6 +522,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         d.show(getSupportFragmentManager(), "reset_password");
     }
 
+    //TODO: UPDATE STATUS LISTENER
+    /**
     @Override
     public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
         Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
@@ -550,6 +534,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             finish();
         }
     }
+     */
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
