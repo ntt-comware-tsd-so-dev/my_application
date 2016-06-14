@@ -23,6 +23,7 @@ import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 import com.aylanetworks.aylasdk.AylaDeviceNode;
 import com.aylanetworks.aylasdk.error.AylaError;
 
@@ -30,12 +31,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GenericGateway extends ViewModel {
-    public GenericGateway(AylaDevice aylaDevice) {
-        super(aylaDevice);
+    public GenericGateway(AylaDeviceGateway aylaDeviceGateway) {
+        super(aylaDeviceGateway);
     }
 
     public Drawable getDeviceDrawable(Context context) {
         return ContextCompat.getDrawable(context, R.drawable.ic_generic_gateway_red);
+    }
+
+    public AylaDeviceGateway getGateway() {
+        return (AylaDeviceGateway)getDevice();
     }
 
     @Override
