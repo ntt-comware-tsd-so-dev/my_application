@@ -479,6 +479,8 @@ public class AddDeviceFragment extends Fragment
     //set cancelAylaSetup to false when exitSetup() is called based on an error message
     // returned from the library.
     private void exitSetup() {
+        dismissWaitDialog();
+
         if (_aylaSetup != null) {
             _aylaSetup.exitSetup(new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                 @Override

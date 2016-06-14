@@ -34,6 +34,7 @@ import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
@@ -82,7 +83,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private WebView _webView;
     private Spinner _serviceTypeSpinner;
 
-    private final static String _serviceTypes[] = {"Device", "Field", "Production", "Staging", "Demo"};
+    private final static String _serviceTypes[] = {"Dynamic", "Field", "Development", "Staging", "Demo"};
 
     public SignInActivity() {
     }
@@ -112,9 +113,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
         // The serviceTypeSpinner is only shown if the user taps "Forgot Password" and enters
         // "aylarocks" for the email address. This is a developer-only spinner.
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinner_large_text, _serviceTypes);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_large_text, _serviceTypes);
         _serviceTypeSpinner.setAdapter(adapter);
-        _serviceTypeSpinner.setSelection(AylaSystemUtils.serviceType);
+        _serviceTypeSpinner.setSelection(AylaNetworks.sharedInstance().getSystemSettings().serviceType.ordinal());
 
         // We need to do this in a runnable so we don't get the first onItemSelected call from
         // the above call to setSelection.
@@ -124,25 +125,20 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 _serviceTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        switch (position) {
-                            case AylaNetworks.AML_PRODUCTION_SERVICE:
-                                SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
-                                Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
-                                break;
+                        if (position == AylaSystemSettings.ServiceType.Field.ordinal()) {
+                            SessionManager.getInstance().setServiceType(AylaNetworks.AML_PRODUCTION_SERVICE);
+                            Toast.makeText(MainActivity.getInstance(), "Production Service", Toast.LENGTH_LONG).show();
+                        } else if (position == AylaSystemSettings.ServiceType.Staging.ordinal()) {
+                            SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
+                            Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
+                        } else {
+                            String message = "No app ID for " + _serviceTypes[position] +
+                                    " service, but I'll set the type anyway. You probably can't log in.";
+                            Log.e(LOG_TAG, message);
+                            Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
 
-                            case AylaNetworks.AML_STAGING_SERVICE:
-                                SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
-                                Toast.makeText(MainActivity.getInstance(), "Staging Service", Toast.LENGTH_LONG).show();
-                                break;
-
-                            default:
-                                String message = "No app ID for " + _serviceTypes[position] +
-                                        " service, but I'll set the type anyway. You probably can't log in.";
-                                Log.e(LOG_TAG, message);
-                                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
-
-                                // The positions in our array happen to coincide with the service types they represent.
-                                SessionManager.getInstance().setServiceType(position);
+                            // The positions in our array happen to coincide with the service types they represent.
+                            SessionManager.getInstance().setServiceType(position);
                         }
                     }
 
@@ -169,7 +165,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                             new ErrorListener() {
                                 @Override
                                 public void onErrorResponse(AylaError error) {
-                                    Toast.makeText(getContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.getInstance(),
+                                            ErrorUtils.getUserMessage(getContext(), error, "Error starting session"),
+                                            Toast.LENGTH_LONG).show();
                                 }
                             });
                 }
@@ -298,7 +296,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
         // Clear out any previous contents of the webview
         String webViewEmptyHTML = this.getResources().getString(R.string.oauth_empty_html);
-        webViewEmptyHTML = webViewEmptyHTML.replace("[[PROVIDER]]", type.stringValue());
+        webViewEmptyHTML = webViewEmptyHTML.replace("[[PROVIDER]]", getString(type.equals(AylaOAuthProvider.AccountType.google) ? R.string.google : R.string.facebook));
         _webView.loadDataWithBaseURL("", webViewEmptyHTML, "text/html", "UTF-8", "");
         _webView.bringToFront();
 
@@ -318,8 +316,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG)
-                                .show();
+                        Toast.makeText(getContext(),
+                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.login_failed),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -356,7 +355,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 new ErrorListener() {
                                     @Override
                                     public void onErrorResponse(AylaError error) {
-                                        Toast.makeText(SignInActivity.this, error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(MainActivity.getInstance(),
+                                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_account_confirm_failed),
+                                                Toast.LENGTH_LONG).show();
                                     }
                                 });
                     }
@@ -423,7 +424,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 new ErrorListener() {
                                     @Override
                                     public void onErrorResponse(AylaError error) {
-                                        Toast.makeText(SignInActivity.this, error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(MainActivity.getInstance(),
+                                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_password_reset_failed),
+                                                Toast.LENGTH_LONG).show();
                                     }
                                 });
                     }
@@ -514,7 +517,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         AlertDialog.Builder ad = new AlertDialog.Builder(getContext());
                         ad.setIcon(R.drawable.ic_launcher);
                         ad.setTitle(R.string.error_sign_up_title);
-                        ad.setMessage(error.getLocalizedMessage());
+                        ad.setMessage(ErrorUtils.getUserMessage(getContext(), error, R.string.error_account_confirm_failed));
                         ad.setPositiveButton(android.R.string.ok, null);
                         ad.show();
                     }

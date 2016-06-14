@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -206,8 +207,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                                .LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.change_name_fail),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -288,8 +290,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     @Override
                     public void onErrorResponse(AylaError error) {
                         MainActivity.getInstance().dismissWaitDialog();
-                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                                .LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.share_device_fail),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
 
@@ -422,7 +425,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.unregister_failed),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -546,7 +551,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                         new ErrorListener() {
                             @Override
                             public void onErrorResponse(AylaError error) {
-                                Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.getInstance(),
+                                        ErrorUtils.getUserMessage(getContext(), error, R.string.remove_share_failure),
+                                        Toast.LENGTH_LONG).show();
                             }
                         });
                 return;
@@ -565,7 +572,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.timezone_fetch_failed),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -595,7 +604,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.timezone_fetch_failed),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -684,7 +695,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.timezone_update_failure),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }

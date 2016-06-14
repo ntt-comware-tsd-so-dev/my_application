@@ -388,6 +388,7 @@
     <string name="sharing_with_others_empty">No devices shared</string>
     <string name="shared_with_me_empty">No devices shared with me</string>
     <string name="error_deleting_share">An unknown error occurred while trying to delete this share. Please try again later.</string>
+    <string name="error_fetching_shares">An unknown error occurred while trying to fetch shared devices. Please try again later.</string>
     <string name="error_creating_share">An unknown error occurred while trying to create a share. Please try again later.</string>
     <string name="no_devices_to_share">There are no devices that can be shared registered to this account.</string>
     <string name="share_removed">The shared device has been removed from your account.</string>

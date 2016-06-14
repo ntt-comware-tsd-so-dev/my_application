@@ -193,7 +193,9 @@ public class MenuHandler {
                                         @Override
                                         public void onErrorResponse(AylaError error) {
                                             MainActivity.getInstance().dismissWaitDialog();
-                                            Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(MainActivity.getInstance(),
+                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                                    Toast.LENGTH_LONG).show();
                                         }
                                     }
                             );
@@ -211,7 +213,9 @@ public class MenuHandler {
                                     new ErrorListener() {
                                         @Override
                                         public void onErrorResponse(AylaError error) {
-                                            Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                            Toast.makeText(MainActivity.getInstance(),
+                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                                    Toast.LENGTH_LONG).show();
                                         }
                                     }
                             );
@@ -270,7 +274,9 @@ public class MenuHandler {
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(MainActivity.getInstance(), error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }

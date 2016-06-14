@@ -9,12 +9,10 @@
 package com.aylanetworks.agilelink.fragments;
 
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,10 +23,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -36,7 +34,6 @@ import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
-import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -102,7 +99,9 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
-                AylaLog.e(LOG_TAG, "Error in fetching shares "+ error.getLocalizedMessage());
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetching_shares),
+                        Toast.LENGTH_LONG).show();
             }
         });
 
@@ -118,7 +117,9 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
-                AylaLog.e(LOG_TAG, "Error in fetching shares "+ error.getLocalizedMessage());
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetching_shares),
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -172,8 +173,9 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                             @Override
                             public void onErrorResponse(AylaError error) {
                                 MainActivity.getInstance().dismissWaitDialog();
-                                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                                        .LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.getInstance(),
+                                        ErrorUtils.getUserMessage(getContext(), error, R.string.error_deleting_share),
+                                        Toast.LENGTH_LONG).show();
                             }
                         });
                     }
@@ -202,8 +204,9 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                 @Override
                 public void onErrorResponse(AylaError error) {
                     MainActivity.getInstance().dismissWaitDialog();
-                    Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                            .LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.getInstance(),
+                            ErrorUtils.getUserMessage(getContext(), error, R.string.error_creating_share),
+                            Toast.LENGTH_LONG).show();
                 }
             };
 
