@@ -177,33 +177,33 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         );
 
         _facebookLoginButton.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        oAuthSignIn(AylaOAuthProvider.AccountType.facebook);
-                                                    }
+                @Override
+                public void onClick(View v) {
+                    oAuthSignIn(AylaOAuthProvider.AccountType.facebook);
+                }
         });
 
         _googleLoginButton.setOnClickListener(new View.OnClickListener() {
-                                                  @Override
-                                                  public void onClick(View v) {
-                                                      oAuthSignIn(AylaOAuthProvider.AccountType.google);
-                                                  }
-                                              });
+                @Override
+                public void onClick(View v) {
+                    oAuthSignIn(AylaOAuthProvider.AccountType.google);
+                }
+        });
 
         _signUpTextView.setOnClickListener(new View.OnClickListener() {
-                                               @Override
-                                               public void onClick(View v) {
-                                                       Log.i(LOG_TAG, "Sign up");
-                                                       SignUpDialog d = new SignUpDialog(SignInActivity.this, SignInActivity.this);
-                                                       d.show();
-                                                   }});
+                @Override
+                public void onClick(View v) {
+                    Log.i(LOG_TAG, "Sign up");
+                    SignUpDialog d = new SignUpDialog(SignInActivity.this, SignInActivity.this);
+                    d.show();
+                }});
 
         _resendEmailTextView.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        onResendEmail();
-                                                    }
-                                                });
+                @Override
+                public void onClick(View v) {
+                    onResendEmail();
+                }
+        });
 
         _forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
             @Override
