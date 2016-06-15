@@ -135,14 +135,6 @@ public class AddDeviceFragment extends Fragment
         setHasOptionsMenu(true);
 
         _aylaRegistration = AMAPCore.sharedInstance().getDeviceManager().getAylaRegistration();
-        try {
-            _aylaSetup = new AylaSetup(AMAPCore.sharedInstance().getContext(),
-                    AMAPCore.sharedInstance().getSessionManager());
-        } catch (AylaError aylaError) {
-            AylaLog.e(LOG_TAG, "Failed to create AylaSetup object: " + aylaError);
-            Toast.makeText(AMAPCore.sharedInstance().getContext(), aylaError.toString(),
-                    Toast.LENGTH_LONG).show();
-        }
 
         _wifiManager = (WifiManager)getActivity().getSystemService(Context.WIFI_SERVICE);
         updateConnectionInfo();
@@ -447,6 +439,15 @@ public class AddDeviceFragment extends Fragment
         if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
             requestScanPermissions();
         } else{
+            try {
+                _aylaSetup = new AylaSetup(AMAPCore.sharedInstance().getContext(),
+                        AMAPCore.sharedInstance().getSessionManager());
+            } catch (AylaError aylaError) {
+                AylaLog.e(LOG_TAG, "Failed to create AylaSetup object: " + aylaError);
+                Toast.makeText(AMAPCore.sharedInstance().getContext(), aylaError.toString(),
+                        Toast.LENGTH_LONG).show();
+            }
+
             if (USE_WELCOME_FRAGMENT) {
                 ViewModel provider = (ViewModel)
                         _spinnerProductType.getSelectedItem();
@@ -744,10 +745,11 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(),
-                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_connect_service),
-                                Toast.LENGTH_LONG).show();
-                        exitSetup();
+                        dismissWaitDialog();
+
+                        // Due to device bug and poor wifi reliability, we ignore the error and directly check
+                        // with ayla service for the device connection status
+                        connectMobileToOriginalNetworkAndConfirmDeviceConnection(_setupDevice.getDsn(), setupToken);
                     }
                 });
     }
@@ -929,7 +931,7 @@ public class AddDeviceFragment extends Fragment
                                 MainActivity mainActivity = MainActivity.getInstance();
                                 mainActivity.dismissWaitDialog();
 
-                                Toast.makeText(mainActivity, error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                ErrorUtils.getUserMessage(getContext(), error, "NEW DEVICE UPDATED");
                                 AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
                             }
                         });

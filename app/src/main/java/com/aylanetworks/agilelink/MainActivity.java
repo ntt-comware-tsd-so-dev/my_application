@@ -776,6 +776,8 @@ public class MainActivity extends AppCompatActivity
 
         parameters.appVersion = getAppVersion();
 
+        parameters.sessionName = AMAPCore.DEFAULT_SESSION_NAME;
+
         // Will attempt to put devices into LAN mode whenever possible
         parameters.enableLANMode = true;
 

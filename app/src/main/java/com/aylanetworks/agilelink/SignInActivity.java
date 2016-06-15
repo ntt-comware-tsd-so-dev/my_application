@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -32,6 +33,7 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
@@ -93,6 +95,27 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
 
         setContentView(R.layout.login);
+        CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this, false);
+        if (cachedProvider != null) {
+            Toast.makeText(this, "Attempting cache login", Toast.LENGTH_SHORT).show();
+
+            AylaNetworks.sharedInstance().getLoginManager().signIn(cachedProvider,
+                    AMAPCore.sharedInstance().getSessionParameters().sessionName,
+                    new Response.Listener<AylaAuthorization>() {
+                        @Override
+                        public void onResponse(AylaAuthorization response) {
+                            Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
+                            CachedAuthProvider.cacheAuthorization(getContext(), response);
+                            finish();
+                        }
+                    },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            ErrorUtils.getUserMessage(getContext(), error, "Cached login error");
+                        }
+                    });
+        }
 
         _username = (EditText) findViewById(R.id.userNameEditText);
         _password = (EditText) findViewById(R.id.passwordEditText);
@@ -219,6 +242,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 }
             });
         }
+
         if(AMAPCore.sharedInstance().getSessionManager() != null) {
             AMAPCore.sharedInstance().getSessionManager().addListener(this);
         }
@@ -299,6 +323,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 new Response.Listener<AylaAuthorization>() {
                     @Override
                     public void onResponse(AylaAuthorization response) {
+                        Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
                         // Cache the authorization
                         CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
 
