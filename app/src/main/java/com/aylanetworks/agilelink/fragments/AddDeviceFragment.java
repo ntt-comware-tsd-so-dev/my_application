@@ -248,7 +248,7 @@ public class AddDeviceFragment extends Fragment
         Logger.logVerbose(LOG_TAG, "rn: onDetach");
 
         if (_nodeRegistrationGateway != null) {
-            _nodeRegistrationGateway.cleanupRegistrationScan();
+            // _nodeRegistrationGateway.cleanupRegistrationScan(); //TODO:
         }
 
         if (_needsExit) {
@@ -532,7 +532,7 @@ public class AddDeviceFragment extends Fragment
 
     @Override
     public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
-        _scanTag = null;
+        // _scanTag = null; //TODO:
         dismissWaitDialog();
 
         // Let the user choose which device to connect to
@@ -589,7 +589,8 @@ public class AddDeviceFragment extends Fragment
                         public void onClick(DialogInterface dialog, int which) {
                             if (selected.size() > 0) {
                                 MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-                                _nodeRegistrationGateway.registerCandidates(selected, _nodeRegistrationGateway, AddDeviceFragment.this);
+                                // _nodeRegistrationGateway.registerCandidates(selected, _nodeRegistrationGateway, AddDeviceFragment.this);
+                                //TODO:
                             }
                             dialog.dismiss();
                         }
@@ -602,7 +603,7 @@ public class AddDeviceFragment extends Fragment
     @Override
     public void gatewayRegistrationComplete(AylaError error, int messageResourceId, Object tag) {
         Logger.logDebug(LOG_TAG, "rn: gatewayRegistrationComplete, error: " + error);
-        _scanTag = null;
+        // _scanTag = null; //TODO:
         dismissWaitDialog();
         if (messageResourceId != 0) {
             Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
@@ -611,10 +612,13 @@ public class AddDeviceFragment extends Fragment
 
     @Override
     public void onCancel(DialogInterface dialog) {
+        /**
         if (_scanTag != null) {
             Logger.logInfo(LOG_TAG, "rn: cancel Register node scan");
             _scanTag.cancel();
         }
+         */
+        //TODO:
     }
 
     private void doScan() {
@@ -627,7 +631,8 @@ public class AddDeviceFragment extends Fragment
                     MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title), getString(R.string.scanning_for_gateway_devices_message), this);
                     Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway
                             .getDevice().getDsn() + "]");
-                    _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
+                    // _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
+                    //TODO: 
                 } else{
                     Toast.makeText(getActivity(), getResources().getString(R.string.gateway_offline), Toast.LENGTH_LONG).show();
                 }

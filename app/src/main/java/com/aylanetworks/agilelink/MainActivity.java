@@ -408,13 +408,13 @@ public class MainActivity extends AppCompatActivity
         }
 
         _theInstance = this;
-        AMAPCore.sharedInstance().setContext(this);
 
         setUITheme();
         super.onCreate(savedInstanceState);
         initUI();
 
         AMAPCore.initialize(getAppParameters());
+        AMAPCore.sharedInstance().setContext(this);
 
         // We want to know when the user logs in or out
         AMAPCore.sharedInstance().getSessionManager().addListener(this);

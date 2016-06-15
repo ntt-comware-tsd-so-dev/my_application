@@ -49,7 +49,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
             // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
             if ("AY001MRT1".equals(model)) {
                 // This is a gateway.
-                return new GenericGateway(device);
+                return new GenericGateway(null); //TODO:
             }
             return new GenericDevice(device);
         }
@@ -73,7 +73,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
         if ( "generic".equals(oemModel) ) {
             if (model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new GenericGateway(device);
+                return new GenericGateway(null); // TODO:
             }
             if (model.equals("GenericNode") || model.equals("Generic Node")) {
                 // This is a generic node
