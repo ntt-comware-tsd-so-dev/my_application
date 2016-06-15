@@ -413,11 +413,15 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         initUI();
 
-        AMAPCore.initialize(getAppParameters());
-        AMAPCore.sharedInstance().setContext(this);
+        AMAPCore.initialize(getAppParameters(),this);
+        if (!_loginScreenUp) {
+            showLoginDialog();
+        }
+       // AMAPCore.sharedInstance().setContext(this);
+        //AMAPCore.sharedInstance().getGroupManager().fetchDeviceGroups();
 
         // We want to know when the user logs in or out
-        AMAPCore.sharedInstance().getSessionManager().addListener(this);
+       // AMAPCore.sharedInstance().getSessionManager().addListener(this);
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
