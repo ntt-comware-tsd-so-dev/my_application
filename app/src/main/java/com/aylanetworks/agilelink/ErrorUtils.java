@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ServerError;
@@ -39,6 +40,8 @@ public class ErrorUtils {
                     return messageUnknownError;
             }
         }
+
+        Log.e("AMAP5", "Unhandled AylaError: ", error);
 
         return messageUnknownError;
     }
