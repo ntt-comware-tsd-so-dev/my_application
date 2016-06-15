@@ -85,7 +85,9 @@ public class AllDevicesFragment extends Fragment
 
         // Listen for login events. Our fragment exists before the user has logged in, so we need
         // to know when that happens so we can start listening to the device manager notifications.
-        AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        }
     }
 
     @Override

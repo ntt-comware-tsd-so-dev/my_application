@@ -219,8 +219,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 }
             });
         }
-
-        AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        }
     }
 
     @Override
