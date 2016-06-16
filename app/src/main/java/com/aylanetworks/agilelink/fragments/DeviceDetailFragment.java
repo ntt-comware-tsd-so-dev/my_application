@@ -156,7 +156,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         // Let the user change the title
         final EditText editText = new EditText(getActivity());
         editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        editText.setText(_deviceModel.toString());
+        editText.setText(_deviceModel.getDevice().getFriendlyName());
         editText.setSelectAllOnFocus(true);
         editText.requestFocus();
 
@@ -232,12 +232,11 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         _notificationsButton.setVisibility(_deviceModel.getNotifiablePropertyNames().length > 0 ? View.VISIBLE : View.GONE);
 
         // Set the device title and image
-        _titleView.setText(_deviceModel.toString());
+        _titleView.setText(_deviceModel.getDevice().getFriendlyName());
         _dsnView.setText(_deviceModel.isInLanMode() ? _deviceModel.getDevice().getLanIp() :
                 _deviceModel.getDevice().getDsn());
-        _imageView.setImageDrawable(((ViewModel) _deviceModel).getDeviceDrawable(getActivity()));
+        _imageView.setImageDrawable(_deviceModel.getDeviceDrawable(getActivity()));
         _listView.setAdapter(_adapter);
-
     }
 
     @Override
@@ -730,7 +729,13 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 // This is a read-only property
                 propValueSwitch.setVisibility(View.GONE);
                 propValueText.setVisibility(View.VISIBLE);
-                propValueText.setText(prop.getValue().toString());
+
+                if (prop.getValue() != null) {
+                    propValueText.setText(prop.getValue().toString().trim());
+                } else {
+                    propValueText.setText("N/A");
+                }
+
                 propName.setTextColor(_context.getResources().getColor(R.color.disabled_text));
             } else {
                 // This property can be set
@@ -760,11 +765,10 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                     @Override
                                     public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                                         MainActivity.getInstance().dismissWaitDialog();
-                                        Log.d(LOG_TAG, "setDatapoint error: " + error + " ***^^^");
+                                        updateUI();
+                                        Log.e(LOG_TAG, "setDatapoint error: " + error + " ***^^^");
                                     }
                                 });
-
-
                             }
                         });
                         break;
@@ -775,7 +779,13 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     default:
                         propValueSwitch.setVisibility(View.GONE);
                         propValueText.setVisibility(View.VISIBLE);
-                        propValueText.setText(prop.getValue().toString());
+
+                        if (prop.getValue() != null) {
+                            propValueText.setText(prop.getValue().toString().trim());
+                        } else {
+                            propValueText.setText("N/A");
+                        }
+
                         propValueText.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
