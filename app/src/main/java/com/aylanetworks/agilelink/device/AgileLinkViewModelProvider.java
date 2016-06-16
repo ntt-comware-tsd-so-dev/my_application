@@ -70,7 +70,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
         }
 
         // Gateway, including Zigbee, devices
-        if ( "generic".equals(oemModel) ) {
+        if ( "generic".equals(oemModel) || "ggdemo".equals(oemModel)) {
             if (model.equals("AY001MRT1")) {
                 // This is a generic gateway.
                 return new GenericGateway(null); // TODO:

@@ -101,7 +101,6 @@ public class AllDevicesFragment extends Fragment
         _recyclerView.setVisibility(View.GONE);
 
         _emptyView.setVisibility(View.VISIBLE);
-        _emptyView.setText(R.string.fetching_devices);
 
         switch ( MainActivity.getUIConfig()._listStyle ) {
             case List:
@@ -129,6 +128,7 @@ public class AllDevicesFragment extends Fragment
         ImageButton b = (ImageButton) view.findViewById(R.id.add_button);
         b.setOnClickListener(this);
 
+        updateDeviceList();
         return view;
     }
 
@@ -235,7 +235,7 @@ public class AllDevicesFragment extends Fragment
         if (deviceManager != null) {
             _adapter = DeviceListAdapter.fromDeviceList(deviceManager.getDevices(), this);
             startListening();
-            deviceListChanged(null);
+            updateDeviceList();
         }
     }
 
@@ -320,6 +320,7 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void deviceListChanged(ListChange change) {
         AylaLog.i(LOG_TAG, "Device list changed: " + change);
+        updateDeviceList();
     }
 
     @Override

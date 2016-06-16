@@ -434,7 +434,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
+    /*
     static class FactoryResetDeviceHandler extends Handler {
         private WeakReference<DeviceDetailFragment> _deviceDetailFragment;
 

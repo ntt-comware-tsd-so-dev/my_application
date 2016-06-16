@@ -387,6 +387,9 @@ public class MainActivity extends AppCompatActivity
         } else if ( reqCode == REQ_SIGN_IN ) {
             Log.d(LOG_TAG, "nod: SignInActivity finished");
             _loginScreenUp = false;
+
+            handleSignedIn();
+
             if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
@@ -414,6 +417,7 @@ public class MainActivity extends AppCompatActivity
         initUI();
 
         AMAPCore.initialize(getAppParameters(),this);
+
         if (!_loginScreenUp) {
             showLoginDialog();
         }
@@ -430,8 +434,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         _theInstance = null;
-        AMAPCore.sharedInstance().getSessionManager().removeListener(this);
+        AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
+        if (sm != null) {
+            sm.removeListener(this);
+        }
         ((AgileLinkApplication)getApplication()).removeListener(this);
+
+        AylaNetworks.sharedInstance().onPause();
         super.onDestroy();
     }
 
@@ -947,13 +956,11 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
-        AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
-        if (dm != null) {
-            // we aren't going to "resume" LAN mode if we aren't logged in.
-            AylaNetworks.sharedInstance().onResume();
+        AylaNetworks.sharedInstance().onResume();
 
-            dm.startPolling();
-            // TODO: Determine if cloud is reachable
+        AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
+        if (sm != null) {
+            // TODO: Check cloud connectivity
             setCloudConnectivityIndicator(true);
         } else if ( !_loginScreenUp ) {
             showLoginDialog();
@@ -967,6 +974,10 @@ public class MainActivity extends AppCompatActivity
 
     // SessionListener methods
     void handleLoginChanged(boolean loggedIn, AylaUser aylaUser) {
+        if (!loggedIn) {
+            popBackstackToRoot();
+            showLoginDialog();
+        }
     }
 
     /**
@@ -1031,6 +1042,7 @@ public class MainActivity extends AppCompatActivity
 
                         // TODO: BSK: Determine if the cloud is reachable
                         setCloudConnectivityIndicator(true);
+                        handleSignedIn();
                     }
                 },
                 new ErrorListener() {
@@ -1040,6 +1052,18 @@ public class MainActivity extends AppCompatActivity
                                 .show();
                     }
                 });
+    }
+
+    /**
+     * Called after the user has signed in
+     */
+    private void handleSignedIn() {
+        // Let the all devices fragment know we are signed in
+        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+        if (frag != null) {
+            frag.onPause();
+            frag.onResume();
+        }
     }
 
     private class ErrorMessage {
