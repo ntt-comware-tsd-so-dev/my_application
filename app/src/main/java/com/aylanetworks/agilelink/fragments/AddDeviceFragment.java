@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -111,6 +112,7 @@ public class AddDeviceFragment extends Fragment
     private static boolean _needsExit;
     private AylaRegistration _aylaRegistration;
     private AylaSetup _aylaSetup;
+    private String _setupToken;
 
     void updateConnectionInfo() {
         WifiInfo info = _wifiManager.getConnectionInfo();
@@ -693,7 +695,8 @@ public class AddDeviceFragment extends Fragment
         if ( accessPoint == null ) {
             exitSetup();
         } else {
-            connectDeviceToService(accessPoint, password, ObjectUtils.generateRandomToken(8));
+            _setupToken = ObjectUtils.generateRandomToken(8);
+            connectDeviceToService(accessPoint, password, _setupToken);
         }
     }
 
@@ -911,8 +914,12 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void registerCandidate(AylaRegistrationCandidate candidate, String dsn) {
-        candidate.setDsn(dsn);
-        candidate.setRegistrationToken("");
+        if (TextUtils.equals(dsn, candidate.getDsn())) {
+            candidate.setRegistrationToken(_setupToken);
+        } else {
+            candidate.setRegistrationToken(ObjectUtils.generateRandomToken(8));
+        }
+
         candidate.setRegistrationType(AylaDevice.RegistrationType.valueOf("SameLan"));
 
         _aylaRegistration.registerCandidate(candidate,
