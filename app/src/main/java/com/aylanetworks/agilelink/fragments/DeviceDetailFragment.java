@@ -415,6 +415,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
                         Log.i(LOG_TAG, "Device unregistered: " + device);
                         Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
+                        MainActivity.getInstance().dismissWaitDialog();
 
                         // Pop ourselves off of the back stack and force a refresh of the device list
                         getFragmentManager().popBackStack();
@@ -748,7 +749,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                         propValueSwitch.setEnabled(_deviceModel.isOnline());
                         propValueText.setVisibility(View.GONE);
                         propValueSwitch.setOnCheckedChangeListener(null);
-                        propValueSwitch.setChecked("1".equals(prop.getValue()));
+                        propValueSwitch.setChecked(prop.getValue() == 1);
                         Log.d(LOG_TAG, "Checked: " + propValueSwitch.isChecked() + " prop.value: " + prop.getValue());
                         propValueSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             boolean _setting = false;
@@ -760,13 +761,11 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                 }
 
                                 MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
-                                Boolean newValue = isChecked;
-                                _deviceModel.setDatapoint(prop.getName(), newValue, new ViewModel.SetDatapointListener() {
+                                _deviceModel.setDatapoint(prop.getName(), isChecked ? 1 : 0, new ViewModel.SetDatapointListener() {
                                     @Override
                                     public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                                         MainActivity.getInstance().dismissWaitDialog();
                                         updateUI();
-                                        Log.e(LOG_TAG, "setDatapoint error: " + error + " ***^^^");
                                     }
                                 });
                             }
