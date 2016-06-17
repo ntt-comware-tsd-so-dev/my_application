@@ -97,14 +97,13 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         setContentView(R.layout.login);
         CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this, false);
         if (cachedProvider != null) {
-            Toast.makeText(this, "Attempting cache login", Toast.LENGTH_SHORT).show();
+            showSigningInDialog();
 
             AylaNetworks.sharedInstance().getLoginManager().signIn(cachedProvider,
                     AMAPCore.sharedInstance().getSessionParameters().sessionName,
                     new Response.Listener<AylaAuthorization>() {
                         @Override
                         public void onResponse(AylaAuthorization response) {
-                            Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
                             CachedAuthProvider.cacheAuthorization(getContext(), response);
                             finish();
                         }
@@ -112,7 +111,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            ErrorUtils.getUserMessage(getContext(), error, "Cached login error");
+                            ErrorUtils.getUserMessage(error, "Cached login error");
                         }
                     });
         }
@@ -547,20 +546,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         d.setToken(token);
         d.show(getSupportFragmentManager(), "reset_password");
     }
-
-    //TODO: UPDATE STATUS LISTENER
-    /**
-    @Override
-    public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
-        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
-        if ( _progressDialog != null ) {
-            _progressDialog.dismiss();
-        }
-        if (loggedIn) {
-            finish();
-        }
-    }
-     */
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {

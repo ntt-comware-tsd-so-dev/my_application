@@ -260,22 +260,25 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
                              boolean readOnly, List<AylaDevice> devicesToShare) {
 
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        final SimpleDateFormat dateFormat = new SimpleDateFormat
+                ("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+
         String startDateString = null;
         String endDateString = null;
-        String roleName = null;
 
         if ( startDate != null ) {
-            startDateString = df.format(startDate.getTime());
+            startDateString = dateFormat.format(startDate.getTime());
         }
         if ( endDate != null ) {
-            endDateString = df.format(endDate.getTime());
+            endDateString = dateFormat.format(endDate.getTime());
         }
 
-        AylaShare share = new AylaShare(email, readOnly ? "read" : "write",
-                _deviceModel.getDevice().getDsn(),
-                _deviceModel.getDevice().getProductName(),
-                role, startDateString, endDateString);
+        if (role.equals("")) {
+            role = null;
+        }
+
+        AylaShare share = _deviceModel.getDevice().shareWithEmail(email,
+                readOnly ? "read" : "write", role, startDateString, endDateString);
 
         AMAPCore.sharedInstance().getSessionManager().createShare(share, null,
                 new Response.Listener<AylaShare>() {

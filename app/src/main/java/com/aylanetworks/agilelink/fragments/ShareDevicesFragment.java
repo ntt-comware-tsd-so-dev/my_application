@@ -35,7 +35,6 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -55,13 +54,12 @@ import java.util.List;
  * </p>
  */
 public class ShareDevicesFragment extends Fragment implements View.OnFocusChangeListener {
+
     private final static String LOG_TAG = "ShareDevicesFragment";
     private ShareDevicesListener _listener;
     private Calendar _shareStartDate;
     private Calendar _shareEndDate;
-    private boolean _readOnly;
-    private AylaDevice _device;             // Only set if we're sharing exactly one device
-    private ViewModel _deviceModel;
+    private AylaDevice _device; // Only set if we're sharing exactly one device
 
     public interface ShareDevicesListener {
         /**
@@ -125,13 +123,6 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
     private RadioGroup _radioGroup;
     private Button _startButton;
     private Button _endButton;
-    private Button _shareButton;
-    private TextView _shareInfoText;
-
-    // Layout only shown if a device was passed in to newInstance()
-    private LinearLayout _deviceLayout;
-    private ImageView _deviceImageView;
-    private TextView _deviceTextView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -159,11 +150,11 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
         _radioGroup = (RadioGroup) root.findViewById(R.id.read_only_radio_group);
         _startButton = (Button)root.findViewById(R.id.button_starting_on);
         _endButton = (Button)root.findViewById(R.id.button_ending_on);
-        _shareButton = (Button) root.findViewById(R.id.share_button);
-        _deviceImageView = (ImageView)root.findViewById(R.id.device_image);
-        _deviceLayout = (LinearLayout)root.findViewById(R.id.device_layout);
-        _deviceTextView = (TextView)root.findViewById(R.id.device_name);
-        _shareInfoText = (TextView)root.findViewById(R.id.textview);
+        Button shareButton = (Button) root.findViewById(R.id.share_button);
+        ImageView deviceImageView = (ImageView)root.findViewById(R.id.device_image);
+        LinearLayout deviceLayout = (LinearLayout)root.findViewById(R.id.device_layout);
+        TextView deviceTextView = (TextView)root.findViewById(R.id.device_name);
+        TextView shareInfoText = (TextView)root.findViewById(R.id.textview);
 
         _startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,7 +162,6 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
                 chooseDate((Button)v);
             }
         });
-
         _endButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,26 +172,25 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
         if ( _device != null ) {
             // We have a specific device we're sharing. Don't show the list of devices- just show
             // the device name / icon
+
             _deviceList.setVisibility(View.GONE);
-            _deviceLayout.setVisibility(View.VISIBLE);
-            _deviceTextView.setText(_device.toString());
-            _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+            deviceTextView.setText(_device.getFriendlyName());
+            ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
                     .viewModelForDevice(_device);
-            _deviceImageView.setImageDrawable(_deviceModel.getDeviceDrawable(MainActivity.getInstance()));
+            deviceImageView.setImageDrawable(deviceModel.getDeviceDrawable(MainActivity.getInstance()));
 
-            if(_device.isLanEnabled()){
-
+            if (_device.isLanEnabled()){
                 _radioGroup.setVisibility(View.INVISIBLE);
                 _radioGroup.check(R.id.radio_read_write);
-                _shareInfoText.setText(getResources().getString(R.string.share_control_only_message));
-            }
-            else{
+                shareInfoText.setText(getResources().getString(R.string.share_control_only_message));
+            } else {
                 _radioGroup.setVisibility(View.VISIBLE);
                 _radioGroup.check(R.id.radio_read_only);
-                _shareInfoText.setText(getResources().getString(R.string.share_read_only_message));
+                shareInfoText.setText(getResources().getString(R.string.share_read_only_message));
             }
         } else {
             // Set up the list view with a set of devices that the owner can share
+            deviceLayout.setVisibility(View.GONE);
             _deviceList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
             List<AylaDevice> deviceList = AMAPCore.sharedInstance().getDeviceManager().getDevices();
             // Remove devices that we don't own from this list
@@ -222,13 +211,13 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             }
 
             AylaDevice devices[] = deviceList.toArray(new AylaDevice[deviceList.size()]);
-            _deviceList.setAdapter(new ArrayAdapter<AylaDevice>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
+            _deviceList.setAdapter(new ArrayAdapter<>(inflater.getContext(), android.R.layout.simple_list_item_multiple_choice, devices));
             int unitHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48,
                     this.getActivity().getResources().getDisplayMetrics());
             _deviceList.getLayoutParams().height = devices.length * unitHeight;
         }
 
-        _shareButton.setOnClickListener(new View.OnClickListener() {
+        shareButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 shareDevices();
@@ -287,17 +276,16 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
     }
 
     private void shareDevices() {
-        List<AylaDevice> devicesToAdd = new ArrayList<AylaDevice>();
+        List<AylaDevice> devicesToAdd = new ArrayList<>();
 
         if ( _device != null ) {
             // This is the only device we care about
             if(!_device.isGateway()){
                 devicesToAdd.add(_device);
-            } else{
+            } else {
                 Toast.makeText(getActivity(), "Sharing of Gateways not supported", Toast.LENGTH_LONG).show();
                 return;
             }
-
         } else {
             // Get the selected devices from the listview
             SparseBooleanArray checkedItems = _deviceList.getCheckedItemPositions();
@@ -327,7 +315,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             _shareEndDate = null;
         }
 
-        _readOnly = (_radioGroup.getCheckedRadioButtonId() == R.id.radio_read_only);
+        boolean readOnly = (_radioGroup.getCheckedRadioButtonId() == R.id.radio_read_only);
 
         Log.d(LOG_TAG, "Add Shares: " + devicesToAdd);
         _listener.shareDevices(
@@ -335,7 +323,7 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
                 _role.getText().toString(),
                 _shareStartDate,
                 _shareEndDate,
-                _readOnly,
+                readOnly,
                 devicesToAdd);
     }
 

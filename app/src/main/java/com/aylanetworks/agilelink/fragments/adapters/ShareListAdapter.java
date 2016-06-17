@@ -14,6 +14,8 @@ import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.agilelink.R;
 
+import java.util.ArrayList;
+
 /*
  * ShareListAdapter.java
  * AgileLink Application Framework
@@ -22,8 +24,9 @@ import com.aylanetworks.agilelink.R;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 public class ShareListAdapter extends ArrayAdapter<AylaShare> {
-    public ShareListAdapter(Context c, AylaShare[] objects) {
-        super(c, android.R.layout.simple_list_item_2, android.R.id.text1, objects);
+
+    public ShareListAdapter(Context c, ArrayList<AylaShare> shares) {
+        super(c, android.R.layout.simple_list_item_2, android.R.id.text1, shares);
     }
 
     @Override
