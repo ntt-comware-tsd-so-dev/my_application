@@ -51,7 +51,7 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
 
 
     public void setGreenLED(boolean on) {
-       setDatapoint(PROPERTY_GREEN_LED, on, new SetDatapointListener() {
+       setDatapoint(PROPERTY_GREEN_LED, on ? 1 : 0, new SetDatapointListener() {
            @Override
            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                Log.d(LOG_TAG, "lm: setGreenLED error: " + error + " ***^^^");
@@ -60,7 +60,7 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     }
 
     public void setBlueLED(boolean on) {
-        setDatapoint(PROPERTY_BLUE_LED, on, new SetDatapointListener() {
+        setDatapoint(PROPERTY_BLUE_LED, on ? 1 : 0, new SetDatapointListener() {
             @Override
             public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                 Log.d(LOG_TAG, "lm: setBlueLED error: " + error + " ***^^^");
@@ -70,7 +70,7 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
 
     public boolean isGreenLEDOn() {
         AylaProperty prop = _device.getProperty(PROPERTY_GREEN_LED);
-        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
+        if (prop != null && prop.getValue() != null && prop.getValue() != 0) {
             return true;
         }
         return false;
@@ -78,7 +78,7 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
 
     public boolean isBlueLEDOn() {
         AylaProperty prop = _device.getProperty(PROPERTY_BLUE_LED);
-        if (prop != null && prop.getValue() != null &&  (Integer)prop.getValue() != 0) {
+        if (prop != null && prop.getValue() != null && prop.getValue() != 0) {
             return true;
         }
         return false;

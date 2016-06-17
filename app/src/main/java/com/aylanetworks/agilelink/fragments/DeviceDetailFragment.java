@@ -725,11 +725,10 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
             TextView propValueText = (TextView)convertView.findViewById(R.id.property_value_textview);
             final Switch propValueSwitch = (Switch)convertView.findViewById(R.id.property_value_switch);
 
-            Log.d(LOG_TAG, "Property: " + prop.getName() + " Type: " + prop.getBaseType() + " Value: " + prop.getValue());
-
-            propName.setText(_deviceModel.friendlyNameForPropertyName(prop.getName()));
+            propName.setText(_deviceModel.friendlyNameForPropertyName(prop.getName()).trim());
             propValueText.setOnClickListener(null);
-            if ( prop.getDirection().equals("output")) {
+
+            if (prop.getDirection().equals("output")) {
                 // This is a read-only property
                 propValueSwitch.setVisibility(View.GONE);
                 propValueText.setVisibility(View.VISIBLE);
