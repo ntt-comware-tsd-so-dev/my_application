@@ -146,6 +146,7 @@ public class ScheduleFragment extends Fragment {
                                             for (AylaSchedule schedule : response) {
                                                 if (_scheduleName.equals(schedule.getName())) {
                                                     _schedule = new Schedule(schedule,_tz);
+                                                    setupPropertySelection();
                                                     updateUI();
                                                     break;
                                                 }
@@ -197,7 +198,7 @@ public class ScheduleFragment extends Fragment {
         _saveScheduleButton = (Button)root.findViewById(R.id.save_schedule);
 
         // Control configuration / setup
-        _scheduleEnabledSwitch.setChecked(_schedule.isActive());
+
         _scheduleEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -333,8 +334,6 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        setupPropertySelection();
-
         updateUI();
         return root;
     }
@@ -371,7 +370,9 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void scheduleEnabledChanged(boolean isChecked) {
-        _schedule.setActive(isChecked);
+        if(_schedule != null) {
+            _schedule.setActive(isChecked);
+        }
         _scheduleDetailsLayout.setVisibility((isChecked ? View.VISIBLE : View.GONE));
         updateUI();
     }
@@ -493,6 +494,7 @@ public class ScheduleFragment extends Fragment {
         // Make the UI reflect the schedule for this device
         if ( _schedule != null ) {
             _scheduleTitleEditText.setText(_schedule.getName());
+            _scheduleEnabledSwitch.setChecked(_schedule.isActive());
         }
 
         if (_schedule == null || !_schedule.isActive()) {
