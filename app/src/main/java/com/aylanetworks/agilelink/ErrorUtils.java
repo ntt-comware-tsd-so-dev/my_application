@@ -24,7 +24,9 @@ public class ErrorUtils {
         Log.e("AMAP5-ERR", "Unhandled AylaError: ", error);
 
         if (error instanceof ServerError) {
-            int code = ((ServerError) error).getServerResponseCode();
+            ServerError serverError = ((ServerError) error);
+            int code = serverError.getServerResponseCode();
+
             // TODO: Localize these by putting in R.string resource
             switch (code) {
                 case SERVER_ERROR_NOT_FOUND:
@@ -37,8 +39,16 @@ public class ErrorUtils {
                     return "The token has expired. " + messageUnknownError;
 
                 default:
+                    if (serverError.getServerResponseData() != null && serverError.getServerResponseData().length > 0) {
+                        return "Response Code: " + code + "\n" + new String(serverError.getServerResponseData()) + ";\n" + messageUnknownError;
+                    }
+
                     return "Unknown server or network error. " + messageUnknownError;
             }
+        }
+
+        if (error.getLocalizedMessage() != null && !error.getLocalizedMessage().equals("")) {
+            return error.getLocalizedMessage() + ";\n" + messageUnknownError;
         }
 
         return messageUnknownError;

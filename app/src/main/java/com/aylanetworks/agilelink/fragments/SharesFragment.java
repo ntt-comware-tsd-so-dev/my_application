@@ -162,7 +162,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(share.getResourceId());
         String deviceName = "[unknown device]";
         if ( device != null ) {
-            deviceName = device.getDeviceName();
+            deviceName = device.getFriendlyName();
         }
 
         int messageID = amOwner ? R.string.confirm_remove_share_message : R.string.confirm_remove_shared_device_message;
