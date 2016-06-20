@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.MainActivity;
@@ -239,13 +240,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
                     Toast.makeText(getActivity(), R.string.contact_deleted, Toast.LENGTH_LONG).show();
                     getFragmentManager().popBackStack();
                 } else {
-                    String message;
-                    if ( lastMessage.obj != null ) {
-                        message = (String)lastMessage.obj;
-                    } else {
-                        message = MainActivity.getInstance().getString(R.string.unknown_error);
-                    }
-                    Toast.makeText(MainActivity.getInstance(), (String)message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.getInstance(),
+                            ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });

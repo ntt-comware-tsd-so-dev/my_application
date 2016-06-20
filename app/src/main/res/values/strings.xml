@@ -197,6 +197,7 @@
     <string name="invalid_email_password">Invalid email or password</string>
     <string name="invalid_email">Invalid email</string>
     <string name="update_email_success">Update email success</string>
+    <string name="update_password_success">Update password success</string>
     <string name="updating_email_title">Updating Email</string>
     <string name="updating_email_body">Updating your email. Please wait...</string>
     <string name="update_email_confirm_title">Change email?</string>

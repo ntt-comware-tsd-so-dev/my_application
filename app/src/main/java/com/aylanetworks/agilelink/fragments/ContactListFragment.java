@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.MainActivity;
@@ -25,7 +26,6 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
-import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaServiceApp;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -76,20 +76,30 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
         view.findViewById(R.id.add_button).setOnClickListener(this);
 
+        fetchAccountAndContacts();
+
+        return view;
+    }
+
+    private void fetchAccountAndContacts() {
         // Do a deep fetch of the contact list
         MainActivity.getInstance().showWaitDialog(R.string.fetching_contacts_title, R.string.fetching_contacts_body);
 
-        ContactManager cm = AMAPCore.sharedInstance().getContactManager();
-        _ownerContact = cm.getOwnerContact();
-        cm.fetchContacts(new ContactManager.ContactManagerListener() {
+        AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
             @Override
-            public void contactListUpdated(ContactManager manager, AylaError error) {
-                MainActivity.getInstance().dismissWaitDialog();
-                _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
+            public void settingsUpdated(AccountSettings settings, AylaError error) {
+                ContactManager cm = AMAPCore.sharedInstance().getContactManager();
+                _ownerContact = cm.getOwnerContact();
+
+                cm.fetchContacts(new ContactManager.ContactManagerListener() {
+                    @Override
+                    public void contactListUpdated(ContactManager manager, AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
+                    }
+                });
             }
         });
-
-        return view;
     }
 
     @Override
@@ -364,13 +374,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                     ContactListAdapter adapter = new ContactListAdapter(false, ContactListFragment.this);
                     _recyclerView.setAdapter(adapter);
                 } else {
-                    String message;
-                    if ( lastMessage.obj != null ) {
-                        message = (String)lastMessage.obj;
-                    } else {
-                        message = MainActivity.getInstance().getString(R.string.unknown_error);
-                    }
-                    Toast.makeText(MainActivity.getInstance(), (String)message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.getInstance(),
+                            ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });

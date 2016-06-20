@@ -43,6 +43,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
@@ -1064,6 +1065,9 @@ public class MainActivity extends AppCompatActivity
             frag.onPause();
             frag.onResume();
         }
+
+        // fetch account settings
+        AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
     }
 
     private class ErrorMessage {

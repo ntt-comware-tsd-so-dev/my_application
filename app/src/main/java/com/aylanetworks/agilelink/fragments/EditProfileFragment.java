@@ -103,6 +103,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     public void onResponse(AylaUser response) {
                         AMAPCore.sharedInstance().setCurrentUser(response);
                         updateFields();
+                        MainActivity.getInstance().dismissWaitDialog();
                     }
                 },
                 new ErrorListener() {
@@ -141,11 +142,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         AylaUser user = new AylaUser();
         user.setFirstname(_firstName.getText().toString());
         user.setLastname(_lastName.getText().toString());
-        user.setEmail(_email.getText().toString());
         user.setCountry(_country.getText().toString());
         user.setPhoneCountryCode(_phoneCountryCode.getText().toString());
         user.setPhone(_phoneNumber.getText().toString());
-        user.setPassword(_password.getText().toString());
 
         return user;
     }
@@ -154,12 +153,14 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         // Normal profile update
         MainActivity.getInstance().showWaitDialog(getString(R.string.updating_profile_title), getString(R.string.updating_profile_body));
         AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
+        final AylaUser updatedUser = userFromFields();
         if (params.ssoLogin) {
-            params.ssoManager.updateUserInfo(userFromFields(), new Response.Listener<AylaUser>() {
+            params.ssoManager.updateUserInfo(updatedUser, new Response.Listener<AylaUser>() {
                         @Override
                         public void onResponse(AylaUser response) {
                             AylaLog.i(LOG_TAG, "SSO user updated successfully");
-                            updateOwnerContact(response);
+                            updateOwnerContact(updatedUser);
+                            MainActivity.getInstance().dismissWaitDialog();
                         }
                     },
                     new ErrorListener() {
@@ -169,12 +170,13 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                         }
                     });
         } else {
-            AMAPCore.sharedInstance().getSessionManager().updateUserProfile(userFromFields(),
+            AMAPCore.sharedInstance().getSessionManager().updateUserProfile(updatedUser,
                     new Response.Listener<AylaUser>() {
                         @Override
                         public void onResponse(AylaUser response) {
                             AylaLog.i(LOG_TAG, "User profile updated successfully");
-                            updateOwnerContact(response);
+                            updateOwnerContact(updatedUser);
+                            MainActivity.getInstance().dismissWaitDialog();
                         }
                     },
                     new ErrorListener() {
@@ -241,8 +243,12 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                         @Override
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                            // Continue updating the rest of the information
-                            onUpdateClicked();
+                            Toast.makeText(MainActivity.getInstance(), R.string.update_password_success, Toast.LENGTH_SHORT).show();
+                            // Re-login with new password
+                            EmptyListener<AylaAPIRequest.EmptyResponse>
+                                    emptyListener = new EmptyListener<>();
+                            AMAPCore.sharedInstance().getSessionManager()
+                                    .shutDown(emptyListener, emptyListener);
                         }
                     },
                     new ErrorListener() {
