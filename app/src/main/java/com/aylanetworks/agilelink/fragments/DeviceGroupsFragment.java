@@ -253,7 +253,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
             for (int i = 0; i < allDevices.size(); i++) {
                 ViewModel d = allDevices.get(i);
-                deviceNames[i] = d.toString();
+                deviceNames[i] = d.getDevice().getFriendlyName();
                 isGroupMember[i] = (_selectedGroup.isDeviceInGroup(d.getDevice()));
             }
 
