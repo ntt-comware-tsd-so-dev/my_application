@@ -26,7 +26,6 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
-import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaServiceApp;
 import com.aylanetworks.aylasdk.error.AylaError;
 
@@ -76,30 +75,21 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
 
         view.findViewById(R.id.add_button).setOnClickListener(this);
 
-        fetchAccountAndContacts();
-
-        return view;
-    }
-
-    private void fetchAccountAndContacts() {
         // Do a deep fetch of the contact list
         MainActivity.getInstance().showWaitDialog(R.string.fetching_contacts_title, R.string.fetching_contacts_body);
 
-        AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
-            @Override
-            public void settingsUpdated(AccountSettings settings, AylaError error) {
-                ContactManager cm = AMAPCore.sharedInstance().getContactManager();
-                _ownerContact = cm.getOwnerContact();
+        ContactManager cm = AMAPCore.sharedInstance().getContactManager();
+        _ownerContact = cm.getOwnerContact();
 
-                cm.fetchContacts(new ContactManager.ContactManagerListener() {
-                    @Override
-                    public void contactListUpdated(ContactManager manager, AylaError error) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
-                    }
-                });
+        cm.fetchContacts(new ContactManager.ContactManagerListener() {
+            @Override
+            public void contactListUpdated(ContactManager manager, AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
             }
         });
+
+        return view;
     }
 
     @Override
@@ -237,8 +227,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                     if ( settings != null ) {
                         enableNotification(notificationMethod, enable);
                     } else {
-                        AylaLog.e(LOG_TAG, "Error fetching account settings: " + error);
-                        Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -265,8 +256,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                         if (error == null) {
                             Toast.makeText(getActivity(), R.string.notifications_updated, Toast.LENGTH_SHORT).show();
                         } else {
-                            AylaLog.e(LOG_TAG, "Failed updating notifications: " + error);
-                            Toast.makeText(getActivity(), R.string.notification_update_failed, Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.notification_update_failed),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -326,12 +318,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                 Toast.makeText(getActivity(), R.string.contact_updated, Toast.LENGTH_LONG).show();
                 _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
             } else {
-                if (lastMessage.obj != null) {
-                    Toast.makeText(getActivity(), (String) lastMessage.obj, Toast.LENGTH_LONG).show();
-                } else {
-                    // Generic error message
-                    Toast.makeText(getActivity(), R.string.contact_update_failed, Toast.LENGTH_LONG).show();
-                }
+                Toast.makeText(getActivity(),
+                        ErrorUtils.getUserMessage(getActivity(), error, R.string.contact_update_failed),
+                        Toast.LENGTH_SHORT).show();
             }
         }
     };

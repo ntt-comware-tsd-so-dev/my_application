@@ -269,6 +269,7 @@ public class MenuHandler {
                     @Override
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
                         Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                        MainActivity.getInstance().showLoginDialog(true);
                     }
                 },
                 new ErrorListener() {

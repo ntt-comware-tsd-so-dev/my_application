@@ -21,6 +21,10 @@ public class ErrorUtils {
     }
 
     public static String getUserMessage(AylaError error, String messageUnknownError) {
+        if (error == null) {
+            return messageUnknownError;
+        }
+
         Log.e("AMAP5-ERR", "Unhandled AylaError: ", error);
 
         if (error instanceof ServerError) {

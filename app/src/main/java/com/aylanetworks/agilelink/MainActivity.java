@@ -1,5 +1,8 @@
 package com.aylanetworks.agilelink;
 
+import android.*;
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -59,9 +62,9 @@ import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
-import com.google.gson.annotations.Expose;
 
 import java.util.List;
 
@@ -198,7 +201,9 @@ public class MainActivity extends AppCompatActivity
         if (_progressDialog != null) {
             try {
                 _progressDialog.dismiss();
-            } catch (Exception ex) {}
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         _progressDialog = null;
         _progressDialogStart = 0;
@@ -210,7 +215,7 @@ public class MainActivity extends AppCompatActivity
      * @return The app version string
      */
     public String getAppVersion() {
-        PackageInfo info = null;
+        PackageInfo info;
         try {
             info = getPackageManager().getPackageInfo(getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
@@ -287,7 +292,7 @@ public class MainActivity extends AppCompatActivity
         // User logged out.
         setNoDevicesMode(false);
         if (!_loginScreenUp) {
-            showLoginDialog();
+            showLoginDialog(true);
         } else {
             Log.e(LOG_TAG, "nod: Login screen is already up:");
         }
@@ -378,7 +383,6 @@ public class MainActivity extends AppCompatActivity
                                 SORT);
                         _pickContactListener.contactPicked(c);
                         c.close();
-
                     } else {
                         _pickContactListener.contactPicked(null);
                     }
@@ -389,9 +393,9 @@ public class MainActivity extends AppCompatActivity
             Log.d(LOG_TAG, "nod: SignInActivity finished");
             _loginScreenUp = false;
 
-            handleSignedIn();
-
-            if ( resultCode == RESULT_FIRST_USER ) {
+            if (resultCode == Activity.RESULT_OK) {
+                handleSignedIn();
+            } else if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
             }
@@ -401,7 +405,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
-        if(ActivityCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED){
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             requestStoragePermissions();
         }
         if(getResources().getBoolean(R.bool.portrait_only)){
@@ -420,7 +424,7 @@ public class MainActivity extends AppCompatActivity
         AMAPCore.initialize(getAppParameters(),this);
 
         if (!_loginScreenUp) {
-            showLoginDialog();
+            showLoginDialog(false);
         }
        // AMAPCore.sharedInstance().setContext(this);
         //AMAPCore.sharedInstance().getGroupManager().fetchDeviceGroups();
@@ -544,7 +548,6 @@ public class MainActivity extends AppCompatActivity
         if (_sideBarView != null) {
             findViewById(R.id.action_all_devices).setOnClickListener(this);
             findViewById(R.id.action_device_groups).setOnClickListener(this);
-            findViewById(R.id.action_device_scenes).setOnClickListener(this);
             findViewById(R.id.action_gateways).setOnClickListener(this);
             findViewById(R.id.action_shares).setOnClickListener(this);
             findViewById(R.id.action_account).setOnClickListener(this);
@@ -557,23 +560,7 @@ public class MainActivity extends AppCompatActivity
         _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
-                AylaUser currentUser = AMAPCore.sharedInstance().getCurrentUser();
-                if (currentUser != null) {
-                    StringBuilder sb = new StringBuilder(64);
-                    if (!TextUtils.isEmpty(currentUser.getFirstname())) {
-                        sb.append(currentUser.getFirstname());
-                    }
-                    if (sb.length() > 0) {
-                        sb.append(" ");
-                    }
-                    if (!TextUtils.isEmpty(currentUser.getLastname())) {
-                        sb.append(currentUser.getLastname());
-                    }
-                    _userView.setText(sb.toString());
-                    _emailView.setText(currentUser.getEmail());
-                } else {
-                    AMAPCore.sharedInstance().updateCurrentUserInfo();
-                }
+                updateDrawerHeader();
                 MainActivity.this.onDrawerOpened(drawerView);
             }
 
@@ -605,6 +592,28 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void updateDrawerHeader() {
+        AylaUser currentUser = AMAPCore.sharedInstance().getCurrentUser();
+        if (currentUser != null) {
+            if (_userView != null && _emailView != null) {
+                StringBuilder sb = new StringBuilder(64);
+                if (!TextUtils.isEmpty(currentUser.getFirstname())) {
+                    sb.append(currentUser.getFirstname());
+                }
+                if (sb.length() > 0) {
+                    sb.append(" ");
+                }
+                if (!TextUtils.isEmpty(currentUser.getLastname())) {
+                    sb.append(currentUser.getLastname());
+                }
+                _userView.setText(sb.toString());
+                _emailView.setText(currentUser.getEmail());
+            }
+        } else {
+            AMAPCore.sharedInstance().updateCurrentUserInfo();
+        }
+    }
+
     public void onSelectMenuItemById(int id) {
         if (_navigationView != null) {
             Menu menu = _navigationView.getMenu();
@@ -633,9 +642,7 @@ public class MainActivity extends AppCompatActivity
                     _sideBarIcon.clearColorFilter();
                 }
                 _sideBarIcon = (ImageView)view;
-                if (_sideBarIcon != null) {
-                    _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
-                }
+                _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
             }
         }
     }
@@ -707,6 +714,7 @@ public class MainActivity extends AppCompatActivity
         onDrawerItemClicked(_drawerMenu.getItem(0));
     }
 
+    /**
     public void openDrawer() {
         if ( _drawerLayout != null ) {
             if (_drawerList != null) {
@@ -716,6 +724,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+     */
 
     public void closeDrawer() {
         if ( _drawerLayout != null ) {
@@ -749,6 +758,7 @@ public class MainActivity extends AppCompatActivity
         Log.d(LOG_TAG, "Drawer Closed");
         supportInvalidateOptionsMenu();
     }
+
     public void settingsMenuItemClicked(MenuItem item) {
         MenuHandler.handleMenuItem(item);
     }
@@ -841,7 +851,6 @@ public class MainActivity extends AppCompatActivity
                 !_noDevicesMode &&
                 isDrawerOpen() ) {
             closeDrawer();
-            //Log.e(LOG_TAG, "back: onBackPressed close menu");
             return;
         }
 
@@ -856,22 +865,10 @@ public class MainActivity extends AppCompatActivity
                     return;
                 }
 
-            } else {
-
-                //Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
             }
-        } else if(bsc == 1 ){
+        } else if (bsc == 1 ){
             if(AMAPCore.sharedInstance().getDeviceManager().getDevices().isEmpty()){
                 this.finish();
-            }
-        }else {
-            FragmentManager.BackStackEntry bse = fm.getBackStackEntryAt(bsc - 1);
-            //Log.e(LOG_TAG, "back: onBackPressed id=" + bse.getId() + ", name=" + bse.getName() + ", title=" + bse.getBreadCrumbTitle());
-            Fragment frag = fm.findFragmentById(bse.getId());
-            if (frag != null) {
-                //Log.e(LOG_TAG, "back: onBackPressed frag=" + frag.getClass().getSimpleName());
-            } else {
-                ////Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
             }
         }
         Log.e(LOG_TAG, "back: onBackPressed super");
@@ -890,20 +887,31 @@ public class MainActivity extends AppCompatActivity
 
     private boolean _loginScreenUp;
 
-    private void showLoginDialog() {
+    public void showLoginDialog(boolean disableCachedSignin) {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
             Log.e(LOG_TAG, "nod: showLoginDialog: Already shown");
             return;
         }
-        SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
-        final String savedUsername = settings.getString(AMAPCore.PREFS_USERNAME, "");
-        final String savedPassword = settings.getString(AMAPCore.PREFS_PASSWORD, "");
 
-        // If we've got the username / password, we have everything we need.
-        if ( !TextUtils.isEmpty(savedUsername) && !TextUtils.isEmpty(savedPassword)) {
-            signIn(savedUsername, savedPassword);
-            return;
+        Intent intent = new Intent(this, SignInActivity.class);
+        if (disableCachedSignin) {
+            CachedAuthProvider.clearCachedAuthorization(this);
+        } else {
+            SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
+            final String savedUsername = settings.getString(AMAPCore.PREFS_USERNAME, "");
+            final String savedPassword = settings.getString(AMAPCore.PREFS_PASSWORD, "");
+
+            // If we've got the username / password, we have everything we need.
+            if (!TextUtils.isEmpty(savedUsername) && !TextUtils.isEmpty(savedPassword)) {
+                signIn(savedUsername, savedPassword);
+                return;
+            }
+
+            Bundle args = new Bundle();
+            args.putString(SignInActivity.ARG_USERNAME, savedUsername);
+            args.putString(SignInActivity.ARG_PASSWORD, savedPassword);
+            intent.putExtras(args);
         }
 
         _loginScreenUp = true;
@@ -915,12 +923,7 @@ public class MainActivity extends AppCompatActivity
         popBackstackToRoot();
         onSelectMenuItemById(R.id.action_all_devices);
 
-        Bundle args = new Bundle();
-        args.putString(SignInActivity.ARG_USERNAME, savedUsername);
-        args.putString(SignInActivity.ARG_PASSWORD, savedPassword);
-
-        Intent intent = new Intent(this, SignInActivity.class);
-        intent.putExtras(args);
+        intent.putExtra(SignInActivity.EXTRA_DISABLE_CACHED_SIGNIN, disableCachedSignin);
         Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
         startActivityForResult(intent, REQ_SIGN_IN);
     }
@@ -964,21 +967,13 @@ public class MainActivity extends AppCompatActivity
             // TODO: Check cloud connectivity
             setCloudConnectivityIndicator(true);
         } else if ( !_loginScreenUp ) {
-            showLoginDialog();
+            showLoginDialog(false);
         }
     }
 
     @Override
     public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
         Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
-    }
-
-    // SessionListener methods
-    void handleLoginChanged(boolean loggedIn, AylaUser aylaUser) {
-        if (!loggedIn) {
-            popBackstackToRoot();
-            showLoginDialog();
-        }
     }
 
     /**
@@ -1021,10 +1016,7 @@ public class MainActivity extends AppCompatActivity
                 return true;
             }
         }
-        if (MenuHandler.handleMenuItem(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return MenuHandler.handleMenuItem(item) || super.onOptionsItemSelected(item);
     }
 
     public void signIn(String username, String password) {
@@ -1049,8 +1041,9 @@ public class MainActivity extends AppCompatActivity
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(MainActivity.this, error.toString(), Toast.LENGTH_LONG)
-                                .show();
+                        Toast.makeText(MainActivity.this,
+                                ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -1068,11 +1061,9 @@ public class MainActivity extends AppCompatActivity
 
         // fetch account settings
         AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
-    }
 
-    private class ErrorMessage {
-        @Expose
-        String error;
+        // update drawer header
+        updateDrawerHeader();
     }
 
     /**

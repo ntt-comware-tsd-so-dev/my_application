@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -9,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -33,7 +33,6 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
-import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
@@ -55,21 +54,13 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
  */
 
 public class SignInActivity extends FragmentActivity implements SignUpDialog.SignUpListener, AylaSessionManager.SessionManagerListener {
-    public static final String ARG_LOGIN_TYPE = "loginType";
+
     public static final String ARG_USERNAME = "username";
     public static final String ARG_PASSWORD = "password";
 
-    public static final int LOGIN_TYPE_PASSWORD = 1;
-    public static final int LOGIN_TYPE_OAUTH = 2;
-    public static final int LOGIN_TYPE_SIGN_UP = 3;
-    public static final int LOGIN_TYPE_FORGOT_PASSWORD = 4;
-    public static final int LOGIN_TYPE_RESEND_CONFIRMATION = 5;
-
-    public static final String OAUTH_GOOGLE = "google_provider";
-    public static final String OAUTH_FACEBOOK = "facebook_provider";
-
     private static final String SIGNUP_TOKEN = "user_sign_up_token";
     private static final String RESET_PASSWORD_TOKEN = "user_reset_password_token";
+    public static final String EXTRA_DISABLE_CACHED_SIGNIN = "disable_cached_signin";
 
     private static final String LOG_TAG = "SignInDialog";
 
@@ -96,7 +87,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
         setContentView(R.layout.login);
         CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this, false);
-        if (cachedProvider != null) {
+        if (cachedProvider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
             showSigningInDialog();
 
             AylaNetworks.sharedInstance().getLoginManager().signIn(cachedProvider,
@@ -105,13 +96,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         @Override
                         public void onResponse(AylaAuthorization response) {
                             CachedAuthProvider.cacheAuthorization(getContext(), response);
+                            setResult(Activity.RESULT_OK);
                             finish();
                         }
                     },
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            ErrorUtils.getUserMessage(error, "Cached login error");
+                            dismissSigningInDialog();
+                            Toast.makeText(SignInActivity.this,
+                                    ErrorUtils.getUserMessage(SignInActivity.this, error, R.string.unknown_error),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -165,17 +160,16 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                             new Response.Listener<AylaAuthorization>() {
                                 @Override
                                 public void onResponse(AylaAuthorization response) {
-                                    Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
-
                                     // Cache the authorization
                                     CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
-
+                                    setResult(Activity.RESULT_OK);
                                     finish();
                                 }
                             },
                             new ErrorListener() {
                                 @Override
                                 public void onErrorResponse(AylaError error) {
+                                    dismissSigningInDialog();
                                     Toast.makeText(MainActivity.getInstance(),
                                             ErrorUtils.getUserMessage(getContext(), error, R.string.error_signing_in),
                                             Toast.LENGTH_LONG).show();
@@ -253,7 +247,10 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         if ( _progressDialog != null ) {
             _progressDialog.dismiss();
         }
-        AMAPCore.sharedInstance().getSessionManager().removeListener(this);
+
+        if (AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().removeListener(this);
+        }
         super.onDestroy();
     }
 
@@ -274,7 +271,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     }
 
     private ProgressDialog _progressDialog;
-    void showSigningInDialog() {
+    private void showSigningInDialog() {
         if ( _progressDialog != null ) {
             _progressDialog.dismiss();
         }
@@ -290,6 +287,12 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         dialog.setOnCancelListener(null);
         dialog.show();
         _progressDialog = dialog;
+    }
+
+    private void dismissSigningInDialog() {
+        if (_progressDialog != null) {
+            _progressDialog.dismiss();
+        }
     }
 
     @Override
@@ -322,10 +325,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                 new Response.Listener<AylaAuthorization>() {
                     @Override
                     public void onResponse(AylaAuthorization response) {
-                        Toast.makeText(getContext(), "Login successful", Toast.LENGTH_SHORT).show();
                         // Cache the authorization
                         CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
-
+                        setResult(Activity.RESULT_OK);
                         finish();
                     }
                 },

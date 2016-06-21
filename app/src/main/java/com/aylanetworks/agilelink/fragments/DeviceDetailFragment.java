@@ -184,7 +184,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     @Override
     public void deviceError(AylaDevice device, AylaError error) {
         AylaLog.e(LOG_TAG, "Device error " + device + " " + error);
-        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(),
+                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                Toast.LENGTH_SHORT).show();
         updateUI();
     }
 

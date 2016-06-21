@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaContact;
@@ -109,7 +110,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Log.e(LOG_TAG, "user: Failed to fetch current user details: " + error);
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -166,7 +169,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            AylaLog.e(LOG_TAG, "SSO user update error: " + error);
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
         } else {
@@ -182,7 +187,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            AylaLog.e(LOG_TAG, "User profile update error: " + error);
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -213,9 +220,10 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                     if (getFragmentManager() != null) {
                         getFragmentManager().popBackStack();
                     }
-                    Toast.makeText(MainActivity.getInstance(),
-                            error == null ? R.string.profile_updated : R.string.error_changing_profile,
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(),
+                            ErrorUtils.getUserMessage(getActivity(), error,
+                                    error == null ? R.string.profile_updated : R.string.error_changing_profile),
+                            Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -249,13 +257,16 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                                     emptyListener = new EmptyListener<>();
                             AMAPCore.sharedInstance().getSessionManager()
                                     .shutDown(emptyListener, emptyListener);
+                            MainActivity.getInstance().showLoginDialog(true);
                         }
                     },
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
                             MainActivity.getInstance().dismissWaitDialog();
-                            Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.error_changing_profile),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -264,7 +275,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     void onUpdateEmailClicked() {
         String currentEmail = _email.getText().toString();
         final String newEmail = _newEmail.getText().toString();
-        if (TextUtils.isEmpty(newEmail) || newEmail.contains("@") == false
+        if (TextUtils.isEmpty(newEmail) || !newEmail.contains("@")
                 || currentEmail.equals(newEmail)) {
             Toast.makeText(MainActivity.getInstance(), R.string.invalid_email, Toast.LENGTH_SHORT).show();
             _newEmail.requestFocus();
@@ -288,14 +299,15 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                                                             emptyListener = new EmptyListener<>();
                                                     AMAPCore.sharedInstance().getSessionManager()
                                                             .shutDown(emptyListener, emptyListener);
+                                                    MainActivity.getInstance().showLoginDialog(true);
                                                 }
                                             },
                                             new ErrorListener() {
                                                 @Override
                                                 public void onErrorResponse(AylaError error) {
-                                                    Toast.makeText(MainActivity.getInstance(),
-                                                            R.string.error_updating_email,
-                                                            Toast.LENGTH_LONG).show();
+                                                    Toast.makeText(getActivity(),
+                                                            ErrorUtils.getUserMessage(getActivity(), error, R.string.error_updating_email),
+                                                            Toast.LENGTH_SHORT).show();
                                                 }
                                             });
                         }

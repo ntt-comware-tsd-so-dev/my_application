@@ -210,12 +210,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
                     Toast.makeText(getActivity(), R.string.contact_updated, Toast.LENGTH_LONG).show();
                     getFragmentManager().popBackStack();
                 } else {
-                    if (lastMessage.obj != null) {
-                        Toast.makeText(getActivity(), (String) error.getMessage(), Toast.LENGTH_LONG).show();
-                    } else {
-                        // Generic error message
-                        Toast.makeText(getActivity(), R.string.contact_update_failed, Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(getActivity(),
+                            ErrorUtils.getUserMessage(getActivity(), error, R.string.contact_update_failed),
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         };
