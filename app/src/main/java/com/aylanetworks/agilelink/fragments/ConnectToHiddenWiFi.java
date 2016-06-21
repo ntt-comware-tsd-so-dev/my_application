@@ -53,7 +53,6 @@ public class ConnectToHiddenWiFi extends DialogFragment implements TextWatcher {
         _passwordContainer = view.findViewById(R.id.password_container);
         _passwordContainer.setVisibility(View.GONE);
 
-        _passwordEditText.setEnabled(false);
         _passwordEditText.addTextChangedListener(this);
 
         _wifiRequiresAuth.setChecked(false);
@@ -64,25 +63,10 @@ public class ConnectToHiddenWiFi extends DialogFragment implements TextWatcher {
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(_passwordEditText.getWindowToken(), 0);
 
-                if (!isChecked) {
-                    // No need for the password field
-                    _passwordContainer.setVisibility(View.GONE);
-                    if (_wifiNameEditText.getText().length() > 0) {
-                        _connectButton.setEnabled(true);
-                    } else{
-                        _connectButton.setEnabled(false);
-                    }
-                } else {
-                     _passwordContainer.setVisibility(View.VISIBLE);
-                     _passwordEditText.setText("");
-                     _passwordEditText.setEnabled(true);
-                     _connectButton.setEnabled(false);
-                }
+                _passwordContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
 
-                _passwordContainer.setVisibility(View.VISIBLE);
                 _passwordEditText.setText("");
-                _passwordEditText.setEnabled(true);
-                _connectButton.setEnabled(false);
+                updateConnectButtonState();
                 Log.d(LOG_TAG, "onCheckedChanged: Wifi requires auth [" + isChecked + "]");
             }
         });
@@ -140,6 +124,10 @@ public class ConnectToHiddenWiFi extends DialogFragment implements TextWatcher {
     @Override
     public void afterTextChanged(Editable s) {
         //If the user chooses security as Open then make sure that the WiFi name is entered
+        updateConnectButtonState();
+    }
+
+    private void updateConnectButtonState() {
         if (!_wifiRequiresAuth.isChecked()) {
             _connectButton.setEnabled(_wifiNameEditText.getText().length() > 0);
         } else {
