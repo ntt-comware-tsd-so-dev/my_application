@@ -103,7 +103,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     private AylaContact _ownerContact;
 
     private RecyclerView _recyclerView;
-    private RecyclerView.LayoutManager _layoutManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -159,8 +158,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         View view = inflater.inflate(R.layout.fragment_property_notification, container, false);
 
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
-        _layoutManager = new LinearLayoutManager(getActivity());
-        _recyclerView.setLayoutManager(_layoutManager);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        _recyclerView.setLayoutManager(layoutManager);
         _nameEditText = (EditText)view.findViewById(R.id.notification_name);
         _propertySpinner = (Spinner)view.findViewById(R.id.property_spinner);
         _booleanLayout = (LinearLayout)view.findViewById(R.id.layout_boolean);

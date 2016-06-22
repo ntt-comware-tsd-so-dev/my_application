@@ -60,7 +60,6 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     private RecyclerView _recyclerView;
     private TextView _emptyView;
     private ViewModel _deviceModel;
-    private PropertyNotificationHelper _propertyNotificationHelper;
     private List<AylaPropertyTrigger> _propertyTriggers;
 
     @Override
@@ -93,10 +92,10 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
         b.setOnClickListener(this);
 
         // Get the notifications
-        _propertyNotificationHelper = new PropertyNotificationHelper(_deviceModel.getDevice());
+        PropertyNotificationHelper propertyNotificationHelper = new PropertyNotificationHelper(_deviceModel.getDevice());
 
         MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
-        _propertyNotificationHelper.fetchNotifications(new FetchNotificationsListener() {
+        propertyNotificationHelper.fetchNotifications(new FetchNotificationsListener() {
             @Override
             public void notificationsFetched(AylaDevice device, AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
@@ -126,9 +125,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
         }
 
         final String[] propNames = _deviceModel.getNotifiablePropertyNames();
-        for (int i = 0; i < propNames.length; i++) {
-            final String propName = propNames[i];
-
+        for (String propName : propNames) {
             AylaProperty aylaProperty = _deviceModel.getDevice().getProperty(propName);
             if (aylaProperty == null) {
                 AylaLog.e(LOG_TAG, "No property returned for " + propName);
@@ -140,10 +137,6 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
                        @Override
                        public void onResponse(AylaPropertyTrigger[] response) {
                            if(response != null && response.length > 0) {
-                               for (AylaPropertyTrigger trigger : response) {
-                                   Log.e("AMAPNOTIF", "TRIGGER: " + trigger.toString());
-                               }
-
                                _propertyTriggers.addAll(Arrays.asList(response));
                            }
 
