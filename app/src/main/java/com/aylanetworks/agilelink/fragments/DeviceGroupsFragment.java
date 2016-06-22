@@ -235,11 +235,9 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     @Override
     public void deviceListChanged(ListChange change) {
         super.deviceListChanged(change);
-        if(this.isAdded()){
+        if (this.isAdded()) {
             createGroupButtonHeader();
             updateDeviceList();
-        } else{
-            return;
         }
     }
 
@@ -308,8 +306,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                             Toast.makeText(getActivity(), R.string.invalid_group_name, Toast.LENGTH_LONG).show();
                         } else {
                             // Add the group and select it
-                            DeviceGroup newGroup = gm.createGroup(et.getText().toString(), null);
-                            _selectedGroup = newGroup;
+                            _selectedGroup = gm.createGroup(et.getText().toString(), null);
                             gm.pushGroupList();
 
                             // Group is not useful with nothing in it! Bring up the UI to add

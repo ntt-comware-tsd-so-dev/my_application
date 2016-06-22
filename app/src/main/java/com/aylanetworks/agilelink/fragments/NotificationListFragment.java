@@ -3,8 +3,6 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper.FetchNotificationsListener;
 import com.aylanetworks.agilelink.framework.ViewModel;
@@ -103,7 +102,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
                 MainActivity.getInstance().dismissWaitDialog();
                 Log.d(LOG_TAG, "notificationsFetched: " + error);
 
-                updateTriggerList();
+                updateTriggersData();
             }
         });
 
@@ -115,7 +114,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
         super.onResume();
     }
 
-    private void updateTriggerList() {
+    private void updateTriggersData() {
         // Gather all of the property triggers
         _propertyTriggers = new ArrayList<>();
         if ( _deviceModel.getDevice().getProperties() == null ) {
@@ -125,31 +124,46 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
             getFragmentManager().popBackStack();
             return;
         }
-        for (String propName : _deviceModel.getNotifiablePropertyNames()) {
+
+        final String[] propNames = _deviceModel.getNotifiablePropertyNames();
+        for (int i = 0; i < propNames.length; i++) {
+            final String propName = propNames[i];
+
             AylaProperty aylaProperty = _deviceModel.getDevice().getProperty(propName);
             if (aylaProperty == null) {
                 AylaLog.e(LOG_TAG, "No property returned for " + propName);
                 continue;
             }
 
-            aylaProperty.fetchTriggers(new Response.Listener<AylaPropertyTrigger[]>() {
-                                           @Override
-                                           public void onResponse(AylaPropertyTrigger[] response) {
-                                               if(response !=null && response.length>0) {
-                                                   _propertyTriggers.addAll(Arrays.asList(response));
-                                                   updateTriggerList();
-                                               }
-                                           }
-                                       },
+            aylaProperty.fetchTriggers(
+                    new Response.Listener<AylaPropertyTrigger[]>() {
+                       @Override
+                       public void onResponse(AylaPropertyTrigger[] response) {
+                           if(response != null && response.length > 0) {
+                               for (AylaPropertyTrigger trigger : response) {
+                                   Log.e("AMAPNOTIF", "TRIGGER: " + trigger.toString());
+                               }
+
+                               _propertyTriggers.addAll(Arrays.asList(response));
+                           }
+
+                           updateTriggersList();
+                       }
+                   },
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG)
-                                    .show();
+                            Toast.makeText(getContext(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                    Toast.LENGTH_LONG).show();
+
+                            updateTriggersList();
                         }
                     });
         }
+    }
 
+    private void updateTriggersList() {
         if ( _propertyTriggers.isEmpty() ) {
             _recyclerView.setVisibility(View.GONE);
             _emptyView.setVisibility(View.VISIBLE);
@@ -158,7 +172,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
             _recyclerView.setVisibility(View.VISIBLE);
             _emptyView.setVisibility(View.GONE);
         }
-        _recyclerView.setAdapter(new TriggerAdapter(this, _deviceModel, _propertyTriggers));
+        _recyclerView.setAdapter(new TriggerAdapter(NotificationListFragment.this, _deviceModel, _propertyTriggers));
     }
 
     @Override
@@ -182,19 +196,18 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
                         AylaPropertyTrigger trigger = _propertyTriggers.get(index);
                         String propNickName = trigger.getPropertyNickname();
                         AylaProperty property = _deviceModel.getDevice().getProperty(propNickName);
-                        property.deleteTrigger(trigger, new Response.Listener<AylaAPIRequest
-                                        .EmptyResponse>() {
+                        property.deleteTrigger(trigger, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                                     @Override
                                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
                                         AylaLog.d(LOG_TAG, "Successfully Deleted the old trigger");
-                                        _propertyTriggers.remove(index);
-                                        NotificationListFragment.this.updateTriggerList();
+                                        updateTriggersData();
                                     }
                                 },
                                 new ErrorListener() {
                                     @Override
                                     public void onErrorResponse(AylaError error) {
-                                        Toast.makeText(getContext(), error.toString(),
+                                        Toast.makeText(getContext(),
+                                                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
                                                 Toast.LENGTH_LONG).show();
                                     }
                                 });
@@ -211,7 +224,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
 
         public TriggerAdapter(NotificationListFragment fragment, ViewModel deviceModel,
                               List<AylaPropertyTrigger> propertyTriggers) {
-            _frag = new WeakReference<NotificationListFragment>(fragment);
+            _frag = new WeakReference<>(fragment);
             _deviceModel = deviceModel;
             _propertyTriggers = propertyTriggers;
         }

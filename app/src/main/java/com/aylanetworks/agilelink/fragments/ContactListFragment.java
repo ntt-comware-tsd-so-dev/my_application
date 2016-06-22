@@ -36,7 +36,9 @@ import com.aylanetworks.aylasdk.error.AylaError;
  * Created by Brian King on 3/19/2015.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
-public class ContactListFragment extends Fragment implements View.OnClickListener, FragmentManager.OnBackStackChangedListener, ContactListAdapter.ContactCardListener {
+public class ContactListFragment extends Fragment implements View.OnClickListener,
+        FragmentManager.OnBackStackChangedListener,
+        ContactListAdapter.ContactCardListener {
     private final static String LOG_TAG = "ContactListFrag";
 
     RecyclerView _recyclerView;
@@ -176,46 +178,44 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         return false;
     }
 
-    boolean stateForIcon(AylaContact contact, IconType iconType) {
+    private boolean stateForIcon(AylaContact contact, IconType iconType) {
         AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
         boolean isOwner = isOwner(contact);
         boolean checked = false;
 
-        switch ( iconType ) {
-            case ICON_PUSH: {
+        switch (iconType) {
+            case ICON_PUSH:
                 if (accountSettings != null) {
                     checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.BaiduPush) ||
                             accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.GooglePush);
                 }
                 break;
-            }
 
-            case ICON_EMAIL: {
+            case ICON_EMAIL:
                 if (isOwner) {
                     if (accountSettings != null) {
                         checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.EMail);
                     }
                 } else {
-                    checked = !TextUtils.isEmpty(contact.getEmailAccept());
+                    checked = contact.getWantsEmailNotification();
                 }
                 break;
-            }
 
-            case ICON_SMS: {
+            case ICON_SMS:
                 if (isOwner) {
                     if (accountSettings != null) {
                         checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.SMS);
                     }
                 } else {
-                    checked = !TextUtils.isEmpty(contact.getSmsAccept());
+                    checked = contact.getWantsSmsNotification();
                 }
                 break;
-            }
         }
+
         return checked;
     }
 
-    void enableNotification(final AylaServiceApp.NotificationType notificationMethod, final boolean enable) {
+    private void enableNotification(final AylaServiceApp.NotificationType notificationMethod, final boolean enable) {
         AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
         if ( accountSettings == null ) {
             // Fetch the account settings now
@@ -245,7 +245,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         updateNotifications(notificationMethod, enable);
     }
 
-    void updateNotifications(AylaServiceApp.NotificationType notificationType, boolean enable) {
+    private void updateNotifications(AylaServiceApp.NotificationType notificationType, boolean enable) {
         AMAPCore.sharedInstance().updateDeviceNotifications(
                 notificationType,
                 enable,
@@ -264,11 +264,11 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                 });
     }
 
-    void updateCheckboxes() {
-        _recyclerView.getAdapter().notifyDataSetChanged();
+    private void updateCheckboxes() {
+        _recyclerView.setAdapter(new ContactListAdapter(false, ContactListFragment.this));
     }
 
-    class UpdateSettingsCallback extends AccountSettings.AccountSettingsCallback {
+    private class UpdateSettingsCallback extends AccountSettings.AccountSettingsCallback {
         private boolean _dismissDialogWhenDone;
         public UpdateSettingsCallback(boolean dismissDialogWhenDone) {
             _dismissDialogWhenDone = dismissDialogWhenDone;
@@ -295,8 +295,9 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         boolean isOwner = isOwner(contact);
         boolean isChecked = stateForIcon(contact, IconType.ICON_EMAIL);
         Log.d(LOG_TAG, "contact: Email tapped " + contact.getEmail() + " - " + isChecked);
+
         if (isOwner) {
-            enableNotification(AylaServiceApp.NotificationType.GooglePush, !isChecked);
+            enableNotification(AylaServiceApp.NotificationType.EMail, !isChecked);
         } else{
             if(contact.getEmail() != null){
                 if(!TextUtils.isEmpty(contact.getEmail())){
@@ -330,6 +331,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         boolean isOwner = isOwner(contact);
         boolean isChecked = stateForIcon(contact, IconType.ICON_SMS);
         Log.d(LOG_TAG, "contact: Sms tapped " + contact.getEmail() + " - " + isChecked);
+
         if (isOwner) {
             enableNotification(AylaServiceApp.NotificationType.SMS, !isChecked);
         } else{

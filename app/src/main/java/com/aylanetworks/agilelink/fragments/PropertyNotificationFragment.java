@@ -1,8 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -38,7 +36,6 @@ import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper;
 import com.aylanetworks.aylasdk.AylaPropertyTriggerApp;
-import com.aylanetworks.aylasdk.AylaServiceApp;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -203,7 +200,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         ContactManager cm = AMAPCore.sharedInstance().getContactManager();
         _ownerContact = cm.getOwnerContact();
         ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
-            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+            @Override
+            public void contactListUpdated(ContactManager manager, AylaError error) {
                 _recyclerView.setAdapter(new ContactListAdapter(false, PropertyNotificationFragment.this));
                 emptyView.setVisibility(View.INVISIBLE);
                 _recyclerView.setVisibility(View.VISIBLE);
@@ -337,6 +335,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
             return;
         }
+
         if ( _pushContacts.contains(contact) ) {
             _pushContacts.remove(contact);
         } else {
@@ -349,10 +348,11 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public void emailTapped(AylaContact contact) {
         Log.d(LOG_TAG, "Email tapped: " + contact);
-        if (TextUtils.isEmpty(contact.getEmail())) {
+        if (TextUtils.isEmpty(contact.getEmail()) || !contact.getWantsEmailNotification()) {
             Toast.makeText(getActivity(), R.string.contact_email_required, Toast.LENGTH_SHORT).show();
             return;
         }
+
         if ( _emailContacts.contains(contact) ) {
             _emailContacts.remove(contact);
         } else {
@@ -364,10 +364,11 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public void smsTapped(AylaContact contact) {
         Log.d(LOG_TAG, "SMS tapped: " + contact);
-        if (TextUtils.isEmpty(contact.getPhoneNumber())) {
+        if (TextUtils.isEmpty(contact.getPhoneNumber()) || !contact.getWantsSmsNotification()) {
             Toast.makeText(getActivity(), R.string.contact_phone_required, Toast.LENGTH_SHORT).show();
             return;
         }
+
         if ( _smsContacts.contains(contact) ) {
             _smsContacts.remove(contact);
         } else {
@@ -390,13 +391,15 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                     _pushContacts.add(contact);
                 }
             }
-            if ( !TextUtils.isEmpty(contact.getPhoneNumber()) ) {
+
+            if (!TextUtils.isEmpty(contact.getPhoneNumber()) && contact.getWantsSmsNotification()) {
                 _smsContacts.add(contact);
             }
-            if ( !TextUtils.isEmpty(contact.getEmail()) ) {
+            if (!TextUtils.isEmpty(contact.getEmail()) && contact.getWantsEmailNotification()) {
                 _emailContacts.add(contact);
             }
         }
+
         _recyclerView.getAdapter().notifyDataSetChanged();
     }
 
@@ -544,6 +547,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                     public void notificationsSet(AylaProperty property, AylaPropertyTrigger
                             propertyTrigger, AylaError error) {
                         MainActivity.getInstance().dismissWaitDialog();
+
                         if (_originalTrigger != null) {
                             property.deleteTrigger(_originalTrigger, new Response.Listener<
                                             AylaAPIRequest.EmptyResponse>() {
