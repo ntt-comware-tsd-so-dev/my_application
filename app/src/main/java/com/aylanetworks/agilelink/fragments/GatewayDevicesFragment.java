@@ -9,12 +9,17 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.view.View;
 
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.MenuHandler;
+import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDevice;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GatewayDevicesFragment extends AllDevicesFragment {
-
-    private final static String LOG_TAG = "GatewayDevicesFragment";
 
     public static GatewayDevicesFragment newInstance() {
         GatewayDevicesFragment fragment = new GatewayDevicesFragment();
@@ -25,27 +30,30 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
 
     @Override
     public void updateDeviceList() {
-        //TODO : Brian check this if we need this method
-//        List<Device> deviceList = new ArrayList<Device>();
-//        if (AMAPCore.sharedInstance().getDeviceManager() != null) {
-//            deviceList.addAll(AMAPCore.sharedInstance().getDeviceManager().getGatewayDevices());
-//        }
-//
-//        if ( deviceList != null ) {
-//            MainActivity.getInstance().setNoDevicesMode(false);
-//            if ( _emptyView != null ) {
-//                if (deviceList.isEmpty()) {
-//                    _emptyView.setVisibility(View.VISIBLE);
-//                    _emptyView.setText(R.string.no_gateways);
-//                    _recyclerView.setVisibility(View.GONE);
-//                } else {
-//                    _emptyView.setVisibility(View.GONE);
-//                    _recyclerView.setVisibility(View.VISIBLE);
-//                    _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
-//                    _recyclerView.setAdapter(_adapter);
-//                }
-//            }
-//        }
+        List<AylaDevice> gatewaysList = new ArrayList<>();
+        if (AMAPCore.sharedInstance().getDeviceManager() != null) {
+            List<AylaDevice> allDevices = AMAPCore.sharedInstance().getDeviceManager().getDevices();
+            for (AylaDevice device : allDevices) {
+                if (device.isGateway()) {
+                    gatewaysList.add(device);
+                }
+            }
+        }
+
+        MainActivity.getInstance().setNoDevicesMode(false);
+
+        if (_emptyView != null) {
+            if (gatewaysList.isEmpty()) {
+                _emptyView.setVisibility(View.VISIBLE);
+                _emptyView.setText(R.string.no_gateways);
+                _recyclerView.setVisibility(View.GONE);
+            } else {
+                _emptyView.setVisibility(View.GONE);
+                _recyclerView.setVisibility(View.VISIBLE);
+                _adapter = DeviceListAdapter.fromDeviceList(gatewaysList, this);
+                _recyclerView.setAdapter(_adapter);
+            }
+        }
     }
 
     @Override
