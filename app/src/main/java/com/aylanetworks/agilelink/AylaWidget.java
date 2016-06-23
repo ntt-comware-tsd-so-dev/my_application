@@ -427,7 +427,7 @@ public class AylaWidget extends AppWidgetProvider
                 greenLed = propertyTemp;
 
                 //Sets the initial values of the buttons
-                if (propertyTemp.getValue() == 0) {
+                if ((int) propertyTemp.getValue() == 0) {
                     remoteViews.setTextViewText(R.id.green_led_toggle, "OFF");
                 } else {
                     remoteViews.setTextViewText(R.id.green_led_toggle, "ON");
@@ -445,7 +445,7 @@ public class AylaWidget extends AppWidgetProvider
                 blueLed = propertyTemp;
 
                 //Sets the initial values of the buttons
-                if (propertyTemp.getValue() == 0) {
+                if ((int) propertyTemp.getValue() == 0) {
                     remoteViews.setTextViewText(R.id.blue_led_toggle, "OFF");
                 } else {
                     remoteViews.setTextViewText(R.id.blue_led_toggle, "ON");
