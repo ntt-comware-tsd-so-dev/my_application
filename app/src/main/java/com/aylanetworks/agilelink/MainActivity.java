@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink;
 
-import android.*;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -395,6 +394,10 @@ public class MainActivity extends AppCompatActivity
 
             if (resultCode == Activity.RESULT_OK) {
                 handleSignedIn();
+
+                //TODO: DEBUG START WEAR SERVICE
+                Intent wearService = new Intent(this, WearUpdateService.class);
+                startService(wearService);
             } else if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();

@@ -106,16 +106,18 @@
                 <data android:scheme="aylacontrol" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".SignInActivity"
             android:label="AgileLink"
-            android:launchMode="singleInstance"></activity>
+            android:launchMode="singleInstance" />
+
         <activity
             android:name=".DeveloperOptions"
             android:label="AgileLink"
-            android:launchMode="singleInstance"></activity>
+            android:launchMode="singleInstance" />
 
-        <service android:name="com.aylanetworks.aaml.AylaExecuteRequest" />
+        <!-- service android:name="com.aylanetworks.aaml.AylaExecuteRequest" / -->
 
         <!--
              WakefulBroadcastReceiver that will receive intents from GCM
@@ -144,6 +146,8 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <service android:name=".WearUpdateService" />
 
         <receiver android:name=".AylaWidget">
             <intent-filter>
