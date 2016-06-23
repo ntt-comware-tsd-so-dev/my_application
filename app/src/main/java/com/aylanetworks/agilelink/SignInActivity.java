@@ -86,7 +86,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
 
         setContentView(R.layout.login);
-        CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this, false);
+        CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this);
         if (cachedProvider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
             showSigningInDialog();
 

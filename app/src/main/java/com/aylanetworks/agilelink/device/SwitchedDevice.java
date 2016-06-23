@@ -43,8 +43,8 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
                 return;
             }
 
-            // Get the opposite boolean value and set it
-            Boolean newValue = ((Integer)prop.getValue() == 0);
+            // Get the opposite value and set it
+            Integer newValue = ((Integer)prop.getValue() == 0) ? 1 : 0;
             setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
                 @Override
                 public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
