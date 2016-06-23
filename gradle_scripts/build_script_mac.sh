@@ -103,4 +103,4 @@ git checkout $AYLA_CORE_BRANCH
 
 cd ../
 
-gradlew build
+../gradlew build
