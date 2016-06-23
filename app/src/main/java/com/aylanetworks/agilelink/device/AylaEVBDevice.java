@@ -7,7 +7,10 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
  */
 
 public class AylaEVBDevice extends GenericDevice implements View.OnClickListener {
+
     private static final String LOG_TAG = "AylaEVBDevice";
 
     private static final String PROPERTY_BLUE_LED = "Blue_LED";
@@ -50,20 +54,32 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     }
 
 
-    public void setGreenLED(boolean on) {
+    public void setGreenLED(final boolean on, final ImageView button) {
        setDatapoint(PROPERTY_GREEN_LED, on ? 1 : 0, new SetDatapointListener() {
            @Override
            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-               Log.d(LOG_TAG, "lm: setGreenLED error: " + error + " ***^^^");
+               if (error == null) {
+                   button.setImageDrawable(button.getContext().getResources().getDrawable(on ? R.drawable.dup : R.drawable.ddown));
+               } else {
+                   Toast.makeText(button.getContext(),
+                           ErrorUtils.getUserMessage(error, "Error setting green LED state"), //TODO: Localize message in R.string
+                           Toast.LENGTH_SHORT).show();
+               }
            }
        });
     }
 
-    public void setBlueLED(boolean on) {
+    public void setBlueLED(final boolean on, final ImageView button) {
         setDatapoint(PROPERTY_BLUE_LED, on ? 1 : 0, new SetDatapointListener() {
             @Override
             public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-                Log.d(LOG_TAG, "lm: setBlueLED error: " + error + " ***^^^");
+                if (error == null) {
+                    button.setImageDrawable(button.getContext().getResources().getDrawable(on ? R.drawable.dup : R.drawable.ddown));
+                } else {
+                    Toast.makeText(button.getContext(),
+                            ErrorUtils.getUserMessage(error, "Error setting blue LED state"), //TODO: Localize message in R.string
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -133,17 +149,17 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         boolean isGreenButton = (v.getId() == R.id.green_button);
         Log.d(LOG_TAG, "lm: Button tapped: " + (isGreenButton ? "GREEN" : "BLUE") + " ***vvv");
         if(isOnline() || isInLanMode()){
+            ImageButton button = (ImageButton) v;
+
             if (isGreenButton) {
-                setGreenLED(!isGreenLEDOn());
+                setGreenLED(!isGreenLEDOn(), button);
             } else {
-                setBlueLED(!isBlueLEDOn());
+                setBlueLED(!isBlueLEDOn(), button);
             }
 
             // Update the image view to show the transient state
-            ImageButton button = (ImageButton) v;
             button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
         }
-
     }
 
     public static final int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
