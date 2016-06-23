@@ -420,11 +420,12 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
                         Log.i(LOG_TAG, "Device unregistered: " + device);
                         Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
-                        MainActivity.getInstance().dismissWaitDialog();
 
                         // Pop ourselves off of the back stack and force a refresh of the device list
-                        getFragmentManager().popBackStack();
                         AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+                        MainActivity.getInstance().dismissWaitDialog();
+
+                        getFragmentManager().popBackStack();
                     }
                 },
                 new ErrorListener() {
@@ -753,7 +754,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                         propValueSwitch.setEnabled(_deviceModel.isOnline());
                         propValueText.setVisibility(View.GONE);
                         propValueSwitch.setOnCheckedChangeListener(null);
-                        propValueSwitch.setChecked(prop.getValue() == 1);
+                        propValueSwitch.setChecked((int) prop.getValue() == 1);
                         Log.d(LOG_TAG, "Checked: " + propValueSwitch.isChecked() + " prop.value: " + prop.getValue());
                         propValueSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             boolean _setting = false;
