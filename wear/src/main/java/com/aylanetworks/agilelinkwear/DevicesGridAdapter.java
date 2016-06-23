@@ -2,49 +2,43 @@ package com.aylanetworks.agilelinkwear;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.wearable.view.CardFragment;
+import android.os.Bundle;
 import android.support.wearable.view.FragmentGridPagerAdapter;
 import android.support.wearable.view.GridPagerAdapter;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
-    private Context mContext;
-    private List mRows;
+    private ArrayList<DeviceHolder> mDevices = new ArrayList<>();
 
-    public DevicesGridAdapter(Context ctx, FragmentManager fm) {
+    public DevicesGridAdapter(FragmentManager fm, ArrayList<DeviceHolder> devices) {
         super(fm);
-        mContext = ctx;
-    }
 
-    // A simple container for static data in each page
-    private static class Page {
-        // static resources
-        int titleRes;
-        int textRes;
-        int iconRes;
+        if (devices != null) {
+            mDevices = devices;
+        }
     }
-
-    // Create a static set of pages in a 2D array
-    private final Page[][] PAGES = {};
 
     @Override
     public Fragment getFragment(int row, int col) {
-        Page page = PAGES[row][col];
-        String title =
-        page.titleRes != 0 ? mContext.getString(page.titleRes) : null;
-        String text =
-        page.textRes != 0 ? mContext.getString(page.textRes) : null;
-        CardFragment fragment = CardFragment.create(title, text, page.iconRes);
+        DeviceFragment fragment = new DeviceFragment();
 
-        // Advanced settings (card gravity, card expansion/scrolling)
-        fragment.setCardGravity(page.cardGravity);
-        fragment.setExpansionEnabled(page.expansionEnabled);
-        fragment.setExpansionDirection(page.expansionDirection);
-        fragment.setExpansionFactor(page.expansionFactor);
+        Bundle arguments = new Bundle();
+        DeviceHolder device = mDevices.get(row);
+        arguments.putSerializable(DeviceFragment.ARG_DEVICE_HOLDER, device);
+        if (col == 0) {
+            // overview card; show only device name
+            arguments.putBoolean(DeviceFragment.ARG_OVERVIEW_CARD, true);
+        } else {
+            // property card; show property switch
+            arguments.putBoolean(DeviceFragment.ARG_OVERVIEW_CARD, false);
+            String propertyName = device.getPropertyNameOrdered(col);
+            arguments.putString(DeviceFragment.ARG_PROPERTY_NAME, propertyName);
+        }
+        fragment.setArguments(arguments);
+
         return fragment;
     }
 
@@ -55,11 +49,11 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
     @Override
     public int getRowCount() {
-        return PAGES.length;
+        return mDevices.size();
     }
 
     @Override
     public int getColumnCount(int rowNum) {
-        return PAGES[rowNum].length;
+        return mDevices.get(rowNum).getPropertyCount();
     }
 }

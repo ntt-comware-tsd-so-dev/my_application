@@ -1,64 +1,108 @@
 package com.aylanetworks.agilelinkwear;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
-import android.support.wearable.view.BoxInsetLayout;
-import android.view.View;
-import android.widget.TextView;
+import android.support.wearable.view.GridViewPager;
+import android.util.Log;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 
-public class MainActivity extends WearableActivity {
+import java.util.ArrayList;
 
-    private static final SimpleDateFormat AMBIENT_DATE_FORMAT =
-            new SimpleDateFormat("HH:mm", Locale.US);
+public class MainActivity extends WearableActivity implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener {
 
-    private BoxInsetLayout mContainerView;
-    private TextView mTextView;
-    private TextView mClockView;
+    private static final String DEVICE_NAME = "device_name";
+    private static final String DEVICE_PROPERTIES = "device_properties";
+
+    private GoogleApiClient mGoogleApiClient;
+    private GridViewPager mPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setAmbientEnabled();
 
-        mContainerView = (BoxInsetLayout) findViewById(R.id.container);
-        mTextView = (TextView) findViewById(R.id.text);
-        mClockView = (TextView) findViewById(R.id.clock);
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
+
+        mPager = (GridViewPager) findViewById(R.id.pager);
+        updateDevicesData();
+    }
+
+    private void updateDevicesData() {
+        PendingResult<DataItemBuffer> result = Wearable.DataApi.getDataItems(mGoogleApiClient);
+        result.setResultCallback(new ResultCallback<DataItemBuffer>() {
+            @Override
+            public void onResult(@NonNull DataItemBuffer dataItems) {
+                ArrayList<DeviceHolder> devices = new ArrayList<>();
+
+                for (DataItem deviceDataItem : dataItems) {
+                    DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
+
+                    String name = deviceMap.getString(DEVICE_NAME);
+                    DataMap propertiesMap = deviceMap.getDataMap(DEVICE_PROPERTIES);
+
+                    DeviceHolder deviceHolder = new DeviceHolder(name);
+                    for (String propertyName : propertiesMap.keySet()) {
+                        deviceHolder.setBooleanProperty(propertyName, propertiesMap.getBoolean(propertyName));
+                    }
+                    devices.add(deviceHolder);
+                }
+                dataItems.release();
+
+                DevicesGridAdapter adapter = new DevicesGridAdapter(getFragmentManager(), devices);
+                mPager.setAdapter(adapter);
+            }
+        });
     }
 
     @Override
-    public void onEnterAmbient(Bundle ambientDetails) {
-        super.onEnterAmbient(ambientDetails);
-        updateDisplay();
+    public void onConnected(Bundle bundle) {
+        Wearable.DataApi.addListener(mGoogleApiClient, this);
     }
 
     @Override
-    public void onUpdateAmbient() {
-        super.onUpdateAmbient();
-        updateDisplay();
+    public void onConnectionSuspended(int cause) {
+        Log.e("AMAPW", "onConnectionSuspended: " + cause);
     }
 
     @Override
-    public void onExitAmbient() {
-        updateDisplay();
-        super.onExitAmbient();
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.e("AMAPW", "onConnectionFailed: " + result);
     }
 
-    private void updateDisplay() {
-        if (isAmbient()) {
-            mContainerView.setBackgroundColor(getResources().getColor(android.R.color.black));
-            mTextView.setTextColor(getResources().getColor(android.R.color.white));
-            mClockView.setVisibility(View.VISIBLE);
+    @Override
+    public void onDataChanged(DataEventBuffer dataEventBuffer) {
+        dataEventBuffer.release();
+        updateDevicesData();
+    }
 
-            mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
-        } else {
-            mContainerView.setBackground(null);
-            mTextView.setTextColor(getResources().getColor(android.R.color.black));
-            mClockView.setVisibility(View.GONE);
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Wearable.DataApi.removeListener(mGoogleApiClient, this);
+        mGoogleApiClient.disconnect();
     }
 }
