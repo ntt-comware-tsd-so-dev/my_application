@@ -65,7 +65,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
             DeviceHolder device = mDevicesMap.get(deviceName);
             device.setBooleanProperty(propertyName, newState);
 
-            PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices");
+            PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices/" + device.getName());
             DataMap deviceMap = putDataMapReq.getDataMap();
             deviceMap.putString(DEVICE_NAME, deviceName);
 
@@ -92,14 +92,17 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
         result.setResultCallback(new ResultCallback<DataItemBuffer>() {
             @Override
             public void onResult(@NonNull DataItemBuffer dataItems) {
+                Log.e("AMAPW", "ITEMS COUNT: " + dataItems.getCount());
                 for (DataItem deviceDataItem : dataItems) {
                     DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
                     String name = deviceMap.getString(DEVICE_NAME);
                     DeviceHolder deviceHolder = new DeviceHolder(name);
 
                     DataMap propertiesMap = deviceMap.getDataMap(DEVICE_PROPERTIES);
+                    Log.e("AMAPW", "PROPERTIES COUNT: " + propertiesMap.size());
                     for (String propertyName : propertiesMap.keySet()) {
                         deviceHolder.setBooleanProperty(propertyName, propertiesMap.getBoolean(propertyName));
+                        Log.e("AMAPW", "RECEIVED: " + propertyName + ": " + propertiesMap.getBoolean(propertyName));
                     }
 
                     mDevicesMap.put(name, deviceHolder);
@@ -131,7 +134,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         dataEventBuffer.release();
-        updateDevicesData();
+        // updateDevicesData();
     }
 
     @Override

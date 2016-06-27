@@ -9,8 +9,10 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -25,6 +27,8 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +51,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         mGoogleApiClient.connect();
 
         //TODO: FOREGROUND
-        Log.e("AMAPW", "SERVICE CREATED");
     }
 
     private void updateWearData() {
@@ -58,15 +61,33 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             if (allDevices != null) {
                 for (AylaDevice device : allDevices) {
                     if (!device.isGateway()) {
-                        Log.e("AMAPW", "DEVICE: " + device.getDsn());
+                        ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                                .viewModelForDevice(device);
+                        if (deviceModel == null) {
+                            continue;
+                        }
 
-                        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices");
+                        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices/" + device.getFriendlyName());
                         DataMap deviceMap = putDataMapReq.getDataMap();
                         deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
 
                         Bundle propertiesBundle = new Bundle();
-                        //TODO: ADD PROPERTIES HERE
-                        propertiesBundle.putBoolean("Green LED", true);
+                        List<AylaProperty> allDeviceProperties = device.getProperties();
+                        ArrayList<String> matchedDeviceProperties = new ArrayList<>();
+                        matchedDeviceProperties.addAll(Arrays.asList(deviceModel.getSchedulablePropertyNames()));
+                        matchedDeviceProperties.addAll(Arrays.asList(deviceModel.getNotifiablePropertyNames()));
+
+                        for (AylaProperty property : allDeviceProperties) {
+                            String propertyName = property.getName();
+                            if (matchedDeviceProperties.contains(propertyName)) {
+                                propertiesBundle.putBoolean(propertyName, (int) property.getValue() == 1);
+                            }
+                        }
+
+                        if (propertiesBundle.size() == 0) {
+                            continue;
+                        }
+
                         deviceMap.putDataMap(DEVICE_PROPERTIES, DataMap.fromBundle(propertiesBundle));
                         deviceMap.putLong("timestamp", System.currentTimeMillis());
 
@@ -158,7 +179,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.e("AMAPW", "GOOGLED CONNECTED");
         startListening();
     }
 
