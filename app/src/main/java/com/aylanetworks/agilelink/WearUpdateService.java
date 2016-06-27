@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -44,6 +45,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 .addApi(Wearable.API)
                 .build();
         mGoogleApiClient.connect();
+
+        //TODO: FOREGROUND
+        Log.e("AMAPW", "SERVICE CREATED");
     }
 
     private void updateWearData() {
@@ -54,6 +58,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             if (allDevices != null) {
                 for (AylaDevice device : allDevices) {
                     if (!device.isGateway()) {
+                        Log.e("AMAPW", "DEVICE: " + device.getDsn());
+
                         PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices");
                         DataMap deviceMap = putDataMapReq.getDataMap();
                         deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
@@ -62,16 +68,16 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                         //TODO: ADD PROPERTIES HERE
                         propertiesBundle.putBoolean("Green LED", true);
                         deviceMap.putDataMap(DEVICE_PROPERTIES, DataMap.fromBundle(propertiesBundle));
+                        deviceMap.putLong("timestamp", System.currentTimeMillis());
 
                         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+                        putDataReq.setUrgent();
                         PendingResult<DataApi.DataItemResult> pendingResult =
                                 Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
                         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                             @Override
                             public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                                if (!dataItemResult.getStatus().isSuccess()) {
-
-                                }
+                                Log.e("AMAPW", "DELIVERY: " + dataItemResult.getStatus().isSuccess());
                             }
                         });
                     }
@@ -152,6 +158,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        Log.e("AMAPW", "GOOGLED CONNECTED");
         startListening();
     }
 
@@ -167,6 +174,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.e("AMAPW", "GOOGLE CONN FAILED");
     }
 }

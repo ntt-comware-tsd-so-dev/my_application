@@ -8,8 +8,8 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 22
-        versionName "4.4.00"
+        versionCode 23
+        versionName "5.0.00"
         multiDexEnabled true
     }
 
@@ -51,6 +51,7 @@ dependencies {
     compile project(':websocketLibrary')
     compile project(':Android_AylaSDK')
     compile project(':AMAP_Core')
+    wearApp project(':wear')
     compile 'com.android.support:appcompat-v7:24.0.0'
     compile 'com.android.support:recyclerview-v7:24.0.0'
     compile 'com.android.support:cardview-v7:24.0.0'

@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelinkwear;
+package com.aylanetworks.agilelink;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -8,17 +8,16 @@ import android.support.wearable.view.FragmentGridPagerAdapter;
 import android.support.wearable.view.GridPagerAdapter;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
-    private ArrayList<DeviceHolder> mDevices = new ArrayList<>();
+    private ArrayList<DeviceHolder> mDevices;
 
-    public DevicesGridAdapter(FragmentManager fm, ArrayList<DeviceHolder> devices) {
+    public DevicesGridAdapter(FragmentManager fm, TreeMap<String, DeviceHolder> devicesMap) {
         super(fm);
 
-        if (devices != null) {
-            mDevices = devices;
-        }
+        mDevices = new ArrayList<>(devicesMap.values());
     }
 
     @Override
@@ -34,7 +33,7 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
         } else {
             // property card; show property switch
             arguments.putBoolean(DeviceFragment.ARG_OVERVIEW_CARD, false);
-            String propertyName = device.getPropertyNameOrdered(col);
+            String propertyName = device.getPropertyNameOrdered(col - 1); // property starts at column 2
             arguments.putString(DeviceFragment.ARG_PROPERTY_NAME, propertyName);
         }
         fragment.setArguments(arguments);
@@ -54,6 +53,6 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
     @Override
     public int getColumnCount(int rowNum) {
-        return mDevices.get(rowNum).getPropertyCount();
+        return mDevices.get(rowNum).getPropertyCount() + 1; // first column is always overview
     }
 }

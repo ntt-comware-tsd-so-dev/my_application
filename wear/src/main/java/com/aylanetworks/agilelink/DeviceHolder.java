@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelinkwear;
+package com.aylanetworks.agilelink;
 
 import java.io.Serializable;
 import java.util.ArrayList;
