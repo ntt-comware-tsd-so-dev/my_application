@@ -7,10 +7,16 @@ import java.util.LinkedHashMap;
 public class DeviceHolder implements Serializable {
 
     private String mName;
+    private String mDsn;
     private LinkedHashMap<String, Boolean> mPropertyMap = new LinkedHashMap<>();
 
-    public DeviceHolder(String name) {
+    public DeviceHolder(String name, String dsn) {
         mName = name;
+        mDsn = dsn;
+    }
+
+    public String getDsn() {
+        return mDsn;
     }
 
     public String getName() {

@@ -4,37 +4,46 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.GridViewPager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.CapabilityApi;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import java.util.Set;
 import java.util.TreeMap;
 
 public class MainActivity extends WearableActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener {
 
     private static final String DEVICE_NAME = "device_name";
+    private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_PROPERTIES = "device_properties";
+    private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
 
     public static final String INTENT_PROPERTY_TOGGLED = "com.aylanetworks.agilelink.PROPERTY_TOGGLED";
-    public static final String EXTRA_DEVICE_NAME = "device_name";
+    public static final String EXTRA_DEVICE_DSN = "device_dsn";
     public static final String EXTRA_PROPERTY_NAME = "property_name";
     public static final String EXTRA_PROPERTY_STATE = "property_state";
 
@@ -42,6 +51,8 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     private LocalBroadcastManager mLocalBroadcastManager;
     private ActionReceiver mActionReceiver;
     private GridViewPager mPager;
+    private DevicesGridAdapter mAdapter;
+    private String mHandheldNode = "";
 
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
 
@@ -49,6 +60,8 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setAmbientEnabled();
 
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -60,57 +73,68 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
         mPager = (GridViewPager) findViewById(R.id.pager);
     }
 
-    private void setDeviceData(String deviceName, String propertyName, boolean newState) {
-        if (mDevicesMap.containsKey(deviceName)) {
-            DeviceHolder device = mDevicesMap.get(deviceName);
-            device.setBooleanProperty(propertyName, newState);
+    private void sendDeviceControlMessage(String dsn, String propertyName, boolean newStatus) {
+        byte[] cmdArray = (dsn + "/" + propertyName + "/" + (newStatus ? "1" : "0")).getBytes();
 
-            PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices/" + device.getName());
-            DataMap deviceMap = putDataMapReq.getDataMap();
-            deviceMap.putString(DEVICE_NAME, deviceName);
-
-            Bundle propertiesBundle = new Bundle();
-            propertiesBundle.putBoolean(propertyName, newState);
-            deviceMap.putDataMap(DEVICE_PROPERTIES, DataMap.fromBundle(propertiesBundle));
-            deviceMap.putLong("timestamp", System.currentTimeMillis());
-
-            PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-            putDataReq.setUrgent();
-            PendingResult<DataApi.DataItemResult> pendingResult =
-                    Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                @Override
-                public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                    Log.e("AMAPW", "W: DELIVERY: " + dataItemResult.getStatus().isSuccess());
+        Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
+                DEVICE_CONTROL_MSG_URI, cmdArray).setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
+                    @Override
+                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                        Log.e("AMAPW", "DEV CON MSG: " + sendMessageResult.getStatus().isSuccess());
+                    }
                 }
-            });
+        );
+    }
+
+    private void getHandheldNode() {
+        CapabilityApi.GetCapabilityResult result = Wearable.CapabilityApi.getCapability(
+                mGoogleApiClient,
+                "ayla_device_control",
+                CapabilityApi.FILTER_REACHABLE).await();
+        Set<Node> connectedNodes = result.getCapability().getNodes();
+        for (Node node : connectedNodes) {
+            if (node.isNearby()) {
+                mHandheldNode = node.getId();
+                return;
+            }
         }
     }
 
-    private void updateDevicesData() {
+    private void getDevicesData() {
         PendingResult<DataItemBuffer> result = Wearable.DataApi.getDataItems(mGoogleApiClient);
         result.setResultCallback(new ResultCallback<DataItemBuffer>() {
             @Override
             public void onResult(@NonNull DataItemBuffer dataItems) {
-                Log.e("AMAPW", "ITEMS COUNT: " + dataItems.getCount());
                 for (DataItem deviceDataItem : dataItems) {
                     DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
+                    String dsn = deviceMap.getString(DEVICE_DSN);
+
+                    if (dsn == null || !deviceDataItem.getUri().toString().contains(dsn)) {
+                        continue;
+                    }
+
                     String name = deviceMap.getString(DEVICE_NAME);
-                    DeviceHolder deviceHolder = new DeviceHolder(name);
+                    DeviceHolder deviceHolder = new DeviceHolder(name, dsn);
 
                     DataMap propertiesMap = deviceMap.getDataMap(DEVICE_PROPERTIES);
-                    Log.e("AMAPW", "PROPERTIES COUNT: " + propertiesMap.size());
                     for (String propertyName : propertiesMap.keySet()) {
                         deviceHolder.setBooleanProperty(propertyName, propertiesMap.getBoolean(propertyName));
                         Log.e("AMAPW", "RECEIVED: " + propertyName + ": " + propertiesMap.getBoolean(propertyName));
                     }
 
-                    mDevicesMap.put(name, deviceHolder);
+                    mDevicesMap.put(dsn, deviceHolder);
                 }
                 dataItems.release();
 
-                DevicesGridAdapter adapter = new DevicesGridAdapter(getFragmentManager(), mDevicesMap);
-                mPager.setAdapter(adapter);
+                if (mAdapter == null) {
+                    mAdapter = new DevicesGridAdapter(getFragmentManager(), mDevicesMap);
+                    mPager.setAdapter(mAdapter);
+                } else {
+                    Point currentPosition = mPager.getCurrentItem();
+                    mAdapter.updateData(mDevicesMap);
+                    mAdapter.notifyDataSetChanged();
+                    mPager.setCurrentItem(currentPosition.y, currentPosition.x, false);
+                }
             }
         });
     }
@@ -118,7 +142,14 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mGoogleApiClient, this);
-        updateDevicesData();
+        getDevicesData();
+
+        new Thread() {
+            @Override
+            public void run() {
+                getHandheldNode();
+            }
+        }.start();
     }
 
     @Override
@@ -134,7 +165,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         dataEventBuffer.release();
-        // updateDevicesData();
+        getDevicesData();
     }
 
     @Override
@@ -160,11 +191,11 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(INTENT_PROPERTY_TOGGLED)) {
-                String deviceName = intent.getStringExtra(EXTRA_DEVICE_NAME);
+                String deviceDsn = intent.getStringExtra(EXTRA_DEVICE_DSN);
                 String propertyName = intent.getStringExtra(EXTRA_PROPERTY_NAME);
-                if (deviceName != null && propertyName != null) {
+                if (deviceDsn != null && propertyName != null) {
                     boolean propertyState = intent.getBooleanExtra(EXTRA_PROPERTY_STATE, false);
-                    setDeviceData(deviceName, propertyName, propertyState);
+                    sendDeviceControlMessage(deviceDsn, propertyName, propertyState);
                 }
             }
         }

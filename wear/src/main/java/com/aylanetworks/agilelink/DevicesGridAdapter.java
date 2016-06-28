@@ -20,6 +20,10 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
         mDevices = new ArrayList<>(devicesMap.values());
     }
 
+    public void updateData(TreeMap<String, DeviceHolder> devicesMap) {
+        mDevices = new ArrayList<>(devicesMap.values());
+    }
+
     @Override
     public Fragment getFragment(int row, int col) {
         DeviceFragment fragment = new DeviceFragment();

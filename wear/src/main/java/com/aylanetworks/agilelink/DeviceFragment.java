@@ -42,14 +42,16 @@ public class DeviceFragment extends CardFragment {
             final String propertyName = arguments.getString(ARG_PROPERTY_NAME);
             boolean propertyState = deviceHolder.getBooleanProperty(propertyName);
 
-            Switch property = (Switch) root.findViewById(R.id.property);
+            TextView property = (TextView) root.findViewById(R.id.property);
             property.setText(propertyName);
-            property.setChecked(propertyState);
-            property.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            Switch toggle = (Switch) root.findViewById(R.id.toggle);
+            toggle.setChecked(propertyState);
+            toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Intent i = new Intent(MainActivity.INTENT_PROPERTY_TOGGLED);
-                    i.putExtra(MainActivity.EXTRA_DEVICE_NAME, deviceHolder.getName());
+                    i.putExtra(MainActivity.EXTRA_DEVICE_DSN, deviceHolder.getDsn());
                     i.putExtra(MainActivity.EXTRA_PROPERTY_NAME, propertyName);
                     i.putExtra(MainActivity.EXTRA_PROPERTY_STATE, isChecked);
 

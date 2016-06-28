@@ -6,23 +6,28 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -33,11 +38,16 @@ import java.util.List;
 import java.util.Map;
 
 public class WearUpdateService extends Service implements AylaDevice.DeviceChangeListener,
-        AylaDeviceManager.DeviceManagerListener, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener {
+        AylaDeviceManager.DeviceManagerListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        MessageApi.MessageListener {
 
     private static final String DEVICE_NAME = "device_name";
+    private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_PROPERTIES = "device_properties";
+
+    private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -67,9 +77,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                             continue;
                         }
 
-                        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/devices/" + device.getFriendlyName());
+                        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/" + device.getDsn());
                         DataMap deviceMap = putDataMapReq.getDataMap();
                         deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
+                        deviceMap.putString(DEVICE_DSN, device.getDsn());
 
                         Bundle propertiesBundle = new Bundle();
                         List<AylaProperty> allDeviceProperties = device.getProperties();
@@ -117,6 +128,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             }
 
             updateWearData();
+            Wearable.MessageApi.addListener(mGoogleApiClient, this);
         }
     }
 
@@ -127,17 +139,59 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             for (AylaDevice device : deviceManager.getDevices()) {
                 device.removeListener(this);
             }
+
+            Wearable.MessageApi.removeListener(mGoogleApiClient, this);
         }
     }
 
     @Override
     public void deviceChanged(AylaDevice device, Change change) {
+        Log.e("AMAPW", "DEVICE CHANGED");
         updateWearData();
     }
 
     @Override
     public void deviceListChanged(ListChange change) {
+        Log.e("AMAPW", "DEVICE LIST CHANGED");
         updateWearData();
+
+        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
+        for (AylaDevice device : deviceManager.getDevices()) {
+            device.addListener(this);
+        }
+    }
+
+    @Override
+    public void onMessageReceived(MessageEvent messageEvent) {
+        if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_MSG_URI)) {
+            String cmd = new String(messageEvent.getData());
+            String[] cmdComponents = cmd.split("/");
+            if (cmdComponents.length < 3) {
+                return;
+            }
+
+            String dsn = cmdComponents[0];
+            String propertyName = cmdComponents[1];
+            String propertyState = cmdComponents[2];
+
+            Log.e("AMAPW", "DSN: " + dsn);
+            Log.e("AMAPW", "PNAME: " + propertyName);
+            Log.e("AMAPW", "PSTATE: " + propertyState);
+
+            AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
+            AylaProperty property = device.getProperty(propertyName);
+            property.createDatapoint(Integer.valueOf(propertyState), null, new Response.Listener<AylaDatapoint>() {
+                @Override
+                public void onResponse(AylaDatapoint response) {
+
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+
+                }
+            });
+        }
     }
 
     @Override
@@ -147,8 +201,12 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     }
 
     @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        startListening();
+    }
+
+    @Override
     public void deviceLanStateChanged(AylaDevice device, boolean lanModeEnabled) {
-        //
     }
 
     @Override
@@ -178,22 +236,11 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        startListening();
-    }
-
-    @Override
     public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onDataChanged(DataEventBuffer dataEventBuffer) {
-
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e("AMAPW", "GOOGLE CONN FAILED");
+        Log.e("AMAPW", "GOOGLE CONNECTION FAILED: " + connectionResult.getErrorMessage());
     }
 }
