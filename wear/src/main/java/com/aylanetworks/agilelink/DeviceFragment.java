@@ -7,6 +7,7 @@ import android.support.wearable.view.CardFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -14,8 +15,8 @@ import android.widget.TextView;
 public class DeviceFragment extends CardFragment {
 
     public static final String ARG_DEVICE_HOLDER = "device_holder";
-    public static final String ARG_PROPERTY_NAME = "property_name";
-    public static final String ARG_OVERVIEW_CARD = "overview_card";
+    public static final String ARG_DEVICE_PROPERTY = "device_property";
+    public static final String ARG_IS_OVERVIEW_CARD = "is_overview_card";
 
     private LocalBroadcastManager mLocalBroadcastManager;
 
@@ -28,7 +29,7 @@ public class DeviceFragment extends CardFragment {
     public View onCreateContentView(LayoutInflater inflater, ViewGroup container,
                                      Bundle savedInstanceState) {
         Bundle arguments = getArguments();
-        boolean overviewCard = arguments.getBoolean(ARG_OVERVIEW_CARD);
+        boolean overviewCard = arguments.getBoolean(ARG_IS_OVERVIEW_CARD);
         final DeviceHolder deviceHolder = (DeviceHolder) arguments.getSerializable(ARG_DEVICE_HOLDER);
 
         View root;
@@ -37,27 +38,35 @@ public class DeviceFragment extends CardFragment {
             TextView name = (TextView) root.findViewById(R.id.name);
             name.setText(deviceHolder.getName());
         } else {
-            root = inflater.inflate(R.layout.card_device_property, null);
+            final DevicePropertyHolder propertyHolder = (DevicePropertyHolder) arguments.getSerializable(ARG_DEVICE_PROPERTY);
+            if (propertyHolder.mReadOnly) {
+                root = inflater.inflate(R.layout.card_device_property_ro, null);
 
-            final String propertyName = arguments.getString(ARG_PROPERTY_NAME);
-            boolean propertyState = deviceHolder.getBooleanProperty(propertyName);
+                TextView property = (TextView) root.findViewById(R.id.property);
+                property.setText(propertyHolder.mFriendlyName);
 
-            TextView property = (TextView) root.findViewById(R.id.property);
-            property.setText(propertyName);
+                CheckBox status = (CheckBox) root.findViewById(R.id.status);
+                status.setChecked(propertyHolder.mState);
+            } else {
+                root = inflater.inflate(R.layout.card_device_property_rw, null);
 
-            Switch toggle = (Switch) root.findViewById(R.id.toggle);
-            toggle.setChecked(propertyState);
-            toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Intent i = new Intent(MainActivity.INTENT_PROPERTY_TOGGLED);
-                    i.putExtra(MainActivity.EXTRA_DEVICE_DSN, deviceHolder.getDsn());
-                    i.putExtra(MainActivity.EXTRA_PROPERTY_NAME, propertyName);
-                    i.putExtra(MainActivity.EXTRA_PROPERTY_STATE, isChecked);
+                TextView property = (TextView) root.findViewById(R.id.property);
+                property.setText(propertyHolder.mFriendlyName);
 
-                    mLocalBroadcastManager.sendBroadcast(i);
-                }
-            });
+                Switch status = (Switch) root.findViewById(R.id.status);
+                status.setChecked(propertyHolder.mState);
+                status.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        Intent i = new Intent(MainActivity.INTENT_PROPERTY_TOGGLED);
+                        i.putExtra(MainActivity.EXTRA_DEVICE_DSN, deviceHolder.getDsn());
+                        i.putExtra(MainActivity.EXTRA_PROPERTY_NAME, propertyHolder.mPropertyName);
+                        i.putExtra(MainActivity.EXTRA_PROPERTY_STATE, isChecked);
+
+                        mLocalBroadcastManager.sendBroadcast(i);
+                    }
+                });
+            }
         }
 
         return root;

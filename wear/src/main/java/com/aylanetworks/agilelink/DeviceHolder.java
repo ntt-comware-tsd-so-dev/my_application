@@ -8,7 +8,7 @@ public class DeviceHolder implements Serializable {
 
     private String mName;
     private String mDsn;
-    private LinkedHashMap<String, Boolean> mPropertyMap = new LinkedHashMap<>();
+    private LinkedHashMap<String, DevicePropertyHolder> mPropertyMap = new LinkedHashMap<>();
 
     public DeviceHolder(String name, String dsn) {
         mName = name;
@@ -31,11 +31,18 @@ public class DeviceHolder implements Serializable {
         return mPropertyMap.size();
     }
 
-    public boolean getBooleanProperty(String propertyName) {
+    public DevicePropertyHolder getBooleanProperty(String propertyName) {
         return mPropertyMap.get(propertyName);
     }
 
     public void setBooleanProperty(String propertyName, boolean state) {
-        mPropertyMap.put(propertyName, state);
+        DevicePropertyHolder holder = mPropertyMap.get(propertyName);
+        holder.mState = state;
+
+        mPropertyMap.put(propertyName, holder);
+    }
+
+    public void addBooleanProperty(DevicePropertyHolder holder) {
+        mPropertyMap.put(holder.mPropertyName, holder);
     }
 }

@@ -2,6 +2,9 @@ package com.aylanetworks.agilelink;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -24,6 +27,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageApi;
@@ -31,7 +35,10 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+import com.google.gson.Gson;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +53,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_PROPERTIES = "device_properties";
+    private static final String DEVICE_DRAWABLE = "device_drawable";
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
 
@@ -61,6 +69,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         mGoogleApiClient.connect();
 
         //TODO: FOREGROUND
+    }
+
+    private byte[] getDrawableByteArray(Drawable drawable) {
+        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
+        return stream.toByteArray();
     }
 
     private void updateWearData() {
@@ -82,25 +97,33 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                         deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
                         deviceMap.putString(DEVICE_DSN, device.getDsn());
 
-                        Bundle propertiesBundle = new Bundle();
                         List<AylaProperty> allDeviceProperties = device.getProperties();
-                        ArrayList<String> matchedDeviceProperties = new ArrayList<>();
-                        matchedDeviceProperties.addAll(Arrays.asList(deviceModel.getSchedulablePropertyNames()));
-                        matchedDeviceProperties.addAll(Arrays.asList(deviceModel.getNotifiablePropertyNames()));
+                        List<String> readOnlyProperties = Arrays.asList(deviceModel.getNotifiablePropertyNames());
+                        List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
+                        ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
 
                         for (AylaProperty property : allDeviceProperties) {
                             String propertyName = property.getName();
-                            if (matchedDeviceProperties.contains(propertyName)) {
-                                propertiesBundle.putBoolean(propertyName, (int) property.getValue() == 1);
+                            if (readWriteProperties.contains(propertyName)) {
+                                propertyHolders.add(new DevicePropertyHolder(property.getDisplayName(),
+                                        propertyName, false, (int) property.getValue() == 1));
+                            } else if (readOnlyProperties.contains(propertyName)) {
+                                propertyHolders.add(new DevicePropertyHolder(property.getDisplayName(),
+                                        propertyName, true, (int) property.getValue() == 1));
                             }
                         }
 
-                        if (propertiesBundle.size() == 0) {
+                        if (propertyHolders.size() == 0) {
                             continue;
                         }
 
-                        deviceMap.putDataMap(DEVICE_PROPERTIES, DataMap.fromBundle(propertiesBundle));
+                        Gson gson = new Gson();
+                        deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
                         deviceMap.putLong("timestamp", System.currentTimeMillis());
+
+                        Asset deviceDrawable = Asset.createFromBytes(
+                                getDrawableByteArray(deviceModel.getDeviceDrawable(this)));
+                        deviceMap.putAsset(DEVICE_DRAWABLE, deviceDrawable);
 
                         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
                         putDataReq.setUrgent();
@@ -146,13 +169,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void deviceChanged(AylaDevice device, Change change) {
-        Log.e("AMAPW", "DEVICE CHANGED");
+        Log.e("AMAPW", "DEVICE CHANGED: " + change.toString());
         updateWearData();
     }
 
     @Override
     public void deviceListChanged(ListChange change) {
-        Log.e("AMAPW", "DEVICE LIST CHANGED");
+        Log.e("AMAPW", "DEVICE LIST CHANGED: " + change.toString());
         updateWearData();
 
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
@@ -173,10 +196,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             String dsn = cmdComponents[0];
             String propertyName = cmdComponents[1];
             String propertyState = cmdComponents[2];
-
-            Log.e("AMAPW", "DSN: " + dsn);
-            Log.e("AMAPW", "PNAME: " + propertyName);
-            Log.e("AMAPW", "PSTATE: " + propertyState);
 
             AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
             AylaProperty property = device.getProperty(propertyName);
@@ -242,5 +261,21 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e("AMAPW", "GOOGLE CONNECTION FAILED: " + connectionResult.getErrorMessage());
+    }
+
+    private class DevicePropertyHolder implements Serializable {
+
+        public String mFriendlyName;
+        public String mPropertyName;
+        public boolean mReadOnly;
+        public boolean mState;
+
+        public DevicePropertyHolder(String friendlyName, String propertyName,
+                                    boolean readOnly, boolean state) {
+            mFriendlyName = friendlyName;
+            mPropertyName = propertyName;
+            mReadOnly = readOnly;
+            mState = state;
+        }
     }
 }
