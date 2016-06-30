@@ -754,7 +754,13 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                         propValueSwitch.setEnabled(_deviceModel.isOnline());
                         propValueText.setVisibility(View.GONE);
                         propValueSwitch.setOnCheckedChangeListener(null);
-                        propValueSwitch.setChecked((int) prop.getValue() == 1);
+
+                        if (prop.getValue() != null ) {
+                            propValueSwitch.setChecked((int) prop.getValue() == 1);
+                        } else {
+                            propValueSwitch.setChecked(false);
+                        }
+
                         Log.d(LOG_TAG, "Checked: " + propValueSwitch.isChecked() + " prop.value: " + prop.getValue());
                         propValueSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             boolean _setting = false;

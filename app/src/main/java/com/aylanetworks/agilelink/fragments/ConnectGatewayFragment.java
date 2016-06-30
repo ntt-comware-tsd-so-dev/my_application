@@ -2,10 +2,8 @@ package com.aylanetworks.agilelink.fragments;
 
 
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -16,6 +14,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
@@ -37,9 +36,6 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private static final String LOG_TAG = "ConnectGatewayFragment";
 
-    private Button btnGateway;
-    private View mView;
-
     private Timer timer;
     private TimerTask timerTask;
 
@@ -49,10 +45,10 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mView = inflater.inflate(R.layout.fragment_connect_gateway, container, false);
-        btnGateway = (Button)mView.findViewById(R.id.register_btn);
+        View view = inflater.inflate(R.layout.fragment_connect_gateway, container, false);
+        Button btnGateway = (Button) view.findViewById(R.id.register_btn);
         btnGateway.setOnClickListener(this);
-        return mView;
+        return view;
     }
 
     @Override
@@ -66,32 +62,52 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private void registerButtonClick() {
         Log.i(LOG_TAG, "rn: registerNewGateway");
-        MainActivity.getInstance().showWaitDialog(null, null);
-        AylaRegistrationCandidate candidate = new AylaRegistrationCandidate();
-        candidate.setRegistrationType(AylaDevice.RegistrationType.ButtonPush);
+        MainActivity.getInstance().showWaitDialog("Please wait...", "Registering gateway");
         //Gateway is always push button
-        registerNewDevice(candidate);
+        fetchCandidate();
     }
 
-    private void registerNewDevice(AylaRegistrationCandidate candidate) {
+    private void fetchCandidate() {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-        Log.i(LOG_TAG, "rn: Calling registerNewDevice...");
 
         if (_aylaRegistration == null) {
             _aylaRegistration = new AylaRegistration(AMAPCore.sharedInstance().getDeviceManager());
         }
+
+        AylaDevice.RegistrationType regType = AylaDevice.RegistrationType.SameLan; // TODO: BUTTON_PUSH
+        _aylaRegistration.fetchCandidate(null, regType,
+                new Response.Listener<AylaRegistrationCandidate>() {
+                    @Override
+                    public void onResponse(AylaRegistrationCandidate candidate) {
+                        Log.e("AMAP", "CLASS: " + candidate.getProductClass());
+                        registerNewDevice(candidate);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
+                                Toast.LENGTH_LONG).show();
+                        exitSetup();
+                    }
+                });
+    }
+
+    private void registerNewDevice(AylaRegistrationCandidate candidate) {
+        Log.i(LOG_TAG, "rn: Calling registerNewDevice...");
+
         _aylaRegistration.registerCandidate(candidate, new Response.Listener<AylaDevice>() {
                     @Override
                     public void onResponse(AylaDevice device) {
                         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+
                         // Now update the device notifications
                         DeviceNotificationHelper helper = new DeviceNotificationHelper(device);
                         helper.initializeNewDeviceNotifications(
                                 new DeviceNotificationHelper.DeviceNotificationHelperListener() {
                                     @Override
-                                    public void newDeviceUpdated
-                                            (AylaDevice device,
-                                             AylaError error) {
+                                    public void newDeviceUpdated(AylaDevice device, AylaError error) {
                                         Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
                                         MainActivity mainActivity = MainActivity.getInstance();
                                         mainActivity.dismissWaitDialog();
@@ -112,8 +128,8 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Log.w(LOG_TAG, "rn: could not register device.");
-                        Toast.makeText(getActivity(), R.string.registration_failure,
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getActivity(), error, R.string.registration_failure),
                                 Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
@@ -132,7 +148,6 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     @Override
     public void onStop() {
-        // TODO Auto-generated method stub
         super.onStop();
         if(timer != null){
             timer.cancel();
@@ -149,13 +164,11 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     private void initializeTimer(){
         frame =0;
         timerTask = new TimerTask() {
-
             @Override
             public void run() {
                 uiHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // TODO Auto-generated method stub
                         updateLEDs();
                     }
                 });

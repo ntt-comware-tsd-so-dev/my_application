@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GenericGateway extends ViewModel {
+
     public GenericGateway(AylaDeviceGateway aylaDeviceGateway) {
         super(aylaDeviceGateway);
     }
@@ -40,7 +41,7 @@ public class GenericGateway extends ViewModel {
     }
 
     public AylaDeviceGateway getGateway() {
-        return (AylaDeviceGateway)getDevice();
+        return (AylaDeviceGateway) getDevice();
     }
 
     @Override
@@ -50,7 +51,12 @@ public class GenericGateway extends ViewModel {
 
     @Override
     public String getName() {
-        return _device.getProductName();
+        return getDevice().getProductName();
+    }
+
+    @Override
+    public String deviceTypeName() {
+        return "Gateway";
     }
 
     @Override
@@ -61,7 +67,7 @@ public class GenericGateway extends ViewModel {
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        h._deviceNameTextView.setText(_device.getProductName());
+        h._deviceNameTextView.setText(getDevice().getProductName());
         if (h._deviceStatusTextView != null) {
             h._deviceStatusTextView.setText(getDeviceState());
         }
