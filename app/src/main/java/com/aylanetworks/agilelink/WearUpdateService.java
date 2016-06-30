@@ -74,7 +74,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private byte[] getDrawableByteArray(Drawable drawable) {
         Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
         return stream.toByteArray();
     }
 
@@ -103,13 +103,21 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                         ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
 
                         for (AylaProperty property : allDeviceProperties) {
-                            String propertyName = property.getName();
+                            if (property.getName() == null || property.getValue() == null ||
+                                    !(property.getValue() instanceof Integer)) {
+                                continue;
+                            }
+
+                            String propertyName = property.getName().trim();
+                            String friendlyName = deviceModel.friendlyNameForPropertyName(propertyName);
+                            boolean propertyState = (int) property.getValue() == 1;
+
                             if (readWriteProperties.contains(propertyName)) {
-                                propertyHolders.add(new DevicePropertyHolder(property.getDisplayName(),
-                                        propertyName, false, (int) property.getValue() == 1));
+                                propertyHolders.add(new DevicePropertyHolder(friendlyName,
+                                        propertyName, false, propertyState));
                             } else if (readOnlyProperties.contains(propertyName)) {
-                                propertyHolders.add(new DevicePropertyHolder(property.getDisplayName(),
-                                        propertyName, true, (int) property.getValue() == 1));
+                                propertyHolders.add(new DevicePropertyHolder(friendlyName,
+                                        propertyName, true, propertyState));
                             }
                         }
 

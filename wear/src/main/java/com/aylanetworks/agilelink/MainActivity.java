@@ -5,9 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,7 +14,6 @@ import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.GridViewPager;
 import android.util.Log;
-import android.view.Display;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -63,7 +61,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     private String mHandheldNode = "";
 
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
-    private HashMap<String, Drawable> mDeviceDrawablesMap = new HashMap<>();
+    private HashMap<String, Bitmap> mDeviceDrawablesMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,8 +107,16 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
             return;
         }
 
-        BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), assetInputStream);
-        mDeviceDrawablesMap.put(deviceHolder.getDsn(), resizeDeviceDrawable(deviceDrawable));
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        opts.inDither = true;
+        Bitmap deviceDrawable = BitmapFactory.decodeStream(assetInputStream, null, opts);
+        try {
+            assetInputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mDeviceDrawablesMap.put(deviceHolder.getDsn(), deviceDrawable);
 
         if (mAdapter != null) {
             runOnUiThread(new Runnable() {
@@ -123,16 +129,6 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
                 }
             });
         }
-    }
-
-    private Drawable resizeDeviceDrawable(BitmapDrawable deviceDrawable) {
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-
-        Bitmap bitmap = deviceDrawable.getBitmap();
-        Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap, size.x, size.y, false);
-        return new BitmapDrawable(getResources(), bitmapResized);
     }
 
     private void getHandheldNode() {
@@ -178,7 +174,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
 
                     for (DevicePropertyHolder holder : propertyHolders) {
                         deviceHolder.addBooleanProperty(holder);
-                        Log.e("AMAPW", "RECEIVED: " + holder.mFriendlyName + ": " + holder.mState);
+                        // Log.e("AMAPW", "RECEIVED: " + holder.mFriendlyName + ": " + holder.mState);
                     }
 
                     mDevicesMap.put(dsn, deviceHolder);
@@ -186,7 +182,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
                 dataItems.release();
 
                 if (mAdapter == null) {
-                    mAdapter = new DevicesGridAdapter(getFragmentManager(), mDevicesMap, mDeviceDrawablesMap);
+                    mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap, mDeviceDrawablesMap);
                     mPager.setAdapter(mAdapter);
                 } else {
                     Point currentPosition = mPager.getCurrentItem();

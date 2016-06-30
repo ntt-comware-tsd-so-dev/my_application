@@ -6,12 +6,15 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
         android:id="@+id/property"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <CheckBox
-        android:enabled="false"
+    <RadioButton
+        android:clickable="false"
         android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

@@ -1,20 +1,24 @@
 package com.aylanetworks.agilelink;
 
+import android.app.Fragment;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.wearable.view.CardFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
-public class DeviceFragment extends CardFragment {
+public class DeviceFragment extends Fragment {
 
     public static final String ARG_DEVICE_HOLDER = "device_holder";
+    public static final String ARG_DEVICE_DRAWABLE = "device_drawable";
     public static final String ARG_DEVICE_PROPERTY = "device_property";
     public static final String ARG_IS_OVERVIEW_CARD = "is_overview_card";
 
@@ -26,7 +30,7 @@ public class DeviceFragment extends CardFragment {
     }
 
     @Override
-    public View onCreateContentView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                      Bundle savedInstanceState) {
         Bundle arguments = getArguments();
         boolean overviewCard = arguments.getBoolean(ARG_IS_OVERVIEW_CARD);
@@ -37,6 +41,11 @@ public class DeviceFragment extends CardFragment {
             root = inflater.inflate(R.layout.card_device_overview, null);
             TextView name = (TextView) root.findViewById(R.id.name);
             name.setText(deviceHolder.getName());
+
+            BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), (Bitmap) arguments.getParcelable(ARG_DEVICE_DRAWABLE));
+            ImageView icon = (ImageView) root.findViewById(R.id.device_drawable);
+            icon.setBackground(deviceDrawable);
+            icon.setVisibility(View.GONE); // TODO: MAKE IT PRETTY
         } else {
             final DevicePropertyHolder propertyHolder = (DevicePropertyHolder) arguments.getSerializable(ARG_DEVICE_PROPERTY);
             if (propertyHolder.mReadOnly) {
@@ -45,7 +54,7 @@ public class DeviceFragment extends CardFragment {
                 TextView property = (TextView) root.findViewById(R.id.property);
                 property.setText(propertyHolder.mFriendlyName);
 
-                CheckBox status = (CheckBox) root.findViewById(R.id.status);
+                RadioButton status = (RadioButton) root.findViewById(R.id.status);
                 status.setChecked(propertyHolder.mState);
             } else {
                 root = inflater.inflate(R.layout.card_device_property_rw, null);

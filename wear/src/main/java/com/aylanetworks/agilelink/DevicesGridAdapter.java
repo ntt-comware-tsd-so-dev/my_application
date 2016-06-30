@@ -2,6 +2,8 @@ package com.aylanetworks.agilelink;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.wearable.view.FragmentGridPagerAdapter;
@@ -14,19 +16,21 @@ import java.util.TreeMap;
 public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
     private ArrayList<DeviceHolder> mDevices;
-    private HashMap<String, Drawable> mDeviceDrawablesMap;
+    private HashMap<String, Bitmap> mDeviceDrawablesMap;
+    private Context mContext;
 
-    public DevicesGridAdapter(FragmentManager fm,
-                              TreeMap<String, DeviceHolder> devicesMap,
-                              HashMap<String, Drawable> deviceDrawables) {
+    public DevicesGridAdapter(Context context,
+            FragmentManager fm,
+            TreeMap<String, DeviceHolder> devicesMap,
+            HashMap<String, Bitmap> deviceDrawables) {
         super(fm);
-
+        mContext = context;
         mDevices = new ArrayList<>(devicesMap.values());
         mDeviceDrawablesMap = deviceDrawables;
     }
 
     public void updateData(TreeMap<String, DeviceHolder> devicesMap,
-                           HashMap<String, Drawable> deviceDrawables) {
+                           HashMap<String, Bitmap> deviceDrawables) {
         if (devicesMap != null) {
             mDevices = new ArrayList<>(devicesMap.values());
         }
@@ -46,6 +50,8 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
         if (col == 0) {
             // overview card; show only device name
             arguments.putBoolean(DeviceFragment.ARG_IS_OVERVIEW_CARD, true);
+            Bitmap deviceDrawable = mDeviceDrawablesMap.get(mDevices.get(row).getDsn());
+            arguments.putParcelable(DeviceFragment.ARG_DEVICE_DRAWABLE, deviceDrawable);
         } else {
             // property card; show property switch
             arguments.putBoolean(DeviceFragment.ARG_IS_OVERVIEW_CARD, false);
@@ -59,12 +65,8 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
     @Override
     public Drawable getBackgroundForRow(int row) {
-        Drawable deviceDrawable = mDeviceDrawablesMap.get(mDevices.get(row).getDsn());
-        if (deviceDrawable != null) {
-            return deviceDrawable;
-        } else {
-            return super.getBackgroundForRow(row);
-        }
+        // return super.getBackgroundForRow(row);
+        return mContext.getResources().getDrawable(R.mipmap.card_bg, null);
     }
 
     @Override
