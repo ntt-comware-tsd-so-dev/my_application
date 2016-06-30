@@ -74,7 +74,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private byte[] getDrawableByteArray(Drawable drawable) {
         Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         return stream.toByteArray();
     }
 
@@ -175,7 +175,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void deviceListChanged(ListChange change) {
-        Log.e("AMAPW", "DEVICE LIST CHANGED: " + change.toString());
+        Log.e("AMAPW", "DEVICE LIST CHANGED");
         updateWearData();
 
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
