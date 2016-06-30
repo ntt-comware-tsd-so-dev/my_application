@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -34,10 +36,12 @@ import com.android.internal.util.Predicate;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
+import com.aylanetworks.agilelink.device.GenericNodeDevice;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 import com.aylanetworks.aylasdk.AylaDeviceNode;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.agilelink.MainActivity;
@@ -68,9 +72,12 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 public class AddDeviceFragment extends Fragment
-        implements AdapterView.OnItemSelectedListener, View.OnClickListener,
-        ChooseAPDialog.ChooseAPResults, GenericGateway.GatewayNodeRegistrationListener,
-        DialogInterface.OnCancelListener, ActivityCompat.OnRequestPermissionsResultCallback {
+        implements AdapterView.OnItemSelectedListener,
+        View.OnClickListener,
+        ChooseAPDialog.ChooseAPResults,
+        GenericGateway.GatewayNodeRegistrationListener,
+        DialogInterface.OnCancelListener,
+        ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String LOG_TAG = "AddDeviceFragment";
     private static final int REQUEST_LOCATION = 2;
@@ -241,10 +248,6 @@ public class AddDeviceFragment extends Fragment
         super.onDetach();
         Logger.logVerbose(LOG_TAG, "rn: onDetach");
 
-        if (_nodeRegistrationGateway != null) {
-            // _nodeRegistrationGateway.cleanupRegistrationScan(); //TODO:
-        }
-
         if (_needsExit) {
             exitSetup();
         }
@@ -269,7 +272,7 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    ArrayAdapter<ViewModel> createGatewayAdapter() {
+    private ArrayAdapter<ViewModel> createGatewayAdapter() {
         List<AylaDevice> gatewayDevices = AMAPCore.sharedInstance().getDeviceManager()
                 .getDevices(new Predicate<AylaDevice>() {
                     @Override
@@ -283,7 +286,7 @@ public class AddDeviceFragment extends Fragment
                 ViewModel[gateways.size()]), true);
     }
 
-    ArrayAdapter<ViewModel> createProductTypeAdapter() {
+    private ArrayAdapter<ViewModel> createProductTypeAdapter() {
         AgileLinkViewModelProvider viewModelProvider =
                 (AgileLinkViewModelProvider)AMAPCore.sharedInstance().getSessionParameters()
                         .viewModelProvider;
@@ -295,8 +298,16 @@ public class AddDeviceFragment extends Fragment
                 AylaDevice fakeDevice = new AylaDevice();
                 ViewModel d = c.getConstructor(AylaDevice.class).newInstance(fakeDevice);
                 deviceList.add(d);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+               try {
+                   AylaDeviceGateway fakeGateway = new AylaDeviceGateway();
+                   ViewModel d = c.getConstructor(AylaDeviceGateway.class).newInstance(fakeGateway);
+                   deviceList.add(d);
+               } catch (Exception exc) {
+                   exc.printStackTrace();
+               }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
         return new DeviceTypeAdapter(getContext(), deviceList.toArray(new ViewModel[deviceList
@@ -438,7 +449,7 @@ public class AddDeviceFragment extends Fragment
         //Scanning requires permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION
         //TODO
 
-        if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+        if(ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             requestScanPermissions();
         } else{
             try {
@@ -450,19 +461,30 @@ public class AddDeviceFragment extends Fragment
                         Toast.LENGTH_LONG).show();
             }
 
-            if (USE_WELCOME_FRAGMENT) {
-                ViewModel provider = (ViewModel)
-                        _spinnerProductType.getSelectedItem();
-                if (provider instanceof GenericGateway) {
-                    MenuHandler.handleGatewayWelcome();
-                } else {
-                    doScan();
-                }
+            ViewModel provider = (ViewModel) _spinnerProductType.getSelectedItem();
+            if (USE_WELCOME_FRAGMENT && provider.isGateway()) {
+                MenuHandler.handleGatewayWelcome();
+            } else if (provider.isNode()) {
+                _nodeRegistrationGateway.getGateway().fetchRegistrationCandidates(new Response.Listener<AylaRegistrationCandidate[]>() {
+                        @Override
+                            public void onResponse(AylaRegistrationCandidate[] response) {
+                                for (AylaRegistrationCandidate candidate : response) {
+                                    Log.e("AMAP", candidate.toString());
+                                }
+                            }
+                        },
+                        new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                Toast.makeText(getActivity(),
+                                        ErrorUtils.getUserMessage(error, "Error fetching node registration candidates"),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
             } else {
                 doScan();
             }
         }
-
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -535,13 +557,12 @@ public class AddDeviceFragment extends Fragment
 
     @Override
     public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
-        // _scanTag = null; //TODO:
         dismissWaitDialog();
 
         // Let the user choose which device to connect to
         String apNames[] = new String[list.size()];
 
-        final List<AylaDeviceNode> selected = new ArrayList<AylaDeviceNode>();
+        final List<AylaDeviceNode> selected = new ArrayList<>();
         boolean[] isSelectedArray = new boolean[list.size()];
         for ( int i = 0; i < list.size(); i++ ) {
             isSelectedArray[i] = true;
@@ -592,8 +613,6 @@ public class AddDeviceFragment extends Fragment
                         public void onClick(DialogInterface dialog, int which) {
                             if (selected.size() > 0) {
                                 MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
-                                // _nodeRegistrationGateway.registerCandidates(selected, _nodeRegistrationGateway, AddDeviceFragment.this);
-                                //TODO:
                             }
                             dialog.dismiss();
                         }
@@ -606,7 +625,6 @@ public class AddDeviceFragment extends Fragment
     @Override
     public void gatewayRegistrationComplete(AylaError error, int messageResourceId, Object tag) {
         Logger.logDebug(LOG_TAG, "rn: gatewayRegistrationComplete, error: " + error);
-        // _scanTag = null; //TODO:
         dismissWaitDialog();
         if (messageResourceId != 0) {
             Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
@@ -615,13 +633,7 @@ public class AddDeviceFragment extends Fragment
 
     @Override
     public void onCancel(DialogInterface dialog) {
-        /**
-        if (_scanTag != null) {
-            Logger.logInfo(LOG_TAG, "rn: cancel Register node scan");
-            _scanTag.cancel();
-        }
-         */
-        //TODO:
+        //
     }
 
     private void doScan() {
@@ -634,8 +646,6 @@ public class AddDeviceFragment extends Fragment
                     MainActivity.getInstance().showWaitDialogWithCancel(getString(R.string.scanning_for_devices_title), getString(R.string.scanning_for_gateway_devices_message), this);
                     Logger.logInfo(LOG_TAG, "rn: startRegistration [" + _nodeRegistrationGateway
                             .getDevice().getDsn() + "]");
-                    // _scanTag = _nodeRegistrationGateway.startRegistrationScan(false, _nodeRegistrationGateway, this);
-                    //TODO: 
                 } else{
                     Toast.makeText(getActivity(), getResources().getString(R.string.gateway_offline), Toast.LENGTH_LONG).show();
                 }
@@ -716,7 +726,7 @@ public class AddDeviceFragment extends Fragment
         if (gpsEnabled || netEnabled) {
             String locationProvider = locationManager.getBestProvider(criteria, false);
 
-            if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+            if(ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
                 requestScanPermissions();
             } else{
                 Location location = locationManager.getLastKnownLocation(locationProvider);
@@ -994,6 +1004,6 @@ public class AddDeviceFragment extends Fragment
     * Scan needs location permissions. This method requests Location permission
      */
     private void requestScanPermissions(){
-        ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_COARSE_LOCATION"}, REQUEST_LOCATION);
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
     }
 }

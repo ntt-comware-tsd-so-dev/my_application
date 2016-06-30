@@ -15,6 +15,7 @@ import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,8 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
     public void updateDeviceList() {
         List<AylaDevice> gatewaysList = new ArrayList<>();
         if (AMAPCore.sharedInstance().getDeviceManager() != null) {
-            List<AylaDevice> allDevices = AMAPCore.sharedInstance().getDeviceManager().getDevices();
-            for (AylaDevice device : allDevices) {
+            List<AylaDeviceGateway> gateways = AMAPCore.sharedInstance().getDeviceManager().getGateways();
+            for (AylaDevice device : gateways) {
                 if (device.isGateway()) {
                     gatewaysList.add(device);
                 }

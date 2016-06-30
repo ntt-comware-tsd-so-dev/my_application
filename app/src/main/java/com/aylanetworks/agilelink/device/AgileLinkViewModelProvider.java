@@ -12,6 +12,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
             // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
             if ("AY001MRT1".equals(model)) {
                 // This is a gateway.
-                return new GenericGateway(null); //TODO:
+                return new GenericGateway((AylaDeviceGateway) device);
             }
             return new GenericDevice(device);
         }
@@ -73,7 +74,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
         if ( "generic".equals(oemModel) || "ggdemo".equals(oemModel)) {
             if (model.equals("AY001MRT1")) {
                 // This is a generic gateway.
-                return new GenericGateway(null); // TODO:
+                return new GenericGateway((AylaDeviceGateway) device);
             }
             if (model.equals("GenericNode") || model.equals("Generic Node")) {
                 // This is a generic node
