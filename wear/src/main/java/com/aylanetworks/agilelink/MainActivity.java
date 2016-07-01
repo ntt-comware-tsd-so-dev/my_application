@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
+import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.GridViewPager;
 import android.util.Log;
 
@@ -57,6 +58,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     private LocalBroadcastManager mLocalBroadcastManager;
     private ActionReceiver mActionReceiver;
     private GridViewPager mPager;
+    private DotsPageIndicator mPageDots;
     private DevicesGridAdapter mAdapter;
     private String mHandheldNode = "";
 
@@ -71,6 +73,8 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
         setAmbientEnabled();
 
         mPager = (GridViewPager) findViewById(R.id.pager);
+        mPageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
+        mPageDots.setPager(mPager);
 
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -126,6 +130,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
                     mAdapter.updateData(null, mDeviceDrawablesMap);
                     mAdapter.notifyDataSetChanged();
                     mPager.setCurrentItem(currentPosition.y, currentPosition.x, false);
+                    mPageDots.onPageSelected(currentPosition.y, currentPosition.x);
                 }
             });
         }
@@ -161,12 +166,15 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
                     String name = deviceMap.getString(DEVICE_NAME);
                     final DeviceHolder deviceHolder = new DeviceHolder(name, dsn);
 
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            updateDeviceDrawableFromAsset(deviceHolder, deviceMap.getAsset(DEVICE_DRAWABLE));
-                        }
-                    }.start();
+                    final Asset deviceDrawable = deviceMap.getAsset(DEVICE_DRAWABLE);
+                    if (deviceDrawable != null) {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                updateDeviceDrawableFromAsset(deviceHolder, deviceDrawable);
+                            }
+                        }.start();
+                    }
 
                     Gson gson = new Gson();
                     ArrayList<DevicePropertyHolder> propertyHolders = gson.fromJson(deviceMap.getString(DEVICE_PROPERTIES),

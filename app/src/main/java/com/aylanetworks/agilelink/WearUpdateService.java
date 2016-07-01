@@ -21,6 +21,7 @@ import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
+import com.aylanetworks.aylasdk.change.PropertyChange;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.google.android.gms.common.ConnectionResult;
@@ -59,6 +60,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     private GoogleApiClient mGoogleApiClient;
 
+    private Boolean[] TEST_A_STATUS = {true, false, true};
+    private Boolean[] TEST_B_STATUS = {false, true, false};
+
     @Override
     public void onCreate() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -81,6 +85,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private void updateWearData() {
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
+            addTestDeviceA();
+            addTestDeviceB();
+
             List<AylaDevice> allDevices = deviceManager.getDevices();
 
             if (allDevices != null) {
@@ -149,6 +156,68 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         }
     }
 
+    private void addTestDeviceA() {
+        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/TEST0001");
+        DataMap deviceMap = putDataMapReq.getDataMap();
+        deviceMap.putString(DEVICE_NAME, "Kitchen Lights");
+        deviceMap.putString(DEVICE_DSN, "TEST0001");
+
+        String[] propertyNames = {"Bulb 1", "Bulb 2", "Power"};
+        Boolean[] roProperties = {false, false, true};
+        ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
+
+        for (int i = 0; i < propertyNames.length; i++) {
+            propertyHolders.add(new DevicePropertyHolder(propertyNames[i],
+                    Integer.toString(i), roProperties[i], TEST_A_STATUS[i]));
+        }
+
+        Gson gson = new Gson();
+        deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
+        deviceMap.putLong("timestamp", System.currentTimeMillis());
+
+        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+        putDataReq.setUrgent();
+        PendingResult<DataApi.DataItemResult> pendingResult =
+                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+            @Override
+            public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                Log.e("AMAPW", "DELIVERY TEST A: " + dataItemResult.getStatus().isSuccess());
+            }
+        });
+    }
+
+    private void addTestDeviceB() {
+        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/TEST0002");
+        DataMap deviceMap = putDataMapReq.getDataMap();
+        deviceMap.putString(DEVICE_NAME, "Front Door");
+        deviceMap.putString(DEVICE_DSN, "TEST0002");
+
+        String[] propertyNames = {"Lock", "Door Open", "Alarm"};
+        Boolean[] roProperties = {false, true, true};
+        ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
+
+        for (int i = 0; i < propertyNames.length; i++) {
+            propertyHolders.add(new DevicePropertyHolder(propertyNames[i],
+                    Integer.toString(i), roProperties[i], TEST_B_STATUS[i]));
+        }
+
+        Gson gson = new Gson();
+        deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
+        deviceMap.putLong("timestamp", System.currentTimeMillis());
+
+        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+        putDataReq.setUrgent();
+        PendingResult<DataApi.DataItemResult> pendingResult =
+                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+            @Override
+            public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                Log.e("AMAPW", "DELIVERY TEST B: " + dataItemResult.getStatus().isSuccess());
+            }
+        });
+    }
+
     private void startListening() {
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
@@ -177,13 +246,26 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void deviceChanged(AylaDevice device, Change change) {
-        Log.e("AMAPW", "DEVICE CHANGED: " + change.toString());
-        updateWearData();
+        if (change.getType() == Change.ChangeType.Property) {
+            String changedPropertyName = ((PropertyChange) change).getPropertyName();
+
+            ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(device);
+            if (deviceModel == null) {
+                return;
+            }
+
+            List<String> readOnlyProperties = Arrays.asList(deviceModel.getNotifiablePropertyNames());
+            List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
+
+            if (readOnlyProperties.contains(changedPropertyName) || readWriteProperties.contains(changedPropertyName)) {
+                updateWearData();
+            }
+        }
     }
 
     @Override
     public void deviceListChanged(ListChange change) {
-        Log.e("AMAPW", "DEVICE LIST CHANGED");
         updateWearData();
 
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
@@ -205,8 +287,26 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             String propertyName = cmdComponents[1];
             String propertyState = cmdComponents[2];
 
+            if (dsn.equals("TEST0001")) {
+                int propertyIndex = Integer.valueOf(propertyName);
+                TEST_A_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
+                addTestDeviceA();
+            } else if (dsn.equals("TEST0002")) {
+                int propertyIndex = Integer.valueOf(propertyName);
+                TEST_B_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
+                addTestDeviceB();
+            }
+
             AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
+            if (device == null) {
+                return;
+            }
+
             AylaProperty property = device.getProperty(propertyName);
+            if (property == null) {
+                return;
+            }
+
             property.createDatapoint(Integer.valueOf(propertyState), null, new Response.Listener<AylaDatapoint>() {
                 @Override
                 public void onResponse(AylaDatapoint response) {

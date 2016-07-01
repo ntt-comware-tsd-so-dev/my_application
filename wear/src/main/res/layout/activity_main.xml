@@ -9,10 +9,29 @@
     tools:context="com.aylanetworks.agilelink.MainActivity"
     tools:deviceIds="wear">
 
-    <android.support.wearable.view.GridViewPager
-        android:id="@+id/pager"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_box="top|bottom" />
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <android.support.wearable.view.GridViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_box="top|bottom" />
+
+        <android.support.wearable.view.DotsPageIndicator
+            android:id="@+id/page_dots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:padding="15dp"
+            app:layout_box="all"/>
+    </FrameLayout>
 
 </android.support.wearable.view.BoxInsetLayout>

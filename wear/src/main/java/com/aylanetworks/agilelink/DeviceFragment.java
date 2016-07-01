@@ -42,10 +42,11 @@ public class DeviceFragment extends Fragment {
             TextView name = (TextView) root.findViewById(R.id.name);
             name.setText(deviceHolder.getName());
 
+            /**
             BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), (Bitmap) arguments.getParcelable(ARG_DEVICE_DRAWABLE));
             ImageView icon = (ImageView) root.findViewById(R.id.device_drawable);
             icon.setBackground(deviceDrawable);
-            icon.setVisibility(View.GONE); // TODO: MAKE IT PRETTY
+            */ // TODO: MAKE IT PRETTY
         } else {
             final DevicePropertyHolder propertyHolder = (DevicePropertyHolder) arguments.getSerializable(ARG_DEVICE_PROPERTY);
             if (propertyHolder.mReadOnly) {
