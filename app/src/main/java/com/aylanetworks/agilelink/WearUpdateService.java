@@ -28,7 +28,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageApi;
@@ -42,8 +41,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class WearUpdateService extends Service implements AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
@@ -82,81 +83,81 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         return stream.toByteArray();
     }
 
-    private void updateWearData() {
-        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
-        if (deviceManager != null) {
-            addTestDeviceA();
-            addTestDeviceB();
+    private void updateWearDataForDevice(AylaDevice device) {
+        Queue<PutDataRequest> dataRequestQueue = new LinkedList<>();
 
-            List<AylaDevice> allDevices = deviceManager.getDevices();
+        if (device == null) {
+            dataRequestQueue.offer(getTestDeviceA());
+            dataRequestQueue.offer(getTestDeviceB());
+        } else if (!device.isGateway()) {
+            ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(device);
+            if (deviceModel == null) {
+                return;
+            }
 
-            if (allDevices != null) {
-                for (AylaDevice device : allDevices) {
-                    if (!device.isGateway()) {
-                        ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
-                                .viewModelForDevice(device);
-                        if (deviceModel == null) {
-                            continue;
-                        }
+            PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/" + device.getDsn());
+            DataMap deviceMap = putDataMapReq.getDataMap();
+            deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
+            deviceMap.putString(DEVICE_DSN, device.getDsn());
 
-                        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/" + device.getDsn());
-                        DataMap deviceMap = putDataMapReq.getDataMap();
-                        deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
-                        deviceMap.putString(DEVICE_DSN, device.getDsn());
+            List<AylaProperty> allDeviceProperties = device.getProperties();
+            List<String> readOnlyProperties = Arrays.asList(deviceModel.getNotifiablePropertyNames());
+            List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
+            ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
 
-                        List<AylaProperty> allDeviceProperties = device.getProperties();
-                        List<String> readOnlyProperties = Arrays.asList(deviceModel.getNotifiablePropertyNames());
-                        List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
-                        ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
+            for (AylaProperty property : allDeviceProperties) {
+                if (property.getName() == null || property.getValue() == null ||
+                        !(property.getValue() instanceof Integer)) {
+                    continue;
+                }
 
-                        for (AylaProperty property : allDeviceProperties) {
-                            if (property.getName() == null || property.getValue() == null ||
-                                    !(property.getValue() instanceof Integer)) {
-                                continue;
-                            }
+                String propertyName = property.getName().trim();
+                String friendlyName = deviceModel.friendlyNameForPropertyName(propertyName);
+                boolean propertyState = (int) property.getValue() == 1;
 
-                            String propertyName = property.getName().trim();
-                            String friendlyName = deviceModel.friendlyNameForPropertyName(propertyName);
-                            boolean propertyState = (int) property.getValue() == 1;
-
-                            if (readWriteProperties.contains(propertyName)) {
-                                propertyHolders.add(new DevicePropertyHolder(friendlyName,
-                                        propertyName, false, propertyState));
-                            } else if (readOnlyProperties.contains(propertyName)) {
-                                propertyHolders.add(new DevicePropertyHolder(friendlyName,
-                                        propertyName, true, propertyState));
-                            }
-                        }
-
-                        if (propertyHolders.size() == 0) {
-                            continue;
-                        }
-
-                        Gson gson = new Gson();
-                        deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
-                        deviceMap.putLong("timestamp", System.currentTimeMillis());
-
-                        Asset deviceDrawable = Asset.createFromBytes(
-                                getDrawableByteArray(deviceModel.getDeviceDrawable(this)));
-                        deviceMap.putAsset(DEVICE_DRAWABLE, deviceDrawable);
-
-                        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-                        putDataReq.setUrgent();
-                        PendingResult<DataApi.DataItemResult> pendingResult =
-                                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-                        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                            @Override
-                            public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                                Log.e("AMAPW", "DELIVERY: " + dataItemResult.getStatus().isSuccess());
-                            }
-                        });
-                    }
+                if (readWriteProperties.contains(propertyName)) {
+                    propertyHolders.add(new DevicePropertyHolder(friendlyName,
+                            propertyName, false, propertyState));
+                } else if (readOnlyProperties.contains(propertyName)) {
+                    propertyHolders.add(new DevicePropertyHolder(friendlyName,
+                            propertyName, true, propertyState));
                 }
             }
+
+            if (propertyHolders.size() == 0) {
+                return;
+            }
+
+            Gson gson = new Gson();
+            deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
+            deviceMap.putLong("timestamp", System.currentTimeMillis());
+
+            //TODO: NOT YET
+            /**
+            Asset deviceDrawable = Asset.createFromBytes(
+                    getDrawableByteArray(deviceModel.getDeviceDrawable(this)));
+            deviceMap.putAsset(DEVICE_DRAWABLE, deviceDrawable);
+             */
+
+            PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+            putDataReq.setUrgent();
+            dataRequestQueue.offer(putDataReq);
+        }
+
+        while (!dataRequestQueue.isEmpty()) {
+            PendingResult<DataApi.DataItemResult> pendingResult =
+                    Wearable.DataApi.putDataItem(mGoogleApiClient, dataRequestQueue.remove());
+            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                @Override
+                public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                    // Log.e("AMAPW", "DELIVERY: " + dataItemResult.getStatus().isSuccess());
+                }
+            });
         }
     }
 
-    private void addTestDeviceA() {
+    private PutDataRequest getTestDeviceA() {
         PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/TEST0001");
         DataMap deviceMap = putDataMapReq.getDataMap();
         deviceMap.putString(DEVICE_NAME, "Kitchen Lights");
@@ -177,17 +178,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         putDataReq.setUrgent();
-        PendingResult<DataApi.DataItemResult> pendingResult =
-                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-            @Override
-            public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                Log.e("AMAPW", "DELIVERY TEST A: " + dataItemResult.getStatus().isSuccess());
-            }
-        });
+        return putDataReq;
     }
 
-    private void addTestDeviceB() {
+    private PutDataRequest getTestDeviceB() {
         PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/TEST0002");
         DataMap deviceMap = putDataMapReq.getDataMap();
         deviceMap.putString(DEVICE_NAME, "Front Door");
@@ -208,14 +202,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         putDataReq.setUrgent();
-        PendingResult<DataApi.DataItemResult> pendingResult =
-                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-            @Override
-            public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                Log.e("AMAPW", "DELIVERY TEST B: " + dataItemResult.getStatus().isSuccess());
-            }
-        });
+        return putDataReq;
     }
 
     private void startListening() {
@@ -227,7 +214,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 device.addListener(this);
             }
 
-            updateWearData();
             Wearable.MessageApi.addListener(mGoogleApiClient, this);
         }
     }
@@ -259,18 +245,23 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
 
             if (readOnlyProperties.contains(changedPropertyName) || readWriteProperties.contains(changedPropertyName)) {
-                updateWearData();
+                Log.e("AMAPW", "DEVICE PROEPRTY CHANGED: " + changedPropertyName);
+                updateWearDataForDevice(device);
             }
         }
     }
 
     @Override
     public void deviceListChanged(ListChange change) {
-        updateWearData();
-
-        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
-        for (AylaDevice device : deviceManager.getDevices()) {
-            device.addListener(this);
+        if (change != null) {
+            List addedItems = change.getAddedItems();
+            if (addedItems != null) {
+                for (Object item : addedItems) {
+                    if (item instanceof AylaDevice) {
+                        ((AylaDevice) item).addListener(this);
+                    }
+                }
+            }
         }
     }
 
@@ -290,11 +281,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             if (dsn.equals("TEST0001")) {
                 int propertyIndex = Integer.valueOf(propertyName);
                 TEST_A_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
-                addTestDeviceA();
+                updateWearDataForDevice(null);
+                return;
             } else if (dsn.equals("TEST0002")) {
                 int propertyIndex = Integer.valueOf(propertyName);
                 TEST_B_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
-                addTestDeviceB();
+                updateWearDataForDevice(null);
+                return;
             }
 
             AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
