@@ -9,9 +9,12 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
+import android.support.wearable.view.DismissOverlayView;
 import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.GridViewPager;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -55,7 +58,11 @@ public class MainActivity extends WearableActivity implements
     private GridViewPager mPager;
     private DotsPageIndicator mPageDots;
     private DevicesGridAdapter mAdapter;
+    private DismissOverlayView mDismissOverlay;
+    private GestureDetector mDetector;
+
     private String mHandheldNode = "";
+    private boolean mInitialized = false;
 
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
     private HashMap<String, Bitmap> mDeviceDrawablesMap = new HashMap<>();
@@ -76,7 +83,22 @@ public class MainActivity extends WearableActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
+        mInitialized = false;
         mGoogleApiClient.connect();
+
+        mDismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
+        mDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public void onLongPress(MotionEvent ev) {
+                mDismissOverlay.show();
+            }
+        });
+        mPager.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return mDetector.onTouchEvent(event);
+            }
+        });
     }
 
     private boolean sendDeviceControlMessage(String dsn, String propertyName, boolean newStatus) {
@@ -159,6 +181,7 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
+        mInitialized = true;
         new DataLoader().execute();
         Wearable.DataApi.addListener(mGoogleApiClient, this);
 
@@ -184,17 +207,19 @@ public class MainActivity extends WearableActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient.isConnected() && !mInitialized) {
             new DataLoader().execute();
             Wearable.DataApi.addListener(mGoogleApiClient, this);
 
             getHandheldNode();
+            mInitialized = true;
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        mInitialized = false;
         Wearable.DataApi.removeListener(mGoogleApiClient, this);
     }
 

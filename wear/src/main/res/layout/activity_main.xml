@@ -34,6 +34,11 @@
             android:layout_gravity="top|center_horizontal"
             android:padding="15dp"
             app:layout_box="all"/>
+
+        <android.support.wearable.view.DismissOverlayView
+            android:id="@+id/dismiss_overlay"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"/>
     </FrameLayout>
 
 </android.support.wearable.view.BoxInsetLayout>
