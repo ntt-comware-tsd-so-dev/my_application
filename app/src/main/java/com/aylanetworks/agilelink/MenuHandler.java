@@ -14,7 +14,6 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
-import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
@@ -200,8 +199,7 @@ public class MenuHandler {
                                     }
                             );
                         } else{
-                            AylaNetworks.sharedInstance().getLoginManager().deleteAccount(
-                                    AMAPCore.sharedInstance().getSessionParameters().sessionName,
+                            AMAPCore.sharedInstance().getSessionManager().deleteAccount(
                                     new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                                         @Override
                                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
