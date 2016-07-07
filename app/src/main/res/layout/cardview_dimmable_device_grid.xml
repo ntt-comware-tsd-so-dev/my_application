@@ -5,14 +5,14 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     card_view:cardBackgroundColor="@color/card_background"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_margin="5dp"
     card_view:cardCornerRadius="4dp">
 
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <ProgressBar
             android:id="@+id/spinner"

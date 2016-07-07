@@ -197,6 +197,12 @@ public class AllDevicesFragment extends Fragment
                 _recyclerView.setAdapter(_adapter);
             }
         }
+
+        if (deviceManager != null &&
+                deviceManager.getState() == AylaDeviceManager.DeviceManagerState.Ready) {
+            // Devices have been added / removed since initialization
+            startListening();
+        }
     }
 
     protected void startListening() {
@@ -206,7 +212,6 @@ public class AllDevicesFragment extends Fragment
             for (AylaDevice device : deviceManager.getDevices()) {
                 device.addListener(this);
             }
-            updateDeviceList();
         }
     }
 
@@ -309,6 +314,7 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void deviceManagerInitComplete(Map<String, AylaError> deviceFailures) {
         AylaLog.i(LOG_TAG, "Device manager init complete, failures: " + deviceFailures);
+        startListening();
     }
 
     @Override
