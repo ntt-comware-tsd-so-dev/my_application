@@ -144,6 +144,16 @@ public class ScheduleFragment extends Fragment {
                                                     _schedule = new Schedule(schedule,_tz);
                                                     setupPropertySelection();
                                                     updateUI();
+
+                                                    if ( _schedule.getStartTimeEachDay() == null ) {
+                                                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                                                            setSchedule(_scheduleTimePicker.getCurrentHour()
+                                                                    , _scheduleTimePicker.getCurrentMinute(), true);
+                                                        } else { // version >= M
+                                                            setSchedule(_scheduleTimePicker.getHour()
+                                                                    , _scheduleTimePicker.getMinute(), true);
+                                                        }
+                                                    }
                                                     break;
                                                 }
                                             }
@@ -274,16 +284,6 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        if ( _schedule.getStartTimeEachDay() == null ) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                setSchedule(_scheduleTimePicker.getCurrentHour()
-                        , _scheduleTimePicker.getCurrentMinute(), true);
-            } else { // version >= M
-                setSchedule(_scheduleTimePicker.getHour()
-                        , _scheduleTimePicker.getMinute(), true);
-            }
-        }
-
         _timerTimePicker.setIs24HourView(true);
         _timerTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @Override
@@ -373,8 +373,10 @@ public class ScheduleFragment extends Fragment {
 
         if (_timerTurnOnButton.isSelected()) {
             _timerOnDuration = hourOfDay * 60 + minute;
+            Log.e("AMAP", "ON: " + _timerOnDuration);
         } else {
             _timerOffDuration = hourOfDay * 60 + minute;
+            Log.e("AMAP", "OFF: " + _timerOffDuration);
         }
     }
 
@@ -426,13 +428,15 @@ public class ScheduleFragment extends Fragment {
         Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().getEndDate());
 
         // Save the updated schedule
-     _device.updateSchedule(_schedule.getSchedule(),
+        _device.updateSchedule(_schedule.getSchedule(),
                 new Response.Listener<AylaSchedule>() {
                     @Override
                     public void onResponse(final AylaSchedule response) {
                         _schedule = new Schedule(response, _tz);
                         MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
+                        setupPropertySelection();
+                        updateUI();
                     }
                 },
                 new ErrorListener() {
