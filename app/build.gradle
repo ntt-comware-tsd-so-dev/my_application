@@ -8,9 +8,10 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 22
-        versionName "4.4.00"
+        versionCode 30
+        versionName "5.0.00"
         multiDexEnabled true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -50,6 +51,9 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':websocketLibrary')
     compile project(':Android_AylaSDK')
+    androidTestCompile 'com.android.support:support-annotations:23.4.0'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile 'com.android.support.test:runner:0.5'
     compile project(':AMAP_Core')
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:recyclerview-v7:23.4.0'

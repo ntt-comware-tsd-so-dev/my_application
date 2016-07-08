@@ -145,6 +145,7 @@
     <string name="gateway_find_devices"><![CDATA[Encienda su dispositivo y presione \"Buscar Dispositivos\".\nDespues mantenga la varita magnética contra el icono de asociación en su dispositivo hasta que la luz deje de parpadear. El dispositivo aparecerá en la lista en unos momentos. Selecciónela y presione \"Registrar\".]]></string>
 
     <string name="registration_display_instructions">Por favor asegúrese de que el LED naranja en el dispositivo este encendido.</string>
+    <string name="enter_reg_token">Introduzca el registration token.</string>
     <string name="please_wait">Por favor espere...</string>
     <string name="registration_success">Registro exitoso!</string>
     <string name="registration_failure">No se pudo registrar. Asegúrese de que el dispositivo esté listo.</string>
@@ -311,6 +312,7 @@
     <string name="green_led">LED Verde</string>
     <string name="schedule_properties_description">Seleccione la acción a actualizar con la programación:</string>
     <string name="no_actions_set">Seleccione una acción para actualizar la programación</string>
+    <string name="configure_a_timer_or_a_schedule_before_saving">Configure un temporizador o una programación antes de guardar.</string>
     <string name="timezone_button_text">Zona horaria...</string>
     <string name="sharing_button_text">Compartir...</string>
     <string name="choose_timezone">Seleccione la zona horaria</string>
@@ -394,7 +396,7 @@
     <string name="confirm_sign_out_message">Desea salir %s?</string>
     <string name="group_empty_text">Presione el botón para crear un grupo</string>
     <string name="no_devices_in_group">Presione el botón para agregar dispositivos</string>
-    <string name="about_app" formatted="true">Acerca de %s</string>
+    <string name="about_app" formatted="false">Acerca de AMAP</string>
     <string name="about">Acerca de</string>
     <string name="more_options">Más...</string>
     <string name="service_type">Service Type</string>
@@ -403,14 +405,14 @@
     <string name="production_service">Production Service</string>
     <string name="staging_service">Staging Service</string>
     <string name="demo_service">Demo Service</string>
-    <string name="unknown_service">Unknown Service Type: %d</string>
+    <string name="unknown_service">Desconocido Tipo de Servicio: %d</string>
     <string name="app_version">Versión de aplicación:</string>
-    <string name="library_version">Versión de SDK Ayla</string>
+    <string name="core_version">Versión Core</string>
+    <string name="library_version">Versión AAML</string>
     <string name="reachable">Alcanzable</string>
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
-    <string name="wifi_enabled">Accesibilidad al Red WiFi</string>
-    <string name="cellular_enabled">Accesibilidad al Red Celular</string>
+    <string name="service_reachability">Accesibilidad al Servicio</string>
     <string name="offline_no_functionality">El dipositivo esta desconectado, no se puede modificar</string>
     <string name="drawer_open">Abra</string>
     <string name="drawer_close">Cerrar</string>

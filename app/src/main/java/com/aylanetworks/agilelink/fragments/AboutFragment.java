@@ -53,6 +53,7 @@ public class AboutFragment extends Fragment {
         items.add(new AboutItem(getString(R.string.service_type), settings.serviceType.toString()));
         items.add(new AboutItem(getString(R.string.app_version), params.appVersion));
         items.add(new AboutItem(getString(R.string.library_version), AylaNetworks.getVersion()));
+        items.add(new AboutItem(getString(R.string.core_version), AMAPCore.CORE_VERSION));
 
         boolean cellEnabled = AylaNetworks.sharedInstance().getConnectivity().isCellEnabled();
         boolean wifiEnabled = AylaNetworks.sharedInstance().getConnectivity().isWifiEnabled();
