@@ -1,5 +1,6 @@
 package com.aylanetworks.agilelink;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -73,7 +74,11 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 .build();
         mGoogleApiClient.connect();
 
-        //TODO: FOREGROUND
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setContentTitle("AMAP5 Android Wear Service");
+        builder.setContentText("Notification required to keep service in foreground");
+        builder.setSmallIcon(R.drawable.ic_launcher);
+        startForeground(999, builder.build());
     }
 
     private byte[] getDrawableByteArray(Drawable drawable) {

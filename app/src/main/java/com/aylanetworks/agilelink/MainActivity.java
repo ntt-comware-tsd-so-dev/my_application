@@ -945,6 +945,9 @@ public class MainActivity extends AppCompatActivity
         dismissWaitDialog();
 
         Log.d(LOG_TAG, "onPause");
+        // TODO: For now, don't shutdown on activity pause because of the wearable background service.
+        // TODO: Need to add method to dynamically handle shutdown here and in the service
+        /**
         AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
         if (dm != null) {
             dm.stopPolling();
@@ -952,6 +955,7 @@ public class MainActivity extends AppCompatActivity
             // we aren't going to "pause" LAN mode if we haven't been logged in.
             AylaNetworks.sharedInstance().onPause();
         }
+         */
     }
 
     @Override
@@ -963,7 +967,8 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
-        AylaNetworks.sharedInstance().onResume();
+        //TODO: No need to resume because we're not pausing in onPause(), for now
+        // AylaNetworks.sharedInstance().onResume();
 
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {
