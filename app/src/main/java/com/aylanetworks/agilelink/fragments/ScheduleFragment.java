@@ -1,11 +1,9 @@
 package com.aylanetworks.agilelink.fragments;
 
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -35,7 +33,6 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Schedule;
 import com.aylanetworks.agilelink.framework.ViewModel;
-import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaSchedule;
 import com.aylanetworks.aylasdk.AylaTimeZone;
@@ -44,7 +41,6 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -148,6 +144,16 @@ public class ScheduleFragment extends Fragment {
                                                     _schedule = new Schedule(schedule,_tz);
                                                     setupPropertySelection();
                                                     updateUI();
+
+                                                    if ( _schedule.getStartTimeEachDay() == null ) {
+                                                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                                                            setSchedule(_scheduleTimePicker.getCurrentHour()
+                                                                    , _scheduleTimePicker.getCurrentMinute(), true);
+                                                        } else { // version >= M
+                                                            setSchedule(_scheduleTimePicker.getHour()
+                                                                    , _scheduleTimePicker.getMinute(), true);
+                                                        }
+                                                    }
                                                     break;
                                                 }
                                             }
@@ -278,7 +284,6 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-
         _timerTimePicker.setIs24HourView(true);
         _timerTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @Override
@@ -343,13 +348,17 @@ public class ScheduleFragment extends Fragment {
             return;
         }
 
+        setSchedule(hourOfDay, minute, _scheduleOnTimeButton.isSelected());
+    }
+
+    private void setSchedule(int hourOfDay, int minute, boolean isOnTimeButtonSelected) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(_tz);
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
-        if (_scheduleOnTimeButton.isSelected()) {
+        if (isOnTimeButtonSelected) {
             _schedule.setStartTimeEachDay(cal);
         } else {
             _schedule.setEndTimeEachDay(cal);
@@ -364,8 +373,10 @@ public class ScheduleFragment extends Fragment {
 
         if (_timerTurnOnButton.isSelected()) {
             _timerOnDuration = hourOfDay * 60 + minute;
+            Log.e("AMAP", "ON: " + _timerOnDuration);
         } else {
             _timerOffDuration = hourOfDay * 60 + minute;
+            Log.e("AMAP", "OFF: " + _timerOffDuration);
         }
     }
 
@@ -381,6 +392,10 @@ public class ScheduleFragment extends Fragment {
         int errorMessage = 0;
         if ( _schedule.isActive() && _schedule.getActions().size() == 0 ) {
            errorMessage = R.string.no_actions_set;
+        }
+
+        if ( !_schedule.isTimer() && _schedule.getStartTimeEachDay() == null) {
+            errorMessage = R.string.configure_a_timer_or_a_schedule_before_saving;
         }
 
         if ( errorMessage != 0 ) {
@@ -413,13 +428,15 @@ public class ScheduleFragment extends Fragment {
         Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().getEndDate());
 
         // Save the updated schedule
-     _device.updateSchedule(_schedule.getSchedule(),
+        _device.updateSchedule(_schedule.getSchedule(),
                 new Response.Listener<AylaSchedule>() {
                     @Override
                     public void onResponse(final AylaSchedule response) {
                         _schedule = new Schedule(response, _tz);
                         MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
+                        setupPropertySelection();
+                        updateUI();
                     }
                 },
                 new ErrorListener() {

@@ -1,10 +1,17 @@
 package com.aylanetworks.agilelink.fragments;
 
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,6 +33,7 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.setup.AylaRegistration;
 import com.aylanetworks.aylasdk.setup.AylaRegistrationCandidate;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,6 +43,7 @@ import java.util.TimerTask;
 public class ConnectGatewayFragment extends Fragment implements View.OnClickListener {
 
     private static final String LOG_TAG = "ConnectGatewayFragment";
+    private static final int REQUEST_LOCATION = 2;
 
     private Timer timer;
     private TimerTask timerTask;
@@ -96,6 +105,26 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private void registerNewDevice(AylaRegistrationCandidate candidate) {
         Log.i(LOG_TAG, "rn: Calling registerNewDevice...");
+
+        // This is optional. Add location information to send latitude and longitude during
+        // registration of device.
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            requestScanPermissions();
+        } else {
+            LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            Location currentLocation;
+            List<String> locationProviders = locationManager.getAllProviders();
+            for (String provider: locationProviders) {
+                currentLocation = locationManager.getLastKnownLocation(provider);
+                if (currentLocation != null) {
+                    candidate.setLatitude(String.valueOf(currentLocation.getLatitude()));
+                    candidate.setLongitude(String.valueOf(currentLocation.getLongitude()));
+                    break;
+                }
+            }
+        }
 
         _aylaRegistration.registerCandidate(candidate, new Response.Listener<AylaDevice>() {
                     @Override
@@ -192,5 +221,12 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                 activity.findViewById(R.id.greenled2).setVisibility(activity.findViewById(R.id.greenled2).getVisibility() == View.VISIBLE?View.GONE:View.VISIBLE);
             }
         }
+    }
+
+    /*
+   * Scan needs location permissions. This method requests Location permission
+    */
+    private void requestScanPermissions(){
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
     }
 }

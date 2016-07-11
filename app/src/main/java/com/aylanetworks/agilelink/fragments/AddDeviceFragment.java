@@ -1,13 +1,13 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.Manifest;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -17,6 +17,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.text.Html;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,22 +29,18 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.internal.util.Predicate;
 import com.android.volley.Response;
+
 import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
-import com.aylanetworks.agilelink.device.GenericNodeDevice;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
-import com.aylanetworks.aylasdk.AylaAPIRequest;
-import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaDeviceGateway;
-import com.aylanetworks.aylasdk.AylaDeviceNode;
-import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.device.GenericGateway;
@@ -51,6 +48,10 @@ import com.aylanetworks.agilelink.fragments.adapters.DeviceTypeAdapter;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.MenuHandler;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.setup.AylaRegistration;
@@ -62,6 +63,7 @@ import com.aylanetworks.aylasdk.setup.AylaWifiStatus;
 import com.aylanetworks.aylasdk.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -75,7 +77,6 @@ public class AddDeviceFragment extends Fragment
         implements AdapterView.OnItemSelectedListener,
         View.OnClickListener,
         ChooseAPDialog.ChooseAPResults,
-        GenericGateway.GatewayNodeRegistrationListener,
         DialogInterface.OnCancelListener,
         ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -402,21 +403,6 @@ public class AddDeviceFragment extends Fragment
         Logger.logInfo(LOG_TAG, "rn: Selected " + position);
     }
 
-    private AylaDevice.RegistrationType getSelectedRegistrationType() {
-        Spinner regTypeSpinner = (Spinner) getView().findViewById(R.id.spinner_registration_type);
-        switch (__supportedRegTypes[regTypeSpinner.getSelectedItemPosition()]) {
-            case SameLan:
-                return AylaDevice.RegistrationType.SameLan;
-            case ButtonPush:
-                return AylaDevice.RegistrationType.ButtonPush;
-            case Display:
-                return AylaDevice.RegistrationType.Display;
-            case Node:
-                return AylaDevice.RegistrationType.Node;
-        }
-        return null;
-    }
-
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         Logger.logInfo(LOG_TAG, "rn: Nothing Selected");
@@ -436,10 +422,14 @@ public class AddDeviceFragment extends Fragment
             // we need something to register...
             Logger.logError(LOG_TAG, "rn: Register node no device node to register!");
             Toast.makeText(MainActivity.getInstance(), R.string.error_gateway_register_no_device, Toast.LENGTH_LONG).show();
+        } else if (_registrationType == AylaDevice.RegistrationType.Display) {
+            showDisplayRegDialog(null);
+        } else if (_registrationType == AylaDevice.RegistrationType.ButtonPush) {
+            showPushButtonDialog(null);
         } else {
             Logger.logInfo(LOG_TAG, "rn: registerNewDevice");
             MainActivity.getInstance().showWaitDialog(null, null);
-            registerNewDevice(null);
+            fetchCandidateAndRegister(null, AylaDevice.RegistrationType.SameLan, null);
         }
     }
 
@@ -468,9 +458,7 @@ public class AddDeviceFragment extends Fragment
                 _nodeRegistrationGateway.getGateway().fetchRegistrationCandidates(new Response.Listener<AylaRegistrationCandidate[]>() {
                         @Override
                             public void onResponse(AylaRegistrationCandidate[] response) {
-                                for (AylaRegistrationCandidate candidate : response) {
-                                    Log.e("AMAP", candidate.toString());
-                                }
+                                presentNodeCandidates(Arrays.asList(response));
                             }
                         },
                         new ErrorListener() {
@@ -536,18 +524,6 @@ public class AddDeviceFragment extends Fragment
                 .show();
     }
 
-    @Override
-    public void gatewayRegistrationCandidateAdded(AylaDevice device, boolean moreComing, Object
-            tag) {
-        Toast.makeText(MainActivity.getInstance(), R.string.gateway_registered_device_node, Toast.LENGTH_LONG).show();
-        Logger.logInfo(LOG_TAG, "rn: device [%s:%s] added", device.getDsn(),
-                device.getProductName());
-
-        if (!moreComing) {
-            MainActivity.getInstance().onSelectMenuItemById(R.id.action_all_devices);
-        }
-    }
-
     /**
      * Set _useSingleSelect to true to show a dialog that only allows one device to selected
      * for registration.  Set to false to show a dialog with a multiselect list of devices to
@@ -555,28 +531,21 @@ public class AddDeviceFragment extends Fragment
      */
     boolean _useSingleSelect = false;
 
-    @Override
-    public void gatewayRegistrationCandidates(final List<AylaDeviceNode> list, Object tag) {
+    public void presentNodeCandidates(final List<AylaRegistrationCandidate> list) {
         dismissWaitDialog();
 
         // Let the user choose which device to connect to
         String apNames[] = new String[list.size()];
 
-        final List<AylaDeviceNode> selected = new ArrayList<>();
+        final List<AylaRegistrationCandidate> selected = new ArrayList<>();
         boolean[] isSelectedArray = new boolean[list.size()];
         for ( int i = 0; i < list.size(); i++ ) {
             isSelectedArray[i] = true;
-            AylaDeviceNode adn = list.get(i);
+            AylaRegistrationCandidate adn = list.get(i);
             Logger.logVerbose(LOG_TAG, "rn: candidate [%s]", adn);
             apNames[i] = adn.getProductName();
             selected.add(adn);
         }
-
-        /* Quicky test to see if Identify will work on the AylaDeviceNode candidate...
-        if (list != null && list.size() > 0) {
-            _nodeRegistrationGateway.identifyAylaDeviceNode(list.get(0), true, 255, this, null);
-        }
-        */
 
         if (_useSingleSelect) {
             new AlertDialog.Builder(getActivity())
@@ -585,9 +554,9 @@ public class AddDeviceFragment extends Fragment
                     .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            AylaDeviceNode adn = list.get(which);
+                            AylaRegistrationCandidate adn = list.get(which);
                             Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s]", adn.getDsn(), adn.getModel());
-                            registerNewDevice(adn.getDsn());
+                            fetchCandidateAndRegister(adn.getDsn(), AylaDevice.RegistrationType.Node, null);
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
@@ -599,7 +568,7 @@ public class AddDeviceFragment extends Fragment
                     .setMultiChoiceItems(apNames, isSelectedArray, new DialogInterface.OnMultiChoiceClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                            AylaDeviceNode adn = list.get(which);
+                            AylaRegistrationCandidate adn = list.get(which);
                             Logger.logVerbose(LOG_TAG, "rn: register candidate [%s:%s] %s", adn.getDsn(), adn.getModel(), (isChecked ? "YES" : "NO"));
                             if (isChecked) {
                                 selected.add(adn);
@@ -614,7 +583,9 @@ public class AddDeviceFragment extends Fragment
                             if (selected.size() > 0) {
                                 MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
                             }
-                            dialog.dismiss();
+
+                            // Register the nodes
+                            registerCandidates(selected);
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
@@ -622,13 +593,29 @@ public class AddDeviceFragment extends Fragment
         }
     }
 
-    @Override
-    public void gatewayRegistrationComplete(AylaError error, int messageResourceId, Object tag) {
-        Logger.logDebug(LOG_TAG, "rn: gatewayRegistrationComplete, error: " + error);
-        dismissWaitDialog();
-        if (messageResourceId != 0) {
-            Toast.makeText(MainActivity.getInstance(), messageResourceId, Toast.LENGTH_LONG).show();
+    private void registerCandidates(final List<AylaRegistrationCandidate> candidates) {
+        if (candidates.size() == 0) {
+            // We're done
+            dismissWaitDialog();
+            showMessage(R.string.registration_success);
+            return;
         }
+
+        AylaRegistrationCandidate candidate = candidates.remove(0);
+        _aylaRegistration.registerCandidate(candidate, new Response.Listener<AylaDevice>() {
+                    @Override
+                    public void onResponse(AylaDevice response) {
+                        registerCandidates(candidates);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        dismissWaitDialog();
+                        showMessage(R.string.error_register_candidate);
+                        Log.e(LOG_TAG, "Error registering node candidate: " + error);
+                    }
+                });
     }
 
     @Override
@@ -879,9 +866,11 @@ public class AddDeviceFragment extends Fragment
                         if (AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(device.getDsn()) == null) {
                             if (_registrationType == AylaDevice.RegistrationType.ButtonPush) {
                                 // we need to prompt the user to press the Button for registration
-                                showPushButtonDialog(device);
+                                showPushButtonDialog(dsn);
+                            } else if (_registrationType == AylaDevice.RegistrationType.Display) {
+                                showDisplayRegDialog(dsn);
                             } else {
-                                registerNewDevice(dsn);
+                                fetchCandidateAndRegister(dsn, AylaDevice.RegistrationType.SameLan, null);
                             }
                         } else {
                             Logger.logDebug(LOG_TAG, "rn: device [" + device.getDsn() + "] already registered");
@@ -901,15 +890,14 @@ public class AddDeviceFragment extends Fragment
                 });
     }
 
-    private void fetchCandidateWithDsn(final String dsn) {
+    private void fetchCandidateAndRegister(final String dsn, final AylaDevice.RegistrationType regType, final String regToken) {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
 
-        AylaDevice.RegistrationType regType = AylaDevice.RegistrationType.valueOf("SameLan");
         _aylaRegistration.fetchCandidate(dsn, regType,
                 new Response.Listener<AylaRegistrationCandidate>() {
                     @Override
                     public void onResponse(AylaRegistrationCandidate candidate) {
-                        registerCandidate(candidate, dsn);
+                        registerCandidate(candidate, dsn, regType, regToken);
                     }
                 },
                 new ErrorListener() {
@@ -923,14 +911,36 @@ public class AddDeviceFragment extends Fragment
                 });
     }
 
-    private void registerCandidate(AylaRegistrationCandidate candidate, String dsn) {
-        if (TextUtils.equals(dsn, candidate.getDsn())) {
+    private void registerCandidate(AylaRegistrationCandidate candidate, String dsn, AylaDevice.RegistrationType regType, String regToken) {
+        if (regToken != null) {
+            candidate.setRegistrationToken(regToken);
+        } else if (TextUtils.equals(dsn, candidate.getDsn())) {
             candidate.setRegistrationToken(_setupToken);
         } else {
             candidate.setRegistrationToken(ObjectUtils.generateRandomToken(8));
         }
 
-        candidate.setRegistrationType(AylaDevice.RegistrationType.valueOf("SameLan"));
+        candidate.setRegistrationType(regType);
+
+        // This is optional. Add location information to send latitude and longitude during
+        // registration of device.
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            requestScanPermissions();
+        } else {
+            LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            Location currentLocation;
+            List<String> locationProviders = locationManager.getAllProviders();
+            for (String provider: locationProviders) {
+                currentLocation = locationManager.getLastKnownLocation(provider);
+                if (currentLocation != null) {
+                    candidate.setLatitude(String.valueOf(currentLocation.getLatitude()));
+                    candidate.setLongitude(String.valueOf(currentLocation.getLongitude()));
+                    break;
+                }
+            }
+        }
 
         _aylaRegistration.registerCandidate(candidate,
                 new Response.Listener<AylaDevice>() {
@@ -963,11 +973,7 @@ public class AddDeviceFragment extends Fragment
                 });
     }
 
-    private void registerNewDevice(String dsn) {
-        fetchCandidateWithDsn(dsn);
-    }
-
-    private void showPushButtonDialog(final AylaDevice device) {
+    private void showPushButtonDialog(final String dsn) {
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(getString(R.string.attention))
@@ -979,13 +985,38 @@ public class AddDeviceFragment extends Fragment
                 })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        registerDevice(device);
+                        fetchCandidateAndRegister(dsn, AylaDevice.RegistrationType.ButtonPush, null);
                     }
                 })
                 .create()
                 .show();
     }
 
+    private void showDisplayRegDialog(String dsn) {
+        final EditText regTokenEditText = new EditText(getContext());
+        regTokenEditText.setInputType(InputType.TYPE_CLASS_TEXT );
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setTitle(R.string.enter_reg_token)
+                .setView(regTokenEditText)
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        exitSetup();
+                    }
+                })
+                .setPositiveButton(R.string.register, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String token = regTokenEditText.getText().toString();
+                        fetchCandidateAndRegister(null, AylaDevice.RegistrationType.Display, token);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    // TODO: IMPLEMENT
+    /**
     private void registerDevice(final AylaDevice device) {
         // We need to wait a bit before attempting to register. The service needs some
         // time to get itself in order first.
@@ -995,10 +1026,11 @@ public class AddDeviceFragment extends Fragment
             @Override
             public void run() {
                 Logger.logDebug(LOG_TAG, "rn: register new device [" + device.getDsn() + "]");
-                registerNewDevice(device.getDsn());
+                fetchCandidateAndRegister(device.getDsn());
             }
         }, REGISTRATION_DELAY_MS);
     }
+     */
 
     /*
     * Scan needs location permissions. This method requests Location permission
