@@ -278,6 +278,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 }
             }
 
+            /**
             final Set<String> removedItems = change.getRemovedIdentifiers();
             new Thread() {
                 @Override
@@ -288,6 +289,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                     }
                 }
             }.start();
+             **/
+            //TODO: IMPLEMENT
         }
     }
 
