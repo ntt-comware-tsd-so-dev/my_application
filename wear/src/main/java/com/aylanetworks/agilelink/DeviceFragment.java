@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -43,41 +42,34 @@ public class DeviceFragment extends Fragment {
         boolean overviewCard = arguments.getBoolean(ARG_IS_OVERVIEW_CARD);
         final DeviceHolder deviceHolder = (DeviceHolder) arguments.getSerializable(ARG_DEVICE_HOLDER);
 
-        View root;
+        View root = inflater.inflate(R.layout.card_device, null);
+        TextView name = (TextView) root.findViewById(R.id.name);
+
         if (overviewCard) {
-            root = inflater.inflate(R.layout.card_device_overview, null);
-            TextView name = (TextView) root.findViewById(R.id.name);
             name.setText(deviceHolder.getName());
-
             /**
-            BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), (Bitmap) arguments.getParcelable(ARG_DEVICE_DRAWABLE));
-            ImageView icon = (ImageView) root.findViewById(R.id.device_drawable);
-            icon.setBackground(deviceDrawable);
-            */ // TODO: MAKE IT PRETTY
+             BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), (Bitmap) arguments.getParcelable(ARG_DEVICE_DRAWABLE));
+             ImageView icon = (ImageView) root.findViewById(R.id.device_drawable);
+             icon.setBackground(deviceDrawable);
+             */ // TODO: MAKE IT PRETTY
         } else {
-            final DevicePropertyHolder propertyHolder = (DevicePropertyHolder) arguments.getSerializable(ARG_DEVICE_PROPERTY);
+            final DevicePropertyHolder propertyHolder = deviceHolder.getBooleanProperty(arguments.getString(ARG_DEVICE_PROPERTY));
+
+            name.setText(propertyHolder.mFriendlyName);
             if (propertyHolder.mReadOnly) {
-                root = inflater.inflate(R.layout.card_device_property_ro, null);
-
-                TextView property = (TextView) root.findViewById(R.id.property);
-                property.setText(propertyHolder.mFriendlyName);
-
-                RadioButton status = (RadioButton) root.findViewById(R.id.status);
-                status.setChecked(propertyHolder.mState);
+                RadioButton readOnlyProperty = (RadioButton) root.findViewById(R.id.ro_property);
+                readOnlyProperty.setVisibility(View.VISIBLE);
+                readOnlyProperty.setChecked(propertyHolder.mState);
             } else {
-                root = inflater.inflate(R.layout.card_device_property_rw, null);
-
-                TextView property = (TextView) root.findViewById(R.id.property);
-                property.setText(propertyHolder.mFriendlyName);
-
-                Switch status = (Switch) root.findViewById(R.id.status);
-                status.setChecked(propertyHolder.mState);
-                status.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                Switch readWriteProperty = (Switch) root.findViewById(R.id.rw_property);
+                readWriteProperty.setVisibility(View.VISIBLE);
+                readWriteProperty.setChecked(propertyHolder.mState);
+                readWriteProperty.setOnClickListener(new View.OnClickListener(){
                     @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    public void onClick(View v) {
                         mListener.onPropertyToggled(deviceHolder.getDsn(),
                                 propertyHolder.mPropertyName,
-                                isChecked);
+                                ((Switch) v).isChecked());
                     }
                 });
             }

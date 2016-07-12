@@ -25,6 +25,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.CapabilityApi;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataItemBuffer;
@@ -62,7 +63,8 @@ public class MainActivity extends WearableActivity implements
     private GestureDetector mDetector;
 
     private String mHandheldNode = "";
-    private boolean mInitialized = false;
+    private int mGridPagerScrollState = GridViewPager.SCROLL_STATE_IDLE;
+    private boolean mPendingDataUpdate = false;
 
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
     private HashMap<String, Bitmap> mDeviceDrawablesMap = new HashMap<>();
@@ -83,8 +85,6 @@ public class MainActivity extends WearableActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
-        mInitialized = false;
-        mGoogleApiClient.connect();
 
         mDismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
         mDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
@@ -97,6 +97,27 @@ public class MainActivity extends WearableActivity implements
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 return mDetector.onTouchEvent(event);
+            }
+        });
+        mPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int row, int column, float rowOffset, float columnOffset, int rowOffsetPixels, int columnOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int row, int column) {
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                mGridPagerScrollState = state;
+
+                if (state == GridViewPager.SCROLL_STATE_IDLE) {
+                    if (mPendingDataUpdate) {
+                        mPendingDataUpdate = false;
+                        updateGridAnchored();
+                    }
+                }
             }
         });
     }
@@ -148,41 +169,55 @@ public class MainActivity extends WearableActivity implements
         });
     }
 
-    private void getDevicesData() {
+    private void updateAllDevicesData() {
         DataItemBuffer dataBuffer = Wearable.DataApi.getDataItems(mGoogleApiClient).await();
         for (DataItem deviceDataItem : dataBuffer) {
-            final DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
-            String dsn = deviceMap.getString(DEVICE_DSN);
-
-            if (dsn == null || !deviceDataItem.getUri().getPath().equals("/" + dsn)) {
-                continue;
-            }
-
-            String name = deviceMap.getString(DEVICE_NAME);
-            final DeviceHolder deviceHolder = new DeviceHolder(name, dsn);
-
-            final Asset deviceDrawable = deviceMap.getAsset(DEVICE_DRAWABLE);
-            if (deviceDrawable != null) {
-                updateDeviceDrawableFromAsset(deviceHolder, deviceDrawable);
-            }
-
-            Gson gson = new Gson();
-            ArrayList<DevicePropertyHolder> propertyHolders = gson.fromJson(deviceMap.getString(DEVICE_PROPERTIES),
-                    new TypeToken<ArrayList<DevicePropertyHolder>>(){}.getType());
-
-            for (DevicePropertyHolder holder : propertyHolders) {
-                deviceHolder.addBooleanProperty(holder);
-            }
-
-            mDevicesMap.put(dsn, deviceHolder);
+            updateDeviceData(deviceDataItem);
         }
         dataBuffer.release();
     }
 
+    private String getDataItemDeviceDsn(DataItem deviceDataItem) {
+        final DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
+        String dsn = deviceMap.getString(DEVICE_DSN);
+
+        if (dsn == null || !deviceDataItem.getUri().getPath().equals("/" + dsn)) {
+            return null;
+        }
+
+        return dsn;
+    }
+
+    private void updateDeviceData(DataItem deviceDataItem) {
+        final DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
+        String dsn = deviceMap.getString(DEVICE_DSN);
+
+        if (dsn == null || !deviceDataItem.getUri().getPath().equals("/" + dsn)) {
+            return;
+        }
+
+        String name = deviceMap.getString(DEVICE_NAME);
+        final DeviceHolder deviceHolder = new DeviceHolder(name, dsn);
+
+        final Asset deviceDrawable = deviceMap.getAsset(DEVICE_DRAWABLE);
+        if (deviceDrawable != null) {
+            updateDeviceDrawableFromAsset(deviceHolder, deviceDrawable);
+        }
+
+        Gson gson = new Gson();
+        ArrayList<DevicePropertyHolder> propertyHolders = gson.fromJson(deviceMap.getString(DEVICE_PROPERTIES),
+                new TypeToken<ArrayList<DevicePropertyHolder>>(){}.getType());
+
+        for (DevicePropertyHolder holder : propertyHolders) {
+            deviceHolder.addBooleanProperty(holder);
+        }
+
+        mDevicesMap.put(dsn, deviceHolder);
+    }
+
     @Override
     public void onConnected(Bundle bundle) {
-        mInitialized = true;
-        new DataLoader().execute();
+        new DataLoader(null).execute();
         Wearable.DataApi.addListener(mGoogleApiClient, this);
 
         getHandheldNode();
@@ -200,27 +235,26 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
+        DataEvent[] dataEvents = new DataEvent[dataEventBuffer.getCount()];
+        for (int i = 0; i < dataEventBuffer.getCount(); i++) {
+            dataEvents[i] = dataEventBuffer.get(i).freeze();
+        }
         dataEventBuffer.release();
-        new DataLoader().execute();
+
+        new DataLoader(dataEvents).execute();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (mGoogleApiClient.isConnected() && !mInitialized) {
-            new DataLoader().execute();
-            Wearable.DataApi.addListener(mGoogleApiClient, this);
-
-            getHandheldNode();
-            mInitialized = true;
-        }
+        mGoogleApiClient.connect();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mInitialized = false;
         Wearable.DataApi.removeListener(mGoogleApiClient, this);
+        mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -229,11 +263,32 @@ public class MainActivity extends WearableActivity implements
         mGoogleApiClient.disconnect();
     }
 
-    private class DataLoader extends AsyncTask<String, Void, Integer> {
+    private class DataLoader extends AsyncTask<Void, Void, Integer> {
+
+        private DataEvent[] mDataEvents;
+
+        public DataLoader(DataEvent[] dataEvents) {
+            mDataEvents = dataEvents;
+        }
 
         @Override
-        protected Integer doInBackground(String... params) {
-            getDevicesData();
+        protected Integer doInBackground(Void... params) {
+            if (mDataEvents != null) {
+                for (DataEvent event : mDataEvents) {
+                    DataItem dataItem = event.getDataItem();
+                    if (event.getType() == DataEvent.TYPE_DELETED) {
+                        String dsn = getDataItemDeviceDsn(dataItem);
+                        if (mDevicesMap.containsKey(dsn)) {
+                            mDevicesMap.remove(dsn);
+                        }
+                    } else if (event.getType() == DataEvent.TYPE_CHANGED) {
+                        updateDeviceData(dataItem);
+                    }
+                }
+            } else {
+                updateAllDevicesData();
+            }
+
             return 0;
         }
 
@@ -252,18 +307,27 @@ public class MainActivity extends WearableActivity implements
                     }
                 });
             } else {
-                Point currentPosition = mPager.getCurrentItem();
                 mAdapter.updateData(mDevicesMap, mDeviceDrawablesMap);
-                mAdapter.notifyDataSetChanged();
 
-                if (mAdapter.getRowCount() != 0) {
-                    int y = currentPosition.y < mAdapter.getRowCount() ? currentPosition.y : mAdapter.getRowCount() - 1;
-                    int x = currentPosition.x < mAdapter.getColumnCount(y) ? currentPosition.x : mAdapter.getColumnCount(y) - 1;
-
-                    mPager.setCurrentItem(y, x, false);
-                    mPageDots.onPageSelected(y, x);
+                if (mGridPagerScrollState == GridViewPager.SCROLL_STATE_IDLE) {
+                    updateGridAnchored();
+                } else {
+                    mPendingDataUpdate = true;
                 }
             }
+        }
+    }
+
+    private void updateGridAnchored() {
+        Point currentPosition = mPager.getCurrentItem();
+        mAdapter.notifyDataSetChanged();
+
+        if (mAdapter.getRowCount() != 0) {
+            int y = currentPosition.y < mAdapter.getRowCount() ? currentPosition.y : mAdapter.getRowCount() - 1;
+            int x = currentPosition.x < mAdapter.getColumnCount(y) ? currentPosition.x : mAdapter.getColumnCount(y) - 1;
+
+            mPager.setCurrentItem(y, x, false);
+            mPageDots.onPageSelected(y, x);
         }
     }
 

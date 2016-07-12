@@ -259,9 +259,27 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         }
     }
 
-    private String getLocalNodeId() {
-        NodeApi.GetLocalNodeResult nodeResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient).await();
-        return nodeResult.getNode().getId();
+    private void removeDeviceFromDataStore(final Set<String> dsns) {
+        if (dsns == null || dsns.isEmpty()) {
+            return;
+        }
+
+        PendingResult<NodeApi.GetLocalNodeResult> pendingResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient);
+        pendingResult.setResultCallback(new ResultCallback<NodeApi.GetLocalNodeResult>() {
+            @Override
+            public void onResult(@NonNull NodeApi.GetLocalNodeResult getLocalNodeResult) {
+                String localNodeId = getLocalNodeResult.getNode().getId();
+                for (String dsn : dsns) {
+                    if (dsn.equals("")) {
+                        continue;
+                    }
+
+                    Wearable.DataApi.deleteDataItems(mGoogleApiClient,
+                            new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(localNodeId).path("/" + dsn).build());
+                    Log.e("AMAPW", "DELETED " + dsn);
+                }
+            }
+        });
     }
 
     @Override
@@ -272,25 +290,15 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 for (Object item : addedItems) {
                     if (item instanceof AylaDevice) {
                         AylaDevice device = (AylaDevice) item;
+
+                        Log.e("AMAPW", "ADDED " + device.getDsn());
                         updateWearDataForDevice(device);
                         device.addListener(this);
                     }
                 }
             }
 
-            /**
-            final Set<String> removedItems = change.getRemovedIdentifiers();
-            new Thread() {
-                @Override
-                public void run() {
-                    for (String id : removedItems) {
-                        Wearable.DataApi.deleteDataItems(mGoogleApiClient,
-                                new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(getLocalNodeId()).path("/" + id).build());
-                    }
-                }
-            }.start();
-             **/
-            //TODO: IMPLEMENT
+            removeDeviceFromDataStore(change.getRemovedIdentifiers());
         }
     }
 
