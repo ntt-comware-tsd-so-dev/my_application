@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -33,6 +34,7 @@ import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -46,6 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 public class WearUpdateService extends Service implements AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
@@ -216,6 +219,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             deviceManager.addListener(this);
 
             for (AylaDevice device : deviceManager.getDevices()) {
+                updateWearDataForDevice(device);
                 device.addListener(this);
             }
 
@@ -250,10 +254,14 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
 
             if (readOnlyProperties.contains(changedPropertyName) || readWriteProperties.contains(changedPropertyName)) {
-                Log.e("AMAPW", "DEVICE PROEPRTY CHANGED: " + changedPropertyName);
                 updateWearDataForDevice(device);
             }
         }
+    }
+
+    private String getLocalNodeId() {
+        NodeApi.GetLocalNodeResult nodeResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient).await();
+        return nodeResult.getNode().getId();
     }
 
     @Override
@@ -263,10 +271,23 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             if (addedItems != null) {
                 for (Object item : addedItems) {
                     if (item instanceof AylaDevice) {
-                        ((AylaDevice) item).addListener(this);
+                        AylaDevice device = (AylaDevice) item;
+                        updateWearDataForDevice(device);
+                        device.addListener(this);
                     }
                 }
             }
+
+            final Set<String> removedItems = change.getRemovedIdentifiers();
+            new Thread() {
+                @Override
+                public void run() {
+                    for (String id : removedItems) {
+                        Wearable.DataApi.deleteDataItems(mGoogleApiClient,
+                                new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(getLocalNodeId()).path("/" + id).build());
+                    }
+                }
+            }.start();
         }
     }
 

@@ -255,8 +255,14 @@ public class MainActivity extends WearableActivity implements
                 Point currentPosition = mPager.getCurrentItem();
                 mAdapter.updateData(mDevicesMap, mDeviceDrawablesMap);
                 mAdapter.notifyDataSetChanged();
-                mPager.setCurrentItem(currentPosition.y, currentPosition.x, false);
-                mPageDots.onPageSelected(currentPosition.y, currentPosition.x);
+
+                if (mAdapter.getRowCount() != 0) {
+                    int y = currentPosition.y < mAdapter.getRowCount() ? currentPosition.y : mAdapter.getRowCount() - 1;
+                    int x = currentPosition.x < mAdapter.getColumnCount(y) ? currentPosition.x : mAdapter.getColumnCount(y) - 1;
+
+                    mPager.setCurrentItem(y, x, false);
+                    mPageDots.onPageSelected(y, x);
+                }
             }
         }
     }
