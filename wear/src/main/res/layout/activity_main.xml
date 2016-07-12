@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.wearable.view.BoxInsetLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
@@ -24,16 +23,14 @@
             android:alpha="0"
             android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_box="top|bottom" />
+            android:layout_height="match_parent" />
 
         <android.support.wearable.view.DotsPageIndicator
             android:id="@+id/page_dots"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|center_horizontal"
-            android:padding="15dp"
-            app:layout_box="all"/>
+            android:padding="15dp" />
 
         <android.support.wearable.view.DismissOverlayView
             android:id="@+id/dismiss_overlay"

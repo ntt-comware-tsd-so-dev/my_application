@@ -78,7 +78,6 @@ public class MainActivity extends WearableActivity implements
 
         mPager = (GridViewPager) findViewById(R.id.pager);
         mPageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
-        mPageDots.setPager(mPager);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -278,7 +277,7 @@ public class MainActivity extends WearableActivity implements
                     DataItem dataItem = event.getDataItem();
                     if (event.getType() == DataEvent.TYPE_DELETED) {
                         String dsn = getDataItemDeviceDsn(dataItem);
-                        if (mDevicesMap.containsKey(dsn)) {
+                        if (dsn != null && mDevicesMap.containsKey(dsn)) {
                             mDevicesMap.remove(dsn);
                         }
                     } else if (event.getType() == DataEvent.TYPE_CHANGED) {
@@ -297,6 +296,8 @@ public class MainActivity extends WearableActivity implements
             if (mAdapter == null) {
                 mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap, mDeviceDrawablesMap);
                 mPager.setAdapter(mAdapter);
+                mPageDots.setPager(mPager);
+                mPageDots.onPageSelected(0, 0);
 
                 mPager.animate().withLayer().alpha(1).setDuration(250).start();
                 final ProgressBar loading = (ProgressBar) findViewById(R.id.loading);

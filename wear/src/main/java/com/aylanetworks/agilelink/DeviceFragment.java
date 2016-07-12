@@ -43,9 +43,8 @@ public class DeviceFragment extends Fragment {
         final DeviceHolder deviceHolder = (DeviceHolder) arguments.getSerializable(ARG_DEVICE_HOLDER);
 
         View root = inflater.inflate(R.layout.card_device, null);
-        TextView name = (TextView) root.findViewById(R.id.name);
-
         if (overviewCard) {
+            TextView name = (TextView) root.findViewById(R.id.property);
             name.setText(deviceHolder.getName());
             /**
              BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), (Bitmap) arguments.getParcelable(ARG_DEVICE_DRAWABLE));
@@ -55,7 +54,12 @@ public class DeviceFragment extends Fragment {
         } else {
             final DevicePropertyHolder propertyHolder = deviceHolder.getBooleanProperty(arguments.getString(ARG_DEVICE_PROPERTY));
 
-            name.setText(propertyHolder.mFriendlyName);
+            TextView device = (TextView) root.findViewById(R.id.device);
+            device.setVisibility(View.VISIBLE);
+            device.setText(deviceHolder.getName());
+
+            TextView property = (TextView) root.findViewById(R.id.property);
+            property.setText(propertyHolder.mFriendlyName);
             if (propertyHolder.mReadOnly) {
                 RadioButton readOnlyProperty = (RadioButton) root.findViewById(R.id.ro_property);
                 readOnlyProperty.setVisibility(View.VISIBLE);

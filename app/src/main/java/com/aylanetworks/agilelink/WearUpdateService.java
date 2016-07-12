@@ -276,7 +276,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
                     Wearable.DataApi.deleteDataItems(mGoogleApiClient,
                             new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(localNodeId).path("/" + dsn).build());
-                    Log.e("AMAPW", "DELETED " + dsn);
                 }
             }
         });
@@ -290,8 +289,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 for (Object item : addedItems) {
                     if (item instanceof AylaDevice) {
                         AylaDevice device = (AylaDevice) item;
-
-                        Log.e("AMAPW", "ADDED " + device.getDsn());
                         updateWearDataForDevice(device);
                         device.addListener(this);
                     }

@@ -21,7 +21,7 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
     // TODO: Replace R.mipmap.card_bg3 because the current one is ugly
     private static final Integer[] BACKGROUND_IMAGE_ID_LIST = {R.mipmap.card_bg1, R.mipmap.card_bg2, R.mipmap.card_bg4, R.mipmap.card_bg5};
 
-    public static ArrayList<DeviceHolder> mDevices;
+    private ArrayList<DeviceHolder> mDevices;
     private HashMap<String, Bitmap> mDeviceDrawablesMap;
     private Context mContext;
     private ArrayList<Integer> mBackgroundImages = new ArrayList<>(Arrays.asList(BACKGROUND_IMAGE_ID_LIST));
