@@ -23,9 +23,6 @@ import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * <ul>
  * Derived classes should override the following methods:
@@ -116,7 +113,7 @@ public class GenericDevice extends ViewModel {
      * for each type of CardView displayed for a device.
      * <p>
      * The value returned from this method will be passed to the
-     * {@link AgileLinkViewModelProvider#viewHolderForViewType
+     * {@link AMAPViewModelProvider#viewHolderForViewType
      * (android.view.ViewGroup, int)}
      * method of the {@link ViewModelProvider} object, which uses
      * it to determine the appropriate ViewHolder object to create for the Device.
@@ -125,14 +122,14 @@ public class GenericDevice extends ViewModel {
      * are the same. Most devices will have their own unique views displayed.
      * <p>
      * View types should be unique, and are generally defined as static members of the
-     * {@link AgileLinkViewModelProvider} class. This keeps them all in the same place and makes it
+     * {@link AMAPViewModelProvider} class. This keeps them all in the same place and makes it
      * easy to
      * ensure that each identifier is unique.
      *
      * @return An integer representing the type of view for this item.
      */
     public int getItemViewType() {
-        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_GENERIC_DEVICE;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
     /**

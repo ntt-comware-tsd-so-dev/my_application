@@ -120,7 +120,7 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
 
     @Override
     public int getItemViewType() {
-        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override

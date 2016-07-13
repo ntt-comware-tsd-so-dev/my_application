@@ -1,6 +1,5 @@
 package com.aylanetworks.agilelink;
 
-import android.*;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -44,7 +43,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
@@ -792,7 +791,7 @@ public class MainActivity extends AppCompatActivity
             parameters.appSecret = "AgileLinkProd-1530606";
         }
 
-        parameters.viewModelProvider = new AgileLinkViewModelProvider();
+        parameters.viewModelProvider = new AMAPViewModelProvider();
 
         parameters.appVersion = getAppVersion();
 

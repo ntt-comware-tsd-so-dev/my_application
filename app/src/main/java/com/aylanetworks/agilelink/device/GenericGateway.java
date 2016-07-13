@@ -61,7 +61,7 @@ public class GenericGateway extends ViewModel {
 
     @Override
     public int getItemViewType() {
-        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_GENERIC_DEVICE;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
     @Override

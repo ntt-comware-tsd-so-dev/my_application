@@ -4,7 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.framework.ViewModelProvider;
@@ -77,7 +77,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        AgileLinkViewModelProvider dc = (AgileLinkViewModelProvider)AMAPCore.sharedInstance()
+        AMAPViewModelProvider dc = (AMAPViewModelProvider)AMAPCore.sharedInstance()
                 .getSessionParameters().viewModelProvider;
         return dc.viewHolderForViewType(parent, viewType);
     }

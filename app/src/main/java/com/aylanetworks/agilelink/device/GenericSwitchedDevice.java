@@ -36,7 +36,7 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
 
     @Override
     public int getItemViewType() {
-        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override
