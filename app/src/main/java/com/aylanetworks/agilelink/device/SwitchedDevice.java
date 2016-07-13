@@ -30,7 +30,6 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
     private final static String LOG_TAG = "SwitchedDevice";
     private final static String PROPERTY_OUTLET = "outlet1";
 
-    //TODO: This has bias towards zigbee, generic solution uses two property to control a switch.
     public SwitchedDevice(AylaDevice device) {
         super(device);
     }

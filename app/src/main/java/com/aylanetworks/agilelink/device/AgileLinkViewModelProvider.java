@@ -47,7 +47,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
         if (oemModel == null) {
             Logger.logError(LOG_TAG, "No oemModel set on device: " + device);
 
-            // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
+            // in some cases, the Generic Gateway has a null oemModel (instead of generic)
             if ("AY001MRT1".equals(model)) {
                 // This is a gateway.
                 return new GenericGateway((AylaDeviceGateway) device);
