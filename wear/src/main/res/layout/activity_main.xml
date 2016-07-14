@@ -25,6 +25,21 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <LinearLayout
+            android:visibility="gone"
+            android:alpha="0"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="#96000000"
+            android:id="@+id/sending"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ProgressBar
+                android:indeterminate="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <android.support.wearable.view.DotsPageIndicator
             android:id="@+id/page_dots"
             android:layout_width="wrap_content"

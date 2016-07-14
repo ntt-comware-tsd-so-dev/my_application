@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class DeviceFragment extends Fragment {
     }
 
     public void showRowHint(boolean nextRow) {
-        if (mRowHint == null || mRowHint.getAlpha() != 0) {
+        if (mRowHint == null || mRowHint.getVisibility() == View.VISIBLE) {
             return;
         }
 
@@ -49,15 +50,15 @@ public class DeviceFragment extends Fragment {
         params.gravity = Gravity.CENTER_HORIZONTAL | (nextRow ? Gravity.BOTTOM : Gravity.TOP);
         mRowHint.setLayoutParams(params);
 
-        mRowHint.animate().withLayer().alpha(1).setDuration(150).start();
+        mRowHint.setVisibility(View.VISIBLE);
     }
 
     public void hideRowHint() {
-        if (mRowHint == null || mRowHint.getAlpha() != 1) {
+        if (mRowHint == null || mRowHint.getVisibility() == View.INVISIBLE) {
             return;
         }
 
-        mRowHint.animate().withLayer().alpha(0).setDuration(150).start();
+        mRowHint.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -70,8 +71,13 @@ public class DeviceFragment extends Fragment {
         View root = inflater.inflate(R.layout.card_device, null);
         if (overviewCard) {
             TextView deviceName = (TextView) root.findViewById(R.id.device_name);
-            deviceName.setVisibility(View.VISIBLE);
             deviceName.setText(deviceHolder.getName());
+
+            TextView deviceStatus = (TextView) root.findViewById(R.id.device_status);
+            deviceStatus.setText(deviceHolder.getStatus());
+
+            LinearLayout deviceContainer = (LinearLayout) root.findViewById(R.id.overview_container);
+            deviceContainer.setVisibility(View.VISIBLE);
         } else {
             ArrayList<DevicePropertyHolder> propertiesList = new ArrayList<>();
             for (int i = 0; i < deviceHolder.getPropertyCount(); i++) {

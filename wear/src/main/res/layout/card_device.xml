@@ -13,16 +13,31 @@
         android:layout_width="match_parent"
         app:layout_box="all">
 
-        <TextView
-            android:visibility="gone"
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/overview_container"
             android:layout_gravity="center"
             android:gravity="center"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:id="@+id/device_name"
+            android:visibility="gone"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
+            <TextView
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:id="@+id/device_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:id="@+id/device_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
         <com.aylanetworks.agilelink.PropertyListView
             android:visibility="gone"
@@ -35,7 +50,6 @@
         <ImageView
             android:clickable="false"
             android:visibility="gone"
-            android:alpha="0"
             android:id="@+id/row_hint"
             android:layout_width="32dp"
             android:layout_height="32dp" />

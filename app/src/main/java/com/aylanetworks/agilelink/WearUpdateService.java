@@ -54,6 +54,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
+    private static final String DEVICE_STATUS = "device_status";
     private static final String DEVICE_PROPERTIES = "device_properties";
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
@@ -79,6 +80,21 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         startForeground(999, builder.build());
     }
 
+    private String getDeviceStatus(AylaDevice device) {
+        String status;
+        if (device.getConnectionStatus() == AylaDevice.ConnectionStatus.Online) {
+            if (device.isLanModeActive()) {
+                status = "LAN Mode";
+            } else {
+                status = "Online";
+            }
+        } else {
+            status = "Offline";
+        }
+
+        return status;
+    }
+
     private void updateWearDataForDevice(AylaDevice device) {
         Queue<PutDataRequest> dataRequestQueue = new LinkedList<>();
 
@@ -96,6 +112,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             DataMap deviceMap = putDataMapReq.getDataMap();
             deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
             deviceMap.putString(DEVICE_DSN, device.getDsn());
+            deviceMap.putString(DEVICE_STATUS, getDeviceStatus(device));
 
             List<AylaProperty> allDeviceProperties = device.getProperties();
             List<String> readOnlyProperties = Arrays.asList(deviceModel.getNotifiablePropertyNames());
@@ -151,6 +168,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         DataMap deviceMap = putDataMapReq.getDataMap();
         deviceMap.putString(DEVICE_NAME, "Kitchen Lights");
         deviceMap.putString(DEVICE_DSN, "TEST0001");
+        deviceMap.putString(DEVICE_STATUS, "LAN mode");
 
         String[] propertyNames = {"Bulb 1", "Bulb 2", "Power"};
         Boolean[] roProperties = {false, false, true};
@@ -175,6 +193,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         DataMap deviceMap = putDataMapReq.getDataMap();
         deviceMap.putString(DEVICE_NAME, "Front Door");
         deviceMap.putString(DEVICE_DSN, "TEST0002");
+        deviceMap.putString(DEVICE_STATUS, "Online");
 
         String[] propertyNames = {"Lock", "Door Open", "Alarm"};
         Boolean[] roProperties = {false, true, true};

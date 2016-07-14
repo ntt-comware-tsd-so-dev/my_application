@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 
 public class PropertyListView extends WearableListView {
 
-    private static final int OVERSCROLL_ADJUST_ROW_PX = 60;
+    private static final int OVERSCROLL_ADJUST_ROW_PX = 84;
     public enum ScrollStatus {SCROLL_IDLE, SCROLL_NOT_IDLE,
         SHOW_NEXT_ROW_HINT, HIDE_NEXT_ROW_HINT,
         SHOW_PREVIOUS_ROW_HINT, HIDE_PREVIOUS_ROW_HINT,
