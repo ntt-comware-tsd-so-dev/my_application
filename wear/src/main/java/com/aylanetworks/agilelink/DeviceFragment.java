@@ -1,38 +1,63 @@
 package com.aylanetworks.agilelink;
 
 import android.app.Fragment;
-import android.content.Context;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RadioButton;
-import android.widget.Switch;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 public class DeviceFragment extends Fragment {
 
     public static final String ARG_DEVICE_HOLDER = "device_holder";
-    public static final String ARG_DEVICE_DRAWABLE = "device_drawable";
-    public static final String ARG_DEVICE_PROPERTY = "device_property";
     public static final String ARG_IS_OVERVIEW_CARD = "is_overview_card";
 
-    private OnPropertyToggleListener mListener;
+    private PropertyListView mPropertyListView;
+    private ImageView mRowHint;
 
     public DeviceFragment() {
         super();
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
-        try {
-            mListener = (OnPropertyToggleListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
+    public int getPropertyListViewPosition() {
+        if (mPropertyListView != null) {
+            return mPropertyListView.getCentralPosition();
+        } else {
+            return 0;
         }
+    }
+
+    public void setPropertyListViewPosition(int position) {
+        if (mPropertyListView != null) {
+            mPropertyListView.scrollToPosition(position);
+        }
+    }
+
+    public void showRowHint(boolean nextRow) {
+        if (mRowHint == null || mRowHint.getAlpha() != 0) {
+            return;
+        }
+
+        mRowHint.setBackgroundResource(nextRow ? R.mipmap.down : R.mipmap.up);
+
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mRowHint.getLayoutParams();
+        params.gravity = Gravity.CENTER_HORIZONTAL | (nextRow ? Gravity.BOTTOM : Gravity.TOP);
+        mRowHint.setLayoutParams(params);
+
+        mRowHint.animate().withLayer().alpha(1).setDuration(150).start();
+    }
+
+    public void hideRowHint() {
+        if (mRowHint == null || mRowHint.getAlpha() != 1) {
+            return;
+        }
+
+        mRowHint.animate().withLayer().alpha(0).setDuration(150).start();
     }
 
     @Override
@@ -44,45 +69,26 @@ public class DeviceFragment extends Fragment {
 
         View root = inflater.inflate(R.layout.card_device, null);
         if (overviewCard) {
-            TextView name = (TextView) root.findViewById(R.id.property);
-            name.setText(deviceHolder.getName());
-            /**
-             BitmapDrawable deviceDrawable = new BitmapDrawable(getResources(), (Bitmap) arguments.getParcelable(ARG_DEVICE_DRAWABLE));
-             ImageView icon = (ImageView) root.findViewById(R.id.device_drawable);
-             icon.setBackground(deviceDrawable);
-             */ // TODO: MAKE IT PRETTY
+            TextView deviceName = (TextView) root.findViewById(R.id.device_name);
+            deviceName.setVisibility(View.VISIBLE);
+            deviceName.setText(deviceHolder.getName());
         } else {
-            final DevicePropertyHolder propertyHolder = deviceHolder.getBooleanProperty(arguments.getString(ARG_DEVICE_PROPERTY));
-
-            TextView device = (TextView) root.findViewById(R.id.device);
-            device.setVisibility(View.VISIBLE);
-            device.setText(deviceHolder.getName());
-
-            TextView property = (TextView) root.findViewById(R.id.property);
-            property.setText(propertyHolder.mFriendlyName);
-            if (propertyHolder.mReadOnly) {
-                RadioButton readOnlyProperty = (RadioButton) root.findViewById(R.id.ro_property);
-                readOnlyProperty.setVisibility(View.VISIBLE);
-                readOnlyProperty.setChecked(propertyHolder.mState);
-            } else {
-                Switch readWriteProperty = (Switch) root.findViewById(R.id.rw_property);
-                readWriteProperty.setVisibility(View.VISIBLE);
-                readWriteProperty.setChecked(propertyHolder.mState);
-                readWriteProperty.setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v) {
-                        mListener.onPropertyToggled(deviceHolder.getDsn(),
-                                propertyHolder.mPropertyName,
-                                ((Switch) v).isChecked());
-                    }
-                });
+            ArrayList<DevicePropertyHolder> propertiesList = new ArrayList<>();
+            for (int i = 0; i < deviceHolder.getPropertyCount(); i++) {
+                String propertyName = deviceHolder.getPropertyNameOrdered(i);
+                propertiesList.add(deviceHolder.getBooleanProperty(propertyName));
             }
+
+            mRowHint = (ImageView) root.findViewById(R.id.row_hint);
+            mRowHint.setVisibility(View.VISIBLE);
+
+            mPropertyListView = (PropertyListView) root.findViewById(R.id.property_list);
+            mPropertyListView.setScrollStatusListener((PropertyListView.ScrollStatusListener) getActivity());
+            mPropertyListView.setVisibility(View.VISIBLE);
+            mPropertyListView.setAdapter(new PropertyListAdapter(getActivity(), deviceHolder.getDsn(), propertiesList));
+            mPropertyListView.setGreedyTouchMode(true);
         }
 
         return root;
-    }
-
-    public interface OnPropertyToggleListener {
-        void onPropertyToggled(String deviceDsn, String propertyName, boolean propertyState);
     }
 }

@@ -3,9 +3,6 @@ package com.aylanetworks.agilelink;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -40,7 +37,6 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
-import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +55,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_PROPERTIES = "device_properties";
-    private static final String DEVICE_DRAWABLE = "device_drawable";
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
 
@@ -82,13 +77,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         builder.setContentText("Notification required to keep service in foreground");
         builder.setSmallIcon(R.drawable.ic_launcher);
         startForeground(999, builder.build());
-    }
-
-    private byte[] getDrawableByteArray(Drawable drawable) {
-        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        return stream.toByteArray();
     }
 
     private void updateWearDataForDevice(AylaDevice device) {
@@ -140,13 +128,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             Gson gson = new Gson();
             deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
             deviceMap.putLong("timestamp", System.currentTimeMillis());
-
-            //TODO: NOT YET
-            /**
-            Asset deviceDrawable = Asset.createFromBytes(
-                    getDrawableByteArray(deviceModel.getDeviceDrawable(this)));
-            deviceMap.putAsset(DEVICE_DRAWABLE, deviceDrawable);
-             */
 
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             putDataReq.setUrgent();

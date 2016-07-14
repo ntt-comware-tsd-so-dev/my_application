@@ -6,56 +6,39 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.aylanetworks.agilelink.MainActivity"
     tools:deviceIds="wear">
-    <RelativeLayout
-        app:layout_box="top|bottom"
+
+    <FrameLayout
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        app:layout_box="all">
 
         <TextView
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
             android:visibility="gone"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:id="@+id/device"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:gravity="center"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
-            android:id="@+id/property"
+            android:id="@+id/device_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <RadioButton
-            android:layout_below="@+id/property"
-            android:layout_centerHorizontal="true"
+        <com.aylanetworks.agilelink.PropertyListView
             android:visibility="gone"
+            android:layout_gravity="center"
+            android:id="@+id/property_list"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent">
+        </com.aylanetworks.agilelink.PropertyListView>
+
+        <ImageView
             android:clickable="false"
-            android:id="@+id/ro_property"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <Switch
-            android:layout_below="@+id/property"
-            android:layout_centerHorizontal="true"
             android:visibility="gone"
-            android:padding="15dp"
-            android:id="@+id/rw_property"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:alpha="0"
+            android:id="@+id/row_hint"
+            android:layout_width="32dp"
+            android:layout_height="32dp" />
 
-        <!-- ImageView
-            android:padding="15dp"
-            android:id="@+id/device_drawable"
-            android:layout_width="match_parent"
-            android:layout_height="64dp" / -->
-        <!-- TODO: MAKE IT PRETTY -->
-
-    </RelativeLayout>
+    </FrameLayout>
 </android.support.wearable.view.BoxInsetLayout>

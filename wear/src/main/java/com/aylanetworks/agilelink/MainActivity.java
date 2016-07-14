@@ -1,8 +1,6 @@
 package com.aylanetworks.agilelink;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,7 +20,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.CapabilityApi;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -37,9 +34,7 @@ import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -47,27 +42,27 @@ public class MainActivity extends WearableActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         DataApi.DataListener,
-        DeviceFragment.OnPropertyToggleListener {
+        PropertyListAdapter.OnPropertyToggleListener,
+        PropertyListView.ScrollStatusListener {
 
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_PROPERTIES = "device_properties";
-    private static final String DEVICE_DRAWABLE = "device_drawable";
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
 
     private GoogleApiClient mGoogleApiClient;
     private GridViewPager mPager;
-    private DotsPageIndicator mPageDots;
+    // private DotsPageIndicator mPageDots;
     private DevicesGridAdapter mAdapter;
     private DismissOverlayView mDismissOverlay;
     private GestureDetector mDetector;
 
     private String mHandheldNode = "";
     private int mGridPagerScrollState = GridViewPager.SCROLL_STATE_IDLE;
+    private boolean mPropertyListScrollIdle = false;
     private boolean mPendingDataUpdate = false;
 
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
-    private HashMap<String, Bitmap> mDeviceDrawablesMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +72,7 @@ public class MainActivity extends WearableActivity implements
         setAmbientEnabled();
 
         mPager = (GridViewPager) findViewById(R.id.pager);
-        mPageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
+        // mPageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -105,17 +100,18 @@ public class MainActivity extends WearableActivity implements
 
             @Override
             public void onPageSelected(int row, int column) {
+                // mPageDots.onPageSelected(column, row);
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
                 mGridPagerScrollState = state;
 
-                if (state == GridViewPager.SCROLL_STATE_IDLE) {
-                    if (mPendingDataUpdate) {
-                        mPendingDataUpdate = false;
-                        updateGridAnchored();
-                    }
+                if (mPendingDataUpdate &&
+                        state == GridViewPager.SCROLL_STATE_IDLE &&
+                        mPropertyListScrollIdle) {
+                    mPendingDataUpdate = false;
+                    updateGridAnchored();
                 }
             }
         });
@@ -127,25 +123,6 @@ public class MainActivity extends WearableActivity implements
         MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
                 DEVICE_CONTROL_MSG_URI, cmdArray).await();
         return result.getStatus().isSuccess();
-    }
-
-    private void updateDeviceDrawableFromAsset(DeviceHolder deviceHolder, Asset asset) {
-        InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
-                mGoogleApiClient, asset).await().getInputStream();
-        if (assetInputStream == null) {
-            return;
-        }
-
-        BitmapFactory.Options opts = new BitmapFactory.Options();
-        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        opts.inDither = true;
-        Bitmap deviceDrawable = BitmapFactory.decodeStream(assetInputStream, null, opts);
-        try {
-            assetInputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        mDeviceDrawablesMap.put(deviceHolder.getDsn(), deviceDrawable);
     }
 
     private void getHandheldNode() {
@@ -197,11 +174,6 @@ public class MainActivity extends WearableActivity implements
 
         String name = deviceMap.getString(DEVICE_NAME);
         final DeviceHolder deviceHolder = new DeviceHolder(name, dsn);
-
-        final Asset deviceDrawable = deviceMap.getAsset(DEVICE_DRAWABLE);
-        if (deviceDrawable != null) {
-            updateDeviceDrawableFromAsset(deviceHolder, deviceDrawable);
-        }
 
         Gson gson = new Gson();
         ArrayList<DevicePropertyHolder> propertyHolders = gson.fromJson(deviceMap.getString(DEVICE_PROPERTIES),
@@ -294,10 +266,10 @@ public class MainActivity extends WearableActivity implements
         @Override
         protected void onPostExecute(Integer result) {
             if (mAdapter == null) {
-                mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap, mDeviceDrawablesMap);
+                mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap);
                 mPager.setAdapter(mAdapter);
-                mPageDots.setPager(mPager);
-                mPageDots.onPageSelected(0, 0);
+                // mPageDots.setPager(mPager);
+                // mPageDots.onPageSelected(0, 0);
 
                 mPager.animate().withLayer().alpha(1).setDuration(250).start();
                 final ProgressBar loading = (ProgressBar) findViewById(R.id.loading);
@@ -308,9 +280,10 @@ public class MainActivity extends WearableActivity implements
                     }
                 });
             } else {
-                mAdapter.updateData(mDevicesMap, mDeviceDrawablesMap);
+                mAdapter.updateData(mDevicesMap);
 
-                if (mGridPagerScrollState == GridViewPager.SCROLL_STATE_IDLE) {
+                if (mGridPagerScrollState == GridViewPager.SCROLL_STATE_IDLE &&
+                        mPropertyListScrollIdle) {
                     updateGridAnchored();
                 } else {
                     mPendingDataUpdate = true;
@@ -319,16 +292,41 @@ public class MainActivity extends WearableActivity implements
         }
     }
 
+    private void adjustGridRow(int dRow) {
+        // positive delta is next row/down, negative delta is previous row/up
+        Point gridPosition = mPager.getCurrentItem();
+        if (dRow > 0) {
+            // next row/down
+            if (gridPosition.y + dRow < mAdapter.getRowCount()) {
+                mPager.setCurrentItem(gridPosition.y + dRow, 0, true);
+            }
+        } else if (dRow < 0) {
+            // previous row/down
+            if (gridPosition.y + dRow >= 0) {
+                mPager.setCurrentItem(gridPosition.y + dRow, 0, true);
+            }
+        }
+    }
+
     private void updateGridAnchored() {
-        Point currentPosition = mPager.getCurrentItem();
+        Point gridPosition = mPager.getCurrentItem();
+        DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
+        int listPosition = currentFragment.getPropertyListViewPosition();
+
         mAdapter.notifyDataSetChanged();
 
         if (mAdapter.getRowCount() != 0) {
-            int y = currentPosition.y < mAdapter.getRowCount() ? currentPosition.y : mAdapter.getRowCount() - 1;
-            int x = currentPosition.x < mAdapter.getColumnCount(y) ? currentPosition.x : mAdapter.getColumnCount(y) - 1;
-
-            mPager.setCurrentItem(y, x, false);
-            mPageDots.onPageSelected(y, x);
+            if (gridPosition.y < mAdapter.getRowCount()) {
+                mPager.setCurrentItem(gridPosition.y, gridPosition.x, false);
+                if (gridPosition.x != 0) {
+                    currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
+                    currentFragment.setPropertyListViewPosition(listPosition);
+                }
+                // mPageDots.onPageSelected(gridPosition.x, gridPosition.y);
+            } else {
+                mPager.setCurrentItem(mAdapter.getRowCount() - 1, gridPosition.x, false);
+                // mPageDots.onPageSelected(gridPosition.x, mAdapter.getRowCount() - 1);
+            }
         }
     }
 
@@ -363,5 +361,64 @@ public class MainActivity extends WearableActivity implements
     @Override
     public void onPropertyToggled(String deviceDsn, String propertyName, boolean propertyState) {
         new CommandSender(deviceDsn, propertyName, propertyState).execute();
+    }
+
+    @Override
+    public void onScrollStatusChanged(PropertyListView.ScrollStatus status) {
+        Point gridPosition = mPager.getCurrentItem();
+
+        switch (status) {
+            case SCROLL_NOT_IDLE:
+            case SCROLL_IDLE:
+                mPropertyListScrollIdle = status == PropertyListView.ScrollStatus.SCROLL_IDLE;
+
+                if (mPendingDataUpdate &&
+                        mGridPagerScrollState == GridViewPager.SCROLL_STATE_IDLE &&
+                        mPropertyListScrollIdle) {
+                    mPendingDataUpdate = false;
+                    updateGridAnchored();
+                }
+                break;
+
+            case SHOW_NEXT_ROW_HINT:
+                if (gridPosition.y < mAdapter.getRowCount() - 1) {
+                    DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
+                    currentFragment.showRowHint(true);
+                }
+                break;
+
+            case SHOW_PREVIOUS_ROW_HINT:
+                if (gridPosition.y > 0) {
+                    DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
+                    currentFragment.showRowHint(false);
+                }
+                break;
+
+            case HIDE_NEXT_ROW_HINT:
+                if (gridPosition.y < mAdapter.getRowCount() - 1) {
+                    DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
+                    currentFragment.hideRowHint();
+                }
+                break;
+
+            case HIDE_PREVIOUS_ROW_HINT:
+                if (gridPosition.y > 0) {
+                    DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
+                    currentFragment.hideRowHint();
+                }
+                break;
+
+            case ADJUST_NEXT_ROW:
+                if (gridPosition.y < mAdapter.getRowCount() - 1) {
+                    adjustGridRow(1);
+                }
+                break;
+
+            case ADJUST_PREVIOUS_ROW:
+                if (gridPosition.y > 0) {
+                    adjustGridRow(-1);
+                }
+                break;
+        }
     }
 }
