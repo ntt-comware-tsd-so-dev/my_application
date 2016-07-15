@@ -5,6 +5,7 @@ import android.support.wearable.view.WearableListView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -13,13 +14,17 @@ import java.util.ArrayList;
 
 public class PropertyListAdapter extends WearableListView.Adapter {
 
+    public static int TYPE_DEVICE_PROPERTY = 1;
+    public static int TYPE_ROW_PROPERTY_TOP = 2;
+    public static int TYPE_ROW_PROPERTY_BOTTOM = 3;
+
     private String mDeviceDsn;
     private ArrayList<DevicePropertyHolder> mProperties;
-    private OnPropertyToggleListener mListener;
+    private RowActionListener mListener;
     private LayoutInflater mInflater;
 
     public PropertyListAdapter(Context context, String dsn, ArrayList<DevicePropertyHolder> properties) {
-        mListener = (OnPropertyToggleListener) context;
+        mListener = (RowActionListener) context;
         mInflater = LayoutInflater.from(context);
 
         mDeviceDsn = dsn;
@@ -31,12 +36,14 @@ public class PropertyListAdapter extends WearableListView.Adapter {
         public TextView mPropertyName;
         public Switch mReadWriteProperty;
         public RadioButton mReadOnlyProperty;
+        public ImageView mRow;
 
         public ItemViewHolder(View itemView) {
             super(itemView);
             mPropertyName = (TextView) itemView.findViewById(R.id.property_name);
             mReadWriteProperty = (Switch) itemView.findViewById(R.id.rw_property);
             mReadOnlyProperty = (RadioButton) itemView.findViewById(R.id.ro_property);
+            mRow = (ImageView) itemView.findViewById(R.id.row);
         }
     }
 
@@ -51,25 +58,38 @@ public class PropertyListAdapter extends WearableListView.Adapter {
         TextView propertyName = itemHolder.mPropertyName;
         Switch readWriteProperty = itemHolder.mReadWriteProperty;
         RadioButton readOnlyProperty = itemHolder.mReadOnlyProperty;
+        ImageView row = itemHolder.mRow;
 
         final DevicePropertyHolder propertyHolder = mProperties.get(position);
-        propertyName.setText(propertyHolder.mFriendlyName);
-
-        if (propertyHolder.mReadOnly) {
-            readOnlyProperty.setVisibility(View.VISIBLE);
-            readOnlyProperty.setChecked(propertyHolder.mState);
+        if (propertyHolder instanceof RowPropertyHolder) {
+            row.setVisibility(View.VISIBLE);
+            final RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
+            if (type == RowPropertyHolder.RowType.TOP) {
+                row.setBackgroundResource(R.mipmap.up);
+                holder.itemView.setTag(TYPE_ROW_PROPERTY_TOP);
+            } else if (type == RowPropertyHolder.RowType.BOTTOM) {
+                row.setBackgroundResource(R.mipmap.down);
+                holder.itemView.setTag(TYPE_ROW_PROPERTY_BOTTOM);
+            }
         } else {
-            readWriteProperty.setVisibility(View.VISIBLE);
-            readWriteProperty.setChecked(propertyHolder.mState);
-            readWriteProperty.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mListener.onPropertyToggled(mDeviceDsn, propertyHolder.mPropertyName, ((Switch) v).isChecked());
-                }
-            });
-        }
+            propertyName.setText(propertyHolder.mFriendlyName);
 
-        holder.itemView.setTag(position);
+            if (propertyHolder.mReadOnly) {
+                readOnlyProperty.setVisibility(View.VISIBLE);
+                readOnlyProperty.setChecked(propertyHolder.mState);
+            } else {
+                readWriteProperty.setVisibility(View.VISIBLE);
+                readWriteProperty.setChecked(propertyHolder.mState);
+                readWriteProperty.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mListener.onPropertyToggled(mDeviceDsn, propertyHolder.mPropertyName, ((Switch) v).isChecked());
+                    }
+                });
+            }
+
+            holder.itemView.setTag(TYPE_DEVICE_PROPERTY);
+        }
     }
 
     @Override
@@ -77,7 +97,7 @@ public class PropertyListAdapter extends WearableListView.Adapter {
         return mProperties.size();
     }
 
-    public interface OnPropertyToggleListener {
+    public interface RowActionListener {
         void onPropertyToggled(String deviceDsn, String propertyName, boolean propertyState);
     }
 }

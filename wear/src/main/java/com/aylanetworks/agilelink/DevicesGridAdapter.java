@@ -47,6 +47,8 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
         // overview card; show only device name
         // property card; show property list
         arguments.putBoolean(DeviceFragment.ARG_IS_OVERVIEW_CARD, col == 0);
+        arguments.putInt(DeviceFragment.ARG_ROW, row);
+        arguments.putInt(DeviceFragment.ARG_ROW_COUNT, getRowCount());
         fragment.setArguments(arguments);
 
         return fragment;

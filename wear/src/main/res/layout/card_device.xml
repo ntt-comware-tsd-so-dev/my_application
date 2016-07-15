@@ -39,20 +39,13 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <com.aylanetworks.agilelink.PropertyListView
+        <android.support.wearable.view.WearableListView
             android:visibility="gone"
             android:layout_gravity="center"
             android:id="@+id/property_list"
             android:layout_height="match_parent"
             android:layout_width="match_parent">
-        </com.aylanetworks.agilelink.PropertyListView>
-
-        <ImageView
-            android:clickable="false"
-            android:visibility="gone"
-            android:id="@+id/row_hint"
-            android:layout_width="32dp"
-            android:layout_height="32dp" />
+        </android.support.wearable.view.WearableListView>
 
     </FrameLayout>
 </android.support.wearable.view.BoxInsetLayout>

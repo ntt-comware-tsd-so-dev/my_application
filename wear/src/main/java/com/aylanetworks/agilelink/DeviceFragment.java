@@ -2,12 +2,10 @@ package com.aylanetworks.agilelink;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.support.wearable.view.WearableListView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -15,50 +13,21 @@ import java.util.ArrayList;
 
 public class DeviceFragment extends Fragment {
 
+    public static final String ARG_ROW = "row";
+    public static final String ARG_ROW_COUNT = "row_count";
     public static final String ARG_DEVICE_HOLDER = "device_holder";
     public static final String ARG_IS_OVERVIEW_CARD = "is_overview_card";
 
-    private PropertyListView mPropertyListView;
-    private ImageView mRowHint;
+    private WearableListView mPropertyListView;
 
     public DeviceFragment() {
         super();
-    }
-
-    public int getPropertyListViewPosition() {
-        if (mPropertyListView != null) {
-            return mPropertyListView.getCentralPosition();
-        } else {
-            return 0;
-        }
     }
 
     public void setPropertyListViewPosition(int position) {
         if (mPropertyListView != null) {
             mPropertyListView.scrollToPosition(position);
         }
-    }
-
-    public void showRowHint(boolean nextRow) {
-        if (mRowHint == null || mRowHint.getVisibility() == View.VISIBLE) {
-            return;
-        }
-
-        mRowHint.setBackgroundResource(nextRow ? R.mipmap.down : R.mipmap.up);
-
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mRowHint.getLayoutParams();
-        params.gravity = Gravity.CENTER_HORIZONTAL | (nextRow ? Gravity.BOTTOM : Gravity.TOP);
-        mRowHint.setLayoutParams(params);
-
-        mRowHint.setVisibility(View.VISIBLE);
-    }
-
-    public void hideRowHint() {
-        if (mRowHint == null || mRowHint.getVisibility() == View.INVISIBLE) {
-            return;
-        }
-
-        mRowHint.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -80,19 +49,35 @@ public class DeviceFragment extends Fragment {
             deviceContainer.setVisibility(View.VISIBLE);
         } else {
             ArrayList<DevicePropertyHolder> propertiesList = new ArrayList<>();
+
+            int row = arguments.getInt(ARG_ROW);
+            if (row > 0) {
+                propertiesList.add(new RowPropertyHolder(RowPropertyHolder.RowType.TOP));
+            }
+
             for (int i = 0; i < deviceHolder.getPropertyCount(); i++) {
                 String propertyName = deviceHolder.getPropertyNameOrdered(i);
                 propertiesList.add(deviceHolder.getBooleanProperty(propertyName));
             }
 
-            mRowHint = (ImageView) root.findViewById(R.id.row_hint);
-            mRowHint.setVisibility(View.VISIBLE);
+            if (row < arguments.getInt(ARG_ROW_COUNT) - 1) {
+                propertiesList.add(new RowPropertyHolder(RowPropertyHolder.RowType.BOTTOM));
+            }
 
-            mPropertyListView = (PropertyListView) root.findViewById(R.id.property_list);
-            mPropertyListView.setScrollStatusListener((PropertyListView.ScrollStatusListener) getActivity());
+            mPropertyListView = (WearableListView) root.findViewById(R.id.property_list);
             mPropertyListView.setVisibility(View.VISIBLE);
             mPropertyListView.setAdapter(new PropertyListAdapter(getActivity(), deviceHolder.getDsn(), propertiesList));
             mPropertyListView.setGreedyTouchMode(true);
+            mPropertyListView.addOnScrollListener((WearableListView.OnScrollListener) getActivity());
+            mPropertyListView.setClickListener((WearableListView.ClickListener) getActivity());
+
+            if (row > 0) {
+                if (propertiesList.size() > 2) {
+                    setPropertyListViewPosition(2);
+                } else if (propertiesList.size() > 1) {
+                    setPropertyListViewPosition(1);
+                }
+            }
         }
 
         return root;

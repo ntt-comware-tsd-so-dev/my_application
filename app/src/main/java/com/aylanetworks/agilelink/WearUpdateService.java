@@ -27,10 +27,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.CapabilityApi;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
@@ -58,8 +60,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private static final String DEVICE_PROPERTIES = "device_properties";
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
+    private static final String DEVICE_CONTROL_RESULT_MSG_URI = "/device_control_result";
 
     private GoogleApiClient mGoogleApiClient;
+    private String mWearableNode;
 
     private Boolean[] TEST_A_STATUS = {true, false, true};
     private Boolean[] TEST_B_STATUS = {false, true, false};
@@ -316,11 +320,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 int propertyIndex = Integer.valueOf(propertyName);
                 TEST_A_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
                 updateWearDataForDevice(null);
+                sendDeviceControlResultMessage(true);
                 return;
             } else if (dsn.equals("TEST0002")) {
                 int propertyIndex = Integer.valueOf(propertyName);
                 TEST_B_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
                 updateWearDataForDevice(null);
+                sendDeviceControlResultMessage(true);
                 return;
             }
 
@@ -337,15 +343,48 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             property.createDatapoint(Integer.valueOf(propertyState), null, new Response.Listener<AylaDatapoint>() {
                 @Override
                 public void onResponse(AylaDatapoint response) {
-
+                    sendDeviceControlResultMessage(true);
                 }
             }, new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
-
+                    sendDeviceControlResultMessage(false);
                 }
             });
         }
+    }
+
+    private void sendDeviceControlResultMessage(boolean success) {
+        byte[] resultArray = (success ? "1" : "0").getBytes();
+
+        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mWearableNode,
+                DEVICE_CONTROL_RESULT_MSG_URI, resultArray);
+        pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
+            @Override
+            public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
+                // Log.e("AMAPW", "RESULT: " + sendMessageResult.getStatus().isSuccess());
+            }
+        });
+    }
+
+    private void getWearableNode() {
+        PendingResult<CapabilityApi.GetCapabilityResult> result = Wearable.CapabilityApi.getCapability(
+                mGoogleApiClient,
+                "ayla_device_control_result",
+                CapabilityApi.FILTER_REACHABLE);
+
+        result.setResultCallback(new ResultCallback<CapabilityApi.GetCapabilityResult>() {
+            @Override
+            public void onResult(@NonNull CapabilityApi.GetCapabilityResult getCapabilityResult) {
+                Set<Node> connectedNodes = getCapabilityResult.getCapability().getNodes();
+                for (Node node : connectedNodes) {
+                    if (node.isNearby()) {
+                        mWearableNode = node.getId();
+                        return;
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -357,6 +396,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         startListening();
+        getWearableNode();
     }
 
     @Override
