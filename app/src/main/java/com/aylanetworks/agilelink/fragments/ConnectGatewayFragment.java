@@ -83,12 +83,11 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
             _aylaRegistration = new AylaRegistration(AMAPCore.sharedInstance().getDeviceManager());
         }
 
-        AylaDevice.RegistrationType regType = AylaDevice.RegistrationType.SameLan; // TODO: BUTTON_PUSH
+        AylaDevice.RegistrationType regType = AylaDevice.RegistrationType.ButtonPush;
         _aylaRegistration.fetchCandidate(null, regType,
                 new Response.Listener<AylaRegistrationCandidate>() {
                     @Override
                     public void onResponse(AylaRegistrationCandidate candidate) {
-                        Log.e("AMAP", "CLASS: " + candidate.getProductClass());
                         registerNewDevice(candidate);
                     }
                 },
