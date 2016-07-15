@@ -208,6 +208,10 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private void updateLEDs(){
         Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+
         frame = (++frame)%36;
         if(frame%4 == 0){
             if(activity.findViewById(R.id.redled2) != null){
