@@ -69,7 +69,6 @@ public class DeviceFragment extends Fragment {
             mPropertyListView.setAdapter(new PropertyListAdapter(getActivity(), deviceHolder.getDsn(), propertiesList));
             mPropertyListView.setGreedyTouchMode(true);
             mPropertyListView.addOnScrollListener((WearableListView.OnScrollListener) getActivity());
-            mPropertyListView.setClickListener((WearableListView.ClickListener) getActivity());
 
             if (row > 0) {
                 if (propertiesList.size() > 2) {

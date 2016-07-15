@@ -49,7 +49,6 @@ public class MainActivity extends WearableActivity implements
         DataApi.DataListener,
         PropertyListAdapter.RowActionListener,
         WearableListView.OnScrollListener,
-        WearableListView.ClickListener,
         MessageApi.MessageListener {
 
     private static final String DEVICE_NAME = "device_name";
@@ -64,8 +63,6 @@ public class MainActivity extends WearableActivity implements
     private GridViewPager mPager;
     private DotsPageIndicator mPageDots;
     private DevicesGridAdapter mAdapter;
-    private DismissOverlayView mDismissOverlay;
-    private GestureDetector mDetector;
     private Handler mHandler;
 
     private String mHandheldNode = "";
@@ -100,17 +97,17 @@ public class MainActivity extends WearableActivity implements
                 .addApi(Wearable.API)
                 .build();
 
-        mDismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
-        mDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+        final DismissOverlayView dismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
+        final GestureDetector detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public void onLongPress(MotionEvent ev) {
-                mDismissOverlay.show();
+                dismissOverlay.show();
             }
         });
         mPager.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return mDetector.onTouchEvent(event);
+                return detector.onTouchEvent(event);
             }
         });
         mPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
@@ -418,29 +415,24 @@ public class MainActivity extends WearableActivity implements
     }
 
     @Override
-    public void onCentralPositionChanged(int position) {
-        mPropertyListViewCentralPosition = position;
-    }
-
-    @Override
-    public void onClick(WearableListView.ViewHolder viewHolder) {
+    public void onNextRow() {
         Point gridPosition = mPager.getCurrentItem();
-
-        int type = (Integer) viewHolder.itemView.getTag();
-        if (type == PropertyListAdapter.TYPE_ROW_PROPERTY_TOP) {
-            if (gridPosition.y > 0) {
-                mPager.setCurrentItem(gridPosition.y - 1, 0, true);
-            }
-        } else if (type == PropertyListAdapter.TYPE_ROW_PROPERTY_BOTTOM) {
-            int rowCount = mAdapter.getRowCount();
-            if (gridPosition.y < rowCount - 1) {
-                mPager.setCurrentItem(gridPosition.y + 1, 0, true);
-            }
+        int rowCount = mAdapter.getRowCount();
+        if (gridPosition.y < rowCount - 1) {
+            mPager.setCurrentItem(gridPosition.y + 1, 0, true);
         }
     }
 
     @Override
-    public void onTopEmptyRegionClick() {
-        //
+    public void onPreviousRow() {
+        Point gridPosition = mPager.getCurrentItem();
+        if (gridPosition.y > 0) {
+            mPager.setCurrentItem(gridPosition.y - 1, 0, true);
+        }
+    }
+
+    @Override
+    public void onCentralPositionChanged(int position) {
+        mPropertyListViewCentralPosition = position;
     }
 }

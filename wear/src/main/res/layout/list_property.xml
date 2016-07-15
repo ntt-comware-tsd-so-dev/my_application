@@ -7,7 +7,6 @@
     <TextView
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
-        android:padding="15dp"
         android:textSize="21sp"
         android:textColor="@android:color/white"
         android:id="@+id/property_name"
@@ -19,7 +18,7 @@
         android:layout_centerVertical="true"
         android:visibility="gone"
         android:clickable="false"
-        android:padding="15dp"
+        android:paddingRight="15dp"
         android:id="@+id/ro_property"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
@@ -28,7 +27,7 @@
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:visibility="gone"
-        android:padding="15dp"
+        android:paddingRight="15dp"
         android:id="@+id/rw_property"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

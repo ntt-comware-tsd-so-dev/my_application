@@ -5,6 +5,7 @@ import android.support.wearable.view.WearableListView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.Switch;
@@ -13,10 +14,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class PropertyListAdapter extends WearableListView.Adapter {
-
-    public static int TYPE_DEVICE_PROPERTY = 1;
-    public static int TYPE_ROW_PROPERTY_TOP = 2;
-    public static int TYPE_ROW_PROPERTY_BOTTOM = 3;
 
     private String mDeviceDsn;
     private ArrayList<DevicePropertyHolder> mProperties;
@@ -66,10 +63,20 @@ public class PropertyListAdapter extends WearableListView.Adapter {
             final RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
             if (type == RowPropertyHolder.RowType.TOP) {
                 row.setBackgroundResource(R.mipmap.up);
-                holder.itemView.setTag(TYPE_ROW_PROPERTY_TOP);
+                row.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mListener.onPreviousRow();
+                    }
+                });
             } else if (type == RowPropertyHolder.RowType.BOTTOM) {
                 row.setBackgroundResource(R.mipmap.down);
-                holder.itemView.setTag(TYPE_ROW_PROPERTY_BOTTOM);
+                row.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mListener.onNextRow();
+                    }
+                });
             }
         } else {
             propertyName.setText(propertyHolder.mFriendlyName);
@@ -80,15 +87,13 @@ public class PropertyListAdapter extends WearableListView.Adapter {
             } else {
                 readWriteProperty.setVisibility(View.VISIBLE);
                 readWriteProperty.setChecked(propertyHolder.mState);
-                readWriteProperty.setOnClickListener(new View.OnClickListener() {
+                readWriteProperty.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
-                    public void onClick(View v) {
-                        mListener.onPropertyToggled(mDeviceDsn, propertyHolder.mPropertyName, ((Switch) v).isChecked());
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        mListener.onPropertyToggled(mDeviceDsn, propertyHolder.mPropertyName, isChecked);
                     }
                 });
             }
-
-            holder.itemView.setTag(TYPE_DEVICE_PROPERTY);
         }
     }
 
@@ -99,6 +104,8 @@ public class PropertyListAdapter extends WearableListView.Adapter {
 
     public interface RowActionListener {
         void onPropertyToggled(String deviceDsn, String propertyName, boolean propertyState);
+        void onNextRow();
+        void onPreviousRow();
     }
 }
 
