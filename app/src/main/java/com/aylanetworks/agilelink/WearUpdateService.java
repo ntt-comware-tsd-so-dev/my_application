@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -61,7 +62,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
     private static final String DEVICE_CONTROL_RESULT_MSG_URI = "/device_control_result";
+    private static final String DEVICE_CONTROL_CONNECTION_CHECK = "/device_control_connection_check";
+    private static final String DEVICE_CONTROL_CONNECTION_RESULT = "/device_control_connection_result";
 
+    private PowerManager.WakeLock mWakeLock;
     private GoogleApiClient mGoogleApiClient;
     private String mWearableNode;
 
@@ -70,6 +74,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onCreate() {
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AMAP5 Wear Background Service");
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -260,6 +267,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             if (readOnlyProperties.contains(changedPropertyName) || readWriteProperties.contains(changedPropertyName)) {
                 updateWearDataForDevice(device);
             }
+        } else if (change.getType() == Change.ChangeType.Field) {
+            updateWearDataForDevice(device);
         }
     }
 
@@ -306,6 +315,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_MSG_URI)) {
+            if (!mWakeLock.isHeld()) {
+                mWakeLock.acquire(5 * 1000);
+            }
+
             String cmd = new String(messageEvent.getData());
             String[] cmdComponents = cmd.split("/");
             if (cmdComponents.length < 3) {
@@ -351,6 +364,12 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                     sendDeviceControlResultMessage(false);
                 }
             });
+        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_CHECK)) {
+            if (!mWakeLock.isHeld()) {
+                mWakeLock.acquire(3 * 1000);
+            }
+
+            
         }
     }
 
@@ -391,6 +410,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     public void onDestroy() {
         stopListening();
         mGoogleApiClient.disconnect();
+
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
     }
 
     @Override
@@ -401,6 +424,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void deviceLanStateChanged(AylaDevice device, boolean lanModeEnabled) {
+        updateWearDataForDevice(device);
     }
 
     @Override

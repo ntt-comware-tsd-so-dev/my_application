@@ -18,6 +18,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -47,16 +48,20 @@ public class MainActivity extends WearableActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         DataApi.DataListener,
-        PropertyListAdapter.RowActionListener,
+        PropertyListAdapter.PropertyToggleListener,
         WearableListView.OnScrollListener,
+        WearableListView.ClickListener,
         MessageApi.MessageListener {
 
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_STATUS = "device_status";
     private static final String DEVICE_PROPERTIES = "device_properties";
+
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
     private static final String DEVICE_CONTROL_RESULT_MSG_URI = "/device_control_result";
+    private static final String DEVICE_CONTROL_CONNECTION_CHECK = "/device_control_connection_check";
+    private static final String DEVICE_CONTROL_CONNECTION_RESULT = "/device_control_connection_result";
 
     private GoogleApiClient mGoogleApiClient;
     private LinearLayout mSending;
@@ -82,8 +87,10 @@ public class MainActivity extends WearableActivity implements
 
         mHandler = new Handler();
         mPager = (GridViewPager) findViewById(R.id.pager);
+        mPager.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mPageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
         mSending = (LinearLayout) findViewById(R.id.sending);
+        mSending.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mSending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -252,13 +259,12 @@ public class MainActivity extends WearableActivity implements
     public void onMessageReceived(MessageEvent messageEvent) {
         if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_RESULT_MSG_URI)) {
             String result = new String(messageEvent.getData());
-            if (result.equals("1")) {
-                hideSendingView();
-            } else if (result.equals("0")) {
-                new DataLoader(null).execute();
-                hideSendingView();
+            if (result.equals("0")) {
+                updateGridAnchored();
                 Toast.makeText(MainActivity.this, "Failed to execute device command", Toast.LENGTH_SHORT).show();
             }
+
+            hideSendingView();
         }
     }
 
@@ -298,6 +304,7 @@ public class MainActivity extends WearableActivity implements
                 mPager.setAdapter(mAdapter);
                 mPageDots.setPager(mPager);
 
+                mPager.setVisibility(View.VISIBLE);
                 mPager.animate().withLayer().alpha(1).setDuration(250).start();
                 final ProgressBar loading = (ProgressBar) findViewById(R.id.loading);
                 loading.animate().withLayer().alpha(0).setDuration(250).withEndAction(new Runnable() {
@@ -308,12 +315,7 @@ public class MainActivity extends WearableActivity implements
                 });
             } else {
                 mAdapter.updateData(mDevicesMap);
-
-                if (mGridPagerIdle && mPropertyListIdle) {
-                    updateGridAnchored();
-                } else {
-                    mPendingDataUpdate = true;
-                }
+                updateGridAnchored();
 
                 hideSendingView();
             }
@@ -321,6 +323,11 @@ public class MainActivity extends WearableActivity implements
     }
 
     private void updateGridAnchored() {
+        if (!mGridPagerIdle || !mPropertyListIdle) {
+            mPendingDataUpdate = true;
+            return;
+        }
+
         Point gridPosition = mPager.getCurrentItem();
         int listPosition = mPropertyListViewCentralPosition;
 
@@ -378,9 +385,9 @@ public class MainActivity extends WearableActivity implements
         @Override
         protected void onPostExecute(Boolean success) {
             if (!success) {
-                new DataLoader(null).execute();
-                hideSendingView();
+                updateGridAnchored();
                 Toast.makeText(MainActivity.this, "Failed to communicate with handheld device", Toast.LENGTH_SHORT).show();
+                hideSendingView();
             }
         }
     }
@@ -415,20 +422,33 @@ public class MainActivity extends WearableActivity implements
     }
 
     @Override
-    public void onNextRow() {
-        Point gridPosition = mPager.getCurrentItem();
-        int rowCount = mAdapter.getRowCount();
-        if (gridPosition.y < rowCount - 1) {
-            mPager.setCurrentItem(gridPosition.y + 1, 0, true);
+    public void onClick(WearableListView.ViewHolder viewHolder) {
+        DevicePropertyHolder propertyHolder = (DevicePropertyHolder) viewHolder.itemView.getTag();
+        if (propertyHolder instanceof RowPropertyHolder) {
+            RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
+            Point gridPosition = mPager.getCurrentItem();
+            if (type == RowPropertyHolder.RowType.TOP) {
+                if (gridPosition.y > 0) {
+                    mPager.setCurrentItem(gridPosition.y - 1, 0, true);
+                }
+            } else if (type == RowPropertyHolder.RowType.BOTTOM) {
+                int rowCount = mAdapter.getRowCount();
+                if (gridPosition.y < rowCount - 1) {
+                    mPager.setCurrentItem(gridPosition.y + 1, 0, true);
+                }
+            }
+        } else {
+            PropertyListAdapter.ItemViewHolder itemHolder = (PropertyListAdapter.ItemViewHolder) viewHolder;
+            Switch propertyToggle = itemHolder.mReadWriteProperty;
+            if (propertyToggle.getVisibility() == View.VISIBLE) {
+                propertyToggle.toggle();
+            }
         }
     }
 
     @Override
-    public void onPreviousRow() {
-        Point gridPosition = mPager.getCurrentItem();
-        if (gridPosition.y > 0) {
-            mPager.setCurrentItem(gridPosition.y - 1, 0, true);
-        }
+    public void onTopEmptyRegionClick() {
+        //
     }
 
     @Override

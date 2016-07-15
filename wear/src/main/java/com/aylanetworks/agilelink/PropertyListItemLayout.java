@@ -3,9 +3,6 @@ package com.aylanetworks.agilelink;
 import android.content.Context;
 import android.support.wearable.view.WearableListView;
 import android.util.AttributeSet;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
@@ -19,8 +16,6 @@ public class PropertyListItemLayout extends RelativeLayout
     private Switch mReadWriteProperty;
     private RadioButton mReadOnlyProperty;
     private ImageView mRow;
-
-    private boolean mFocused = false;
 
     public PropertyListItemLayout(Context context) {
         this(context, null);
@@ -41,32 +36,6 @@ public class PropertyListItemLayout extends RelativeLayout
         mReadWriteProperty = (Switch) findViewById(R.id.rw_property);
         mReadOnlyProperty = (RadioButton) findViewById(R.id.ro_property);
         mRow = (ImageView) findViewById(R.id.row);
-
-        final GestureDetector detector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onSingleTapUp(MotionEvent event) {
-                if (mReadWriteProperty.getVisibility() != View.GONE) {
-                    mReadWriteProperty.setChecked(!mReadWriteProperty.isChecked());
-                }
-
-                if (mRow.getVisibility() != View.GONE) {
-                    mRow.performClick();
-                }
-                return true;
-            }
-        });
-
-        setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                    detector.onTouchEvent(event);
-                    return mFocused;
-                } else {
-                    return detector.onTouchEvent(event);
-                }
-            }
-        });
     }
 
     @Override
@@ -75,8 +44,6 @@ public class PropertyListItemLayout extends RelativeLayout
         mReadOnlyProperty.setAlpha(1);
         mReadWriteProperty.setAlpha(1);
         mRow.setAlpha(1f);
-
-        mFocused = true;
     }
 
     @Override
@@ -85,7 +52,5 @@ public class PropertyListItemLayout extends RelativeLayout
         mReadOnlyProperty.setAlpha(0.7f);
         mReadWriteProperty.setAlpha(0.7f);
         mRow.setAlpha(0.5f);
-
-        mFocused = false;
     }
 }

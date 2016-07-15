@@ -17,11 +17,11 @@ public class PropertyListAdapter extends WearableListView.Adapter {
 
     private String mDeviceDsn;
     private ArrayList<DevicePropertyHolder> mProperties;
-    private RowActionListener mListener;
+    private PropertyToggleListener mListener;
     private LayoutInflater mInflater;
 
     public PropertyListAdapter(Context context, String dsn, ArrayList<DevicePropertyHolder> properties) {
-        mListener = (RowActionListener) context;
+        mListener = (PropertyToggleListener) context;
         mInflater = LayoutInflater.from(context);
 
         mDeviceDsn = dsn;
@@ -60,23 +60,11 @@ public class PropertyListAdapter extends WearableListView.Adapter {
         final DevicePropertyHolder propertyHolder = mProperties.get(position);
         if (propertyHolder instanceof RowPropertyHolder) {
             row.setVisibility(View.VISIBLE);
-            final RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
+            RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
             if (type == RowPropertyHolder.RowType.TOP) {
                 row.setBackgroundResource(R.mipmap.up);
-                row.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mListener.onPreviousRow();
-                    }
-                });
             } else if (type == RowPropertyHolder.RowType.BOTTOM) {
                 row.setBackgroundResource(R.mipmap.down);
-                row.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mListener.onNextRow();
-                    }
-                });
             }
         } else {
             propertyName.setText(propertyHolder.mFriendlyName);
@@ -95,6 +83,8 @@ public class PropertyListAdapter extends WearableListView.Adapter {
                 });
             }
         }
+
+        itemHolder.itemView.setTag(propertyHolder);
     }
 
     @Override
@@ -102,10 +92,8 @@ public class PropertyListAdapter extends WearableListView.Adapter {
         return mProperties.size();
     }
 
-    public interface RowActionListener {
+    public interface PropertyToggleListener {
         void onPropertyToggled(String deviceDsn, String propertyName, boolean propertyState);
-        void onNextRow();
-        void onPreviousRow();
     }
 }
 

@@ -21,6 +21,7 @@
 
         <android.support.wearable.view.GridViewPager
             android:alpha="0"
+            android:visibility="gone"
             android:id="@+id/pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
