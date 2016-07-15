@@ -802,7 +802,7 @@ public class MainActivity extends AppCompatActivity
 
         // Allows login when the service is not reachable, using cached data or connecting directly
         // with devices in LAN mode
-        parameters.allowLANLogin = true;
+        parameters.allowLANLogin = false;
 
         parameters.loggingLevel = LOG_PERMIT;
 
