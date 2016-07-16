@@ -26,6 +26,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <android.support.wearable.view.DotsPageIndicator
+            android:id="@+id/page_dots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:padding="15dp" />
+
         <LinearLayout
             android:visibility="gone"
             android:alpha="0"
@@ -39,14 +46,17 @@
                 android:indeterminate="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-        </LinearLayout>
 
-        <android.support.wearable.view.DotsPageIndicator
-            android:id="@+id/page_dots"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:padding="15dp" />
+            <TextView
+                android:id="@+id/sending_dismiss"
+                android:visibility="invisible"
+                android:textSize="21sp"
+                android:textColor="@android:color/white"
+                android:text="Received no response.\nTap to dismiss."
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
         <android.support.wearable.view.DismissOverlayView
             android:id="@+id/dismiss_overlay"

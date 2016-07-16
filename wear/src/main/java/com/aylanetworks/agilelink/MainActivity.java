@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -53,6 +54,9 @@ public class MainActivity extends WearableActivity implements
         WearableListView.ClickListener,
         MessageApi.MessageListener {
 
+    private static final int SENDING_TIMEOUT_DISMISS_MESSAGE_MS = 5 * 1000;
+    private static final int DEVICE_CONTROL_CONNECTION_CHECK_TIMEOUT_MS = 5 * 1000;
+
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
     private static final String DEVICE_STATUS = "device_status";
@@ -67,6 +71,7 @@ public class MainActivity extends WearableActivity implements
     private LinearLayout mSending;
     private GridViewPager mPager;
     private DotsPageIndicator mPageDots;
+    private GestureDetector mGestureDetector;
     private DevicesGridAdapter mAdapter;
     private Handler mHandler;
 
@@ -76,14 +81,15 @@ public class MainActivity extends WearableActivity implements
     private boolean mPendingDataUpdate = false;
     private int mPropertyListViewCentralPosition = 0;
 
+    public enum ConnectionStatus {CONNECTING, CONNECTED, NOT_CONNECTED}
+    private ConnectionStatus mDeviceControlConnection = ConnectionStatus.CONNECTING;
+
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        setAmbientEnabled();
 
         mHandler = new Handler();
         mPager = (GridViewPager) findViewById(R.id.pager);
@@ -94,7 +100,7 @@ public class MainActivity extends WearableActivity implements
         mSending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hideSendingView();
+                hideSendingView(true);
             }
         });
 
@@ -105,18 +111,14 @@ public class MainActivity extends WearableActivity implements
                 .build();
 
         final DismissOverlayView dismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
-        final GestureDetector detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+        mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public void onLongPress(MotionEvent ev) {
                 dismissOverlay.show();
             }
         });
-        mPager.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return detector.onTouchEvent(event);
-            }
-        });
+        mGestureDetector.setIsLongpressEnabled(true);
+
         mPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int row, int column, float rowOffset, float columnOffset, int rowOffsetPixels, int columnOffsetPixels) {
@@ -124,21 +126,54 @@ public class MainActivity extends WearableActivity implements
 
             @Override
             public void onPageSelected(int row, int column) {
-                mPageDots.onPageSelected(column, row);
+                // mPageDots.onPageSelected(column, row);
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
                 mGridPagerIdle = state == GridViewPager.SCROLL_STATE_IDLE;
 
-                if (mPendingDataUpdate &&
-                        mGridPagerIdle &&
-                        mPropertyListIdle) {
-                    mPendingDataUpdate = false;
+                if (mPendingDataUpdate) {
                     updateGridAnchored();
                 }
             }
         });
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        return mGestureDetector.onTouchEvent(ev) || super.dispatchTouchEvent(ev);
+    }
+
+    private Runnable mDeviceControlConnectionCheckTimeOut = new Runnable() {
+        @Override
+        public void run() {
+            mDeviceControlConnection = ConnectionStatus.NOT_CONNECTED;
+            updateGridAnchored();
+        }
+    };
+
+    public ConnectionStatus getDeviceControlConnectionStatus() {
+        return mDeviceControlConnection;
+    }
+
+    private void sendDeviceControlConnectionCheckMessage() {
+        mDeviceControlConnection = ConnectionStatus.CONNECTING;
+        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
+                DEVICE_CONTROL_CONNECTION_CHECK, "".getBytes());
+        pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
+            @Override
+            public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
+                if (!sendMessageResult.getStatus().isSuccess()) {
+                    mHandler.removeCallbacks(mDeviceControlConnectionCheckTimeOut);
+                    mDeviceControlConnection = ConnectionStatus.NOT_CONNECTED;
+                    updateGridAnchored();
+                }
+            }
+        });
+
+        mHandler.removeCallbacks(mDeviceControlConnectionCheckTimeOut);
+        mHandler.postDelayed(mDeviceControlConnectionCheckTimeOut, DEVICE_CONTROL_CONNECTION_CHECK_TIMEOUT_MS);
     }
 
     private boolean sendDeviceControlMessage(String dsn, String propertyName, boolean newStatus) {
@@ -162,6 +197,7 @@ public class MainActivity extends WearableActivity implements
                 for (Node node : connectedNodes) {
                     if (node.isNearby()) {
                         mHandheldNode = node.getId();
+                        sendDeviceControlConnectionCheckMessage();
                         return;
                     }
                 }
@@ -226,8 +262,9 @@ public class MainActivity extends WearableActivity implements
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        Log.e("AMAPW", "onConnectionFailed: " + result);
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
+        Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_LONG).show();
+        finish();
     }
 
     @Override
@@ -264,7 +301,11 @@ public class MainActivity extends WearableActivity implements
                 Toast.makeText(MainActivity.this, "Failed to execute device command", Toast.LENGTH_SHORT).show();
             }
 
-            hideSendingView();
+            hideSendingView(false);
+        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_RESULT)) {
+            mHandler.removeCallbacks(mDeviceControlConnectionCheckTimeOut);
+            mDeviceControlConnection = ConnectionStatus.CONNECTED;
+            updateGridAnchored();
         }
     }
 
@@ -317,7 +358,7 @@ public class MainActivity extends WearableActivity implements
                 mAdapter.updateData(mDevicesMap);
                 updateGridAnchored();
 
-                hideSendingView();
+                hideSendingView(false);
             }
         }
     }
@@ -328,36 +369,55 @@ public class MainActivity extends WearableActivity implements
             return;
         }
 
+        if (mPager == null || mAdapter == null) {
+            return;
+        }
+
+        mPendingDataUpdate = false;
         Point gridPosition = mPager.getCurrentItem();
         int listPosition = mPropertyListViewCentralPosition;
 
         mAdapter.notifyDataSetChanged();
 
-        if (mAdapter.getRowCount() != 0) {
+        if (mAdapter.getRowCount() > 0) {
             if (gridPosition.y < mAdapter.getRowCount()) {
                 mPager.setCurrentItem(gridPosition.y, gridPosition.x, false);
-                if (gridPosition.x != 0) {
+                if (gridPosition.x == 1) {
                     DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
                     currentFragment.setPropertyListViewPosition(listPosition);
                 }
-                mPageDots.onPageSelected(gridPosition.x, gridPosition.y);
             } else {
-                mPager.setCurrentItem(mAdapter.getRowCount() - 1, gridPosition.x, false);
-                mPageDots.onPageSelected(gridPosition.x, mAdapter.getRowCount() - 1);
+                mPager.setCurrentItem(mAdapter.getRowCount() - 1, 0, false);
             }
         }
     }
 
-    private void hideSendingView() {
-        if (mSending.getAlpha() == 1) {
+    private void hideSendingView(boolean manual) {
+        if (mSending.getAlpha() == 1 && mSending.getVisibility() == View.VISIBLE) {
+            mHandler.removeCallbacks(mShowSendingDismissMessage);
+            if (manual) {
+                updateGridAnchored();
+            }
+
             mSending.animate().withLayer().alpha(0).setDuration(250).withEndAction(new Runnable() {
                 @Override
                 public void run() {
                     mSending.setVisibility(View.GONE);
+
+                    TextView sendingDismiss = (TextView) findViewById(R.id.sending_dismiss);
+                    sendingDismiss.setVisibility(View.INVISIBLE);
                 }
             });
         }
     }
+
+    private Runnable mShowSendingDismissMessage = new Runnable() {
+        @Override
+        public void run() {
+            TextView sendingDismiss = (TextView) findViewById(R.id.sending_dismiss);
+            sendingDismiss.setVisibility(View.VISIBLE);
+        }
+    };
 
     private class CommandSender extends AsyncTask<String, Void, Boolean> {
 
@@ -375,6 +435,8 @@ public class MainActivity extends WearableActivity implements
         protected void onPreExecute() {
             mSending.setVisibility(View.VISIBLE);
             mSending.animate().withLayer().alpha(1).setDuration(250).start();
+            mHandler.removeCallbacks(mShowSendingDismissMessage);
+            mHandler.postDelayed(mShowSendingDismissMessage, SENDING_TIMEOUT_DISMISS_MESSAGE_MS);
         }
 
         @Override
@@ -387,7 +449,7 @@ public class MainActivity extends WearableActivity implements
             if (!success) {
                 updateGridAnchored();
                 Toast.makeText(MainActivity.this, "Failed to communicate with handheld device", Toast.LENGTH_SHORT).show();
-                hideSendingView();
+                hideSendingView(false);
             }
         }
     }
@@ -397,27 +459,21 @@ public class MainActivity extends WearableActivity implements
         new CommandSender(deviceDsn, propertyName, propertyState).execute();
     }
 
-    @Override
-    public void onScroll(int scroll) {
-    }
-    @Override
-    public void onAbsoluteScrollChange(int scroll) {
-    }
+    private Runnable mUpdateGridAnchored = new Runnable() {
+        @Override
+        public void run() {
+            updateGridAnchored();
+        }
+    };
 
     @Override
     public void onScrollStateChanged(int state) {
         mPropertyListIdle = state == RecyclerView.SCROLL_STATE_IDLE;
 
-        if (mPendingDataUpdate &&
-                mGridPagerIdle &&
-                mPropertyListIdle) {
-            mPendingDataUpdate = false;
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    updateGridAnchored();
-                }
-            }, 150); // Delay is workaround for Android platform bug where SCROLL_STATE_SETTLING is never fired
+        if (mPendingDataUpdate) {
+            // Delay is workaround for Android platform bug where SCROLL_STATE_SETTLING is never fired
+            mHandler.removeCallbacks(mUpdateGridAnchored);
+            mHandler.postDelayed(mUpdateGridAnchored, 150);
         }
     }
 
@@ -447,12 +503,17 @@ public class MainActivity extends WearableActivity implements
     }
 
     @Override
-    public void onTopEmptyRegionClick() {
-        //
+    public void onCentralPositionChanged(int position) {
+        mPropertyListViewCentralPosition = position;
     }
 
     @Override
-    public void onCentralPositionChanged(int position) {
-        mPropertyListViewCentralPosition = position;
+    public void onTopEmptyRegionClick() {
+    }
+    @Override
+    public void onScroll(int scroll) {
+    }
+    @Override
+    public void onAbsoluteScrollChange(int scroll) {
     }
 }

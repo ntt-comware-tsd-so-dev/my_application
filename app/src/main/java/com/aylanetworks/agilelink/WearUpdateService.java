@@ -24,6 +24,8 @@ import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.change.PropertyChange;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.google.android.gms.cast.framework.Session;
+import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -51,6 +53,7 @@ import java.util.Set;
 
 public class WearUpdateService extends Service implements AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
+        SessionManagerListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         MessageApi.MessageListener {
@@ -333,13 +336,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 int propertyIndex = Integer.valueOf(propertyName);
                 TEST_A_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
                 updateWearDataForDevice(null);
-                sendDeviceControlResultMessage(true);
+                sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "1");
                 return;
             } else if (dsn.equals("TEST0002")) {
                 int propertyIndex = Integer.valueOf(propertyName);
                 TEST_B_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
                 updateWearDataForDevice(null);
-                sendDeviceControlResultMessage(true);
+                sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "1");
                 return;
             }
 
@@ -356,12 +359,12 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             property.createDatapoint(Integer.valueOf(propertyState), null, new Response.Listener<AylaDatapoint>() {
                 @Override
                 public void onResponse(AylaDatapoint response) {
-                    sendDeviceControlResultMessage(true);
+                    sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "1");
                 }
             }, new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
-                    sendDeviceControlResultMessage(false);
+                    sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "0");
                 }
             });
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_CHECK)) {
@@ -369,15 +372,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 mWakeLock.acquire(3 * 1000);
             }
 
-            
+            sendDeviceControlMessage(DEVICE_CONTROL_CONNECTION_RESULT, "");
         }
     }
 
-    private void sendDeviceControlResultMessage(boolean success) {
-        byte[] resultArray = (success ? "1" : "0").getBytes();
-
+    private void sendDeviceControlMessage(String path, String data) {
         PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mWearableNode,
-                DEVICE_CONTROL_RESULT_MSG_URI, resultArray);
+                path, data.getBytes());
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
@@ -428,38 +429,64 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     }
 
     @Override
-    public void deviceError(AylaDevice device, AylaError error) {
+    public void onSessionStarted(Session session, String s) {
+        //
     }
 
     @Override
-    public void deviceManagerInitComplete(Map<String, AylaError> deviceFailures) {
-    }
-
-    @Override
-    public void deviceManagerInitFailure(AylaError error, AylaDeviceManager.DeviceManagerState failureState) {
-    }
-
-    @Override
-    public void deviceManagerError(AylaError error) {
-    }
-
-    @Override
-    public void deviceManagerStateChanged(AylaDeviceManager.DeviceManagerState oldState, AylaDeviceManager.DeviceManagerState newState) {
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
+    public void onSessionEnded(Session session, int i) {
+        //TODO: CLEAR ALL DATAITEMS
+        //TODO: STOP SELF
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e("AMAPW", "GOOGLE CONNECTION FAILED: " + connectionResult.getErrorMessage());
+    }
+
+    @Override
+    public void deviceError(AylaDevice device, AylaError error) {
+    }
+    @Override
+    public void deviceManagerInitComplete(Map<String, AylaError> deviceFailures) {
+    }
+    @Override
+    public void deviceManagerInitFailure(AylaError error, AylaDeviceManager.DeviceManagerState failureState) {
+    }
+    @Override
+    public void deviceManagerError(AylaError error) {
+    }
+    @Override
+    public void deviceManagerStateChanged(AylaDeviceManager.DeviceManagerState oldState, AylaDeviceManager.DeviceManagerState newState) {
+    }
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+    @Override
+    public void onConnectionSuspended(int i) {
+    }
+    @Override
+    public void onSessionStarting(Session session) {
+    }
+    @Override
+    public void onSessionStartFailed(Session session, int i) {
+    }
+    @Override
+    public void onSessionEnding(Session session) {
+    }
+    @Override
+    public void onSessionResuming(Session session, String s) {
+    }
+    @Override
+    public void onSessionResumed(Session session, boolean b) {
+    }
+    @Override
+    public void onSessionResumeFailed(Session session, int i) {
+    }
+    @Override
+    public void onSessionSuspended(Session session, int i) {
     }
 
     private class DevicePropertyHolder implements Serializable {

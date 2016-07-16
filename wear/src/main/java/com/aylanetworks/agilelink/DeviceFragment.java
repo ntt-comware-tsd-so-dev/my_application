@@ -43,7 +43,15 @@ public class DeviceFragment extends Fragment {
             deviceName.setText(deviceHolder.getName());
 
             TextView deviceStatus = (TextView) root.findViewById(R.id.device_status);
-            deviceStatus.setText(deviceHolder.getStatus());
+
+            MainActivity.ConnectionStatus connectionStatus = ((MainActivity) getActivity()).getDeviceControlConnectionStatus();
+            if (connectionStatus == MainActivity.ConnectionStatus.CONNECTING) {
+                deviceStatus.setText("Connecting...");
+            } else if (connectionStatus == MainActivity.ConnectionStatus.NOT_CONNECTED) {
+                deviceStatus.setText("Not Connected");
+            } else if (connectionStatus == MainActivity.ConnectionStatus.CONNECTED) {
+                deviceStatus.setText(deviceHolder.getStatus());
+            }
 
             LinearLayout deviceContainer = (LinearLayout) root.findViewById(R.id.overview_container);
             deviceContainer.setVisibility(View.VISIBLE);
@@ -72,12 +80,10 @@ public class DeviceFragment extends Fragment {
             mPropertyListView.addOnScrollListener((WearableListView.OnScrollListener) getActivity());
             mPropertyListView.setClickListener((WearableListView.ClickListener) getActivity());
 
-            if (row > 0) {
-                if (propertiesList.size() > 2) {
-                    setPropertyListViewPosition(2);
-                } else if (propertiesList.size() > 1) {
-                    setPropertyListViewPosition(1);
-                }
+            if (row > 0 && propertiesList.size() > 2) {
+                setPropertyListViewPosition(2);
+            } else if (propertiesList.size() > 1) {
+                setPropertyListViewPosition(1);
             }
         }
 

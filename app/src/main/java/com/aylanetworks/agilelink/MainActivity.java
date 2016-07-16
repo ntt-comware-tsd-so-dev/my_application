@@ -46,7 +46,6 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
-import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
