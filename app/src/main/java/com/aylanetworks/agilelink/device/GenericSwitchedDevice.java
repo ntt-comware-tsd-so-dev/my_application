@@ -102,13 +102,15 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     @Override
     public void onClick(View v) {
         // Update the image view to show the transient state
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable( getSwitchedPendingDrawable(v.getResources()) );
+        if (isOnline() || isInLanMode()) {
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
 
-        if (isDeviceOn()) {
-            setOff();
-        } else {
-            setOn();
+            if (isDeviceOn()) {
+                setOff();
+            } else {
+                setOn();
+            }
         }
     }// end of onClick
 
