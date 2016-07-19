@@ -44,8 +44,7 @@ import java.util.Map;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class AllDevicesFragment extends Fragment
-    implements
+public class AllDevicesFragment extends Fragment implements
         AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
         AylaSessionManager.SessionManagerListener,
@@ -307,6 +306,13 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void deviceLanStateChanged(AylaDevice device, boolean lanModeEnabled) {
         AylaLog.i(LOG_TAG, "Device " + device + " LAN enabled: " + lanModeEnabled);
+        for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
+            ViewModel model = _adapter.getItem(i);
+            if ( model.getDevice().getDsn().equals(device.getDsn())) {
+                _adapter.notifyItemChanged(i);
+                break;
+            }
+        }
     }
 
     // Device Manager Listener methods
