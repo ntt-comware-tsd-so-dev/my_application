@@ -19,13 +19,13 @@ import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaProperty;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.change.PropertyChange;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
-import com.google.android.gms.cast.framework.Session;
-import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -45,15 +45,12 @@ import com.google.gson.Gson;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 public class WearUpdateService extends Service implements AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
-        SessionManagerListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         MessageApi.MessageListener {
@@ -71,9 +68,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private PowerManager.WakeLock mWakeLock;
     private GoogleApiClient mGoogleApiClient;
     private String mWearableNode;
-
-    private Boolean[] TEST_A_STATUS = {true, false, true};
-    private Boolean[] TEST_B_STATUS = {false, true, false};
+    private String mLocalNode;
 
     @Override
     public void onCreate() {
@@ -86,7 +81,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 .addApi(Wearable.API)
                 .build();
         mGoogleApiClient.connect();
+    }
 
+    private void startForegroundService() {
         Notification.Builder builder = new Notification.Builder(this);
         builder.setContentTitle("AMAP5 Android Wear Service");
         builder.setContentText("Notification required to keep service in foreground");
@@ -110,12 +107,7 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     }
 
     private void updateWearDataForDevice(AylaDevice device) {
-        Queue<PutDataRequest> dataRequestQueue = new LinkedList<>();
-
-        if (device == null) {
-            dataRequestQueue.offer(getTestDeviceA());
-            dataRequestQueue.offer(getTestDeviceB());
-        } else if (!device.isGateway()) {
+        if (!device.isGateway()) {
             ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
                     .viewModelForDevice(device);
             if (deviceModel == null) {
@@ -162,12 +154,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             putDataReq.setUrgent();
-            dataRequestQueue.offer(putDataReq);
-        }
-
-        while (!dataRequestQueue.isEmpty()) {
             PendingResult<DataApi.DataItemResult> pendingResult =
-                    Wearable.DataApi.putDataItem(mGoogleApiClient, dataRequestQueue.remove());
+                    Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
             pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                 @Override
                 public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
@@ -177,57 +165,12 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         }
     }
 
-    private PutDataRequest getTestDeviceA() {
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/TEST0001");
-        DataMap deviceMap = putDataMapReq.getDataMap();
-        deviceMap.putString(DEVICE_NAME, "Kitchen Lights");
-        deviceMap.putString(DEVICE_DSN, "TEST0001");
-        deviceMap.putString(DEVICE_STATUS, "LAN mode");
-
-        String[] propertyNames = {"Bulb 1", "Bulb 2", "Power"};
-        Boolean[] roProperties = {false, false, true};
-        ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
-
-        for (int i = 0; i < propertyNames.length; i++) {
-            propertyHolders.add(new DevicePropertyHolder(propertyNames[i],
-                    Integer.toString(i), roProperties[i], TEST_A_STATUS[i]));
-        }
-
-        Gson gson = new Gson();
-        deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
-        deviceMap.putLong("timestamp", System.currentTimeMillis());
-
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        putDataReq.setUrgent();
-        return putDataReq;
-    }
-
-    private PutDataRequest getTestDeviceB() {
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/TEST0002");
-        DataMap deviceMap = putDataMapReq.getDataMap();
-        deviceMap.putString(DEVICE_NAME, "Front Door");
-        deviceMap.putString(DEVICE_DSN, "TEST0002");
-        deviceMap.putString(DEVICE_STATUS, "Online");
-
-        String[] propertyNames = {"Lock", "Door Open", "Alarm"};
-        Boolean[] roProperties = {false, true, true};
-        ArrayList<DevicePropertyHolder> propertyHolders = new ArrayList<>();
-
-        for (int i = 0; i < propertyNames.length; i++) {
-            propertyHolders.add(new DevicePropertyHolder(propertyNames[i],
-                    Integer.toString(i), roProperties[i], TEST_B_STATUS[i]));
-        }
-
-        Gson gson = new Gson();
-        deviceMap.putString(DEVICE_PROPERTIES, gson.toJson(propertyHolders));
-        deviceMap.putLong("timestamp", System.currentTimeMillis());
-
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        putDataReq.setUrgent();
-        return putDataReq;
-    }
-
     private void startListening() {
+        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
+        if (sessionManager != null) {
+            sessionManager.addListener(mSessionManagerListener);
+        }
+
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
             deviceManager.addListener(this);
@@ -236,21 +179,27 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 updateWearDataForDevice(device);
                 device.addListener(this);
             }
-
-            Wearable.MessageApi.addListener(mGoogleApiClient, this);
         }
+
+        Wearable.MessageApi.addListener(mGoogleApiClient, this);
     }
 
     private void stopListening() {
+        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
+        if (sessionManager != null) {
+            sessionManager.removeListener(mSessionManagerListener);
+        }
+
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
             deviceManager.removeListener(this);
+
             for (AylaDevice device : deviceManager.getDevices()) {
                 device.removeListener(this);
             }
-
-            Wearable.MessageApi.removeListener(mGoogleApiClient, this);
         }
+
+        Wearable.MessageApi.removeListener(mGoogleApiClient, this);
     }
 
     @Override
@@ -280,21 +229,20 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             return;
         }
 
-        PendingResult<NodeApi.GetLocalNodeResult> pendingResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient);
-        pendingResult.setResultCallback(new ResultCallback<NodeApi.GetLocalNodeResult>() {
-            @Override
-            public void onResult(@NonNull NodeApi.GetLocalNodeResult getLocalNodeResult) {
-                String localNodeId = getLocalNodeResult.getNode().getId();
-                for (String dsn : dsns) {
-                    if (dsn.equals("")) {
-                        continue;
-                    }
-
-                    Wearable.DataApi.deleteDataItems(mGoogleApiClient,
-                            new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(localNodeId).path("/" + dsn).build());
-                }
+        for (String dsn : dsns) {
+            if (dsn.equals("")) {
+                continue;
             }
-        });
+
+            Wearable.DataApi.deleteDataItems(mGoogleApiClient,
+                    new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(mLocalNode).path("/" + dsn).build());
+        }
+    }
+
+    private void removeAllDevicesFromDataStore() {
+        Wearable.DataApi.deleteDataItems(mGoogleApiClient,
+                new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).authority(mLocalNode).path("/").build(),
+                DataApi.FILTER_PREFIX);
     }
 
     @Override
@@ -331,20 +279,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             String dsn = cmdComponents[0];
             String propertyName = cmdComponents[1];
             String propertyState = cmdComponents[2];
-
-            if (dsn.equals("TEST0001")) {
-                int propertyIndex = Integer.valueOf(propertyName);
-                TEST_A_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
-                updateWearDataForDevice(null);
-                sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "1");
-                return;
-            } else if (dsn.equals("TEST0002")) {
-                int propertyIndex = Integer.valueOf(propertyName);
-                TEST_B_STATUS[propertyIndex] = Integer.valueOf(propertyState) == 1;
-                updateWearDataForDevice(null);
-                sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "1");
-                return;
-            }
 
             AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
             if (device == null) {
@@ -400,15 +334,30 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 for (Node node : connectedNodes) {
                     if (node.isNearby()) {
                         mWearableNode = node.getId();
+                        startForegroundService();
                         return;
                     }
                 }
+
+                // no capable wearable node connected, stop service
+                stopSelf();
+            }
+        });
+    }
+
+    private void getLocalNode() {
+        PendingResult<NodeApi.GetLocalNodeResult> pendingResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient);
+        pendingResult.setResultCallback(new ResultCallback<NodeApi.GetLocalNodeResult>() {
+            @Override
+            public void onResult(@NonNull NodeApi.GetLocalNodeResult getLocalNodeResult) {
+                mLocalNode = getLocalNodeResult.getNode().getId();
             }
         });
     }
 
     @Override
     public void onDestroy() {
+        removeAllDevicesFromDataStore();
         stopListening();
         mGoogleApiClient.disconnect();
 
@@ -419,8 +368,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        startListening();
         getWearableNode();
+        getLocalNode();
+        startListening();
     }
 
     @Override
@@ -428,20 +378,20 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         updateWearDataForDevice(device);
     }
 
-    @Override
-    public void onSessionStarted(Session session, String s) {
-        //
-    }
+    private AylaSessionManager.SessionManagerListener mSessionManagerListener = new AylaSessionManager.SessionManagerListener() {
+        @Override
+        public void sessionClosed(String sessionName, AylaError error) {
+            stopSelf();
+        }
 
-    @Override
-    public void onSessionEnded(Session session, int i) {
-        //TODO: CLEAR ALL DATAITEMS
-        //TODO: STOP SELF
-    }
+        @Override
+        public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+        }
+    };
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e("AMAPW", "GOOGLE CONNECTION FAILED: " + connectionResult.getErrorMessage());
+        stopSelf();
     }
 
     @Override
@@ -459,34 +409,15 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     @Override
     public void deviceManagerStateChanged(AylaDeviceManager.DeviceManagerState oldState, AylaDeviceManager.DeviceManagerState newState) {
     }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
+
     @Override
     public void onConnectionSuspended(int i) {
-    }
-    @Override
-    public void onSessionStarting(Session session) {
-    }
-    @Override
-    public void onSessionStartFailed(Session session, int i) {
-    }
-    @Override
-    public void onSessionEnding(Session session) {
-    }
-    @Override
-    public void onSessionResuming(Session session, String s) {
-    }
-    @Override
-    public void onSessionResumed(Session session, boolean b) {
-    }
-    @Override
-    public void onSessionResumeFailed(Session session, int i) {
-    }
-    @Override
-    public void onSessionSuspended(Session session, int i) {
     }
 
     private class DevicePropertyHolder implements Serializable {

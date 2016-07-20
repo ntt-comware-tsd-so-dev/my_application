@@ -33,6 +33,17 @@
             android:layout_gravity="top|center_horizontal"
             android:padding="15dp" />
 
+        <TextView
+            android:id="@+id/no_devices"
+            android:text="No devices are available"
+            android:textSize="21sp"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            android:visibility="gone"
+            android:background="#ffffff"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <LinearLayout
             android:visibility="gone"
             android:alpha="0"

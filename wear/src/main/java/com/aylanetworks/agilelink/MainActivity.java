@@ -214,14 +214,12 @@ public class MainActivity extends WearableActivity implements
     }
 
     private String getDataItemDeviceDsn(DataItem deviceDataItem) {
-        final DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
-        String dsn = deviceMap.getString(DEVICE_DSN);
-
-        if (dsn == null || !deviceDataItem.getUri().getPath().equals("/" + dsn)) {
-            return null;
+        String path = deviceDataItem.getUri().getPath();
+        if (path.startsWith("/")) {
+            return path.substring(1);
         }
 
-        return dsn;
+        return null;
     }
 
     private void updateDeviceData(DataItem deviceDataItem) {
@@ -258,7 +256,6 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.e("AMAPW", "onConnectionSuspended: " + cause);
     }
 
     @Override
@@ -324,7 +321,11 @@ public class MainActivity extends WearableActivity implements
                     DataItem dataItem = event.getDataItem();
                     if (event.getType() == DataEvent.TYPE_DELETED) {
                         String dsn = getDataItemDeviceDsn(dataItem);
+
+                        Log.e("AMAPW", "DELETED DSN: " + dsn);
+
                         if (dsn != null && mDevicesMap.containsKey(dsn)) {
+                            Log.e("AMAPW", "MAP CONTAINS DELETED DEVICE");
                             mDevicesMap.remove(dsn);
                         }
                     } else if (event.getType() == DataEvent.TYPE_CHANGED) {
@@ -340,6 +341,17 @@ public class MainActivity extends WearableActivity implements
 
         @Override
         protected void onPostExecute(Integer result) {
+            Log.e("AMAPW", "DEVICES: " + mDevicesMap.size());
+
+            TextView noDevices = (TextView) findViewById(R.id.no_devices);
+            if (mDevicesMap.size() == 0) {
+                noDevices.setVisibility(View.VISIBLE);
+                return;
+            } else if (noDevices.getVisibility() != View.GONE) {
+                sendDeviceControlConnectionCheckMessage();
+                noDevices.setVisibility(View.GONE);
+            }
+
             if (mAdapter == null) {
                 mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap);
                 mPager.setAdapter(mAdapter);
