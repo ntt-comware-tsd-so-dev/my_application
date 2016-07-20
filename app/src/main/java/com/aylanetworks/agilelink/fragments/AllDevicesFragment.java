@@ -332,6 +332,7 @@ public class AllDevicesFragment extends Fragment implements
     @Override
     public void deviceListChanged(ListChange change) {
         AylaLog.i(LOG_TAG, "Device list changed: " + change);
+        startListening();
         updateDeviceList();
     }
 

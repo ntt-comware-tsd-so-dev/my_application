@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -102,13 +103,18 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     @Override
     public void onClick(View v) {
         // Update the image view to show the transient state
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable( getSwitchedPendingDrawable(v.getResources()) );
+        if (isOnline() || isInLanMode()) {
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
 
-        if (isDeviceOn()) {
-            setOff();
+            if (isDeviceOn()) {
+                setOff();
+            } else {
+                setOn();
+            }
         } else {
-            setOn();
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
+                    Toast.LENGTH_SHORT).show();
         }
     }// end of onClick
 
