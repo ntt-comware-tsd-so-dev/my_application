@@ -12,7 +12,6 @@ import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.GridViewPager;
 import android.support.wearable.view.WearableListView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -321,11 +320,7 @@ public class MainActivity extends WearableActivity implements
                     DataItem dataItem = event.getDataItem();
                     if (event.getType() == DataEvent.TYPE_DELETED) {
                         String dsn = getDataItemDeviceDsn(dataItem);
-
-                        Log.e("AMAPW", "DELETED DSN: " + dsn);
-
                         if (dsn != null && mDevicesMap.containsKey(dsn)) {
-                            Log.e("AMAPW", "MAP CONTAINS DELETED DEVICE");
                             mDevicesMap.remove(dsn);
                         }
                     } else if (event.getType() == DataEvent.TYPE_CHANGED) {
@@ -341,8 +336,6 @@ public class MainActivity extends WearableActivity implements
 
         @Override
         protected void onPostExecute(Integer result) {
-            Log.e("AMAPW", "DEVICES: " + mDevicesMap.size());
-
             TextView noDevices = (TextView) findViewById(R.id.no_devices);
             if (mDevicesMap.size() == 0) {
                 noDevices.setVisibility(View.VISIBLE);

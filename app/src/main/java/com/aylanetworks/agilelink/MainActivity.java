@@ -46,6 +46,7 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
@@ -394,7 +395,8 @@ public class MainActivity extends AppCompatActivity
             if (resultCode == Activity.RESULT_OK) {
                 handleSignedIn();
 
-                //TODO: DEBUG START WEAR SERVICE
+                // Start wearable service. If there are no wearable devices connected, the service
+                // will stop itself
                 Intent wearService = new Intent(this, WearUpdateService.class);
                 startService(wearService);
             } else if ( resultCode == RESULT_FIRST_USER ) {
@@ -944,17 +946,17 @@ public class MainActivity extends AppCompatActivity
         dismissWaitDialog();
 
         Log.d(LOG_TAG, "onPause");
-        // TODO: For now, don't shutdown on activity pause because of the wearable background service.
-        // TODO: Need to add method to dynamically handle shutdown here and in the service
-        /**
-        AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
-        if (dm != null) {
-            dm.stopPolling();
 
-            // we aren't going to "pause" LAN mode if we haven't been logged in.
-            AylaNetworks.sharedInstance().onPause();
+        // TODO: Need to add method to dynamically handle shutdown here and in the service
+        if (!WearUpdateService.mRunning) {
+            AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+            if (dm != null) {
+                dm.stopPolling();
+
+                // we aren't going to "pause" LAN mode if we haven't been logged in.
+                AylaNetworks.sharedInstance().onPause();
+            }
         }
-         */
     }
 
     @Override
@@ -966,8 +968,7 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
-        //TODO: No need to resume because we're not pausing in onPause(), for now
-        // AylaNetworks.sharedInstance().onResume();
+        AylaNetworks.sharedInstance().onResume();
 
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {

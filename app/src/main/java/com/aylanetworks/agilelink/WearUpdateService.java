@@ -1,8 +1,12 @@
 package com.aylanetworks.agilelink;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -10,7 +14,6 @@ import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
@@ -65,13 +68,20 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private static final String DEVICE_CONTROL_CONNECTION_CHECK = "/device_control_connection_check";
     private static final String DEVICE_CONTROL_CONNECTION_RESULT = "/device_control_connection_result";
 
+    private static final String INTENT_ACTION_STOP_SERVICE = "com.aylanetworks.agilelink.STOP_SERVICE";
+
+    private ServiceCommandReceiver mServiceCommandReceiver;
     private PowerManager.WakeLock mWakeLock;
     private GoogleApiClient mGoogleApiClient;
     private String mWearableNode;
     private String mLocalNode;
 
+    public static boolean mRunning = false;
+
     @Override
     public void onCreate() {
+        mRunning = true;
+
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AMAP5 Wear Background Service");
 
@@ -81,13 +91,17 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 .addApi(Wearable.API)
                 .build();
         mGoogleApiClient.connect();
+
+        mServiceCommandReceiver = new ServiceCommandReceiver();
+        registerReceiver(mServiceCommandReceiver, new IntentFilter(INTENT_ACTION_STOP_SERVICE));
     }
 
     private void startForegroundService() {
         Notification.Builder builder = new Notification.Builder(this);
         builder.setContentTitle("AMAP5 Android Wear Service");
-        builder.setContentText("Notification required to keep service in foreground");
+        builder.setContentText("Notification required to keep service in foreground. Press notification to stop service.");
         builder.setSmallIcon(R.drawable.ic_launcher);
+        builder.setContentIntent(PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_STOP_SERVICE), 0));
         startForeground(999, builder.build());
     }
 
@@ -357,12 +371,19 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onDestroy() {
+        mRunning = false;
+
         removeAllDevicesFromDataStore();
         stopListening();
         mGoogleApiClient.disconnect();
 
         if (mWakeLock.isHeld()) {
             mWakeLock.release();
+        }
+
+        try {
+            unregisterReceiver(mServiceCommandReceiver);
+        } catch (Exception e) {
         }
     }
 
@@ -418,6 +439,16 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onConnectionSuspended(int i) {
+    }
+
+    private class ServiceCommandReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(INTENT_ACTION_STOP_SERVICE)) {
+                stopSelf();
+            }
+        }
     }
 
     private class DevicePropertyHolder implements Serializable {
