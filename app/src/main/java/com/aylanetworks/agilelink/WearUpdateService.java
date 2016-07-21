@@ -223,7 +223,7 @@ public class WearUpdateService extends Service implements
             pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                 @Override
                 public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                    // Log.e("AMAPW", "DELIVERY: " + dataItemResult.getStatus().isSuccess());
+                    //
                 }
             });
         }
@@ -268,7 +268,7 @@ public class WearUpdateService extends Service implements
     public void deviceChanged(AylaDevice device, Change change) {
         if (change.getType() == Change.ChangeType.Property) {
             mWakeLock.acquire(3 * 1000);
-            
+
             String changedPropertyName = ((PropertyChange) change).getPropertyName();
 
             ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
@@ -283,9 +283,11 @@ public class WearUpdateService extends Service implements
             if (readOnlyProperties.contains(changedPropertyName) || readWriteProperties.contains(changedPropertyName)) {
                 updateWearDataForDevice(device);
             }
+            mWakeLock.release();
         } else if (change.getType() == Change.ChangeType.Field) {
             mWakeLock.acquire(3 * 1000);
             updateWearDataForDevice(device);
+            mWakeLock.release();
         }
     }
 
@@ -357,11 +359,13 @@ public class WearUpdateService extends Service implements
                 @Override
                 public void onResponse(AylaDatapoint response) {
                     sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "1");
+                    mWakeLock.release();
                 }
             }, new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
                     sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "0");
+                    mWakeLock.release();
                 }
             });
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_START_CONNECTION)) {
@@ -379,7 +383,7 @@ public class WearUpdateService extends Service implements
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
-                // Log.e("AMAPW", "RESULT: " + sendMessageResult.getStatus().isSuccess());
+                //
             }
         });
     }
@@ -401,6 +405,8 @@ public class WearUpdateService extends Service implements
                         return;
                     }
                 }
+
+                stopForeground(true);
             }
         });
     }

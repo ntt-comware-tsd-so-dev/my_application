@@ -162,11 +162,10 @@ public class MainActivity extends WearableActivity implements
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
                 if (!sendMessageResult.getStatus().isSuccess()) {
                     showError("Failed to communicate with handheld device");
-                } else {
-                    mHandler.postDelayed(mServiceConnectionTimedOut, CONNECTION_START_TIMEOUT);
                 }
             }
         });
+        mHandler.postDelayed(mServiceConnectionTimedOut, CONNECTION_START_TIMEOUT);
     }
 
     private void sendDeviceControlEndConnectionMessage() {
@@ -175,9 +174,7 @@ public class MainActivity extends WearableActivity implements
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
-                if (!sendMessageResult.getStatus().isSuccess()) {
-                    Toast.makeText(MainActivity.this, "Failed to communicate with handheld device", Toast.LENGTH_SHORT).show();
-                }
+                //
             }
         });
     }
@@ -207,6 +204,8 @@ public class MainActivity extends WearableActivity implements
                         return;
                     }
                 }
+
+                showError("Cannot find capable handheld device");
             }
         });
     }
@@ -265,12 +264,13 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
-        Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_LONG).show();
-        finish();
+        showError("Failed to connect to Google Play Services");
     }
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
+        mHandler.removeCallbacks(mServiceConnectionTimedOut);
+
         DataEvent[] dataEvents = new DataEvent[dataEventBuffer.getCount()];
         for (int i = 0; i < dataEventBuffer.getCount(); i++) {
             dataEvents[i] = dataEventBuffer.get(i).freeze();
