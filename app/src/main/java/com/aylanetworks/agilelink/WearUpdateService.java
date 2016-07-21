@@ -118,7 +118,8 @@ public class WearUpdateService extends Service implements
                         @Override
                         public void onResponse(AylaAuthorization response) {
                             CachedAuthProvider.cacheAuthorization(WearUpdateService.this, response);
-                            AylaNetworks.sharedInstance().onResume(getClass().getName());
+                            AgileLinkApplication.getsInstance().useAylaNetworks(getClass().getName());
+                            AylaNetworks.sharedInstance().onResume();
                             AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
 
                             startListening();
@@ -136,7 +137,12 @@ public class WearUpdateService extends Service implements
     private void destroyAylaServices() {
         stopListening();
         ((AgileLinkApplication) getApplication()).removeListener(this);
-        AylaNetworks.sharedInstance().onPause(getClass().getName());
+
+        AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+        if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
+            dm.stopPolling();
+            AylaNetworks.sharedInstance().onPause();
+        }
         removeAllDevicesFromDataStore();
     }
 

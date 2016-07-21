@@ -121,7 +121,7 @@ public class AylaWidget extends AppWidgetProvider
         AgileLinkApplication.LifeCycleState state = AgileLinkApplication.getLifeCycleState();
         Log.d(LOG_TAG, "wig: lanModePause state=" + state);
         timerCancel();
-        AylaNetworks.sharedInstance().onPause(getClass().getName());
+        AylaNetworks.sharedInstance().onPause();
         Log.d(LOG_TAG, "wig: lanModePause ignored");
     }
 

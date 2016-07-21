@@ -449,7 +449,10 @@ public class MainActivity extends AppCompatActivity
         }
         ((AgileLinkApplication)getApplication()).removeListener(this);
 
-        AylaNetworks.sharedInstance().onPause(getClass().getName());
+        if (AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
+            AylaNetworks.sharedInstance().onPause();
+        }
+
         super.onDestroy();
     }
 
@@ -947,13 +950,12 @@ public class MainActivity extends AppCompatActivity
 
         Log.d(LOG_TAG, "onPause");
 
-        // TODO: Need to add method to dynamically handle shutdown here and in the service
         AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
-        if (dm != null) {
+        if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
             dm.stopPolling();
 
             // we aren't going to "pause" LAN mode if we haven't been logged in.
-            AylaNetworks.sharedInstance().onPause(getClass().getName());
+            AylaNetworks.sharedInstance().onPause();
         }
     }
 
@@ -966,7 +968,8 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
-        AylaNetworks.sharedInstance().onResume(getClass().getName());
+        AgileLinkApplication.getsInstance().useAylaNetworks(getClass().getName());
+        AylaNetworks.sharedInstance().onResume();
 
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {
