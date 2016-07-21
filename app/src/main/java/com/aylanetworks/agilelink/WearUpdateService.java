@@ -24,6 +24,7 @@ import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaProperty;
+import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.change.Change;
@@ -36,6 +37,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.CapabilityApi;
+import com.google.android.gms.wearable.CapabilityInfo;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageApi;
@@ -57,9 +59,10 @@ import java.util.Set;
 public class WearUpdateService extends Service implements
         AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
-        AgileLinkApplication.AgileLinkApplicationListener,
+        AylaSessionManager.SessionManagerListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
+        CapabilityApi.CapabilityListener,
         MessageApi.MessageListener {
 
     private static final String DEVICE_NAME = "device_name";
@@ -97,6 +100,11 @@ public class WearUpdateService extends Service implements
         registerReceiver(mServiceCommandReceiver, new IntentFilter(INTENT_ACTION_STOP_SERVICE));
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
+    }
+
     private void startForegroundService() {
         Notification.Builder builder = new Notification.Builder(this);
         builder.setContentTitle("AMAP5 Android Wear Service");
@@ -107,8 +115,9 @@ public class WearUpdateService extends Service implements
     }
 
     private void initAylaServices() {
-        AMAPCore.initialize(MainActivity.getAppParameters(this), this);
-        ((AgileLinkApplication) getApplication()).addListener(this);
+        if (AMAPCore.sharedInstance() == null) {
+            AMAPCore.initialize(MainActivity.getAppParameters(this), this);
+        }
 
         CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this);
         if (cachedProvider != null) {
@@ -118,8 +127,9 @@ public class WearUpdateService extends Service implements
                         @Override
                         public void onResponse(AylaAuthorization response) {
                             CachedAuthProvider.cacheAuthorization(WearUpdateService.this, response);
-                            AgileLinkApplication.getsInstance().useAylaNetworks(getClass().getName());
-                            AylaNetworks.sharedInstance().onResume();
+                            if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(WearUpdateService.this.getClass().getName())) {
+                                AylaNetworks.sharedInstance().onResume();
+                            }
                             AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
 
                             startListening();
@@ -136,7 +146,6 @@ public class WearUpdateService extends Service implements
 
     private void destroyAylaServices() {
         stopListening();
-        ((AgileLinkApplication) getApplication()).removeListener(this);
 
         AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
         if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
@@ -221,6 +230,11 @@ public class WearUpdateService extends Service implements
     }
 
     private void startListening() {
+        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
+        if (sessionManager != null) {
+            sessionManager.addListener(this);
+        }
+
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
             deviceManager.addListener(this);
@@ -235,6 +249,11 @@ public class WearUpdateService extends Service implements
     }
 
     private void stopListening() {
+        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
+        if (sessionManager != null) {
+            sessionManager.removeListener(this);
+        }
+
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
             deviceManager.removeListener(this);
@@ -387,10 +406,6 @@ public class WearUpdateService extends Service implements
                         return;
                     }
                 }
-
-                // no capable wearable node connected, stop service
-                // TODO: maybe not
-                // stopSelf();
             }
         });
     }
@@ -409,6 +424,7 @@ public class WearUpdateService extends Service implements
     public void onDestroy() {
         destroyAylaServices();
         Wearable.MessageApi.removeListener(mGoogleApiClient, this);
+        Wearable.CapabilityApi.removeCapabilityListener(mGoogleApiClient, this, "ayla_device_control_result");
         mGoogleApiClient.disconnect();
 
         if (mWakeLock.isHeld()) {
@@ -426,6 +442,7 @@ public class WearUpdateService extends Service implements
         getWearableNode();
         getLocalNode();
         Wearable.MessageApi.addListener(mGoogleApiClient, this);
+        Wearable.CapabilityApi.addCapabilityListener(mGoogleApiClient, this, "ayla_device_control_result");
     }
 
     @Override
@@ -465,7 +482,17 @@ public class WearUpdateService extends Service implements
     }
 
     @Override
-    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
+    public void sessionClosed(String sessionName, AylaError error) {
+        stopSelf();
+    }
+
+    @Override
+    public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+    }
+
+    @Override
+    public void onCapabilityChanged(CapabilityInfo capabilityInfo) {
+        getWearableNode();
     }
 
     private class ServiceCommandReceiver extends BroadcastReceiver {

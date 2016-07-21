@@ -136,8 +136,10 @@ public class AgileLinkApplication extends Application implements ComponentCallba
         return sInstance;
     }
 
-    public void useAylaNetworks(String classTag) {
+    public boolean shouldResumeAylaNetworks(String classTag) {
+        boolean shouldResume = _aylaNetworksRefCounter.isEmpty();
         _aylaNetworksRefCounter.add(classTag);
+        return shouldResume;
     }
 
     public boolean canPauseAylaNetworks(String classTag) {

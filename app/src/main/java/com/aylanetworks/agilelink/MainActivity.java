@@ -430,7 +430,9 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         initUI();
 
-        AMAPCore.initialize(getAppParameters(this), this);
+        if (AMAPCore.sharedInstance() == null) {
+            AMAPCore.initialize(getAppParameters(this), this);
+        }
 
         if (!_loginScreenUp) {
             showLoginDialog(false);
@@ -968,8 +970,9 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
-        AgileLinkApplication.getsInstance().useAylaNetworks(getClass().getName());
-        AylaNetworks.sharedInstance().onResume();
+        if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
+            AylaNetworks.sharedInstance().onResume();
+        }
 
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {
