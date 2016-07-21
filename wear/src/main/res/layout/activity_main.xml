@@ -34,8 +34,7 @@
             android:padding="15dp" />
 
         <TextView
-            android:id="@+id/no_devices"
-            android:text="No devices are available"
+            android:id="@+id/load_error"
             android:textSize="21sp"
             android:textColor="@android:color/black"
             android:gravity="center"

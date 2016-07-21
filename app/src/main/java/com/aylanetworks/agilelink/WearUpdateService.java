@@ -17,13 +17,15 @@ import android.text.TextUtils;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
+import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaProperty;
-import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.change.PropertyChange;
@@ -52,8 +54,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class WearUpdateService extends Service implements AylaDevice.DeviceChangeListener,
+public class WearUpdateService extends Service implements
+        AylaDevice.DeviceChangeListener,
         AylaDeviceManager.DeviceManagerListener,
+        AgileLinkApplication.AgileLinkApplicationListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         MessageApi.MessageListener {
@@ -65,8 +69,9 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
     private static final String DEVICE_CONTROL_RESULT_MSG_URI = "/device_control_result";
-    private static final String DEVICE_CONTROL_CONNECTION_CHECK = "/device_control_connection_check";
-    private static final String DEVICE_CONTROL_CONNECTION_RESULT = "/device_control_connection_result";
+    private static final String DEVICE_CONTROL_START_CONNECTION = "/device_control_start_connection";
+    private static final String DEVICE_CONTROL_END_CONNECTION = "/device_control_end_connection";
+    private static final String DEVICE_CONTROL_CONNECTION_STARTED = "/device_control_connection_started";
 
     private static final String INTENT_ACTION_STOP_SERVICE = "com.aylanetworks.agilelink.STOP_SERVICE";
 
@@ -76,12 +81,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     private String mWearableNode;
     private String mLocalNode;
 
-    public static boolean mRunning = false;
-
     @Override
     public void onCreate() {
-        mRunning = true;
-
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AMAP5 Wear Background Service");
 
@@ -103,6 +104,40 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
         builder.setSmallIcon(R.drawable.ic_launcher);
         builder.setContentIntent(PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_STOP_SERVICE), 0));
         startForeground(999, builder.build());
+    }
+
+    private void initAylaServices() {
+        AMAPCore.initialize(MainActivity.getAppParameters(this), this);
+        ((AgileLinkApplication) getApplication()).addListener(this);
+
+        CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this);
+        if (cachedProvider != null) {
+            AylaNetworks.sharedInstance().getLoginManager().signIn(cachedProvider,
+                    AMAPCore.sharedInstance().getSessionParameters().sessionName,
+                    new Response.Listener<AylaAuthorization>() {
+                        @Override
+                        public void onResponse(AylaAuthorization response) {
+                            CachedAuthProvider.cacheAuthorization(WearUpdateService.this, response);
+                            AylaNetworks.sharedInstance().onResume(getClass().getName());
+                            AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
+
+                            startListening();
+                        }
+                    },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            //
+                        }
+                    });
+        }
+    }
+
+    private void destroyAylaServices() {
+        stopListening();
+        ((AgileLinkApplication) getApplication()).removeListener(this);
+        AylaNetworks.sharedInstance().onPause(getClass().getName());
+        removeAllDevicesFromDataStore();
     }
 
     private String getDeviceStatus(AylaDevice device) {
@@ -180,11 +215,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     }
 
     private void startListening() {
-        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
-        if (sessionManager != null) {
-            sessionManager.addListener(mSessionManagerListener);
-        }
-
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
             deviceManager.addListener(this);
@@ -195,15 +225,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             }
         }
 
-        Wearable.MessageApi.addListener(mGoogleApiClient, this);
+        sendMessageToWearable(DEVICE_CONTROL_CONNECTION_STARTED, "");
     }
 
     private void stopListening() {
-        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
-        if (sessionManager != null) {
-            sessionManager.removeListener(mSessionManagerListener);
-        }
-
         AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
             deviceManager.removeListener(this);
@@ -212,8 +237,6 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 device.removeListener(this);
             }
         }
-
-        Wearable.MessageApi.removeListener(mGoogleApiClient, this);
     }
 
     @Override
@@ -307,24 +330,30 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
             property.createDatapoint(Integer.valueOf(propertyState), null, new Response.Listener<AylaDatapoint>() {
                 @Override
                 public void onResponse(AylaDatapoint response) {
-                    sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "1");
+                    sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "1");
                 }
             }, new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
-                    sendDeviceControlMessage(DEVICE_CONTROL_RESULT_MSG_URI, "0");
+                    sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "0");
                 }
             });
-        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_CHECK)) {
+        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_START_CONNECTION)) {
+            if (!mWakeLock.isHeld()) {
+                mWakeLock.acquire(5 * 1000);
+            }
+
+            initAylaServices();
+        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_END_CONNECTION)) {
             if (!mWakeLock.isHeld()) {
                 mWakeLock.acquire(3 * 1000);
             }
 
-            sendDeviceControlMessage(DEVICE_CONTROL_CONNECTION_RESULT, "");
+            destroyAylaServices();
         }
     }
 
-    private void sendDeviceControlMessage(String path, String data) {
+    private void sendMessageToWearable(String path, String data) {
         PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mWearableNode,
                 path, data.getBytes());
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
@@ -354,7 +383,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
                 }
 
                 // no capable wearable node connected, stop service
-                stopSelf();
+                // TODO: maybe not
+                // stopSelf();
             }
         });
     }
@@ -371,10 +401,8 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onDestroy() {
-        mRunning = false;
-
-        removeAllDevicesFromDataStore();
-        stopListening();
+        destroyAylaServices();
+        Wearable.MessageApi.removeListener(mGoogleApiClient, this);
         mGoogleApiClient.disconnect();
 
         if (mWakeLock.isHeld()) {
@@ -391,24 +419,13 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
     public void onConnected(@Nullable Bundle bundle) {
         getWearableNode();
         getLocalNode();
-        startListening();
+        Wearable.MessageApi.addListener(mGoogleApiClient, this);
     }
 
     @Override
     public void deviceLanStateChanged(AylaDevice device, boolean lanModeEnabled) {
         updateWearDataForDevice(device);
     }
-
-    private AylaSessionManager.SessionManagerListener mSessionManagerListener = new AylaSessionManager.SessionManagerListener() {
-        @Override
-        public void sessionClosed(String sessionName, AylaError error) {
-            stopSelf();
-        }
-
-        @Override
-        public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-        }
-    };
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -439,6 +456,10 @@ public class WearUpdateService extends Service implements AylaDevice.DeviceChang
 
     @Override
     public void onConnectionSuspended(int i) {
+    }
+
+    @Override
+    public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
     }
 
     private class ServiceCommandReceiver extends BroadcastReceiver {

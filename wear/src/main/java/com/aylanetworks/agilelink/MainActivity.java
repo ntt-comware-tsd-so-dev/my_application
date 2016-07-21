@@ -53,8 +53,8 @@ public class MainActivity extends WearableActivity implements
         WearableListView.ClickListener,
         MessageApi.MessageListener {
 
+    private static final int CONNECTION_START_TIMEOUT = 5 * 1000;
     private static final int SENDING_TIMEOUT_DISMISS_MESSAGE_MS = 5 * 1000;
-    private static final int DEVICE_CONTROL_CONNECTION_CHECK_TIMEOUT_MS = 5 * 1000;
 
     private static final String DEVICE_NAME = "device_name";
     private static final String DEVICE_DSN = "device_dsn";
@@ -63,13 +63,14 @@ public class MainActivity extends WearableActivity implements
 
     private static final String DEVICE_CONTROL_MSG_URI = "/device_control";
     private static final String DEVICE_CONTROL_RESULT_MSG_URI = "/device_control_result";
-    private static final String DEVICE_CONTROL_CONNECTION_CHECK = "/device_control_connection_check";
-    private static final String DEVICE_CONTROL_CONNECTION_RESULT = "/device_control_connection_result";
+    private static final String DEVICE_CONTROL_START_CONNECTION = "/device_control_start_connection";
+    private static final String DEVICE_CONTROL_END_CONNECTION = "/device_control_end_connection";
+    private static final String DEVICE_CONTROL_CONNECTION_STARTED = "/device_control_connection_started";
 
     private GoogleApiClient mGoogleApiClient;
     private LinearLayout mSending;
+    private TextView mErrorView;
     private GridViewPager mPager;
-    private DotsPageIndicator mPageDots;
     private GestureDetector mGestureDetector;
     private DevicesGridAdapter mAdapter;
     private Handler mHandler;
@@ -80,9 +81,6 @@ public class MainActivity extends WearableActivity implements
     private boolean mPendingDataUpdate = false;
     private int mPropertyListViewCentralPosition = 0;
 
-    public enum ConnectionStatus {CONNECTING, CONNECTED, NOT_CONNECTED}
-    private ConnectionStatus mDeviceControlConnection = ConnectionStatus.CONNECTING;
-
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
 
     @Override
@@ -91,9 +89,9 @@ public class MainActivity extends WearableActivity implements
         setContentView(R.layout.activity_main);
 
         mHandler = new Handler();
+        mErrorView = (TextView) findViewById(R.id.load_error);
         mPager = (GridViewPager) findViewById(R.id.pager);
         mPager.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        mPageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
         mSending = (LinearLayout) findViewById(R.id.sending);
         mSending.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mSending.setOnClickListener(new View.OnClickListener() {
@@ -122,10 +120,8 @@ public class MainActivity extends WearableActivity implements
             @Override
             public void onPageScrolled(int row, int column, float rowOffset, float columnOffset, int rowOffsetPixels, int columnOffsetPixels) {
             }
-
             @Override
             public void onPageSelected(int row, int column) {
-                // mPageDots.onPageSelected(column, row);
             }
 
             @Override
@@ -144,35 +140,39 @@ public class MainActivity extends WearableActivity implements
         return mGestureDetector.onTouchEvent(ev) || super.dispatchTouchEvent(ev);
     }
 
-    private Runnable mDeviceControlConnectionCheckTimeOut = new Runnable() {
+    private Runnable mServiceConnectionTimedOut = new Runnable() {
         @Override
         public void run() {
-            mDeviceControlConnection = ConnectionStatus.NOT_CONNECTED;
-            updateGridAnchored();
+            showError("Connection took too long to start");
         }
     };
 
-    public ConnectionStatus getDeviceControlConnectionStatus() {
-        return mDeviceControlConnection;
-    }
-
-    private void sendDeviceControlConnectionCheckMessage() {
-        mDeviceControlConnection = ConnectionStatus.CONNECTING;
+    private void sendDeviceControlStartConnectionMessage() {
         PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
-                DEVICE_CONTROL_CONNECTION_CHECK, "".getBytes());
+                DEVICE_CONTROL_START_CONNECTION, "".getBytes());
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
                 if (!sendMessageResult.getStatus().isSuccess()) {
-                    mHandler.removeCallbacks(mDeviceControlConnectionCheckTimeOut);
-                    mDeviceControlConnection = ConnectionStatus.NOT_CONNECTED;
-                    updateGridAnchored();
+                    showError("Failed to communicate with handheld device");
+                } else {
+                    mHandler.postDelayed(mServiceConnectionTimedOut, CONNECTION_START_TIMEOUT);
                 }
             }
         });
+    }
 
-        mHandler.removeCallbacks(mDeviceControlConnectionCheckTimeOut);
-        mHandler.postDelayed(mDeviceControlConnectionCheckTimeOut, DEVICE_CONTROL_CONNECTION_CHECK_TIMEOUT_MS);
+    private void sendDeviceControlEndConnectionMessage() {
+        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
+                DEVICE_CONTROL_END_CONNECTION, "".getBytes());
+        pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
+            @Override
+            public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
+                if (!sendMessageResult.getStatus().isSuccess()) {
+                    Toast.makeText(MainActivity.this, "Failed to communicate with handheld device", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private boolean sendDeviceControlMessage(String dsn, String propertyName, boolean newStatus) {
@@ -196,7 +196,7 @@ public class MainActivity extends WearableActivity implements
                 for (Node node : connectedNodes) {
                     if (node.isNearby()) {
                         mHandheldNode = node.getId();
-                        sendDeviceControlConnectionCheckMessage();
+                        sendDeviceControlStartConnectionMessage();
                         return;
                     }
                 }
@@ -246,7 +246,6 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        new DataLoader(null).execute();
         Wearable.DataApi.addListener(mGoogleApiClient, this);
         Wearable.MessageApi.addListener(mGoogleApiClient, this);
 
@@ -283,6 +282,8 @@ public class MainActivity extends WearableActivity implements
     @Override
     protected void onPause() {
         super.onPause();
+        sendDeviceControlEndConnectionMessage();
+
         Wearable.DataApi.removeListener(mGoogleApiClient, this);
         Wearable.MessageApi.removeListener(mGoogleApiClient, this);
         mGoogleApiClient.disconnect();
@@ -298,10 +299,9 @@ public class MainActivity extends WearableActivity implements
             }
 
             hideSendingView(false);
-        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_RESULT)) {
-            mHandler.removeCallbacks(mDeviceControlConnectionCheckTimeOut);
-            mDeviceControlConnection = ConnectionStatus.CONNECTED;
-            updateGridAnchored();
+        } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_STARTED)) {
+            mHandler.removeCallbacks(mServiceConnectionTimedOut);
+            new DataLoader(null).execute();
         }
     }
 
@@ -336,19 +336,18 @@ public class MainActivity extends WearableActivity implements
 
         @Override
         protected void onPostExecute(Integer result) {
-            TextView noDevices = (TextView) findViewById(R.id.no_devices);
             if (mDevicesMap.size() == 0) {
-                noDevices.setVisibility(View.VISIBLE);
+                showError("No devices available");
                 return;
-            } else if (noDevices.getVisibility() != View.GONE) {
-                sendDeviceControlConnectionCheckMessage();
-                noDevices.setVisibility(View.GONE);
+            } else {
+                hideError();
             }
 
             if (mAdapter == null) {
                 mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap);
                 mPager.setAdapter(mAdapter);
-                mPageDots.setPager(mPager);
+                DotsPageIndicator pageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
+                pageDots.setPager(mPager);
 
                 mPager.setVisibility(View.VISIBLE);
                 mPager.animate().withLayer().alpha(1).setDuration(250).start();
@@ -365,6 +364,17 @@ public class MainActivity extends WearableActivity implements
 
                 hideSendingView(false);
             }
+        }
+    }
+
+    private void showError(String message) {
+        mErrorView.setText(message);
+        mErrorView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideError() {
+        if (mErrorView.getVisibility() == View.VISIBLE) {
+            mErrorView.setVisibility(View.GONE);
         }
     }
 

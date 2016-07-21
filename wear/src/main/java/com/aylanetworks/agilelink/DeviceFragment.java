@@ -43,15 +43,7 @@ public class DeviceFragment extends Fragment {
             deviceName.setText(deviceHolder.getName());
 
             TextView deviceStatus = (TextView) root.findViewById(R.id.device_status);
-
-            MainActivity.ConnectionStatus connectionStatus = ((MainActivity) getActivity()).getDeviceControlConnectionStatus();
-            if (connectionStatus == MainActivity.ConnectionStatus.CONNECTING) {
-                deviceStatus.setText("Connecting...");
-            } else if (connectionStatus == MainActivity.ConnectionStatus.NOT_CONNECTED) {
-                deviceStatus.setText("Not Connected");
-            } else if (connectionStatus == MainActivity.ConnectionStatus.CONNECTED) {
-                deviceStatus.setText(deviceHolder.getStatus());
-            }
+            deviceStatus.setText(deviceHolder.getStatus());
 
             LinearLayout deviceContainer = (LinearLayout) root.findViewById(R.id.overview_container);
             deviceContainer.setVisibility(View.VISIBLE);

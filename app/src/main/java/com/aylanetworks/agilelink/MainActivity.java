@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -213,16 +214,20 @@ public class MainActivity extends AppCompatActivity
      *
      * @return The app version string
      */
-    public String getAppVersion() {
+    private static String getAppVersion(Context context) {
         PackageInfo info;
         try {
-            info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
-            return getString(R.string.unknown_app_version);
+            return context.getString(R.string.unknown_app_version);
         }
 
         return info.versionName + "." + info.versionCode;
+    }
+
+    public String getAppVersion() {
+        return getAppVersion(this);
     }
 
     /**
@@ -425,16 +430,11 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         initUI();
 
-        AMAPCore.initialize(getAppParameters(),this);
+        AMAPCore.initialize(getAppParameters(this), this);
 
         if (!_loginScreenUp) {
             showLoginDialog(false);
         }
-       // AMAPCore.sharedInstance().setContext(this);
-        //AMAPCore.sharedInstance().getGroupManager().fetchDeviceGroups();
-
-        // We want to know when the user logs in or out
-       // AMAPCore.sharedInstance().getSessionManager().addListener(this);
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
@@ -449,7 +449,7 @@ public class MainActivity extends AppCompatActivity
         }
         ((AgileLinkApplication)getApplication()).removeListener(this);
 
-        AylaNetworks.sharedInstance().onPause();
+        AylaNetworks.sharedInstance().onPause(getClass().getName());
         super.onDestroy();
     }
 
@@ -781,8 +781,8 @@ public class MainActivity extends AppCompatActivity
      *
      * @return the SessionParameters for this application
      */
-    public SessionParameters getAppParameters() {
-        final SessionParameters parameters = new SessionParameters(this);
+    public static SessionParameters getAppParameters(Context context) {
+        final SessionParameters parameters = new SessionParameters(context);
 
         // Change this to false to connect to the production service
         boolean useDevService = true;
@@ -798,7 +798,7 @@ public class MainActivity extends AppCompatActivity
 
         parameters.viewModelProvider = new AgileLinkViewModelProvider();
 
-        parameters.appVersion = getAppVersion();
+        parameters.appVersion = getAppVersion(context);
 
         parameters.sessionName = AMAPCore.DEFAULT_SESSION_NAME;
 
@@ -811,11 +811,11 @@ public class MainActivity extends AppCompatActivity
 
         parameters.loggingLevel = LOG_PERMIT;
 
-        parameters.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
+        parameters.registrationEmailSubject = context.getResources().getString(R.string.registraion_email_subject);
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        if(getLocaleCountry().equalsIgnoreCase("ES")){
+        if(getLocaleCountry(context).equalsIgnoreCase("ES")){
             parameters.registrationEmailTemplateId = "ayla_confirmation_template_01_es";
             parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01_es";
         } else{
@@ -824,7 +824,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (parameters.registrationEmailTemplateId == null) {
-            parameters.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
+            parameters.registrationEmailBodyHTML = context.getResources().getString(R.string.registration_email_body_html);
         } else {
             parameters.registrationEmailBodyHTML = null;
         }
@@ -948,14 +948,12 @@ public class MainActivity extends AppCompatActivity
         Log.d(LOG_TAG, "onPause");
 
         // TODO: Need to add method to dynamically handle shutdown here and in the service
-        if (!WearUpdateService.mRunning) {
-            AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
-            if (dm != null) {
-                dm.stopPolling();
+        AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+        if (dm != null) {
+            dm.stopPolling();
 
-                // we aren't going to "pause" LAN mode if we haven't been logged in.
-                AylaNetworks.sharedInstance().onPause();
-            }
+            // we aren't going to "pause" LAN mode if we haven't been logged in.
+            AylaNetworks.sharedInstance().onPause(getClass().getName());
         }
     }
 
@@ -968,7 +966,7 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
-        AylaNetworks.sharedInstance().onResume();
+        AylaNetworks.sharedInstance().onResume(getClass().getName());
 
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {
@@ -1136,8 +1134,8 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-    private String getLocaleCountry(){
-        return getResources().getConfiguration().locale.getCountry();
+    private static String getLocaleCountry(Context context){
+        return context.getResources().getConfiguration().locale.getCountry();
     }
 
 
