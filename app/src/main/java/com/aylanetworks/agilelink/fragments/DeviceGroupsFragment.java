@@ -242,6 +242,12 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     protected void onAddDeviceToGroup() {
+        if ( _selectedGroup == null ) {
+            // There is no group yet. We need to offer to add one.
+            onAddGroup();
+            return;
+        }
+
         final List<ViewModel> allDevices = ViewModel.fromDeviceList(AMAPCore.sharedInstance().getDeviceManager()
                 .getDevices());
 
