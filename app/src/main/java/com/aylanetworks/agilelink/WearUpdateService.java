@@ -267,6 +267,8 @@ public class WearUpdateService extends Service implements
     @Override
     public void deviceChanged(AylaDevice device, Change change) {
         if (change.getType() == Change.ChangeType.Property) {
+            mWakeLock.acquire(3 * 1000);
+            
             String changedPropertyName = ((PropertyChange) change).getPropertyName();
 
             ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
@@ -282,6 +284,7 @@ public class WearUpdateService extends Service implements
                 updateWearDataForDevice(device);
             }
         } else if (change.getType() == Change.ChangeType.Field) {
+            mWakeLock.acquire(3 * 1000);
             updateWearDataForDevice(device);
         }
     }
@@ -328,9 +331,7 @@ public class WearUpdateService extends Service implements
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_MSG_URI)) {
-            if (!mWakeLock.isHeld()) {
-                mWakeLock.acquire(5 * 1000);
-            }
+            mWakeLock.acquire(5 * 1000);
 
             String cmd = new String(messageEvent.getData());
             String[] cmdComponents = cmd.split("/");
@@ -364,16 +365,10 @@ public class WearUpdateService extends Service implements
                 }
             });
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_START_CONNECTION)) {
-            if (!mWakeLock.isHeld()) {
-                mWakeLock.acquire(5 * 1000);
-            }
-
+            mWakeLock.acquire(5 * 1000);
             initAylaServices();
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_END_CONNECTION)) {
-            if (!mWakeLock.isHeld()) {
-                mWakeLock.acquire(3 * 1000);
-            }
-
+            mWakeLock.acquire(3 * 1000);
             destroyAylaServices();
         }
     }

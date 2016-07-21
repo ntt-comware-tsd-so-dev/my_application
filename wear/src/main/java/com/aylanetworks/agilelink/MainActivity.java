@@ -90,6 +90,13 @@ public class MainActivity extends WearableActivity implements
 
         mHandler = new Handler();
         mErrorView = (TextView) findViewById(R.id.load_error);
+        mErrorView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendDeviceControlStartConnectionMessage();
+                hideError();
+            }
+        });
         mPager = (GridViewPager) findViewById(R.id.pager);
         mPager.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mSending = (LinearLayout) findViewById(R.id.sending);
@@ -143,7 +150,7 @@ public class MainActivity extends WearableActivity implements
     private Runnable mServiceConnectionTimedOut = new Runnable() {
         @Override
         public void run() {
-            showError("Connection took too long to start");
+            showError("Connection took too long to start.\nTap to retry.");
         }
     };
 
