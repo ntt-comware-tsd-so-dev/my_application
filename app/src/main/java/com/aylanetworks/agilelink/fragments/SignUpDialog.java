@@ -11,6 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaUser;
@@ -98,8 +99,11 @@ public class SignUpDialog extends Dialog implements View.OnClickListener {
 
         progress.setVisibility(View.VISIBLE);
 
+        AMAPCore.SessionParameters sessionParams = AMAPCore.sharedInstance().getSessionParameters();
         AylaEmailTemplate template = new AylaEmailTemplate();
-        // TODO: Brian do this.
+        template.setEmailSubject(sessionParams.registrationEmailSubject);
+        template.setEmailTemplateId(sessionParams.registrationEmailTemplateId);
+        template.setEmailBodyHtml(sessionParams.registrationEmailBodyHTML);
 
         AylaNetworks.sharedInstance().getLoginManager().signUp(user, template,
                 new Response.Listener<AylaUser>() {
