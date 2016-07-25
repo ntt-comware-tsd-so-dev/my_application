@@ -115,6 +115,7 @@ public class WearUpdateService extends Service implements
     }
 
     private void initAylaServices() {
+        mWakeLock.acquire(5 * 1000);
         if (AMAPCore.sharedInstance() == null) {
             AMAPCore.initialize(MainActivity.getAppParameters(this), this);
         }
@@ -133,26 +134,29 @@ public class WearUpdateService extends Service implements
                             AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
 
                             startListening();
+                            mWakeLock.release();
                         }
                     },
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            //
+                            mWakeLock.release();
                         }
                     });
         }
     }
 
     private void destroyAylaServices() {
+        mWakeLock.acquire(3 * 1000);
         stopListening();
+        removeAllDevicesFromDataStore();
 
         AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
         if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
             dm.stopPolling();
             AylaNetworks.sharedInstance().onPause();
         }
-        removeAllDevicesFromDataStore();
+        mWakeLock.release();
     }
 
     private String getDeviceStatus(AylaDevice device) {
@@ -369,10 +373,8 @@ public class WearUpdateService extends Service implements
                 }
             });
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_START_CONNECTION)) {
-            mWakeLock.acquire(5 * 1000);
             initAylaServices();
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_END_CONNECTION)) {
-            mWakeLock.acquire(3 * 1000);
             destroyAylaServices();
         }
     }

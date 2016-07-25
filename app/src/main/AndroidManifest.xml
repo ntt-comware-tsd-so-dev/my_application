@@ -51,6 +51,9 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!-- Required to start WearableUpdateService on device restart -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
@@ -148,6 +151,12 @@
             android:value="@integer/google_play_services_version" />
 
         <service android:name=".WearUpdateService" />
+
+        <receiver android:name=".BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
 
         <receiver android:name=".AylaWidget">
             <intent-filter>
