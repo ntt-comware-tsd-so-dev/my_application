@@ -651,26 +651,34 @@ public class AddDeviceFragment extends Fragment
                         @Override
                         public void onResponse(ScanResult[] results) {
                             dismissWaitDialog();
+                            if (results.length == 0) {
+                                new AlertDialog.Builder(getActivity())
+                                        .setIcon(R.drawable.ic_launcher)
+                                        .setTitle(R.string.choose_new_device)
+                                        .setNegativeButton(android.R.string.ok, null)
+                                        .create()
+                                        .show();
+                            } else {
+                                // Let the user choose which device to connect to
+                                final String apNames[] = new String[results.length];
+                                for (int i = 0; i < results.length; i++) {
+                                    apNames[i] = results[i].SSID;
+                                }
 
-                            // Let the user choose which device to connect to
-                            final String apNames[] = new String[results.length];
-                            for ( int i = 0; i < results.length; i++ ) {
-                                apNames[i] = results[i].SSID;
+                                new AlertDialog.Builder(getActivity())
+                                        .setIcon(R.drawable.ic_launcher)
+                                        .setTitle(R.string.choose_new_device)
+                                        .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                connectToDeviceAP(apNames[which]);
+                                                dialog.dismiss();
+                                            }
+                                        })
+                                        .setNegativeButton(android.R.string.cancel, null)
+                                        .create()
+                                        .show();
                             }
-
-                            new AlertDialog.Builder(getActivity())
-                                    .setIcon(R.drawable.ic_launcher)
-                                    .setTitle(R.string.choose_new_device)
-                                    .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            connectToDeviceAP(apNames[which]);
-                                            dialog.dismiss();
-                                        }
-                                    })
-                                    .setNegativeButton(android.R.string.cancel, null)
-                                    .create()
-                                    .show();
                         }
                     },
                     new ErrorListener() {
