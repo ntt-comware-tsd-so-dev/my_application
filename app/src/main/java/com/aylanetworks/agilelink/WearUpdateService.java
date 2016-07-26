@@ -151,10 +151,13 @@ public class WearUpdateService extends Service implements
         stopListening();
         removeAllDevicesFromDataStore();
 
-        AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
-        if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
-            dm.stopPolling();
-            AylaNetworks.sharedInstance().onPause();
+        if (AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName()) &&
+                AMAPCore.sharedInstance() != null) {
+            AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+            if (dm != null) {
+                dm.stopPolling();
+                AylaNetworks.sharedInstance().onPause();
+            }
         }
         mWakeLock.release();
     }
@@ -253,6 +256,10 @@ public class WearUpdateService extends Service implements
     }
 
     private void stopListening() {
+        if (AMAPCore.sharedInstance() == null) {
+            return;
+        }
+
         AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
         if (sessionManager != null) {
             sessionManager.removeListener(this);
