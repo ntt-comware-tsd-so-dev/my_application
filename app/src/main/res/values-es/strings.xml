@@ -586,6 +586,7 @@
     <string name="activate_scene_icon" formatted="false">Activar %s</string>
     <string name="no_devices_available_to_pair">Sin dispositivos para asociar</string>
     <string name="no_devices_available_to_unpair">Sin dispositivos para desasociar</string>
+    <string name="no_scanned_devices"> "No se encontraron dispositivos. Intente reiniciar el dispositivo y buscar de nuevo"</string>
 
     <!-- Welcome and SEtup Guide Page -->
     <string name="welcome_text">Bienvenido a AMAP</string>
