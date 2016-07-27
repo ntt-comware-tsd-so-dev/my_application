@@ -73,10 +73,10 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
         Log.i(LOG_TAG, "rn: registerNewGateway");
         MainActivity.getInstance().showWaitDialog("Please wait...", "Registering gateway");
         //Gateway is always push button
-        fetchCandidate();
+        fetchCandidateAndRegister();
     }
 
-    private void fetchCandidate() {
+    private void fetchCandidateAndRegister() {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
 
         if (_aylaRegistration == null) {
@@ -94,10 +94,11 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+
                         Toast.makeText(getActivity(),
                                 ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
                                 Toast.LENGTH_LONG).show();
-                        exitSetup();
                     }
                 });
     }
@@ -137,11 +138,12 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                                     @Override
                                     public void newDeviceUpdated(AylaDevice device, AylaError error) {
                                         Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
-                                        MainActivity mainActivity = MainActivity.getInstance();
-                                        mainActivity.dismissWaitDialog();
+                                        MainActivity.getInstance().dismissWaitDialog();
+
                                         int msgId = (error == null ? R.string.registration_success :
                                                 R.string.registration_success_notification_fail);
-                                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getContext(), msgId, Toast.LENGTH_LONG).show();
+
                                         if (error == null) {
                                             // Go to the Gateway display
                                             Log.v(LOG_TAG, "rn: registration successful. select gateways.");
@@ -156,16 +158,13 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+
                         Toast.makeText(getActivity(),
                                 ErrorUtils.getUserMessage(getActivity(), error, R.string.registration_failure),
                                 Toast.LENGTH_LONG).show();
-                        exitSetup();
                     }
                 });
-    }
-
-
-    private static void exitSetup() {
     }
 
     @Override
