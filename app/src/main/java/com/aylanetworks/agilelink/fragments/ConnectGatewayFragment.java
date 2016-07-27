@@ -140,17 +140,15 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                                         Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
                                         MainActivity.getInstance().dismissWaitDialog();
 
+                                        if (error != null) {
+                                            Log.e("AMAP", error.getMessage());
+                                        }
+
                                         int msgId = (error == null ? R.string.registration_success :
                                                 R.string.registration_success_notification_fail);
                                         Toast.makeText(getContext(), msgId, Toast.LENGTH_LONG).show();
 
-                                        if (error == null) {
-                                            // Go to the Gateway display
-                                            Log.v(LOG_TAG, "rn: registration successful. select gateways.");
-                                            MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
-                                        } else {
-                                            Log.w(LOG_TAG, "rn: registration unsuccessful.");
-                                        }
+                                        MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
                                     }
                                 });
                     }
