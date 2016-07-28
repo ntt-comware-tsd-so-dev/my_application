@@ -12,7 +12,6 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -38,7 +37,7 @@ import com.android.internal.util.Predicate;
 import com.android.volley.Response;
 
 import com.aylanetworks.agilelink.ErrorUtils;
-import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.MainActivity;
@@ -185,7 +184,7 @@ public class AddDeviceFragment extends Fragment
         if ((gateways != null) && (gateways.size() > 0)) {
             // If they have a gateway, then default to Generic Node
             int index = 0;
-            AgileLinkViewModelProvider dc = (AgileLinkViewModelProvider)AMAPCore.sharedInstance()
+            AMAPViewModelProvider dc = (AMAPViewModelProvider)AMAPCore.sharedInstance()
                     .getSessionParameters().viewModelProvider;
 
             List<Class<? extends ViewModel>> deviceClasses = dc.getSupportedDeviceClasses();
@@ -288,8 +287,8 @@ public class AddDeviceFragment extends Fragment
     }
 
     private ArrayAdapter<ViewModel> createProductTypeAdapter() {
-        AgileLinkViewModelProvider viewModelProvider =
-                (AgileLinkViewModelProvider)AMAPCore.sharedInstance().getSessionParameters()
+        AMAPViewModelProvider viewModelProvider =
+                (AMAPViewModelProvider)AMAPCore.sharedInstance().getSessionParameters()
                         .viewModelProvider;
 
         List<Class<? extends ViewModel>> deviceClasses = viewModelProvider.getSupportedDeviceClasses();
@@ -652,26 +651,34 @@ public class AddDeviceFragment extends Fragment
                         @Override
                         public void onResponse(ScanResult[] results) {
                             dismissWaitDialog();
+                            if (results.length == 0) {
+                                new AlertDialog.Builder(getActivity())
+                                        .setIcon(R.drawable.ic_launcher)
+                                        .setTitle(R.string.choose_new_device)
+                                        .setNegativeButton(android.R.string.ok, null)
+                                        .create()
+                                        .show();
+                            } else {
+                                // Let the user choose which device to connect to
+                                final String apNames[] = new String[results.length];
+                                for (int i = 0; i < results.length; i++) {
+                                    apNames[i] = results[i].SSID;
+                                }
 
-                            // Let the user choose which device to connect to
-                            final String apNames[] = new String[results.length];
-                            for ( int i = 0; i < results.length; i++ ) {
-                                apNames[i] = results[i].SSID;
+                                new AlertDialog.Builder(getActivity())
+                                        .setIcon(R.drawable.ic_launcher)
+                                        .setTitle(R.string.choose_new_device)
+                                        .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                connectToDeviceAP(apNames[which]);
+                                                dialog.dismiss();
+                                            }
+                                        })
+                                        .setNegativeButton(android.R.string.cancel, null)
+                                        .create()
+                                        .show();
                             }
-
-                            new AlertDialog.Builder(getActivity())
-                                    .setIcon(R.drawable.ic_launcher)
-                                    .setTitle(R.string.choose_new_device)
-                                    .setSingleChoiceItems(apNames, -1, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            connectToDeviceAP(apNames[which]);
-                                            dialog.dismiss();
-                                        }
-                                    })
-                                    .setNegativeButton(android.R.string.cancel, null)
-                                    .create()
-                                    .show();
                         }
                     },
                     new ErrorListener() {

@@ -248,8 +248,6 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
         boolean hasFactoryReset = false;
         if (_deviceModel != null) {
-            // djunod: I have never been able to do Factory Reset on a Zigbee Gateway
-            //hasFactoryReset = (_deviceModel.isGateway() || _deviceModel.isDeviceNode());
             hasFactoryReset = _deviceModel.getDevice().isNode();
         }
         menu.getItem(1).setVisible(hasFactoryReset);

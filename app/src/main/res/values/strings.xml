@@ -617,6 +617,7 @@
     <string name="activate_scene_icon" formatted="false">Activate %s</string>
     <string name="no_devices_available_to_pair">No devices available to pair</string>
     <string name="no_devices_available_to_unpair">No devices to unpair</string>
+    <string name="no_scanned_devices">No devices found. Try restarting the device and scan again</string>
 
     <!-- Welcome and SEtup Guide Page -->
     <string name="welcome_text">Welcome to AMAP!</string>

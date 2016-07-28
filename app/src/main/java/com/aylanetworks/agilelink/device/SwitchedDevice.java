@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -30,13 +31,12 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
     private final static String LOG_TAG = "SwitchedDevice";
     private final static String PROPERTY_OUTLET = "outlet1";
 
-    //TODO: This has bias towards zigbee, generic solution uses two property to control a switch.
     public SwitchedDevice(AylaDevice device) {
         super(device);
     }
 
     public void toggle() {
-        if(isOnline() || isInLanMode()){
+        if (isOnline() || isInLanMode()) {
             AylaProperty prop = getProperty(getObservablePropertyName());
             if (prop == null) {
                 Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
@@ -44,7 +44,7 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
             }
 
             // Get the opposite value and set it
-            Integer newValue = ((Integer)prop.getValue() == 0) ? 1 : 0;
+            Integer newValue = ((Integer) prop.getValue() == 0) ? 1 : 0;
             setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
                 @Override
                 public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
@@ -52,12 +52,11 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
                 }
             });
         }
-
     }
 
     public boolean isOn() {
         AylaProperty prop = getProperty(getObservablePropertyName());
-        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
+        if (prop != null && prop.getValue() != null && (Integer) prop.getValue() != 0) {
             return true;
         }
 
@@ -121,7 +120,7 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
 
     @Override
     public int getItemViewType() {
-        return AgileLinkViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override
@@ -137,13 +136,17 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
         }
     }
 
-
     @Override
     public void onClick(View v) {
-        // Toggle the button state
-        Log.d(LOG_TAG, "lm: Switch tapped ***vvv");
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
-        toggle();
+        if (isOnline() || isInLanMode()) {
+            // Toggle the button state
+            Log.d(LOG_TAG, "lm: Switch tapped ***vvv");
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
+            toggle();
+        } else {
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }

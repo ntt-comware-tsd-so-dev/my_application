@@ -60,9 +60,9 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
        setDatapoint(PROPERTY_GREEN_LED, on ? 1 : 0, new SetDatapointListener() {
            @Override
            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-               if (error == null) {
-                   button.setImageDrawable(button.getContext().getResources().getDrawable(on ? R.drawable.dup : R.drawable.ddown));
-               } else {
+               button.setImageDrawable(button.getContext().getResources().getDrawable(isGreenLEDOn() ? R.drawable.dup : R.drawable.ddown));
+
+               if (error != null) {
                    Toast.makeText(button.getContext(),
                            ErrorUtils.getUserMessage(error, "Error setting green LED state"), //TODO: Localize message in R.string
                            Toast.LENGTH_SHORT).show();
@@ -75,9 +75,9 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         setDatapoint(PROPERTY_BLUE_LED, on ? 1 : 0, new SetDatapointListener() {
             @Override
             public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-                if (error == null) {
-                    button.setImageDrawable(button.getContext().getResources().getDrawable(on ? R.drawable.dup : R.drawable.ddown));
-                } else {
+                button.setImageDrawable(button.getContext().getResources().getDrawable(isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown));
+
+                if (error != null) {
                     Toast.makeText(button.getContext(),
                             ErrorUtils.getUserMessage(error, "Error setting blue LED state"), //TODO: Localize message in R.string
                             Toast.LENGTH_SHORT).show();
@@ -163,6 +163,9 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
 
             // Update the image view to show the transient state
             button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
+        } else {
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
+                    Toast.LENGTH_SHORT).show();
         }
     }
 

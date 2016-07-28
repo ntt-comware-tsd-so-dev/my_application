@@ -44,7 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.device.AgileLinkViewModelProvider;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
@@ -801,7 +801,7 @@ public class MainActivity extends AppCompatActivity
             parameters.appSecret = "AgileLinkProd-1530606";
         }
 
-        parameters.viewModelProvider = new AgileLinkViewModelProvider();
+        parameters.viewModelProvider = new AMAPViewModelProvider();
 
         parameters.appVersion = getAppVersion(context);
 
@@ -812,7 +812,7 @@ public class MainActivity extends AppCompatActivity
 
         // Allows login when the service is not reachable, using cached data or connecting directly
         // with devices in LAN mode
-        parameters.allowLANLogin = true;
+        parameters.allowLANLogin = false;
 
         parameters.loggingLevel = LOG_PERMIT;
 

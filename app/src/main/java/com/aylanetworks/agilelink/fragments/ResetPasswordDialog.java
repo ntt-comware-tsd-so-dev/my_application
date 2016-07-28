@@ -93,6 +93,7 @@ public class ResetPasswordDialog extends DialogFragment {
                             public void onResponse(AylaAPIRequest.EmptyResponse response) {
                                 Toast.makeText(MainActivity.getInstance(), R.string.password_changed, Toast.LENGTH_LONG).show();
                                 getFragmentManager().popBackStack();
+                                dismiss();
                             }
                         },
                         new ErrorListener() {
@@ -100,6 +101,9 @@ public class ResetPasswordDialog extends DialogFragment {
                             public void onErrorResponse(AylaError error) {
                                 Toast.makeText(MainActivity.getInstance(), error.toString(), Toast.LENGTH_LONG)
                                         .show();
+                                _okButton.setVisibility(View.VISIBLE);
+                                _cancelButton.setVisibility(View.VISIBLE);
+                                _progressBar.setVisibility(View.GONE);
                             }
                         });
             }

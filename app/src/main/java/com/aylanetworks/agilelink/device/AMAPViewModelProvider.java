@@ -18,15 +18,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*
- * AgileLinkViewModelProvider.java
+ * AMAPViewModelProvider.java
  * AgileLink Application Framework
  *
  * Created by Brian King on 12/19/14.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class AgileLinkViewModelProvider extends ViewModelProvider {
-    private final static String LOG_TAG = "AgileLinkViewModelProvider";
+public class AMAPViewModelProvider extends ViewModelProvider {
+    private final static String LOG_TAG = "AMAPViewModelProvider";
 
     public final static int ITEM_VIEW_TYPE_GENERIC_DEVICE = 0;
     public final static int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
@@ -47,7 +47,7 @@ public class AgileLinkViewModelProvider extends ViewModelProvider {
         if (oemModel == null) {
             Logger.logError(LOG_TAG, "No oemModel set on device: " + device);
 
-            // in some cases, the Generic Gateway OR Zigbee Gateway has a null oemModel (instead of generic)
+            // in some cases, the Generic Gateway has a null oemModel (instead of generic)
             if ("AY001MRT1".equals(model)) {
                 // This is a gateway.
                 return new GenericGateway((AylaDeviceGateway) device);

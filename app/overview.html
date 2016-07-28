@@ -102,7 +102,7 @@ Device classes can override these methods to provide additional functionality:
 Your new device class will need to be instantiated whenever a matching device is found. This is done in the
 {@link com.aylanetworks.agilelink.framework.ViewModelProvider} class. Create a new object derived from
 {@link com.aylanetworks.agilelink.framework.ViewModelProvider} that creates your own Device-derived objects from
-an AylaDevice object. See {@link com.aylanetworks.agilelink.device.AgileLinkViewModelProvider} for an example of
+an AylaDevice object. See {@link com.aylanetworks.agilelink.device.AMAPViewModelProvider} for an example of
 a DeviceCreator object configured to return specific devices from an AylaDevice object. Once this class has been
 created, an instance of it should be assigned to the {@link com.aylanetworks.agilelink.framework.deprecated.SessionManager.SessionParameters#deviceCreator}
 member of the session parameters.
