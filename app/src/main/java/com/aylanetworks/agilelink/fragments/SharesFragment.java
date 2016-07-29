@@ -102,6 +102,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                     } else {
                         _ownedShareAdapter.clear();
                         _ownedShareAdapter.addAll(_ownedShares);
+                        _listViewSharedByMe.setAdapter(_ownedShareAdapter);
                         _ownedShareAdapter.notifyDataSetChanged();
                     }
                 }
@@ -121,14 +122,18 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             public void onResponse(AylaShare[] response) {
                 _receivedShares = response;
 
-                if (_receivedShareAdapter == null) {
-                    _receivedShareAdapter = new ShareListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
-                    _listViewSharedToMe.setAdapter(_receivedShareAdapter);
-                } else {
-                    _receivedShareAdapter.clear();
-                    _receivedShareAdapter.addAll(_receivedShares);
-                    _receivedShareAdapter.notifyDataSetChanged();
+                if(isAdded()){
+                    if (_receivedShareAdapter == null) {
+                        _receivedShareAdapter = new ShareListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
+                        _listViewSharedToMe.setAdapter(_receivedShareAdapter);
+                    } else {
+                        _receivedShareAdapter.clear();
+                        _receivedShareAdapter.addAll(_receivedShares);
+                        _listViewSharedToMe.setAdapter(_receivedShareAdapter);
+                        _receivedShareAdapter.notifyDataSetChanged();
+                    }
                 }
+
             }
         }, new ErrorListener() {
             @Override
