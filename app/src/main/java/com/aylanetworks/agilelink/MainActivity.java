@@ -44,12 +44,14 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
+import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -81,7 +83,8 @@ public class MainActivity extends AppCompatActivity
         implements AylaSessionManager.SessionManagerListener,
         AgileLinkApplication.AgileLinkApplicationListener,
         View.OnClickListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        SharesFragment.OnShareSelected{
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -94,6 +97,7 @@ public class MainActivity extends AppCompatActivity
     public static final int REQ_SIGN_IN = 2;
     public static AylaLog.LogLevel LOG_PERMIT = AylaLog.LogLevel.None;
 
+    public static final String ARG_SHARE = "share";
     private static MainActivity _theInstance;
 
     /**
@@ -299,6 +303,16 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+
+    }
+
+    @Override
+    public void onShareSelected(AylaShare share) {
+        ShareUpdateFragment shareUpdateFragment = new ShareUpdateFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(ARG_SHARE, share);
+        shareUpdateFragment.setArguments(bundle);
+        MainActivity.getInstance().pushFragment(shareUpdateFragment);
 
     }
 
