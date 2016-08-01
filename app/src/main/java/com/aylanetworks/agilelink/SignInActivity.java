@@ -153,6 +153,19 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         _loginButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    final String email = _username.getText().toString();
+                    if (TextUtils.isEmpty(email) || !email.contains("@")) {
+                        Toast.makeText(MainActivity.getInstance(),R.string.invalid_email,Toast.LENGTH_LONG).show();
+                        _username.requestFocus();
+                        return;
+                    }
+                    final String password = _password.getText().toString();
+                    if (!TextUtils.isEmpty(password) && password.length() < 4) {
+                        Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                .LENGTH_LONG).show();
+                        _username.requestFocus();
+                        return;
+                    }
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(_loginButton.getWindowToken(), 0);
                     showSigningInDialog();
