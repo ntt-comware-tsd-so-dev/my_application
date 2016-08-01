@@ -653,7 +653,7 @@ public class DeviceDetailFragment extends Fragment implements Device.DeviceStatu
     }
 
     private void sharingClicked() {
-        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, (GenericDevice)_device);
+        ShareDevicesFragment frag = ShareDevicesFragment.newInstance(this, _device);
         MainActivity.getInstance().pushFragment(frag);
     }
 
