@@ -451,6 +451,7 @@ public class MainActivity extends AppCompatActivity
         }
         ((AgileLinkApplication)getApplication()).removeListener(this);
 
+        // Only pause Ayla services here if the wearable service is not using it
         if (AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onPause();
         }
@@ -953,6 +954,7 @@ public class MainActivity extends AppCompatActivity
         Log.d(LOG_TAG, "onPause");
 
         AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+        // Only pause Ayla services here if the wearable service is not using it
         if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
             dm.stopPolling();
 
@@ -970,6 +972,7 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
+        // Only resume Ayla services if the wearable service hasn't already started it
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
         }

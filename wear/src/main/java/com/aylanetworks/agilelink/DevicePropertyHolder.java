@@ -11,12 +11,4 @@ public class DevicePropertyHolder implements Serializable {
 
     public DevicePropertyHolder() {
     }
-
-    public DevicePropertyHolder(String friendlyName, String propertyName,
-                                boolean readOnly, boolean state) {
-        mFriendlyName = friendlyName;
-        mPropertyName = propertyName;
-        mReadOnly = readOnly;
-        mState = state;
-    }
 }

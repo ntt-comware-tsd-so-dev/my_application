@@ -114,6 +114,10 @@ public class WearUpdateService extends Service implements
         startForeground(999, builder.build());
     }
 
+    /**
+     * Initialize AMAPCore, login using CachedAuthProvider, resume AylaNetworks,
+     * fetch account settings, and start device list and device property listeners
+     */
     private void initAylaServices() {
         mWakeLock.acquire(5 * 1000);
         if (AMAPCore.sharedInstance() == null) {
@@ -128,6 +132,7 @@ public class WearUpdateService extends Service implements
                         @Override
                         public void onResponse(AylaAuthorization response) {
                             CachedAuthProvider.cacheAuthorization(WearUpdateService.this, response);
+                            // Only resume Ayla services if the activity isn't currently running (so we don't resume twice)
                             if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(WearUpdateService.this.getClass().getName())) {
                                 AylaNetworks.sharedInstance().onResume();
                             }
@@ -146,11 +151,15 @@ public class WearUpdateService extends Service implements
         }
     }
 
+    /**
+     * Clear device data store, remove all listeners, and pause Ayla services
+     */
     private void destroyAylaServices() {
         mWakeLock.acquire(3 * 1000);
         stopListening();
         removeAllDevicesFromDataStore();
 
+        // Only pause Ayla services if the activity is not currently using it
         if (AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName()) &&
                 AMAPCore.sharedInstance() != null) {
             AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
@@ -177,6 +186,11 @@ public class WearUpdateService extends Service implements
         return status;
     }
 
+    /**
+     * Add / update an Ayla device in the wearable data store. This will put the device name, status,
+     * and all applicable properties into storage
+     * @param device The Ayla device to be updated in the wearable data store
+     */
     private void updateWearDataForDevice(AylaDevice device) {
         if (!device.isGateway()) {
             ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
@@ -185,12 +199,14 @@ public class WearUpdateService extends Service implements
                 return;
             }
 
+            // Format for path is /<device DSN>
             PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/" + device.getDsn());
             DataMap deviceMap = putDataMapReq.getDataMap();
             deviceMap.putString(DEVICE_NAME, device.getFriendlyName());
             deviceMap.putString(DEVICE_DSN, device.getDsn());
             deviceMap.putString(DEVICE_STATUS, getDeviceStatus(device));
 
+            // Only add properties users care about AKA notifiable and schedulable properties
             List<AylaProperty> allDeviceProperties = device.getProperties();
             List<String> readOnlyProperties = Arrays.asList(deviceModel.getNotifiablePropertyNames());
             List<String> readWriteProperties = Arrays.asList(deviceModel.getSchedulablePropertyNames());
@@ -252,6 +268,7 @@ public class WearUpdateService extends Service implements
             }
         }
 
+        // Send a message to the wearable device to let it know that Ayla services has been initialized
         sendMessageToWearable(DEVICE_CONTROL_CONNECTION_STARTED, "");
     }
 
@@ -278,6 +295,8 @@ public class WearUpdateService extends Service implements
     @Override
     public void deviceChanged(AylaDevice device, Change change) {
         if (change.getType() == Change.ChangeType.Property) {
+            // If it's a device property change, update the wearable data store only if the property is
+            // notifiable or schedulable
             mWakeLock.acquire(3 * 1000);
 
             String changedPropertyName = ((PropertyChange) change).getPropertyName();
@@ -330,6 +349,7 @@ public class WearUpdateService extends Service implements
             if (addedItems != null) {
                 for (Object item : addedItems) {
                     if (item instanceof AylaDevice) {
+                        // Add the new Ayla device to the data store and listen for its changes
                         AylaDevice device = (AylaDevice) item;
                         updateWearDataForDevice(device);
                         device.addListener(this);
@@ -337,6 +357,7 @@ public class WearUpdateService extends Service implements
                 }
             }
 
+            // Delete removed Ayla devices from the wearable data store
             removeDeviceFromDataStore(change.getRemovedIdentifiers());
         }
     }
@@ -344,8 +365,10 @@ public class WearUpdateService extends Service implements
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_MSG_URI)) {
+            // Received command from wearable device to change a Ayla device property
             mWakeLock.acquire(5 * 1000);
 
+            // Format of body data is <device DSN>/<property name>/<1 / 0>
             String cmd = new String(messageEvent.getData());
             String[] cmdComponents = cmd.split("/");
             if (cmdComponents.length < 3) {
@@ -369,26 +392,33 @@ public class WearUpdateService extends Service implements
             property.createDatapoint(Integer.valueOf(propertyState), null, new Response.Listener<AylaDatapoint>() {
                 @Override
                 public void onResponse(AylaDatapoint response) {
+                    // Send execution success status to wearable device
                     sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "1");
                     mWakeLock.release();
                 }
             }, new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
+                    // Send execution failure status to wearable device
                     sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "0");
                     mWakeLock.release();
                 }
             });
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_START_CONNECTION)) {
+            // Received message from wearable device to initialize Ayla services and start Ayla session
             initAylaServices();
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_END_CONNECTION)) {
+            // Received message from wearable device to destroy Ayla services and exit Ayla session
             destroyAylaServices();
         }
     }
 
     private void sendMessageToWearable(String path, String data) {
-        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mWearableNode,
-                path, data.getBytes());
+        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(
+                mGoogleApiClient,
+                mWearableNode,
+                path,
+                data.getBytes());
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
@@ -397,11 +427,14 @@ public class WearUpdateService extends Service implements
         });
     }
 
+    /**
+     * Get the node ID of the wearable device
+     */
     private void getWearableNode() {
         PendingResult<CapabilityApi.GetCapabilityResult> result = Wearable.CapabilityApi.getCapability(
                 mGoogleApiClient,
-                "ayla_device_control_result",
-                CapabilityApi.FILTER_REACHABLE);
+                "ayla_device_control_result", // Capability declared in the AMAP Wear application
+                CapabilityApi.FILTER_REACHABLE); // Get only connected wearable devices
 
         result.setResultCallback(new ResultCallback<CapabilityApi.GetCapabilityResult>() {
             @Override
@@ -410,16 +443,22 @@ public class WearUpdateService extends Service implements
                 for (Node node : connectedNodes) {
                     if (node.isNearby()) {
                         mWearableNode = node.getId();
+                        // If a capable wearable device was found, make this service foreground so
+                        // Android doesn't kill it too easily
                         startForegroundService();
                         return;
                     }
                 }
 
+                // When no capable wearable devices are connected, hide this service in the background
                 stopForeground(true);
             }
         });
     }
 
+    /**
+     * Get the node ID of this handheld device
+     */
     private void getLocalNode() {
         PendingResult<NodeApi.GetLocalNodeResult> pendingResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient);
         pendingResult.setResultCallback(new ResultCallback<NodeApi.GetLocalNodeResult>() {
@@ -493,6 +532,7 @@ public class WearUpdateService extends Service implements
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
+        // Stop this service when user logs out; service will be restarted when user logs back in
         stopSelf();
     }
 
@@ -502,9 +542,11 @@ public class WearUpdateService extends Service implements
 
     @Override
     public void onCapabilityChanged(CapabilityInfo capabilityInfo) {
+        // When a wearable device is connected / disconnected, refresh the state
         getWearableNode();
     }
 
+    // Receiver to stop this service when the notification is pressed
     private class ServiceCommandReceiver extends BroadcastReceiver {
 
         @Override
