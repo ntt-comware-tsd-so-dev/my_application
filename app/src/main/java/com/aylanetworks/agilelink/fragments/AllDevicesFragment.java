@@ -161,7 +161,6 @@ public class AllDevicesFragment extends Fragment implements
     }
 
     public void updateDeviceList() {
-
         if (_recyclerView == null) {
             // We're not ready yet
             return;

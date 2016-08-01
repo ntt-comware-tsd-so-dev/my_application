@@ -1,4 +1,4 @@
-include ':app'
+include ':app', ':wear'
 
 include ':websocketLibrary'
 project(':websocketLibrary').projectDir =

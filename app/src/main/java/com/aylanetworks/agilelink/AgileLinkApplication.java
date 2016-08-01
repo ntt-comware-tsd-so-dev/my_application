@@ -77,6 +77,7 @@ public class AgileLinkApplication extends Application implements ComponentCallba
     private Set<AgileLinkApplicationListener> _listeners;
     LifeCycleState _lifeCycleState;
     ActivityLifeCycleState _activityLifeCycleState;
+    private Set<String> _aylaNetworksRefCounter = new HashSet<>();
 
     public void onCreate() {
         sInstance = this;
@@ -133,6 +134,17 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
     public static AgileLinkApplication getsInstance() {
         return sInstance;
+    }
+
+    public boolean shouldResumeAylaNetworks(String classTag) {
+        boolean shouldResume = _aylaNetworksRefCounter.isEmpty();
+        _aylaNetworksRefCounter.add(classTag);
+        return shouldResume;
+    }
+
+    public boolean canPauseAylaNetworks(String classTag) {
+        _aylaNetworksRefCounter.remove(classTag);
+        return _aylaNetworksRefCounter.isEmpty();
     }
 
     /**

@@ -10,7 +10,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.aylanetworks.agilelink.AgileLinkApplication;
 import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
@@ -114,14 +116,16 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     public String friendlyNameForPropertyName(String propertyName) {
         switch (propertyName) {
             case PROPERTY_BLUE_LED:
-                return MainActivity.getInstance().getString(R.string.blue_led);
+                return AgileLinkApplication.getAppContext().getString(R.string.blue_led);
 
             case PROPERTY_GREEN_LED:
-                return MainActivity.getInstance().getString(R.string.green_led);
+                return AgileLinkApplication.getAppContext().getString(R.string.green_led);
 
             case PROPERTY_BLUE_BUTTON:
-                return MainActivity.getInstance().getString(R.string.blue_button);
+                return AgileLinkApplication.getAppContext().getString(R.string.blue_button);
         }
+
+
         return super.friendlyNameForPropertyName(propertyName);
     }
 
