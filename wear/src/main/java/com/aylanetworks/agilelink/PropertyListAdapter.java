@@ -59,6 +59,7 @@ public class PropertyListAdapter extends WearableListView.Adapter {
 
         final DevicePropertyHolder propertyHolder = mProperties.get(position);
         if (propertyHolder instanceof RowPropertyHolder) {
+            // Navigation row, show navigation arrow
             row.setVisibility(View.VISIBLE);
             RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
             if (type == RowPropertyHolder.RowType.TOP) {
@@ -67,6 +68,8 @@ public class PropertyListAdapter extends WearableListView.Adapter {
                 row.setBackgroundResource(R.mipmap.down);
             }
         } else {
+            // Property row, show property name, and a status RadioButton for "from device"
+            // properties or a Switch for "to device" properties
             propertyName.setText(propertyHolder.mFriendlyName);
 
             if (propertyHolder.mReadOnly) {

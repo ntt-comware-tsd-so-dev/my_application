@@ -16,6 +16,9 @@ import java.util.TreeMap;
 
 public class DevicesGridAdapter extends FragmentGridPagerAdapter {
 
+    /**
+     * Array of background images for pager
+     */
     private static final Integer[] BACKGROUND_IMAGE_ID_LIST = {R.mipmap.card_bg1, R.mipmap.card_bg2, R.mipmap.card_bg4, R.mipmap.card_bg5};
 
     private Context mContext;
@@ -29,6 +32,7 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
         mContext = context;
         mDevices = new ArrayList<>(devicesMap.values());
 
+        // Randomize order of background images
         long seed = System.nanoTime();
         Collections.shuffle(mBackgroundImages, new Random(seed));
     }
@@ -44,8 +48,9 @@ public class DevicesGridAdapter extends FragmentGridPagerAdapter {
         Bundle arguments = new Bundle();
         DeviceHolder device = mDevices.get(row);
         arguments.putSerializable(DeviceFragment.ARG_DEVICE_HOLDER, device);
-        // overview card; show only device name
-        // property card; show property list
+        // If overview card; show only device name and status
+        // If property card; show property list
+        // First column is overview card; second column is property cards
         arguments.putBoolean(DeviceFragment.ARG_IS_OVERVIEW_CARD, col == 0);
         arguments.putInt(DeviceFragment.ARG_ROW, row);
         arguments.putInt(DeviceFragment.ARG_ROW_COUNT, getRowCount());

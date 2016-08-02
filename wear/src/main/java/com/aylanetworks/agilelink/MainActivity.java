@@ -53,7 +53,13 @@ public class MainActivity extends WearableActivity implements
         WearableListView.ClickListener,
         MessageApi.MessageListener {
 
+    /**
+     * Maximum amount of time to wait for the service to initialize on the handheld device
+     */
     private static final int CONNECTION_START_TIMEOUT = 5 * 1000;
+    /**
+     * Maximum amount of time to wait for the command to be delivered to the handheld device
+     */
     private static final int SENDING_TIMEOUT_DISMISS_MESSAGE_MS = 5 * 1000;
 
     private static final String DEVICE_NAME = "device_name";
@@ -76,11 +82,22 @@ public class MainActivity extends WearableActivity implements
     private Handler mHandler;
 
     private String mHandheldNode = "";
-    private boolean mGridPagerIdle = true;
-    private boolean mPropertyListIdle = true;
-    private boolean mPendingDataUpdate = false;
     private int mPropertyListViewCentralPosition = 0;
 
+    /**
+     * Idle if the user is currently not interacting with the pager / list
+     */
+    private boolean mGridPagerIdle = true;
+    private boolean mPropertyListIdle = true;
+
+    /**
+     * Whether the UI should be refreshed after the user is done interacting with it
+     */
+    private boolean mPendingDataUpdate = false;
+
+    /**
+     * Map of Ayla devices, keyed by the DSN
+     */
     private TreeMap<String, DeviceHolder> mDevicesMap = new TreeMap<>();
 
     @Override
@@ -89,21 +106,27 @@ public class MainActivity extends WearableActivity implements
         setContentView(R.layout.activity_main);
 
         mHandler = new Handler();
+
+        // Error view will be displayed when the connection takes too long to establish
         mErrorView = (TextView) findViewById(R.id.load_error);
         mErrorView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // In case of connection timeout, press to retry
                 sendDeviceControlStartConnectionMessage();
                 hideError();
             }
         });
+
+        // This is the 2D grid pager
         mPager = (GridViewPager) findViewById(R.id.pager);
-        mPager.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
+        // Loading view will be displayed while the wearable is sending a command to the handheld
         mSending = (LinearLayout) findViewById(R.id.sending);
-        mSending.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mSending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Press to hide view
                 hideSendingView(true);
             }
         });
@@ -114,6 +137,7 @@ public class MainActivity extends WearableActivity implements
                 .addApi(Wearable.API)
                 .build();
 
+        // Long press anywhere and a menu will display to exit the app
         final DismissOverlayView dismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
         mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
@@ -123,6 +147,8 @@ public class MainActivity extends WearableActivity implements
         });
         mGestureDetector.setIsLongpressEnabled(true);
 
+        // The pager listener is used to only update the UI when the user is not currently
+        // interacting with it
         mPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int row, int column, float rowOffset, float columnOffset, int rowOffsetPixels, int columnOffsetPixels) {
@@ -144,6 +170,7 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        // Intercept all touch events to detect long presses (for exit menu)
         return mGestureDetector.onTouchEvent(ev) || super.dispatchTouchEvent(ev);
     }
 
@@ -154,9 +181,16 @@ public class MainActivity extends WearableActivity implements
         }
     };
 
+    /**
+     * Sends message to the handheld device to initialize Ayla services and start Ayla session
+     * Called when the wearable activity starts
+     */
     private void sendDeviceControlStartConnectionMessage() {
-        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
-                DEVICE_CONTROL_START_CONNECTION, "".getBytes());
+        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(
+                mGoogleApiClient,
+                mHandheldNode, // Destination node ID (Handheld ID)
+                DEVICE_CONTROL_START_CONNECTION, // Message path
+                "".getBytes()); // Body data is not used for this message
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
@@ -165,12 +199,21 @@ public class MainActivity extends WearableActivity implements
                 }
             }
         });
+
+        // Display timeout message after #CONNECTION_START_TIMEOUT if no response has been received
         mHandler.postDelayed(mServiceConnectionTimedOut, CONNECTION_START_TIMEOUT);
     }
 
+    /**
+     * Sends message to the handheld device to exit Ayla session and destroy Ayla services
+     * Called when the wearable activity exits
+     */
     private void sendDeviceControlEndConnectionMessage() {
-        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
-                DEVICE_CONTROL_END_CONNECTION, "".getBytes());
+        PendingResult<MessageApi.SendMessageResult> pendingResult = Wearable.MessageApi.sendMessage(
+                mGoogleApiClient,
+                mHandheldNode, // Destination node ID (Handheld ID)
+                DEVICE_CONTROL_END_CONNECTION, // Message path
+                "".getBytes()); // Body data is not used for this message
         pendingResult.setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
             @Override
             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
@@ -179,7 +222,15 @@ public class MainActivity extends WearableActivity implements
         });
     }
 
+    /**
+     * Sends message to the handheld device to control Ayla device properties
+     * @param dsn The DSN of the target Ayla device
+     * @param propertyName The name of the target property
+     * @param newStatus The desired state of the target property
+     * @return Whether command delivery to the handheld device was successful
+     */
     private boolean sendDeviceControlMessage(String dsn, String propertyName, boolean newStatus) {
+        // Format of body data is <device DSN>/<property name>/<1 / 0>
         byte[] cmdArray = (dsn + "/" + propertyName + "/" + (newStatus ? "1" : "0")).getBytes();
 
         MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, mHandheldNode,
@@ -187,11 +238,14 @@ public class MainActivity extends WearableActivity implements
         return result.getStatus().isSuccess();
     }
 
+    /**
+     * Obtains the node ID of the handheld device (Only those with the AMAP application installed)
+     */
     private void getHandheldNode() {
         PendingResult<CapabilityApi.GetCapabilityResult> result = Wearable.CapabilityApi.getCapability(
                 mGoogleApiClient,
-                "ayla_device_control",
-                CapabilityApi.FILTER_REACHABLE);
+                "ayla_device_control", // Capability declared in the AMAP handheld application
+                CapabilityApi.FILTER_REACHABLE); // Only devices that are currently connected
 
         result.setResultCallback(new ResultCallback<CapabilityApi.GetCapabilityResult>() {
             @Override
@@ -199,17 +253,22 @@ public class MainActivity extends WearableActivity implements
                 Set<Node> connectedNodes = getCapabilityResult.getCapability().getNodes();
                 for (Node node : connectedNodes) {
                     if (node.isNearby()) {
+                        // After finding the handheld device, send a message to it to initialize
                         mHandheldNode = node.getId();
                         sendDeviceControlStartConnectionMessage();
                         return;
                     }
                 }
 
+                // If no capable handheld device was found, show error
                 showError("Cannot find capable handheld device");
             }
         });
     }
 
+    /**
+     * Refresh device data for all Ayla devices from data store
+     */
     private void updateAllDevicesData() {
         DataItemBuffer dataBuffer = Wearable.DataApi.getDataItems(mGoogleApiClient).await();
         for (DataItem deviceDataItem : dataBuffer) {
@@ -218,6 +277,11 @@ public class MainActivity extends WearableActivity implements
         dataBuffer.release();
     }
 
+    /**
+     * Obtains the DSN of the Ayla device data contained in the DataItem
+     * @param deviceDataItem The DataItem containing Ayla device data
+     * @return The DSN of the Ayla device
+     */
     private String getDataItemDeviceDsn(DataItem deviceDataItem) {
         String path = deviceDataItem.getUri().getPath();
         if (path.startsWith("/")) {
@@ -227,18 +291,24 @@ public class MainActivity extends WearableActivity implements
         return null;
     }
 
+    /**
+     * Refresh device data for the Ayla device contained in the DataItem
+     * @param deviceDataItem DataItem containing data for an Ayla device
+     */
     private void updateDeviceData(DataItem deviceDataItem) {
         final DataMap deviceMap = DataMapItem.fromDataItem(deviceDataItem).getDataMap();
         String dsn = deviceMap.getString(DEVICE_DSN);
 
+        // Format for path is /<device DSN>
         if (dsn == null || !deviceDataItem.getUri().getPath().equals("/" + dsn)) {
             return;
         }
 
-        String name = deviceMap.getString(DEVICE_NAME);
-        String status = deviceMap.getString(DEVICE_STATUS);
+        String name = deviceMap.getString(DEVICE_NAME); // Device name
+        String status = deviceMap.getString(DEVICE_STATUS); // Device status (Offline/Online/LAN Mode)
         final DeviceHolder deviceHolder = new DeviceHolder(name, dsn, status);
 
+        // Get all device properties and add to device holder for this Ayla device
         Gson gson = new Gson();
         ArrayList<DevicePropertyHolder> propertyHolders = gson.fromJson(deviceMap.getString(DEVICE_PROPERTIES),
                 new TypeToken<ArrayList<DevicePropertyHolder>>(){}.getType());
@@ -247,6 +317,7 @@ public class MainActivity extends WearableActivity implements
             deviceHolder.addBooleanProperty(holder);
         }
 
+        // Add device holder to map
         mDevicesMap.put(dsn, deviceHolder);
     }
 
@@ -271,6 +342,7 @@ public class MainActivity extends WearableActivity implements
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         mHandler.removeCallbacks(mServiceConnectionTimedOut);
 
+        // Get changed device data and start refreshing
         DataEvent[] dataEvents = new DataEvent[dataEventBuffer.getCount()];
         for (int i = 0; i < dataEventBuffer.getCount(); i++) {
             dataEvents[i] = dataEventBuffer.get(i).freeze();
@@ -299,14 +371,17 @@ public class MainActivity extends WearableActivity implements
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_RESULT_MSG_URI)) {
+            // Command has been successfully received by handheld device, get execution status
             String result = new String(messageEvent.getData());
-            if (result.equals("0")) {
+            if (result.equals("0")) { // Command failed to execute
                 updateGridAnchored();
                 Toast.makeText(MainActivity.this, "Failed to execute device command", Toast.LENGTH_SHORT).show();
             }
 
-            hideSendingView(false);
+            hideSendingView(false); // Hide loading view as the task is done
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_CONNECTION_STARTED)) {
+            // Ayla services and session has been initialized on the handheld device,
+            // start refreshing the data and UI
             mHandler.removeCallbacks(mServiceConnectionTimedOut);
             new DataLoader(null).execute();
         }
@@ -325,7 +400,9 @@ public class MainActivity extends WearableActivity implements
             if (mDataEvents != null) {
                 for (DataEvent event : mDataEvents) {
                     DataItem dataItem = event.getDataItem();
+
                     if (event.getType() == DataEvent.TYPE_DELETED) {
+                        // If DataItem was deleted, remove the corresponding device from the map
                         String dsn = getDataItemDeviceDsn(dataItem);
                         if (dsn != null && mDevicesMap.containsKey(dsn)) {
                             mDevicesMap.remove(dsn);
@@ -335,6 +412,7 @@ public class MainActivity extends WearableActivity implements
                     }
                 }
             } else {
+                // If no DataEvents are provided, refresh data for all devices
                 updateAllDevicesData();
             }
 
@@ -351,11 +429,13 @@ public class MainActivity extends WearableActivity implements
             }
 
             if (mAdapter == null) {
+                // On first run, initialize the pager
                 mAdapter = new DevicesGridAdapter(MainActivity.this, getFragmentManager(), mDevicesMap);
                 mPager.setAdapter(mAdapter);
                 DotsPageIndicator pageDots = (DotsPageIndicator) findViewById(R.id.page_dots);
                 pageDots.setPager(mPager);
 
+                // Show the pager and hide the loading view
                 mPager.setVisibility(View.VISIBLE);
                 mPager.animate().withLayer().alpha(1).setDuration(250).start();
                 final ProgressBar loading = (ProgressBar) findViewById(R.id.loading);
@@ -385,7 +465,12 @@ public class MainActivity extends WearableActivity implements
         }
     }
 
+    /**
+     * Refresh the pager and list UI and restore the previous pager and list positions
+     */
     private void updateGridAnchored() {
+        // Don't refresh right now if the user is currently interacting with the UI,
+        // do it after they're done
         if (!mGridPagerIdle || !mPropertyListIdle) {
             mPendingDataUpdate = true;
             return;
@@ -396,15 +481,18 @@ public class MainActivity extends WearableActivity implements
         }
 
         mPendingDataUpdate = false;
+        // Get current pager and list positions
         Point gridPosition = mPager.getCurrentItem();
         int listPosition = mPropertyListViewCentralPosition;
 
+        // Refresh pager and list data
         mAdapter.notifyDataSetChanged();
 
+        // Restore previous pager and list positions (If index is out of bounds, set to the last item)
         if (mAdapter.getRowCount() > 0) {
             if (gridPosition.y < mAdapter.getRowCount()) {
                 mPager.setCurrentItem(gridPosition.y, gridPosition.x, false);
-                if (gridPosition.x == 1) {
+                if (gridPosition.x == 1) { // Restore list position only if fragment is in focus
                     DeviceFragment currentFragment = (DeviceFragment) mAdapter.findExistingFragment(gridPosition.y, gridPosition.x);
                     currentFragment.setPropertyListViewPosition(listPosition);
                 }
@@ -417,6 +505,8 @@ public class MainActivity extends WearableActivity implements
     private void hideSendingView(boolean manual) {
         if (mSending.getAlpha() == 1 && mSending.getVisibility() == View.VISIBLE) {
             mHandler.removeCallbacks(mShowSendingDismissMessage);
+            // If the user pressed the loading view to hide it explicitly, the command
+            // was probably taking too long to send so refresh the UI
             if (manual) {
                 updateGridAnchored();
             }
@@ -502,7 +592,9 @@ public class MainActivity extends WearableActivity implements
     @Override
     public void onClick(WearableListView.ViewHolder viewHolder) {
         DevicePropertyHolder propertyHolder = (DevicePropertyHolder) viewHolder.itemView.getTag();
+
         if (propertyHolder instanceof RowPropertyHolder) {
+            // The clicked row was a pager navigation arrow, switch to the new page accordingly
             RowPropertyHolder.RowType type = ((RowPropertyHolder) propertyHolder).mRowType;
             Point gridPosition = mPager.getCurrentItem();
             if (type == RowPropertyHolder.RowType.TOP) {
@@ -516,6 +608,7 @@ public class MainActivity extends WearableActivity implements
                 }
             }
         } else {
+            // Clicked row was a property row, send command
             PropertyListAdapter.ItemViewHolder itemHolder = (PropertyListAdapter.ItemViewHolder) viewHolder;
             Switch propertyToggle = itemHolder.mReadWriteProperty;
             if (propertyToggle.getVisibility() == View.VISIBLE) {
