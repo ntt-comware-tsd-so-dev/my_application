@@ -79,7 +79,9 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
         _shareUpdateButton = (Button)root.findViewById(R.id.share_update_button);
 
         String accessLevel = _share.getOperation();
-        _radioGrp.check(accessLevel.equals("read")? R.id.radio_view: R.id.radio_control);
+        if(accessLevel != null){
+            _radioGrp.check(accessLevel.equals("read")? R.id.radio_view: R.id.radio_control);
+        }
 
         String startDate = _share.getStartDateAt();
         if(startDate != null){
