@@ -193,6 +193,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
                         updateButtonText();
                     }
                 });
+        d.getDatePicker().setMinDate(now.getTimeInMillis());
         d.show();
     }
 
