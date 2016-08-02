@@ -56,8 +56,6 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        _shareStartDate = Calendar.getInstance();
-        _shareEndDate = Calendar.getInstance();
         _simpleDateFormat= new SimpleDateFormat
                 ("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
         _dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
@@ -86,6 +84,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
         String startDate = _share.getStartDateAt();
         if(startDate != null){
             try {
+                _shareStartDate = Calendar.getInstance();
                 _shareStartDate.setTime(_simpleDateFormat.parse(startDate));
                 _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
             } catch (ParseException e) {
@@ -97,6 +96,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
         String endDate = _share.getEndDateAt();
         if( endDate != null){
             try {
+                _shareEndDate = Calendar.getInstance();
                 _shareEndDate.setTime(_simpleDateFormat.parse(endDate));
                 _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
             } catch (ParseException e) {
