@@ -160,7 +160,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         return;
                     }
                     final String password = _password.getText().toString();
-                    if (!TextUtils.isEmpty(password) && password.length() < 4) {
+                    if (!TextUtils.isEmpty(password) && password.length() < 6) {
                         Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
                                 .LENGTH_LONG).show();
                         _username.requestFocus();
