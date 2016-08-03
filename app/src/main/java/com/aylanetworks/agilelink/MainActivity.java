@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-
+        CachedAuthProvider.cacheAuthorization(this, authorization);
     }
 
     /**
