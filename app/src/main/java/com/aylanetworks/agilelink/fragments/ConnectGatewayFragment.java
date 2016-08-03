@@ -96,7 +96,7 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                     public void onErrorResponse(AylaError error) {
                         MainActivity.getInstance().dismissWaitDialog();
 
-                        Toast.makeText(getActivity(),
+                        Toast.makeText(MainActivity.getInstance(),
                                 ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
                                 Toast.LENGTH_LONG).show();
                     }
@@ -146,7 +146,7 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
                                         int msgId = (error == null ? R.string.registration_success :
                                                 R.string.registration_success_notification_fail);
-                                        Toast.makeText(getContext(), msgId, Toast.LENGTH_LONG).show();
+                                        Toast.makeText(MainActivity.getInstance(), msgId, Toast.LENGTH_LONG).show();
 
                                         MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
                                     }
@@ -158,7 +158,7 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
                     public void onErrorResponse(AylaError error) {
                         MainActivity.getInstance().dismissWaitDialog();
 
-                        Toast.makeText(getActivity(),
+                        Toast.makeText(MainActivity.getInstance(),
                                 ErrorUtils.getUserMessage(getActivity(), error, R.string.registration_failure),
                                 Toast.LENGTH_LONG).show();
                     }
