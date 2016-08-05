@@ -97,16 +97,13 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
             try {
                 _shareStartDate = Calendar.getInstance();
                 _shareStartDate.setTime(_simpleDateFormat.parse(startDate));
-                if(_shareStartDate.getTimeInMillis() == 0){
-                    _startButton.setText(getString(R.string.no_date));
-                } else{
-                    _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
-                }
+                _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
 
             } catch (ParseException e) {
                 AylaLog.e(LOG_TAG, "Exception while parsing start date: "+startDate +
                         " "+e.getMessage());
                 _startButton.setText(getString(R.string.no_date));
+                _shareStartDate = null;
             }
         } else{
             _startButton.setText(getString(R.string.now));
@@ -116,16 +113,13 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
             try {
                 _shareEndDate = Calendar.getInstance();
                 _shareEndDate.setTime(_simpleDateFormat.parse(endDate));
-                if(_shareEndDate.getTimeInMillis() == 0){
-                    _endButton.setText(getString(R.string.no_date));
-                } else{
-                    _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
-                }
+                _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
 
             } catch (ParseException e) {
                 AylaLog.e(LOG_TAG, "Exception while parsing end date: "+endDate +
                         " "+e.getMessage());
                 _endButton.setText(getString(R.string.no_date));
+                _shareEndDate = null;
             }
         } else{
             _endButton.setText(getString(R.string.never));
@@ -153,15 +147,11 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
 
 
                 String startDate = null;
-                if(_shareStartDate == null || _shareStartDate.getTimeInMillis() == 0){
-                   startDate = "null";
-                } else{
+                if(_shareStartDate != null){
                     startDate = _simpleDateFormat.format(_shareStartDate.getTime());
                 }
-                String endDate;
-                if(_shareEndDate == null || _shareEndDate.getTimeInMillis() == 0){
-                    endDate = "null";
-                } else{
+                String endDate = null;
+                if(_shareEndDate != null){
                     endDate = _simpleDateFormat.format(_shareEndDate.getTime());
                 }
                 _share.setRoleName(_edittextRole.getText().toString());
@@ -183,6 +173,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
                 }, new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(getContext(), String.format("%s. %s",
                                 getString(R.string.share_update_error), error.getMessage()),
                                 Toast.LENGTH_SHORT).show();
@@ -196,25 +187,29 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
 
     private void chooseDate(final Button button) {
         Calendar now = Calendar.getInstance();
-        if ( _shareStartDate == null ) {
-            _shareStartDate = Calendar.getInstance();
-            _shareStartDate.setTimeInMillis(0);
-        }
-        if ( _shareEndDate == null ) {
-            _shareEndDate = Calendar.getInstance();
-            _shareEndDate.setTimeInMillis(0);
-        }
+        final int id = button.getId();
 
-        final Calendar dateToModify = (button.getId() == R.id.button_start_date ? _shareStartDate :
-                _shareEndDate);
         DatePickerDialog d = new DatePickerDialog(getActivity(),
                 new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                dateToModify.set(Calendar.YEAR, year);
-                dateToModify.set(Calendar.MONTH, monthOfYear);
-                dateToModify.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                if(id == R.id.button_start_date){
+                    if(_shareStartDate == null){
+                        _shareStartDate = Calendar.getInstance();
+                    }
+                    _shareStartDate.set(Calendar.YEAR, year);
+                    _shareStartDate.set(Calendar.MONTH, monthOfYear);
+                    _shareStartDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                } else{
+                    if(_shareEndDate == null){
+                        _shareEndDate = Calendar.getInstance();
+                    }
+                    _shareEndDate.set(Calendar.YEAR, year);
+                    _shareEndDate.set(Calendar.MONTH, monthOfYear);
+                    _shareEndDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                }
                 updateButtonText();
+
             }
         }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
         d.setButton(DialogInterface.BUTTON_NEUTRAL, getResources().getString(R.string.no_date),
@@ -222,7 +217,11 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        dateToModify.setTimeInMillis(0);
+                        if(id == R.id.button_start_date){
+                            _shareStartDate  = null;;
+                        } else{
+                            _shareEndDate = null;
+                        }
                         updateButtonText();
                     }
                 });
@@ -231,13 +230,13 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
     }
 
     private void updateButtonText() {
-        if ( _shareStartDate == null || _shareStartDate.getTimeInMillis() == 0 ) {
+        if ( _shareStartDate == null) {
             _startButton.setText(R.string.now);
         } else {
             _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
         }
 
-        if ( _shareEndDate == null || _shareEndDate.getTimeInMillis() == 0 ) {
+        if ( _shareEndDate == null) {
             _endButton.setText(R.string.never);
         } else {
             _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
