@@ -382,8 +382,12 @@
     <string name="now">Ahora</string>
     <string name="never">Nunca</string>
     <string name="share_button_title">Compartir dispositivo</string>
+    <string name="share_button_edit">Guardar cambios</string>
     <string name="no_date">Sin Fecha</string>
     <string name="share_email_address_required">Introduzca el correo de la cuenta de Ayla con la que se va a compartir</string>
+    <string name="share_updating">Actualizando compartición.</string>
+    <string name="share_update_success">Compartición actualizada</string>
+    <string name="share_update_error">Error al actualizar compartición.</string>
     <string name="rename_device_text">Introduzca el nombre para el dispositivo:</string>
     <string name="change_name_fail">Ocurrió un error al renombrar el dispositivo. Reintente más tarde.</string>
     <string name="registration">Registro</string>

@@ -406,6 +406,10 @@
     <string name="now">Now</string>
     <string name="never">Never</string>
     <string name="share_button_title">Create Share</string>
+    <string name="share_button_edit">Save Changes</string>
+    <string name="share_updating">Updating share</string>
+    <string name="share_update_success">Share updated successfully</string>
+    <string name="share_update_error">Error in updating share</string>
     <string name="no_date">No Date</string>
     <string name="share_email_address_required">Please enter the email address of the Ayla account holder you would like to share with</string>
     <string name="rename_device_text">Enter the name for your device below:</string>

@@ -24,13 +24,14 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaShare;
-import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
+import com.aylanetworks.aylasdk.AylaShare.ShareAccessLevel;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -44,7 +45,8 @@ import java.util.Locale;
 import java.util.Queue;
 
 
-public class SharesFragment extends Fragment implements AdapterView.OnItemClickListener, ShareDevicesFragment.ShareDevicesListener {
+public class SharesFragment extends Fragment implements AdapterView.OnItemLongClickListener,
+        AdapterView.OnItemClickListener, ShareDevicesFragment.ShareDevicesListener {
     private final static String LOG_TAG = "SharesFragment";
 
     private ListView _listViewSharedByMe;
@@ -63,17 +65,25 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        ShareUpdateFragment shareUpdateFragment = ShareUpdateFragment.newInstance
+                (_ownedShareAdapter.getItem(position));
+        MainActivity.getInstance().pushFragment(shareUpdateFragment);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_shares, container, false);
 
         _listViewSharedByMe = (ListView)root.findViewById(R.id.listview_devices_i_share);
+        _listViewSharedByMe.setOnItemLongClickListener(this);
         _listViewSharedByMe.setOnItemClickListener(this);
         _listViewSharedByMe.setEmptyView(root.findViewById(R.id.my_shares_empty));
 
         _listViewSharedToMe = (ListView)root.findViewById(R.id.listview_devices_shared_with_me);
-        _listViewSharedToMe.setOnItemClickListener(this);
+        _listViewSharedToMe.setOnItemLongClickListener(this);
         _listViewSharedToMe.setEmptyView(root.findViewById(R.id.shared_with_me_empty));
 
         ImageButton addButton = (ImageButton)root.findViewById(R.id.add_button);
@@ -94,10 +104,10 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             @Override
             public void onResponse(AylaShare[] response) {
                 _ownedShares = response;
-
                 if(isAdded()){
                     if (_ownedShareAdapter == null) {
-                        _ownedShareAdapter = new ShareListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
+                        _ownedShareAdapter = new ShareListAdapter(getContext(),
+                                new ArrayList<>(Arrays.asList(response)));
                         _listViewSharedByMe.setAdapter(_ownedShareAdapter);
                     } else {
                         _ownedShareAdapter.clear();
@@ -111,8 +121,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             @Override
             public void onErrorResponse(AylaError error) {
                 Toast.makeText(MainActivity.getInstance(),
-                        ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetching_shares),
-                        Toast.LENGTH_LONG).show();
+                        ErrorUtils.getUserMessage(getContext(), error,
+                                R.string.error_fetching_shares), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -124,7 +134,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
                 if(isAdded()){
                     if (_receivedShareAdapter == null) {
-                        _receivedShareAdapter = new ShareListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
+                        _receivedShareAdapter = new ShareListAdapter(getContext(),
+                                new ArrayList<>(Arrays.asList(response)));
                         _listViewSharedToMe.setAdapter(_receivedShareAdapter);
                     } else {
                         _receivedShareAdapter.clear();
@@ -139,8 +150,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             @Override
             public void onErrorResponse(AylaError error) {
                 Toast.makeText(MainActivity.getInstance(),
-                        ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetching_shares),
-                        Toast.LENGTH_LONG).show();
+                        ErrorUtils.getUserMessage(getContext(), error,
+                                R.string.error_fetching_shares), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -152,27 +163,28 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         if ( parent == _listViewSharedByMe ) {
             AylaShare share = (AylaShare)_listViewSharedByMe.getAdapter().getItem(position);
-            Log.d(LOG_TAG, "Share clicked: " + share);
             confirmRemoveShare(share, true);
         } else {
             AylaShare share = (AylaShare)_listViewSharedToMe.getAdapter().getItem(position);
-            Log.d(LOG_TAG, "Share clicked: " + share);
             confirmRemoveShare(share, false);
         }
+        return true;
     }
 
     private void confirmRemoveShare(final AylaShare share, boolean amOwner) {
         String email = amOwner ? share.getUserProfile().email : share.getOwnerProfile().email;
-        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(share.getResourceId());
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(
+                share.getResourceId());
         String deviceName = "[unknown device]";
         if ( device != null ) {
             deviceName = device.getFriendlyName();
         }
 
-        int messageID = amOwner ? R.string.confirm_remove_share_message : R.string.confirm_remove_shared_device_message;
+        int messageID = amOwner ? R.string.confirm_remove_share_message :
+                R.string.confirm_remove_shared_device_message;
         String formattedMessage = getActivity().getString(messageID, deviceName, email);
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -182,7 +194,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(LOG_TAG, "Removing share " + share);
-                        MainActivity.getInstance().showWaitDialog(R.string.removing_share_title, R.string.removing_share_body);
+                        MainActivity.getInstance().showWaitDialog(R.string.removing_share_title,
+                                R.string.removing_share_body);
                         AMAPCore.sharedInstance().getSessionManager().deleteShare(share.getId(),
                                 new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                             @Override
@@ -195,7 +208,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                             public void onErrorResponse(AylaError error) {
                                 MainActivity.getInstance().dismissWaitDialog();
                                 Toast.makeText(MainActivity.getInstance(),
-                                        ErrorUtils.getUserMessage(getContext(), error, R.string.error_deleting_share),
+                                        ErrorUtils.getUserMessage(getContext(), error,
+                                                R.string.error_deleting_share),
                                         Toast.LENGTH_LONG).show();
                             }
                         });
@@ -213,7 +227,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
 
         final Queue<AylaDevice> sharingQueue = new LinkedList<>(devicesToShare);
         if (!sharingQueue.isEmpty()) {
-            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
+            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title,
+                    R.string.creating_share_body);
 
             final SimpleDateFormat dateFormat = new SimpleDateFormat
                     ("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
@@ -235,15 +250,17 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
             final String sharingStart = startDateString;
             final String sharingEnd = endDateString;
             AylaDevice device = sharingQueue.remove();
-            AylaShare share = device.shareWithEmail(email, readOnly ? "read" : "write", role, startDateString, endDateString);
+            AylaShare share = device.shareWithEmail(email, readOnly ?
+                    ShareAccessLevel.READ.stringValue() : ShareAccessLevel.WRITE.stringValue(), role,
+                    startDateString, endDateString);
 
             final ErrorListener errorListener = new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
                     MainActivity.getInstance().dismissWaitDialog();
                     Toast.makeText(MainActivity.getInstance(),
-                            ErrorUtils.getUserMessage(getContext(), error, R.string.error_creating_share),
-                            Toast.LENGTH_LONG).show();
+                            ErrorUtils.getUserMessage(getContext(), error,
+                                    R.string.error_creating_share), Toast.LENGTH_LONG).show();
                 }
             };
 
@@ -256,14 +273,17 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                         fetchShares();
                     } else {
                         AylaDevice device = sharingQueue.remove();
-                        AylaShare share = device.shareWithEmail(email, readOnly ? "read" : "write", sharingRole, sharingStart, sharingEnd);
+                        AylaShare share = device.shareWithEmail(email, readOnly ?
+                                ShareAccessLevel.READ.stringValue() : ShareAccessLevel.WRITE.stringValue(),
+                                sharingRole, sharingStart, sharingEnd);
                         AMAPCore.sharedInstance().getSessionManager().createShare
                                 (share, null, this, errorListener);
                     }
                 }
             };
 
-            AMAPCore.sharedInstance().getSessionManager().createShare(share, null, successListener, errorListener);
+            AMAPCore.sharedInstance().getSessionManager().createShare(share, null, successListener,
+                    errorListener);
         }
     }
 }
