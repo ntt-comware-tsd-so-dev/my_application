@@ -139,13 +139,17 @@ public class WearUpdateService extends Service implements
                             AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
 
                             startListening();
-                            mWakeLock.release();
+                            if (mWakeLock.isHeld()) {
+                                mWakeLock.release();
+                            }
                         }
                     },
                     new ErrorListener() {
                         @Override
                         public void onErrorResponse(AylaError error) {
-                            mWakeLock.release();
+                            if (mWakeLock.isHeld()) {
+                                mWakeLock.release();
+                            }
                         }
                     });
         }
@@ -168,7 +172,9 @@ public class WearUpdateService extends Service implements
                 AylaNetworks.sharedInstance().onPause();
             }
         }
-        mWakeLock.release();
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
     }
 
     private String getDeviceStatus(AylaDevice device) {
@@ -313,11 +319,15 @@ public class WearUpdateService extends Service implements
             if (readOnlyProperties.contains(changedPropertyName) || readWriteProperties.contains(changedPropertyName)) {
                 updateWearDataForDevice(device);
             }
-            mWakeLock.release();
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+            }
         } else if (change.getType() == Change.ChangeType.Field) {
             mWakeLock.acquire(3 * 1000);
             updateWearDataForDevice(device);
-            mWakeLock.release();
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+            }
         }
     }
 
@@ -394,14 +404,18 @@ public class WearUpdateService extends Service implements
                 public void onResponse(AylaDatapoint response) {
                     // Send execution success status to wearable device
                     sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "1");
-                    mWakeLock.release();
+                    if (mWakeLock.isHeld()) {
+                        mWakeLock.release();
+                    }
                 }
             }, new ErrorListener() {
                 @Override
                 public void onErrorResponse(AylaError error) {
                     // Send execution failure status to wearable device
                     sendMessageToWearable(DEVICE_CONTROL_RESULT_MSG_URI, "0");
-                    mWakeLock.release();
+                    if (mWakeLock.isHeld()) {
+                        mWakeLock.release();
+                    }
                 }
             });
         } else if (TextUtils.equals(messageEvent.getPath(), DEVICE_CONTROL_START_CONNECTION)) {
