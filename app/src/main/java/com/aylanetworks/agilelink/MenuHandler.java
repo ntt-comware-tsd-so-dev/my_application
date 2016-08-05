@@ -14,6 +14,7 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
@@ -262,7 +263,17 @@ public class MenuHandler {
     }
 
     private static void shutdownSession() {
-        AMAPCore.sharedInstance().getSessionManager().shutDown(
+        if (AMAPCore.sharedInstance() == null) {
+            Logger.logError(LOG_TAG, "AMAPCore.sharedInstance is null.");
+            return;
+        }
+
+        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
+        if (sessionManager == null) {
+            Logger.logError(LOG_TAG, "AylaSessionManager is null.");
+            return;
+        }
+        sessionManager.shutDown(
                 new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                     @Override
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
