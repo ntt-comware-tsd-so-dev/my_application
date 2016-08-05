@@ -12,10 +12,12 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
+
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -25,14 +27,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
+
+import static com.aylanetworks.aylasdk.AylaShare.ShareAccessLevel;
 
 /**
  * AMAP_Android
- * <p/>
+ * <p>
  * Copyright 2016 Ayla Networks, all rights reserved
  */
 public class ShareUpdateFragment extends android.support.v4.app.Fragment {
 
+    private final static String LOG_TAG = "SHARE_UPDATE";
     private AylaShare _share;
     private EditText _edittextDsn;
     private EditText _edittextEmail;
@@ -46,8 +52,9 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
     private SimpleDateFormat _simpleDateFormat;
     private Button _shareUpdateButton;
 
-    public static ShareUpdateFragment newInstance() {
+    public static ShareUpdateFragment newInstance(AylaShare share) {
         Bundle args = new Bundle();
+        args.putSerializable(MainActivity.ARG_SHARE, share);
         ShareUpdateFragment fragment = new ShareUpdateFragment();
         fragment.setArguments(args);
         return fragment;
@@ -58,6 +65,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
         super.onCreate(savedInstanceState);
         _simpleDateFormat= new SimpleDateFormat
                 ("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        _simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         _dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
     }
 
@@ -80,7 +88,8 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
 
         String accessLevel = _share.getOperation();
         if(accessLevel != null){
-            _radioGrp.check(accessLevel.equals("read")? R.id.radio_view: R.id.radio_control);
+            _radioGrp.check(accessLevel.equals(ShareAccessLevel.read.name())?
+                    R.id.radio_view: R.id.radio_control);
         }
 
         String startDate = _share.getStartDateAt();
@@ -88,9 +97,16 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
             try {
                 _shareStartDate = Calendar.getInstance();
                 _shareStartDate.setTime(_simpleDateFormat.parse(startDate));
-                _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
+                if(_shareStartDate.getTimeInMillis() == 0){
+                    _startButton.setText(getString(R.string.no_date));
+                } else{
+                    _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
+                }
+
             } catch (ParseException e) {
-                e.printStackTrace();
+                AylaLog.e(LOG_TAG, "Exception while parsing start date: "+startDate +
+                        " "+e.getMessage());
+                _startButton.setText(getString(R.string.no_date));
             }
         } else{
             _startButton.setText(getString(R.string.now));
@@ -100,9 +116,16 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
             try {
                 _shareEndDate = Calendar.getInstance();
                 _shareEndDate.setTime(_simpleDateFormat.parse(endDate));
-                _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
+                if(_shareEndDate.getTimeInMillis() == 0){
+                    _endButton.setText(getString(R.string.no_date));
+                } else{
+                    _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
+                }
+
             } catch (ParseException e) {
-                e.printStackTrace();
+                AylaLog.e(LOG_TAG, "Exception while parsing end date: "+endDate +
+                        " "+e.getMessage());
+                _endButton.setText(getString(R.string.no_date));
             }
         } else{
             _endButton.setText(getString(R.string.never));
@@ -124,16 +147,21 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
         _shareUpdateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String operation = _radioGrp.getCheckedRadioButtonId() == R.id.radio_view? "read":
-                        "write";
+                String operation = _radioGrp.getCheckedRadioButtonId() == R.id.radio_view?
+                        ShareAccessLevel.read.name():
+                        ShareAccessLevel.write.name();
 
 
                 String startDate = null;
-                if(_shareStartDate != null){
+                if(_shareStartDate == null || _shareStartDate.getTimeInMillis() == 0){
+                   startDate = "null";
+                } else{
                     startDate = _simpleDateFormat.format(_shareStartDate.getTime());
                 }
-                String endDate = null;
-                if(_shareEndDate != null){
+                String endDate;
+                if(_shareEndDate == null || _shareEndDate.getTimeInMillis() == 0){
+                    endDate = "null";
+                } else{
                     endDate = _simpleDateFormat.format(_shareEndDate.getTime());
                 }
                 _share.setRoleName(_edittextRole.getText().toString());
@@ -154,13 +182,13 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
                 }, new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getContext(), getString(R.string.share_update_error)+
-                                error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), String.format("%s. %s",
+                                getString(R.string.share_update_error), error.getMessage()),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
-
         return root;
 
     }
@@ -169,9 +197,11 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
         Calendar now = Calendar.getInstance();
         if ( _shareStartDate == null ) {
             _shareStartDate = Calendar.getInstance();
+            _shareStartDate.setTimeInMillis(0);
         }
         if ( _shareEndDate == null ) {
             _shareEndDate = Calendar.getInstance();
+            _shareEndDate.setTimeInMillis(0);
         }
 
         final Calendar dateToModify = (button.getId() == R.id.button_start_date ? _shareStartDate :
