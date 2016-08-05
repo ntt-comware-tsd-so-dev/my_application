@@ -83,8 +83,7 @@ public class MainActivity extends AppCompatActivity
         implements AylaSessionManager.SessionManagerListener,
         AgileLinkApplication.AgileLinkApplicationListener,
         View.OnClickListener,
-        ActivityCompat.OnRequestPermissionsResultCallback,
-        SharesFragment.OnShareSelected{
+        ActivityCompat.OnRequestPermissionsResultCallback{
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -303,16 +302,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-
-    }
-
-    @Override
-    public void onShareSelected(AylaShare share) {
-        ShareUpdateFragment shareUpdateFragment = new ShareUpdateFragment();
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(ARG_SHARE, share);
-        shareUpdateFragment.setArguments(bundle);
-        MainActivity.getInstance().pushFragment(shareUpdateFragment);
 
     }
 
