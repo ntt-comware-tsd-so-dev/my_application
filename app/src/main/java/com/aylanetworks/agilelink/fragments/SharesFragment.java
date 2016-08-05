@@ -70,12 +70,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
                 (_ownedShareAdapter.getItem(position));
         MainActivity.getInstance().pushFragment(shareUpdateFragment);
     }
-
-
-    public interface OnShareSelected{
-        public void onShareSelected(AylaShare share);
-    }
-
+    
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
