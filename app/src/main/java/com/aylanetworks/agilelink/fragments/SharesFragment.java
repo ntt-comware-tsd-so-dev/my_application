@@ -9,7 +9,6 @@
 package com.aylanetworks.agilelink.fragments;
 
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -25,13 +24,14 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaShare;
-import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
+import com.aylanetworks.aylasdk.AylaShare.ShareAccessLevel;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -55,7 +55,6 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
     private AylaShare[] _receivedShares;
     private ShareListAdapter _ownedShareAdapter;
     private ShareListAdapter _receivedShareAdapter;
-    private OnShareSelected _shareSelectedCallback;
 
     public static SharesFragment newInstance() {
         return new SharesFragment();
@@ -67,7 +66,9 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        _shareSelectedCallback.onShareSelected(_ownedShareAdapter.getItem(position));
+        ShareUpdateFragment shareUpdateFragment = ShareUpdateFragment.newInstance
+                (_ownedShareAdapter.getItem(position));
+        MainActivity.getInstance().pushFragment(shareUpdateFragment);
     }
 
 
@@ -101,12 +102,6 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
         fetchShares();
 
         return root;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        _shareSelectedCallback = (OnShareSelected) activity;
     }
 
     private void fetchShares(){
@@ -260,7 +255,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
             final String sharingStart = startDateString;
             final String sharingEnd = endDateString;
             AylaDevice device = sharingQueue.remove();
-            AylaShare share = device.shareWithEmail(email, readOnly ? "read" : "write", role,
+            AylaShare share = device.shareWithEmail(email, readOnly ?
+                    ShareAccessLevel.read.name() : ShareAccessLevel.write.name(), role,
                     startDateString, endDateString);
 
             final ErrorListener errorListener = new ErrorListener() {
@@ -282,7 +278,8 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
                         fetchShares();
                     } else {
                         AylaDevice device = sharingQueue.remove();
-                        AylaShare share = device.shareWithEmail(email, readOnly ? "read" : "write",
+                        AylaShare share = device.shareWithEmail(email, readOnly ?
+                                ShareAccessLevel.read.name() : ShareAccessLevel.write.name(),
                                 sharingRole, sharingStart, sharingEnd);
                         AMAPCore.sharedInstance().getSessionManager().createShare
                                 (share, null, this, errorListener);
