@@ -145,7 +145,9 @@ public class MainActivity extends AppCompatActivity
         ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle(title);
         dialog.setIcon(R.drawable.ic_launcher);
-        dialog.setMessage(message);
+        if(message != null){
+            dialog.setMessage(message);
+        }
         dialog.setIndeterminate(true);
         dialog.setCancelable(false);
         dialog.setOnCancelListener(null);

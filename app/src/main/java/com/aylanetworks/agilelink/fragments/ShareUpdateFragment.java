@@ -168,7 +168,8 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
                 _share.setOperation(operation);
                 _share.setStartDateAt(startDate);
                 _share.setEndDateAt(endDate);
-                MainActivity.getInstance().showWaitDialog(getString(R.string.share_updating)," " );
+                MainActivity.getInstance().showWaitDialog(getString(R.string.share_updating),
+                        null );
                 AMAPCore.sharedInstance().getSessionManager().updateShare(_share, null,
                         new Response.Listener<AylaShare>() {
                     @Override
