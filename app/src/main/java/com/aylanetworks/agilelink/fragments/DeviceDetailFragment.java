@@ -429,6 +429,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(MainActivity.getInstance(),
                                 ErrorUtils.getUserMessage(getContext(), error, R.string.unregister_failed),
                                 Toast.LENGTH_LONG).show();
