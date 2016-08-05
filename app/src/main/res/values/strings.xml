@@ -252,7 +252,7 @@
     <string name="resetting_password_title">Resetting password...</string>
     <string name="resetting_password_body">Resetting your password. Please wait...</string>
     <string name="confirm_delete_account_title">Delete Account?</string>
-    <string name="confirm_delete_account_message">Do you really wish to delete %s? This action cannot be undone.</string>
+    <string name="confirm_delete_account_message">Do you really wish to delete your account? This action cannot be undone</string>
     <string name="deleting_account_title">Deleting Account</string>
     <string name="deleting_account_message">Deleting your account. Please wait...</string>
     <string name="account_deleted">Your account has successfully been deleted.</string>
