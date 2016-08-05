@@ -88,7 +88,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
 
         String accessLevel = _share.getOperation();
         if(accessLevel != null){
-            _radioGrp.check(accessLevel.equals(ShareAccessLevel.read.name())?
+            _radioGrp.check(accessLevel.equals(ShareAccessLevel.READ.stringValue())?
                     R.id.radio_view: R.id.radio_control);
         }
 
@@ -142,8 +142,8 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
             @Override
             public void onClick(View v) {
                 String operation = _radioGrp.getCheckedRadioButtonId() == R.id.radio_view?
-                        ShareAccessLevel.read.name():
-                        ShareAccessLevel.write.name();
+                        ShareAccessLevel.READ.stringValue():
+                        ShareAccessLevel.WRITE.stringValue();
 
 
                 String startDate = null;

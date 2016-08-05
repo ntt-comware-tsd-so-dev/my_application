@@ -70,7 +70,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
                 (_ownedShareAdapter.getItem(position));
         MainActivity.getInstance().pushFragment(shareUpdateFragment);
     }
-    
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -251,7 +251,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
             final String sharingEnd = endDateString;
             AylaDevice device = sharingQueue.remove();
             AylaShare share = device.shareWithEmail(email, readOnly ?
-                    ShareAccessLevel.read.name() : ShareAccessLevel.write.name(), role,
+                    ShareAccessLevel.READ.stringValue() : ShareAccessLevel.WRITE.stringValue(), role,
                     startDateString, endDateString);
 
             final ErrorListener errorListener = new ErrorListener() {
@@ -274,7 +274,7 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemLongCl
                     } else {
                         AylaDevice device = sharingQueue.remove();
                         AylaShare share = device.shareWithEmail(email, readOnly ?
-                                ShareAccessLevel.read.name() : ShareAccessLevel.write.name(),
+                                ShareAccessLevel.READ.stringValue() : ShareAccessLevel.WRITE.stringValue(),
                                 sharingRole, sharingStart, sharingEnd);
                         AMAPCore.sharedInstance().getSessionManager().createShare
                                 (share, null, this, errorListener);
