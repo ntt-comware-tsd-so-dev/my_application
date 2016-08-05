@@ -218,7 +218,7 @@ public class ShareUpdateFragment extends android.support.v4.app.Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         if(id == R.id.button_start_date){
-                            _shareStartDate  = null;;
+                            _shareStartDate  = null;
                         } else{
                             _shareEndDate = null;
                         }
