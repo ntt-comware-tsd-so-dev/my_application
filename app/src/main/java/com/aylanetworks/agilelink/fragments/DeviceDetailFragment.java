@@ -278,7 +278,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
         }
 
         AylaShare share = _deviceModel.getDevice().shareWithEmail(email,
-                readOnly ? "read" : "write", role, startDateString, endDateString);
+                readOnly ? AylaShare.ShareAccessLevel.READ.stringValue() :
+                        AylaShare.ShareAccessLevel.WRITE.stringValue(), role, startDateString,
+                endDateString);
 
         AMAPCore.sharedInstance().getSessionManager().createShare(share, null,
                 new Response.Listener<AylaShare>() {

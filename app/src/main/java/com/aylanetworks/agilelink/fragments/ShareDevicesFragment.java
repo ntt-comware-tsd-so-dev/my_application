@@ -229,46 +229,56 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
 
     private void chooseDate(final Button button) {
         Calendar now = Calendar.getInstance();
-        if ( _shareStartDate == null ) {
-            _shareStartDate = Calendar.getInstance();
-            _shareStartDate.setTimeInMillis(0);
-        }
-        if ( _shareEndDate == null ) {
-            _shareEndDate = Calendar.getInstance();
-            _shareEndDate.setTimeInMillis(0);
-        }
+        final int id = button.getId();
 
-        final Calendar dateToModify = (button.getId() == R.id.button_starting_on ? _shareStartDate : _shareEndDate);
-        DatePickerDialog d = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                Log.d(LOG_TAG, "Date: " + year + "/" + monthOfYear + "/" + dayOfMonth);
-                dateToModify.set(Calendar.YEAR, year);
-                dateToModify.set(Calendar.MONTH, monthOfYear);
-                dateToModify.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                updateButtonText();
-            }
-        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+        DatePickerDialog d = new DatePickerDialog(getActivity(),
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        if(id == R.id.button_starting_on){
+                            if(_shareStartDate == null){
+                                _shareStartDate = Calendar.getInstance();
+                            }
+                            _shareStartDate.set(Calendar.YEAR, year);
+                            _shareStartDate.set(Calendar.MONTH, monthOfYear);
+                            _shareStartDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                        } else{
+                            if(_shareEndDate == null){
+                                _shareEndDate = Calendar.getInstance();
+                            }
+                            _shareEndDate.set(Calendar.YEAR, year);
+                            _shareEndDate.set(Calendar.MONTH, monthOfYear);
+                            _shareEndDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                        }
+                        updateButtonText();
+
+                    }
+                }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
         d.setButton(DialogInterface.BUTTON_NEUTRAL, getResources().getString(R.string.no_date),
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        dateToModify.setTimeInMillis(0);
+                        if(id == R.id.button_start_date){
+                            _shareStartDate  = null;
+                        } else{
+                            _shareEndDate = null;
+                        }
                         updateButtonText();
                     }
                 });
+        d.getDatePicker().setMinDate(now.getTimeInMillis());
         d.show();
     }
 
     private void updateButtonText() {
-        if ( _shareStartDate == null || _shareStartDate.getTimeInMillis() == 0 ) {
+        if ( _shareStartDate == null) {
             _startButton.setText(R.string.now);
         } else {
             _startButton.setText(_dateFormat.format(_shareStartDate.getTime()));
         }
 
-        if ( _shareEndDate == null || _shareEndDate.getTimeInMillis() == 0 ) {
+        if ( _shareEndDate == null) {
             _endButton.setText(R.string.never);
         } else {
             _endButton.setText(_dateFormat.format(_shareEndDate.getTime()));
@@ -306,13 +316,6 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
         if (devicesToAdd.isEmpty()) {
             Toast.makeText(getActivity(), R.string.no_devices_to_share, Toast.LENGTH_LONG).show();
             return;
-        }
-
-        if ( _shareStartDate != null && _shareStartDate.getTimeInMillis() == 0 ) {
-            _shareStartDate = null;
-        }
-        if ( _shareEndDate != null && _shareEndDate.getTimeInMillis() == 0 ) {
-            _shareEndDate = null;
         }
 
         boolean readOnly = (_radioGroup.getCheckedRadioButtonId() == R.id.radio_read_only);
