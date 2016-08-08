@@ -30,7 +30,8 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     private View mTermsAndConditionView;
     private View mEmailLogsView;
     private View mView;
-    public static final String supportEmail = "mobile-libraries@aylanetworks.com";
+    public static final String SUPPORT_EMAIL = "mobile-libraries@aylanetworks.com";
+    public static final String EMAIL_SUBJECT = "AMAP Logs";
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -85,7 +86,7 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
         }
     }
     public void handleSendEmail(){
-        String[] supportEmailAddress = {supportEmail};
+        String[] supportEmailAddress = {SUPPORT_EMAIL};
         StringBuilder strBuilder = new StringBuilder(200);
         strBuilder.append( "Latest logs from Aura app attached")
         .append("\n\n OS Version: ").append(SystemInfoUtils.getOSVersion())
@@ -96,7 +97,7 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
         .append("\nAyla SDK version: ").append(AylaNetworks.getVersion())
         .append("\nAura app version: ").append(MainActivity.getInstance().getAppVersion());
 
-        Intent emailIntent = AylaLog.getEmailIntent(supportEmailAddress, "Aura Logs",
+        Intent emailIntent = AylaLog.getEmailIntent(supportEmailAddress, EMAIL_SUBJECT,
                 strBuilder.toString() );
         if(emailIntent != null){
             startActivity(emailIntent);
