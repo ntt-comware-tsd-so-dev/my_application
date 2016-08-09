@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -22,6 +24,7 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.PushNotification;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaContact;
@@ -36,6 +39,7 @@ import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper;
 import com.aylanetworks.aylasdk.AylaPropertyTriggerApp;
+import com.aylanetworks.aylasdk.AylaServiceApp;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -69,6 +73,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     private String _originalTriggerName;
     private AylaPropertyTrigger _originalTrigger;
     private PropertyNotificationHelper _propertyNotificationHelper;
+    private CheckBox _sendPushCheckbox;
 
     // Layouts for each of the property base types. We will enable the appropriate layout
     // when the property is selected.
@@ -166,6 +171,19 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         _integerLayout = (LinearLayout)view.findViewById(R.id.layout_integer);
         _motionSensorLayout = (LinearLayout)view.findViewById(R.id.layout_motion);
         _numberEditText = (EditText)view.findViewById(R.id.number_edit_text);
+        _sendPushCheckbox = (CheckBox) view.findViewById(R.id.send_push_notifications);
+        _sendPushCheckbox.setChecked(false);
+        _sendPushCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    _pushContacts.add(_ownerContact);
+                } else {
+                    _pushContacts.remove(_ownerContact);
+                }
+            }
+        });
+
 
         // Set up a listener to show / hide the numerical input field based on the selection
         _numberRadioGroup = (RadioGroup)view.findViewById(R.id.radio_group_integer);
@@ -279,6 +297,18 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                     @Override
                     public void onResponse(AylaPropertyTriggerApp[] response) {
                         for (AylaPropertyTriggerApp propertyTriggerApp : response) {
+                            AylaServiceApp.NotificationType notificationType= propertyTriggerApp
+                                    .getNotificationType();
+
+                            if(AylaServiceApp.NotificationType.GooglePush.equals
+                                    (notificationType) || AylaServiceApp.NotificationType
+                                    .BaiduPush.equals(notificationType)) {
+                                //Now check if the registration id matches
+                                if (TextUtils.equals(PushNotification.registrationId,
+                                        propertyTriggerApp.getRegistrationId())) {
+                                    _sendPushCheckbox.setChecked(true);
+                                }
+                            }
                             String contactId = propertyTriggerApp.getContactId();
                             if (contactId == null) {
                                 continue;
@@ -288,15 +318,12 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                             if(contact == null) {
                                 return;
                             }
-                            switch (propertyTriggerApp.getNotificationType()) {
+                            switch (notificationType) {
                                 case SMS:
                                     _smsContacts.add(contact);
                                     break;
                                 case EMail:
                                     _emailContacts.add(contact);
-                                    break;
-                                case GooglePush:
-                                    _pushContacts.add(contact);
                                     break;
                             }
                         }
@@ -324,24 +351,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void pushTapped(AylaContact contact) {
-        Log.d(LOG_TAG, "Push tapped: " + contact);
-        if (!isOwner(contact)) {
-            // the icon is only shown if it is the owner... so this can't happen
-            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if ( _pushContacts.contains(contact) ) {
-            _pushContacts.remove(contact);
-        } else {
-            _pushContacts.add(contact);
-        }
-        _recyclerView.getAdapter().notifyDataSetChanged();
-
     }
 
     @Override
@@ -410,13 +419,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
     @Override
     public int colorForIcon(AylaContact contact, IconType iconType) {
         switch ( iconType ) {
-            case ICON_PUSH:
-                if ( _pushContacts.contains(contact) ) {
-                    return MainActivity.getInstance().getResources().getColor(R.color.app_theme_accent);
-                } else {
-                    return MainActivity.getInstance().getResources().getColor(R.color.disabled_text);
-                }
-
             case ICON_SMS:
                 if ( _smsContacts.contains(contact) ) {
                     return MainActivity.getInstance().getResources().getColor(R.color.app_theme_accent);
