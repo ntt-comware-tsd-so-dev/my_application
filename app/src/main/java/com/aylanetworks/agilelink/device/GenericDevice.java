@@ -13,20 +13,15 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.agilelink.framework.ViewModelProvider;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
 import com.aylanetworks.agilelink.fragments.NotificationListFragment;
-import com.aylanetworks.agilelink.fragments.RemoteFragment;
 import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
-import com.aylanetworks.agilelink.fragments.TriggerFragment;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
-import com.aylanetworks.agilelink.framework.SessionManager;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <ul>
@@ -37,7 +32,7 @@ import java.util.List;
  * <li>{@link #friendlyNameForPropertyName(String)}</li>
  * </ul>
  */
-public class GenericDevice extends Device implements DeviceUIProvider {
+public class GenericDevice extends ViewModel {
     /**
      * Constructor using the AylaDevice parameter
      *
@@ -45,20 +40,6 @@ public class GenericDevice extends Device implements DeviceUIProvider {
      */
     public GenericDevice(AylaDevice aylaDevice) {
         super(aylaDevice);
-    }
-
-    /**
-     * Helper method to turn a list of Devices into a list of GenericDevices. All of the Device
-     * objects in the list must be GenericDevice-derived objects.
-     * @param deviceList List of Devices
-     * @return list of GenericDevices
-     */
-    public static List<GenericDevice> fromDeviceList(List<Device> deviceList) {
-        List<GenericDevice> genericDevices = new ArrayList<>(deviceList.size());
-        for ( Device d : deviceList) {
-            genericDevices.add((GenericDevice)d);
-        }
-        return genericDevices;
     }
 
     /**
@@ -71,19 +52,19 @@ public class GenericDevice extends Device implements DeviceUIProvider {
      */
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        h._deviceNameTextView.setText(getProductName());
+        h._deviceNameTextView.setText(_device.getProductName());
         if (h._deviceStatusTextView != null) {
             h._deviceStatusTextView.setText(getDeviceState());
         }
 
-        Resources res = SessionManager.getContext().getResources();
+        Resources res = AMAPCore.sharedInstance().getContext().getResources();
         int color;
 
-        if (isIcon() || (h._sceneDeviceEntity != null)) {
+        if (isIcon()) {
             h._spinner.setVisibility(View.GONE);
             color = res.getColor(R.color.card_text);
         } else {
-            h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+            h._spinner.setVisibility(getDevice().getProperties() == null ? View.VISIBLE : View.GONE);
 
             if (h._expandedLayout != null) {
                 h._expandedLayout.setVisibility(h.getPosition() == GenericDeviceViewHolder._expandedIndex ? View.VISIBLE : View.GONE);
@@ -118,13 +99,13 @@ public class GenericDevice extends Device implements DeviceUIProvider {
 
             // Is this a shared device?
             color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color.disabled_text);
-            if (!getDevice().amOwner()) {
-                // Yes, this device is shared.
+            if (getDevice().getGrant() != null) {
+                // If we have a grant, this device is shared with us.
                 color = res.getColor(R.color.card_shared_text);
             }
         }
         h._deviceNameTextView.setTextColor(color);
-        h._currentDevice = this;
+        h._currentDeviceModel = this;
     }
     /**
      * Returns an integer representing the item view type for this device. This method is called
@@ -132,23 +113,23 @@ public class GenericDevice extends Device implements DeviceUIProvider {
      * for each type of CardView displayed for a device.
      * <p>
      * The value returned from this method will be passed to the
-     * {@link com.aylanetworks.agilelink.device.AgileLinkDeviceCreator#viewHolderForViewType
+     * {@link AMAPViewModelProvider#viewHolderForViewType
      * (android.view.ViewGroup, int)}
-     * method of the {@link com.aylanetworks.agilelink.framework.DeviceCreator} object, which uses
+     * method of the {@link ViewModelProvider} object, which uses
      * it to determine the appropriate ViewHolder object to create for the Device.
      * <p>
      * Multiple device types may use the same item view type if the view displayed for these devices
      * are the same. Most devices will have their own unique views displayed.
      * <p>
      * View types should be unique, and are generally defined as static members of the
-     * {@link AgileLinkDeviceCreator} class. This keeps them all in the same place and makes it
+     * {@link AMAPViewModelProvider} class. This keeps them all in the same place and makes it
      * easy to
      * ensure that each identifier is unique.
      *
      * @return An integer representing the type of view for this item.
      */
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
     /**
@@ -182,19 +163,6 @@ public class GenericDevice extends Device implements DeviceUIProvider {
     }
 
     /**
-     * Returns a fragment used to set up remote switch pairing for this device.
-     *
-     * @return a Fragment used to configure remote switch pairing for this device.
-     */
-    public Fragment getRemoteFragment() {
-        return RemoteFragment.newInstance(this);
-    }
-
-    public Fragment getTriggerFragment() {
-        return TriggerFragment.newInstance(this);
-    }
-
-    /**
      * Returns the number of elements the device's view should span when displayed in a grid view.
      * The default value is 1. Override this in your device if the device's grid view requires
      * more room.
@@ -208,7 +176,7 @@ public class GenericDevice extends Device implements DeviceUIProvider {
 
     @Override
     public String getName() {
-        return getProductName();
+        return getDevice().getProductName();
     }
 
     /**

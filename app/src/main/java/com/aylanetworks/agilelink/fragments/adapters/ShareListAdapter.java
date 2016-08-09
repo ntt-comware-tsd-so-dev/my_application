@@ -2,17 +2,19 @@ package com.aylanetworks.agilelink.fragments.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaShare;
-import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.SessionManager;
+
+import java.util.ArrayList;
 
 /*
  * ShareListAdapter.java
@@ -22,8 +24,9 @@ import com.aylanetworks.agilelink.framework.SessionManager;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 public class ShareListAdapter extends ArrayAdapter<AylaShare> {
-    public ShareListAdapter(Context c, AylaShare[] objects) {
-        super(c, android.R.layout.simple_list_item_2, android.R.id.text1, objects);
+
+    public ShareListAdapter(Context c, ArrayList<AylaShare> shares) {
+        super(c, android.R.layout.simple_list_item_2, android.R.id.text1, shares);
     }
 
     @Override
@@ -36,13 +39,14 @@ public class ShareListAdapter extends ArrayAdapter<AylaShare> {
 
         Log.d("ShareListAdapter", share.toString());
 
-        if ( share.resourceId != null ) {
-            Device device = SessionManager.deviceManager().deviceByDSN(share.resourceId);
+        if ( share.getResourceId() != null ) {
+            AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                    .deviceWithDSN(share.getResourceId());
             if ( device != null ) {
                 tv1.setText(device.toString());
                 tv1.setTextColor(getContext().getResources().getColor(R.color.card_text));
             } else {
-                tv1.setText(share.resourceId);
+                tv1.setText(share.getResourceId());
                 tv1.setTextColor(getContext().getResources().getColor(R.color.destructive_bg));
             }
         } else {
@@ -50,12 +54,13 @@ public class ShareListAdapter extends ArrayAdapter<AylaShare> {
         }
 
         tv2.setTypeface(null, Typeface.ITALIC);
-        if ( share.userProfile.email.equals(AylaUser.getCurrent().email)) {
+        if (TextUtils.equals(share.getUserEmail(),
+                AMAPCore.sharedInstance().getCurrentUser().getEmail())) {
             tv1.setTextColor(tv1.getResources().getColor(R.color.card_shared_text));
-            tv2.setText(share.ownerProfile.email);
+            tv2.setText(share.getOwnerProfile().email);
         } else {
             tv1.setTextColor(tv1.getResources().getColor(R.color.card_text));
-            tv2.setText(share.userProfile.email);
+            tv2.setText(share.getUserProfile().email);
         }
         return v;
     }

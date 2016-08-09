@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:style="http://schemas.android.com/apk/res-auto"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/card_background"
-              android:orientation="horizontal">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/card_background"
+    android:orientation="horizontal"
+    android:gravity="center_vertical" >
 
     <TextView
         style="@style/DeviceListItemTextView"
         android:id="@+id/property_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:text="Property Name Here"
-        />
+        android:layout_weight="1"
+        android:layout_margin="8dp"
+        android:text="N/A" />
 
     <FrameLayout
         android:layout_weight="1"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_width="0dp"
         android:layout_margin="8dp"
         android:layout_height="wrap_content">
 
@@ -32,9 +31,11 @@
             android:id="@+id/property_value_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="right"
             android:layout_gravity="center_vertical|right"
             style="@style/TextAppearance.AppCompat.Medium"
-            android:text="Property Value"/>
+            android:maxLines="3"
+            android:text="N/A"/>
 
     </FrameLayout>
 

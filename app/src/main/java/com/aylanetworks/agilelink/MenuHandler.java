@@ -1,36 +1,34 @@
-package com.aylanetworks.agilelink.framework;
+package com.aylanetworks.agilelink;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Resources;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaUser;
-import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.R;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
-import com.aylanetworks.agilelink.fragments.DeviceScenesFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 /*
  * MenuHandler.java
@@ -71,10 +69,6 @@ public class MenuHandler {
 
             case R.id.action_device_groups:
                 handleDeviceGroups();
-                break;
-
-            case R.id.action_device_scenes:
-                handleDeviceScenes();
                 break;
 
             case R.id.action_gateways:
@@ -143,10 +137,6 @@ public class MenuHandler {
         replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
-    public static void handleDeviceScenes() {
-        replaceFragmentToRoot(DeviceScenesFragment.newInstance());
-    }
-
     public static void handleAddDevice() {
         MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
     }
@@ -169,14 +159,10 @@ public class MenuHandler {
 
     public static AlertDialog _confirmDeleteDialog;
 
-    static DeleteAccountHandler _deleteAccountHandler;
-    static SsoDeleteAccountHandler _ssoDeleteAccoutnHandler;
-
     public static void deleteAccount() {
         // First confirm
         Resources res = MainActivity.getInstance().getResources();
-        AylaUser currentUser = AylaUser.getCurrent();
-        String msg = res.getString(R.string.confirm_delete_account_message, currentUser.email);
+        String msg = res.getString(R.string.confirm_delete_account_message);
         _confirmDeleteDialog = new AlertDialog.Builder(MainActivity.getInstance())
                 .setIcon(R.drawable.ic_launcher)
                 .setTitle(R.string.confirm_delete_account_title)
@@ -192,75 +178,51 @@ public class MenuHandler {
                         // Actually delete the account
                         Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
 
-                        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+                        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
                         if(params.ssoLogin){
-                            _ssoDeleteAccoutnHandler = new SsoDeleteAccountHandler();
-                            params.ssoManager.deleteUser(_ssoDeleteAccoutnHandler);
+                            params.ssoManager.deleteUser(
+                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                        @Override
+                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                            MainActivity.getInstance().dismissWaitDialog();
+                                            shutdownSession();
+                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+                                        }
+                                    },
+                                    new ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(AylaError error) {
+                                            MainActivity.getInstance().dismissWaitDialog();
+                                            Toast.makeText(MainActivity.getInstance(),
+                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                                    Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                            );
                         } else{
-                            _deleteAccountHandler = new DeleteAccountHandler();
-                            AylaUser.delete(_deleteAccountHandler);
+                            AMAPCore.sharedInstance().getSessionManager().deleteAccount(
+                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                        @Override
+                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                            // Log out and show a toast
+                                            shutdownSession();
+                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
+                                        }
+                                    },
+                                    new ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(AylaError error) {
+                                            Toast.makeText(MainActivity.getInstance(),
+                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                                    Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                            );
                         }
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
-    }
-
-    static class DeleteAccountHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "user: DeleteAccountHandler");
-            Log.d(LOG_TAG, "DeleteAccountHandler Message: " + msg.toString());
-
-            MainActivity.getInstance().dismissWaitDialog();
-            if ( AylaNetworks.succeeded(msg) ) {
-                // Log out and show a toast
-                SessionManager.clearSavedUser();
-                SessionManager.stopSession();
-                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-            } else {
-                // Look for an error message in the returned JSON
-                String errorMessage = null;
-                try {
-                    if(msg !=null && msg.obj !=null) {
-                        JSONObject results = new JSONObject((String)msg.obj);
-                        errorMessage = results.getString("error");
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                if ( errorMessage != null ) {
-                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
-    static class SsoDeleteAccountHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "user: SSo DeleteAccountHandler");
-            MainActivity.getInstance().dismissWaitDialog();
-            if (msg.arg1 >= 200 && msg.arg1 <300)  {
-                // Log out and show a toast
-                SessionManager.clearSavedUser();
-                SessionManager.stopSession();
-                Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-            } else if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
-                // Look for an error message in the returned JSON
-                String errorMessage = msg.obj.toString();
-                if ( errorMessage != null ) {
-                    Toast.makeText(MainActivity.getInstance(), errorMessage, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-                }
-            } else {
-                Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-            }
-        }
     }
 
     public static void handleShares() {
@@ -274,10 +236,10 @@ public class MenuHandler {
         if (activity != null) {
             // Confirm
             Resources res = activity.getResources();
-            AylaUser currentUser = AylaUser.getCurrent();
+            AylaUser currentUser = AMAPCore.sharedInstance().getCurrentUser();
             String email ="";
-            if(currentUser != null && currentUser.email != null) {
-                email = currentUser.email;
+            if(currentUser != null && currentUser.getEmail() != null) {
+                email = currentUser.getEmail();
             }
 
             String msg = res.getString(R.string.confirm_sign_out_message, email);
@@ -289,15 +251,44 @@ public class MenuHandler {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Logger.logInfo(LOG_TAG, "signOut: stop session.");
-                            SessionManager.stopSession();
+                            shutdownSession();
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)
                     .create().show();
         } else {
             Logger.logInfo(LOG_TAG, "signOut: MainActivity has already closed, stop session.");
-            SessionManager.stopSession();
+            shutdownSession();
         }
+    }
+
+    private static void shutdownSession() {
+        if (AMAPCore.sharedInstance() == null) {
+            Logger.logError(LOG_TAG, "AMAPCore.sharedInstance is null.");
+            return;
+        }
+
+        AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
+        if (sessionManager == null) {
+            Logger.logError(LOG_TAG, "AylaSessionManager is null.");
+            return;
+        }
+        sessionManager.shutDown(
+                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                    @Override
+                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                        MainActivity.getInstance().showLoginDialog(true);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     public static void about() {

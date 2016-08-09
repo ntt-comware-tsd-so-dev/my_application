@@ -9,9 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.DeviceUIProvider;
-import com.aylanetworks.agilelink.device.GenericDevice;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.ViewModel;
 
 /*
  * DeviceTypeAdapter.java
@@ -20,15 +18,15 @@ import com.aylanetworks.agilelink.framework.Device;
  * Created by Brian King on 1/27/15.
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
-public class DeviceTypeAdapter<T extends DeviceUIProvider> extends ArrayAdapter<T> {
+public class DeviceTypeAdapter extends ArrayAdapter<ViewModel> {
 
     public boolean useProductName;
 
-    public DeviceTypeAdapter(Context c, T[] objects) {
+    public DeviceTypeAdapter(Context c, ViewModel[] objects) {
         super(c, R.layout.spinner_device_selection, objects);
     }
 
-    public DeviceTypeAdapter(Context c, T[] objects, boolean productName) {
+    public DeviceTypeAdapter(Context c, ViewModel[] objects, boolean productName) {
         super(c, R.layout.spinner_device_selection, objects);
         useProductName = productName;
     }
@@ -39,7 +37,7 @@ public class DeviceTypeAdapter<T extends DeviceUIProvider> extends ArrayAdapter<
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View spinner = inflater.inflate(R.layout.spinner_device_selection, parent, false);
 
-        T d = getItem(position);
+        ViewModel d = getItem(position);
 
         ImageView iv = (ImageView)spinner.findViewById(R.id.device_image);
         iv.setImageDrawable(d.getDeviceDrawable(getContext()));

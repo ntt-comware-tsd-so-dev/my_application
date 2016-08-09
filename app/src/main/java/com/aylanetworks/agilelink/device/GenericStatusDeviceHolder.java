@@ -4,11 +4,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
 
 /**
  * AMAP4.x
- * <p/>
+ * <p>
  * Copyright 2016 Ayla Networks Inc, all rights reserved
  */
 public class GenericStatusDeviceHolder extends GenericDeviceViewHolder{

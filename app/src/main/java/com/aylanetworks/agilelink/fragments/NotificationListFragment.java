@@ -3,8 +3,6 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,17 +15,25 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaProperty;
-import com.aylanetworks.aaml.AylaPropertyTrigger;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.PropertyNotificationHelper.FetchNotificationsListener;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaProperty;
+import com.aylanetworks.aylasdk.AylaPropertyTrigger;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.PropertyNotificationHelper;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,10 +47,10 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     private static final String ARG_DSN = "dsn";
     private static final String LOG_TAG = "NotListFrag";
 
-    public static NotificationListFragment newInstance(Device device) {
+    public static NotificationListFragment newInstance(ViewModel deviceModel) {
         NotificationListFragment frag = new NotificationListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DSN, device.getDeviceDsn());
+        args.putString(ARG_DSN, deviceModel.getDevice().getDsn());
         frag.setArguments(args);
         return frag;
     }
@@ -53,14 +59,16 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
 
     private RecyclerView _recyclerView;
     private TextView _emptyView;
-    private Device _device;
-    private PropertyNotificationHelper _propertyNotificationHelper;
+    private ViewModel _deviceModel;
     private List<AylaPropertyTrigger> _propertyTriggers;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DSN));
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                .deviceWithDSN(getArguments().getString(ARG_DSN));
+        _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                .viewModelForDevice(device);
     }
 
     @Override
@@ -84,15 +92,16 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
         b.setOnClickListener(this);
 
         // Get the notifications
-        _propertyNotificationHelper = new PropertyNotificationHelper(_device);
-        MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
-        _propertyNotificationHelper.fetchNotifications(new Device.FetchNotificationsListener() {
-            @Override
-            public void notificationsFetched(Device device, boolean succeeded) {
-                MainActivity.getInstance().dismissWaitDialog();
-                Log.d(LOG_TAG, "notificationsFetched: " + succeeded);
+        PropertyNotificationHelper propertyNotificationHelper = new PropertyNotificationHelper(_deviceModel.getDevice());
 
-                updateTriggerList();
+        MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
+        propertyNotificationHelper.fetchNotifications(new FetchNotificationsListener() {
+            @Override
+            public void notificationsFetched(AylaDevice device, AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                Log.d(LOG_TAG, "notificationsFetched: " + error);
+
+                updateTriggersData();
             }
         });
 
@@ -102,27 +111,52 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
     @Override
     public void onResume() {
         super.onResume();
-        SessionManager.deviceManager().stopPolling();
     }
 
-    private void updateTriggerList() {
+    private void updateTriggersData() {
         // Gather all of the property triggers
         _propertyTriggers = new ArrayList<>();
-        if ( _device.getDevice().properties == null ) {
+        if ( _deviceModel.getDevice().getProperties() == null ) {
             Log.e(LOG_TAG, "No properties found on device");
             Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
 
             getFragmentManager().popBackStack();
             return;
         }
-        for (AylaProperty prop : _device.getDevice().properties) {
-            if ( prop.propertyTriggers != null && prop.propertyTriggers.length > 0 ) {
-                for ( AylaPropertyTrigger trigger : prop.propertyTriggers ) {
-                    _propertyTriggers.add(trigger);
-                }
-            }
-        }
 
+        final String[] propNames = _deviceModel.getNotifiablePropertyNames();
+        for (String propName : propNames) {
+            AylaProperty aylaProperty = _deviceModel.getDevice().getProperty(propName);
+            if (aylaProperty == null) {
+                AylaLog.e(LOG_TAG, "No property returned for " + propName);
+                continue;
+            }
+
+            aylaProperty.fetchTriggers(
+                    new Response.Listener<AylaPropertyTrigger[]>() {
+                       @Override
+                       public void onResponse(AylaPropertyTrigger[] response) {
+                           if(response != null && response.length > 0) {
+                               _propertyTriggers.addAll(Arrays.asList(response));
+                           }
+
+                           updateTriggersList();
+                       }
+                   },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            Toast.makeText(getContext(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                    Toast.LENGTH_LONG).show();
+
+                            updateTriggersList();
+                        }
+                    });
+        }
+    }
+
+    private void updateTriggersList() {
         if ( _propertyTriggers.isEmpty() ) {
             _recyclerView.setVisibility(View.GONE);
             _emptyView.setVisibility(View.VISIBLE);
@@ -131,67 +165,60 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
             _recyclerView.setVisibility(View.VISIBLE);
             _emptyView.setVisibility(View.GONE);
         }
-        _recyclerView.setAdapter(new TriggerAdapter(this, _device, _propertyTriggers));
+        _recyclerView.setAdapter(new TriggerAdapter(NotificationListFragment.this, _deviceModel, _propertyTriggers));
     }
 
     @Override
     public void onClick(View v) {
         // Add button tapped
-        PropertyNotificationFragment frag = PropertyNotificationFragment.newInstance(_device, null);
+        PropertyNotificationFragment frag = PropertyNotificationFragment.newInstance(_deviceModel
+                .getDevice(), null);
         MainActivity.getInstance().pushFragment(frag);
     }
 
     private void onLongClick(final int index) {
         AylaPropertyTrigger trigger = _propertyTriggers.get(index);
         new AlertDialog.Builder(getActivity())
-                .setIcon(R.drawable.ic_launcher)
+                .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(R.string.delete_notification_title)
-                .setMessage(getActivity().getResources().getString(R.string.delete_notification_message, trigger.deviceNickname))
+                .setMessage(getActivity().getResources().getString(R.string
+                        .delete_notification_message, trigger.getDeviceNickname()))
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         AylaPropertyTrigger trigger = _propertyTriggers.get(index);
-                        MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
-                        trigger.destroyTrigger(new DeleteTriggerHandler(NotificationListFragment.this, index));
+                        String propNickName = trigger.getPropertyNickname();
+                        AylaProperty property = _deviceModel.getDevice().getProperty(propNickName);
+                        property.deleteTrigger(trigger, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                    @Override
+                                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                        AylaLog.d(LOG_TAG, "Successfully Deleted the old trigger");
+                                        updateTriggersData();
+                                    }
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(getContext(),
+                                                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                });
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .create().show();
     }
 
-    private static class DeleteTriggerHandler extends Handler {
-        private WeakReference<NotificationListFragment> _frag;
-        private int _index;
-
-        public DeleteTriggerHandler(NotificationListFragment frag, int index) {
-            _frag = new WeakReference<NotificationListFragment>(frag);
-            _index = index;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-            if (AylaNetworks.succeeded(msg)) {
-                List<AylaPropertyTrigger> fragTriggers = _frag.get()._propertyTriggers;
-                AylaPropertyTrigger oldTrigger = fragTriggers.remove(_index);
-                AylaProperty prop = _frag.get()._device.getProperty(oldTrigger.propertyNickname);
-                if ( prop != null ) {
-                    _frag.get()._recyclerView.setAdapter(new TriggerAdapter(_frag.get(), _frag.get()._device, fragTriggers));
-                }
-            } else {
-                Toast.makeText(_frag.get().getActivity(), (String)msg.obj, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     private static class TriggerAdapter extends RecyclerView.Adapter {
         private WeakReference<NotificationListFragment> _frag;
         private List<AylaPropertyTrigger>_propertyTriggers;
-        private Device _device;
+        private ViewModel _deviceModel;
 
-        public TriggerAdapter(NotificationListFragment fragment, Device device, List<AylaPropertyTrigger> propertyTriggers) {
-            _frag = new WeakReference<NotificationListFragment>(fragment);
-            _device = device;
+        public TriggerAdapter(NotificationListFragment fragment, ViewModel deviceModel,
+                              List<AylaPropertyTrigger> propertyTriggers) {
+            _frag = new WeakReference<>(fragment);
+            _deviceModel = deviceModel;
             _propertyTriggers = propertyTriggers;
         }
 
@@ -205,12 +232,13 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
         public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             final AylaPropertyTrigger trigger = _propertyTriggers.get(position);
             TriggerViewHolder h = (TriggerViewHolder)holder;
-            h._triggerName.setText(trigger.deviceNickname);
-            h._propertyName.setText(_device.friendlyNameForPropertyName(trigger.propertyNickname));
+            h._triggerName.setText(trigger.getDeviceNickname());
+            h._propertyName.setText(_deviceModel.friendlyNameForPropertyName(trigger.getPropertyNickname()));
             h.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    MainActivity.getInstance().pushFragment(PropertyNotificationFragment.newInstance(_device, trigger));
+                    MainActivity.getInstance().pushFragment(PropertyNotificationFragment
+                            .newInstance(_deviceModel.getDevice(), trigger));
                 }
             });
             h.itemView.setOnLongClickListener(new View.OnLongClickListener() {

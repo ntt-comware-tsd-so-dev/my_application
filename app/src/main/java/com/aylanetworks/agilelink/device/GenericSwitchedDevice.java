@@ -7,13 +7,14 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaDatapoint;
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 
@@ -36,17 +37,7 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SWITCHED;
-    }
-
-    @Override
-    public boolean isDeviceNode() {
-        return true;
-    }
-
-    @Override
-    public String registrationType() {
-        return AylaNetworks.AML_REGISTRATION_TYPE_NODE;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override
@@ -91,7 +82,7 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
         super.bindViewHolder(holder);
 
         SwitchedDeviceViewHolder h = (SwitchedDeviceViewHolder)holder;
-        h._deviceNameTextView.setText(getProductName());
+        h._deviceNameTextView.setText(getDevice().getProductName());
         h._switchButton.setOnClickListener(this);
 
         Resources res = MainActivity.getInstance().getResources();
@@ -112,19 +103,24 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     @Override
     public void onClick(View v) {
         // Update the image view to show the transient state
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable( getSwitchedPendingDrawable(v.getResources()) );
+        if (isOnline() || isInLanMode()) {
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
 
-        if (isDeviceOn()) {
-            setOff();
+            if (isDeviceOn()) {
+                setOff();
+            } else {
+                setOn();
+            }
         } else {
-            setOn();
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
+                    Toast.LENGTH_SHORT).show();
         }
     }// end of onClick
 
     private boolean isDeviceOn() {
         AylaProperty prop = getProperty(PROPERTY_ONOFF_STATUS);
-        if (prop!=null && prop.value !=null && Integer.parseInt(prop.value) != 0) {
+        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
             return true;
         }
         return false;
@@ -133,8 +129,8 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     private void setOn() {
         setDatapoint(PROPERTY_ON_CMD, 1, new SetDatapointListener(){
             @Override
-            public void  setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "setON: " + succeeded + " ***^^^");
+            public void  setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                Log.d(LOG_TAG, "setON error: " + error + " ***^^^");
             }
         });
     }
@@ -142,8 +138,8 @@ public class GenericSwitchedDevice extends GenericNodeDevice implements View.OnC
     private void setOff() {
         setDatapoint(PROPERTY_OFF_CMD, 1, new SetDatapointListener(){
             @Override
-            public void  setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "setOFF: " + succeeded + " ***^^^");
+            public void  setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                Log.d(LOG_TAG, "setOFF error: " + error + " ***^^^");
             }
         });
     }

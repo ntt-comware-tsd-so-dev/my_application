@@ -12,14 +12,14 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaServiceApp;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AccountSettings;
-import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.PushNotification;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 /*
  * DeviceNotificationsFragment.java
@@ -30,7 +30,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
  */
 
 public class DeviceNotificationsFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
-    private static final String LOG_TAG = "DeviceNotificationsFragment";
+    private static final String LOG_TAG = "NotificationsFragment";
 
     private CheckBox _emailCheckbox;
     private CheckBox _smsCheckbox;
@@ -68,7 +68,7 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
 
         // Get our account settings
         MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-        AccountSettings.fetchAccountSettings(AylaUser.getCurrent(), new UpdateSettingsCallback(true));
+        AccountSettings.fetchAccountSettings(new UpdateSettingsCallback(true));
 
         return view;
     }
@@ -93,15 +93,15 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
         Log.d(LOG_TAG, "onCheckedChanged: " + buttonView.getId());
         switch ( buttonView.getId() ) {
             case R.id.checkbox_email:
-                enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL, isChecked);
+                enableNotification(AylaServiceApp.NotificationType.EMail, isChecked);
                 break;
 
             case R.id.checkbox_sms:
-                enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS, isChecked);
+                enableNotification(AylaServiceApp.NotificationType.SMS, isChecked);
                 break;
 
             case R.id.checkbox_push:
-                enableNotification(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH, isChecked);
+                enableNotification(AylaServiceApp.NotificationType.GooglePush, isChecked);
                 break;
 
             default:
@@ -112,16 +112,19 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
 
     private void updateCheckboxes() {
         enableCheckboxListeners(false);
-        AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+        AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
         if ( accountSettings == null ) {
             // Nothing checked
             _emailCheckbox.setChecked(false);
             _smsCheckbox.setChecked(false);
             _pushCheckbox.setChecked(false);
         } else {
-            _emailCheckbox.setChecked(accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_EMAIL));
-            _smsCheckbox.setChecked(accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_SMS));
-            _pushCheckbox.setChecked(accountSettings.isNotificationMethodSet(DeviceNotificationHelper.NOTIFICATION_METHOD_PUSH));
+            _emailCheckbox.setChecked(accountSettings.isNotificationMethodSet(AylaServiceApp
+                    .NotificationType.EMail));
+            _smsCheckbox.setChecked(accountSettings.isNotificationMethodSet(AylaServiceApp
+                    .NotificationType.SMS));
+            _pushCheckbox.setChecked(accountSettings.isNotificationMethodSet(AylaServiceApp
+                    .NotificationType.GooglePush));
         }
 
         enableCheckboxListeners(true);
@@ -134,14 +137,14 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
         _pushCheckbox.setOnCheckedChangeListener(listener);
     }
 
-    private void enableNotification(final String notificationMethod, final boolean enable) {
+    private void enableNotification(final AylaServiceApp.NotificationType notificationMethod, final
+    boolean enable) {
         Log.d(LOG_TAG, "Email notifications: " + enable);
-        AccountSettings accountSettings = SessionManager.getInstance().getAccountSettings();
+        AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
         if ( accountSettings == null ) {
             // Fetch the account settings now
             MainActivity.getInstance().showWaitDialog(R.string.fetching_account_info_title, R.string.fetching_account_info_body);
-            SessionManager.getInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
-                @Override
+            AccountSettings.fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
                 public void settingsUpdated(AccountSettings settings, Message msg) {
                     MainActivity.getInstance().dismissWaitDialog();
                     if ( settings != null ) {
@@ -167,17 +170,18 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
         updateNotifications(notificationMethod, enable);
     }
 
-    private void updateNotifications(String notificationType, boolean enable) {
-        SessionManager.deviceManager().updateDeviceNotifications(
+    private void updateNotifications(AylaServiceApp.NotificationType notificationType, boolean enable) {
+        AMAPCore.sharedInstance().updateDeviceNotifications(
                 notificationType,
                 enable,
-                new DeviceManager.DeviceNotificationListener() {
+                new AMAPCore.DeviceNotificationListener() {
                     @Override
-                    public void notificationsUpdated(boolean succeeded, Message failureMessage) {
+                    public void notificationsUpdated(AylaError error) {
                         MainActivity.getInstance().dismissWaitDialog();
-                        if ( succeeded ) {
+                        if (error == null) {
                             Toast.makeText(getActivity(), R.string.notifications_updated, Toast.LENGTH_SHORT).show();
                         } else {
+                            AylaLog.e(LOG_TAG, "Failed updating notifications: " + error);
                             Toast.makeText(getActivity(), R.string.notification_update_failed, Toast.LENGTH_LONG).show();
                         }
                     }
@@ -189,7 +193,6 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
         public UpdateSettingsCallback(boolean dismissDialogWhenDone) {
             _dismissDialogWhenDone = dismissDialogWhenDone;
         }
-        @Override
         public void settingsUpdated(AccountSettings settings, Message msg) {
             updateCheckboxes();
             if ( _dismissDialogWhenDone ) {

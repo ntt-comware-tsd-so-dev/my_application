@@ -146,7 +146,6 @@ public class UiBasicWalkTest {
         onView(withText("Smart Plug"));
 
         onView(withText("Ayla EVB")).perform(click());
-        onView(withText("Zigbee Gateway"));
         onView(withId(R.id.spinner_registration_type)).perform(click());
 
         onView(withText("Same-LAN")).perform(click());

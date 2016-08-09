@@ -1,12 +1,8 @@
 package com.aylanetworks.agilelink.fragments;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
@@ -19,12 +15,16 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaUser;
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,7 +87,25 @@ public class ResetPasswordDialog extends DialogFragment {
                 _okButton.setVisibility(View.GONE);
                 _cancelButton.setVisibility(View.GONE);
                 _progressBar.setVisibility(View.VISIBLE);
-                AylaUser.resetPasswordWithToken(_resetHandler, params);
+                AylaNetworks.sharedInstance().getLoginManager().resetPassword(password,_token,
+                        new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                            @Override
+                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                Toast.makeText(MainActivity.getInstance(), R.string.password_changed, Toast.LENGTH_LONG).show();
+                                getFragmentManager().popBackStack();
+                                dismiss();
+                            }
+                        },
+                        new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                Toast.makeText(MainActivity.getInstance(), error.toString(), Toast.LENGTH_LONG)
+                                        .show();
+                                _okButton.setVisibility(View.VISIBLE);
+                                _cancelButton.setVisibility(View.VISIBLE);
+                                _progressBar.setVisibility(View.GONE);
+                            }
+                        });
             }
         });
 
@@ -101,41 +119,4 @@ public class ResetPasswordDialog extends DialogFragment {
         getDialog().setTitle(R.string.enter_new_password);
         return view;
     }
-
-    static class ResetHandler extends Handler {
-        private WeakReference<ResetPasswordDialog> _resetPasswordDialog;
-        public ResetHandler(ResetPasswordDialog resetPasswordDialog) {
-            _resetPasswordDialog = new WeakReference<ResetPasswordDialog>(resetPasswordDialog);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logMessage(LOG_TAG, msg, "resetPasswordWithTokenHandler");
-            if ( AylaNetworks.succeeded(msg) ) {
-                Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.password_changed, Toast.LENGTH_LONG).show();
-            } else {
-                if ( msg.arg1 == 422 ) {
-                    Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.error_invalid_token, Toast.LENGTH_LONG).show();
-                } else {
-                    String json = (String)msg.obj;
-                    if (TextUtils.isEmpty(json)) {
-                        try {
-                            JSONObject obj = new JSONObject(json);
-                            String message = obj.getString("password");
-                            if (message != null) {
-                                Toast.makeText(_resetPasswordDialog.get().getActivity(), message, Toast.LENGTH_LONG);
-                                _resetPasswordDialog.get().dismiss();
-                                return;
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    Toast.makeText(_resetPasswordDialog.get().getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-                }
-            }
-            _resetPasswordDialog.get().dismiss();
-        }
-    }
-    private ResetHandler _resetHandler = new ResetHandler(this);
 }

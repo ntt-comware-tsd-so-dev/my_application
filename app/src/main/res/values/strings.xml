@@ -184,6 +184,7 @@
     <string name="connect">Connect</string>
     <string name="wifi_password">WiFi Network Password</string>
     <string name="wifi_show_password">Show password</string>
+    <string name="wifi_requires_auth">Wi-Fi requires authentication</string>
     <string name="connect_device">Connect Device</string>
     <string name="connect_to_service_success">Service connection successful</string>
     <string name="bad_wifi_password">Bad WiFi password. Please try again.</string>
@@ -197,6 +198,7 @@
     <string name="invalid_email_password">Invalid email or password</string>
     <string name="invalid_email">Invalid email</string>
     <string name="update_email_success">Update email success</string>
+    <string name="update_password_success">Update password success</string>
     <string name="updating_email_title">Updating Email</string>
     <string name="updating_email_body">Updating your email. Please wait...</string>
     <string name="update_email_confirm_title">Change email?</string>
@@ -250,7 +252,7 @@
     <string name="resetting_password_title">Resetting password...</string>
     <string name="resetting_password_body">Resetting your password. Please wait...</string>
     <string name="confirm_delete_account_title">Delete Account?</string>
-    <string name="confirm_delete_account_message">Do you really wish to delete %s? This action cannot be undone.</string>
+    <string name="confirm_delete_account_message">Do you really wish to delete your account? This action cannot be undone</string>
     <string name="deleting_account_title">Deleting Account</string>
     <string name="deleting_account_message">Deleting your account. Please wait...</string>
     <string name="account_deleted">Your account has successfully been deleted.</string>
@@ -333,8 +335,7 @@
     <string name="green_led">Green LED</string>
     <string name="schedule_properties_description">Select which action you would like to update with this schedule:</string>
     <string name="no_actions_set">Please select at least one action to update with this schedule</string>
-    <string name="configure_a_timer_or_a_schedule_before_saving">Configure a timer or a schedule
-        before saving.</string>
+    <string name="configure_a_timer_or_a_schedule_before_saving">Configure a timer or a schedule before saving.</string>
     <string name="timezone_button_text">Timezone...</string>
     <string name="sharing_button_text">Share Device...</string>
     <string name="choose_timezone">Select the time zone for this device</string>
@@ -390,6 +391,7 @@
     <string name="sharing_with_others_empty">No devices shared</string>
     <string name="shared_with_me_empty">No devices shared with me</string>
     <string name="error_deleting_share">An unknown error occurred while trying to delete this share. Please try again later.</string>
+    <string name="error_fetching_shares">An unknown error occurred while trying to fetch shared devices. Please try again later.</string>
     <string name="error_creating_share">An unknown error occurred while trying to create a share. Please try again later.</string>
     <string name="no_devices_to_share">There are no devices that can be shared registered to this account.</string>
     <string name="share_removed">The shared device has been removed from your account.</string>
@@ -404,6 +406,10 @@
     <string name="now">Now</string>
     <string name="never">Never</string>
     <string name="share_button_title">Create Share</string>
+    <string name="share_button_edit">Save Changes</string>
+    <string name="share_updating">Updating share</string>
+    <string name="share_update_success">Share updated successfully</string>
+    <string name="share_update_error">Error in updating share</string>
     <string name="no_date">No Date</string>
     <string name="share_email_address_required">Please enter the email address of the Ayla account holder you would like to share with</string>
     <string name="rename_device_text">Enter the name for your device below:</string>
@@ -418,7 +424,7 @@
     <string name="confirm_sign_out_message">Do you wish to sign out %s?</string>
     <string name="group_empty_text">Tap the add button to create a new group</string>
     <string name="no_devices_in_group">Tap the add button to add devices to this group</string>
-    <string name="about_app" formatted="false">About %s</string>
+    <string name="about_app" formatted="true">About %s</string>
     <string name="about">About</string>
     <string name="more_options">More...</string>
     <string name="service_type">Service Type</string>
@@ -430,11 +436,12 @@
     <string name="unknown_service">Unknown Service Type: %d</string>
     <string name="app_version">Application Version</string>
     <string name="core_version">Core Version</string>
-    <string name="library_version">AAML Version</string>
+    <string name="library_version">Ayla SDK Version</string>
     <string name="reachable">Reachable</string>
     <string name="unreachable">Not Reachable</string>
     <string name="unknown">Unknown</string>
-    <string name="service_reachability">Service Reachability</string>
+    <string name="wifi_enabled">WiFi Enabled</string>
+    <string name="cellular_enabled">Cellular Enabled</string>
     <string name="offline_no_functionality">Device is offline and cannot be modified</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
@@ -474,6 +481,7 @@
     <string name="becomes_less_than">becomes less than</string>
     <string name="changes">changes</string>
     <string name="push_notifcations_not_supported">Push notifications not supported</string>
+    <string name="send_push_notifications">Send push notification to this device</string>
     <string name="notifcations_not_enabled">Property notifications are not available on this device</string>
     <string name="fetching_notifications">Fetching notifications for this device. Please wait...</string>
     <string name="unknown_trigger_name">Trigger %d</string>
@@ -494,6 +502,12 @@
     <string name="error_gateway_register_no_device">Scan for devices first</string>
     <string name="error_no_gateway_instructions">No gateway found. Please register one first.</string>
     <string name="add_device_sensor_warning">Further setup for this device will occur in the background. The sensor may not respond immediately for the next couple of minutes.</string>
+    <string name="error_device_scan">An error occurred while scanning for devices</string>
+    <string name="error_device_connect">An error occurred while connecting to the device</string>
+    <string name="error_device_connect_service">An error occurred while connecting the device to the WiFi network</string>
+    <string name="error_fetch_candidates">An error occurred while fetching device registration candidates</string>
+    <string name="error_register_candidate">An error occurred while registering the device candidate</string>
+    <string name="error_confirm_device">An error occurred while confirming the device connection</string>
     <string name="message_attention">Attention</string>
     <string name="lan_mode_enabled">LAN Mode enabled</string>
     <string name="online">Online</string>
@@ -608,6 +622,7 @@
     <string name="activate_scene_icon" formatted="false">Activate %s</string>
     <string name="no_devices_available_to_pair">No devices available to pair</string>
     <string name="no_devices_available_to_unpair">No devices to unpair</string>
+    <string name="no_scanned_devices">No devices found. Try restarting the device and scan again</string>
 
     <!-- Welcome and SEtup Guide Page -->
     <string name="welcome_text">Welcome to AMAP!</string>

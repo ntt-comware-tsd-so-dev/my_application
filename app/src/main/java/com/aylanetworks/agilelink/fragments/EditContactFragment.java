@@ -19,13 +19,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaContact;
+import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.controls.ComboBox;
 import com.aylanetworks.agilelink.framework.ContactManager;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
@@ -65,7 +67,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
 
     public static EditContactFragment newInstance(AylaContact contact) {
         Bundle args = new Bundle();
-        args.putInt(ARG_CONTACT_ID, contact == null ? 0 : contact.id);
+        args.putInt(ARG_CONTACT_ID, contact == null ? 0 : contact.getId());
         EditContactFragment frag = new EditContactFragment();
         frag.setArguments(args);
         return frag;
@@ -78,7 +80,7 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
         getActivity().invalidateOptionsMenu();
         int contactID = getArguments().getInt(ARG_CONTACT_ID);
         if (contactID != 0) {
-            _aylaContact = SessionManager.getInstance().getContactManager().getContactByID(contactID);
+            _aylaContact = AMAPCore.sharedInstance().getContactManager().getContactByID(contactID);
         }
     }
 
@@ -141,11 +143,11 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             _zipCode.setText("");
             _button.setText(getString(R.string.create_contact));
         } else {
-            _firstName.setText(_aylaContact.firstname);
-            _lastName.setText(_aylaContact.lastname);
-            _displayName.setText(_aylaContact.displayName);
-            _email.setText(_aylaContact.email);
-            _countryCode.setText(_aylaContact.phoneCountryCode);
+            _firstName.setText(_aylaContact.getFirstname());
+            _lastName.setText(_aylaContact.getLastname());
+            _displayName.setText(_aylaContact.getDisplayName());
+            _email.setText(_aylaContact.getEmail());
+            _countryCode.setText(_aylaContact.getPhoneCountryCode());
 
           /*  PhoneNumberUtil util = PhoneNumberUtil.getInstance();
             Phonenumber.PhoneNumber phoneNumber = null;
@@ -161,9 +163,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
                 _phoneNumber.setText(_aylaContact.phoneNumber);
             }*/
 
-            _phoneNumber.setText(_aylaContact.phoneNumber);
-            _streetAddress.setText(_aylaContact.streetAddress);
-            _zipCode.setText(_aylaContact.zipCode);
+            _phoneNumber.setText(_aylaContact.getPhoneNumber());
+            _streetAddress.setText(_aylaContact.getStreetAddress());
+            _zipCode.setText(_aylaContact.getZipCode());
             _button.setText(getString(R.string.update_contact));
         }
     }
@@ -187,71 +189,57 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             _aylaContact = new AylaContact();
         }
 
-        _aylaContact.firstname = _firstName.getText().toString();
-        _aylaContact.lastname = _lastName.getText().toString();
-        _aylaContact.displayName = _displayName.getText().toString();
-        _aylaContact.email = _email.getText();
-        _aylaContact.phoneCountryCode = _countryCode.getText().toString();
-        _aylaContact.phoneNumber = _phoneNumber.getText();
+        _aylaContact.setFirstname(_firstName.getText().toString());
+        _aylaContact.setLastname(_lastName.getText().toString());
+        _aylaContact.setDisplayName(_displayName.getText().toString());
+        _aylaContact.setEmail(_email.getText());
+        _aylaContact.setPhoneCountryCode(_countryCode.getText().toString());
+        _aylaContact.setPhoneNumber(_phoneNumber.getText());
 
         // The server is picky about the format of the phone number
-        _aylaContact.phoneNumber = _aylaContact.phoneNumber.replaceAll("[^0-9]", "");
+        _aylaContact.setPhoneNumber(_aylaContact.getPhoneNumber().replaceAll("[^0-9]", ""));
 
-        _aylaContact.streetAddress = _streetAddress.getText().toString();
-        _aylaContact.zipCode = _zipCode.getText().toString();
-
-        if(_aylaContact.phoneNumber != null && _aylaContact.phoneNumber.length() != 0){
-            _aylaContact.smsNotification = true;
-        }
-        if(_aylaContact.email != null && _aylaContact.email.length() != 0){
-            _aylaContact.emailNotification = true;
-        }
+        _aylaContact.setStreetAddress(_streetAddress.getText().toString());
+        _aylaContact.setZipCode(_zipCode.getText().toString());
 
         final ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override
-            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+            public void contactListUpdated(ContactManager manager, AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
-                if (succeeded) {
+                if (error == null) {
                     Toast.makeText(getActivity(), R.string.contact_updated, Toast.LENGTH_LONG).show();
                     getFragmentManager().popBackStack();
                 } else {
-                    if (lastMessage.obj != null) {
-                        Toast.makeText(getActivity(), (String) lastMessage.obj, Toast.LENGTH_LONG).show();
-                    } else {
-                        // Generic error message
-                        Toast.makeText(getActivity(), R.string.contact_update_failed, Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(getActivity(),
+                            ErrorUtils.getUserMessage(getActivity(), error, R.string.contact_update_failed),
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         };
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_contact_title, R.string.updating_contact_body);
         // Do we add or update?
-        if (_aylaContact.id == null) {
+        if (_aylaContact.getId() == null) {
             // Add.
-            SessionManager.getInstance().getContactManager().addContact(_aylaContact, listener);
+            AMAPCore.sharedInstance().getContactManager().addContact(_aylaContact, listener);
         } else {
-            SessionManager.getInstance().getContactManager().updateContact(_aylaContact, listener);
+            AMAPCore.sharedInstance().getContactManager().updateContact(_aylaContact, listener);
         }
     }
 
     void onDeleteContactClicked() {
         MainActivity.getInstance().showWaitDialog(R.string.deleting_contact_title, R.string.deleting_contact_body);
-        SessionManager.getInstance().getContactManager().deleteContact(_aylaContact, new ContactManager.ContactManagerListener() {
+        AMAPCore.sharedInstance().getContactManager().deleteContact(_aylaContact, new ContactManager.ContactManagerListener() {
             @Override
-            public void contactListUpdated(ContactManager manager, boolean succeeded) {
+            public void contactListUpdated(ContactManager manager, AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
-                if ( succeeded ) {
+                if ( error == null ) {
                     Toast.makeText(getActivity(), R.string.contact_deleted, Toast.LENGTH_LONG).show();
                     getFragmentManager().popBackStack();
                 } else {
-                    String message;
-                    if ( lastMessage.obj != null ) {
-                        message = (String)lastMessage.obj;
-                    } else {
-                        message = MainActivity.getInstance().getString(R.string.unknown_error);
-                    }
-                    Toast.makeText(MainActivity.getInstance(), (String)message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.getInstance(),
+                            ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });

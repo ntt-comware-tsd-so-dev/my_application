@@ -2,10 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Looper;
-import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,21 +16,25 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaUser;
+import com.aylanetworks.agilelink.device.GenericDeviceViewHolder;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.device.DeviceUIProvider;
-import com.aylanetworks.agilelink.device.GenericDevice;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
-import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.MenuHandler;
+import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.change.Change;
+import com.aylanetworks.aylasdk.change.ListChange;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /*
  * AllDevicesFragment.java
@@ -43,11 +44,10 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class AllDevicesFragment extends Fragment
-    implements
-        Device.DeviceStatusListener,
-        DeviceManager.DeviceListListener,
-        SessionManager.SessionListener,
+public class AllDevicesFragment extends Fragment implements
+        AylaDevice.DeviceChangeListener,
+        AylaDeviceManager.DeviceManagerListener,
+        AylaSessionManager.SessionManagerListener,
         View.OnClickListener,
         DialogInterface.OnCancelListener {
 
@@ -56,7 +56,6 @@ public class AllDevicesFragment extends Fragment
     /**
      * The fragment's recycler view and helpers
      */
-    protected SwipeRefreshLayout _swipe;
     protected RecyclerView _recyclerView;
     protected RecyclerView.LayoutManager _layoutManager;
     protected DeviceListAdapter _adapter;
@@ -85,7 +84,9 @@ public class AllDevicesFragment extends Fragment
 
         // Listen for login events. Our fragment exists before the user has logged in, so we need
         // to know when that happens so we can start listening to the device manager notifications.
-        SessionManager.addSessionListener(this);
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        }
     }
 
     @Override
@@ -93,24 +94,12 @@ public class AllDevicesFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_aldevice, container, false);
         _emptyView = (TextView) view.findViewById(R.id.empty);
 
-        // setup swipe refresh
-        _swipe = (SwipeRefreshLayout)view.findViewById(R.id.swiperefresh);
-        if (_swipe != null) {
-            _swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    swipeRefreshStart();
-                }
-            });
-        }
-
         // Set up the list view
         _recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         _recyclerView.setHasFixedSize(true);
         _recyclerView.setVisibility(View.GONE);
 
         _emptyView.setVisibility(View.VISIBLE);
-        _emptyView.setText(R.string.fetching_devices);
 
         switch ( MainActivity.getUIConfig()._listStyle ) {
             case List:
@@ -125,7 +114,7 @@ public class AllDevicesFragment extends Fragment
                 gm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                     @Override
                     public int getSpanSize(int position) {
-                        DeviceUIProvider device = _adapter.getItem(position);
+                        ViewModel device = _adapter.getItem(position);
                         return device.getGridViewSpan();
                     }
                 });
@@ -138,36 +127,8 @@ public class AllDevicesFragment extends Fragment
         ImageButton b = (ImageButton) view.findViewById(R.id.add_button);
         b.setOnClickListener(this);
 
+        updateDeviceList();
         return view;
-    }
-
-    void swipeRefreshStart() {
-        if (SessionManager.deviceManager() != null) {
-            SessionManager.deviceManager().refreshDeviceListWithCompletion(this, new DeviceManager.GetDevicesCompletion() {
-                @Override
-                public void complete(Message msg, List<Device> newDeviceList, Object tag) {
-                    swipeRefreshComplete();
-                }
-            });
-        } else {
-            swipeRefreshComplete();
-        }
-    }
-
-    void swipeRefreshComplete() {
-        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
-            _swipe.setRefreshing(false);
-        } else {
-            // Run on the UI thread
-            try {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        _swipe.setRefreshing(false);
-                    }
-                });
-            } catch (Exception ex) { }
-        }
     }
 
     private void addDevice() {
@@ -200,30 +161,22 @@ public class AllDevicesFragment extends Fragment
     }
 
     public void updateDeviceList() {
-        boolean hasDevices = false;
-
         if (_recyclerView == null) {
             // We're not ready yet
             return;
         }
 
-        List<Device> deviceList = null;
-        if (SessionManager.deviceManager() != null) {
-            List<Device> all = SessionManager.deviceManager().deviceList();
+        List<AylaDevice> deviceList = null;
+        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
+        if (deviceManager != null) {
+            List<AylaDevice> all = deviceManager.getDevices();
             if (all != null) {
-                hasDevices = !all.isEmpty();
                 deviceList = new ArrayList<>();
-                for (Device d : all) {
+                for (AylaDevice d : all) {
                     if (!d.isGateway()) {
                         deviceList.add(d);
                     }
                 }
-            }
-            if (SessionManager.deviceManager().isShuttingDown()) {
-                // all done. Make sure we clear out our recycler view so it doesn't show
-                // anything when we log back in
-                _recyclerView.setAdapter(null);
-                return;
             }
         }
 
@@ -242,22 +195,31 @@ public class AllDevicesFragment extends Fragment
                 _recyclerView.setAdapter(_adapter);
             }
         }
+
+        if (deviceManager != null &&
+                deviceManager.getState() == AylaDeviceManager.DeviceManagerState.Ready) {
+            // Devices have been added / removed since initialization
+            startListening();
+        }
     }
 
     protected void startListening() {
-        DeviceManager deviceManager = SessionManager.deviceManager();
+        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
-            deviceManager.addDeviceListListener(this);
-            deviceManager.addDeviceStatusListener(this);
-            updateDeviceList();
+            deviceManager.addListener(this);
+            for (AylaDevice device : deviceManager.getDevices()) {
+                device.addListener(this);
+            }
         }
     }
 
     protected void stopListening() {
-        DeviceManager deviceManager = SessionManager.deviceManager();
+        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
-            SessionManager.deviceManager().removeDeviceListListener(this);
-            SessionManager.deviceManager().removeDeviceStatusListener(this);
+            deviceManager.removeListener(this);
+            for (AylaDevice device : deviceManager.getDevices()) {
+                device.removeListener(this);
+            }
         }
     }
 
@@ -272,58 +234,12 @@ public class AllDevicesFragment extends Fragment
         super.onResume();
 
         // See if we have a device manager yet
-        DeviceManager dm = SessionManager.deviceManager();
-        if (dm != null) {
-            _adapter = DeviceListAdapter.fromDeviceList(SessionManager.deviceManager().deviceList(), this);
-            startListening();
-            deviceListChanged();
-        }
-    }
-
-    @Override
-    public void deviceListChanged() {
-        Log.i(LOG_TAG, "dev: device list changed");
-        updateDeviceList();
-    }
-
-    @Override
-    public void statusUpdated(Device device, boolean changed) {
-        if ( changed ) {
-            Log.i(LOG_TAG, "dev: device [" + device.getDeviceDsn() + "] changed");
-            for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
-                Device d = (Device)_adapter.getItem(i);
-                if ( d.getDeviceDsn().equals(device.getDeviceDsn())) {
-                    _adapter.notifyItemChanged(i);
-                    break;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void loginStateChanged(boolean loggedIn, AylaUser aylaUser) {
-        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
-        DeviceManager deviceManager = SessionManager.deviceManager();
+        AylaDeviceManager deviceManager = AMAPCore.sharedInstance().getDeviceManager();
         if (deviceManager != null) {
-            if (loggedIn) {
-                SessionManager.deviceManager().addDeviceListListener(this);
-                SessionManager.deviceManager().addDeviceStatusListener(this);
-            } else {
-                // Logged out
-                SessionManager.deviceManager().removeDeviceListListener(this);
-                SessionManager.deviceManager().removeDeviceStatusListener(this);
-            }
+            _adapter = DeviceListAdapter.fromDeviceList(deviceManager.getDevices(), this);
+            startListening();
+            updateDeviceList();
         }
-    }
-
-    @Override
-    public void reachabilityChanged(int reachabilityState) {
-        Log.v(LOG_TAG, "Reachability changed: " + reachabilityState);
-    }
-
-    @Override
-    public void lanModeChanged(boolean lanModeEnabled) {
-        Log.v(LOG_TAG, "lanModeChanged: " + (lanModeEnabled ? "ENABLED" : "DISABLED"));
     }
 
     @Override
@@ -338,7 +254,7 @@ public class AllDevicesFragment extends Fragment
 
     protected void handleItemClick(View v) {
         int itemIndex = (int)v.getTag();
-        final DeviceUIProvider d = _adapter.getItem(itemIndex);
+        final ViewModel d = _adapter.getItem(itemIndex);
         if (d != null) {
             ViewGroup expandedLayout = (ViewGroup)v.findViewById(R.id.expanded_layout);
             if ( expandedLayout != null ) {
@@ -365,5 +281,80 @@ public class AllDevicesFragment extends Fragment
     @Override
     public void onCancel(DialogInterface dialog) {
         //MainActivity.getInstance().dismissWaitDialog();
+    }
+
+    // Device State Listener methods
+
+    @Override
+    public void deviceChanged(AylaDevice device, Change change) {
+        Log.i(LOG_TAG, "dev: device [" + device + "] changed");
+        for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
+            ViewModel model = _adapter.getItem(i);
+            if ( model.getDevice().getDsn().equals(device.getDsn())) {
+                _adapter.notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void deviceError(AylaDevice device, AylaError error) {
+        AylaLog.e(LOG_TAG, "Device " + device + " error: " + error);
+    }
+
+    @Override
+    public void deviceLanStateChanged(AylaDevice device, boolean lanModeEnabled) {
+        AylaLog.i(LOG_TAG, "Device " + device + " LAN enabled: " + lanModeEnabled);
+        for ( int i = 0; i < _adapter.getItemCount(); i++ ) {
+            ViewModel model = _adapter.getItem(i);
+            if ( model.getDevice().getDsn().equals(device.getDsn())) {
+                _adapter.notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    // Device Manager Listener methods
+
+    @Override
+    public void deviceManagerInitComplete(Map<String, AylaError> deviceFailures) {
+        AylaLog.i(LOG_TAG, "Device manager init complete, failures: " + deviceFailures);
+        startListening();
+    }
+
+    @Override
+    public void deviceManagerInitFailure(AylaError error,
+                                         AylaDeviceManager.DeviceManagerState failureState) {
+        AylaLog.e(LOG_TAG, "Device manager init failure: " + error + " in state " + failureState);
+    }
+
+    @Override
+    public void deviceListChanged(ListChange change) {
+        AylaLog.i(LOG_TAG, "Device list changed: " + change);
+        startListening();
+        updateDeviceList();
+    }
+
+    @Override
+    public void deviceManagerError(AylaError error) {
+        AylaLog.e(LOG_TAG, "Device manager error: " + error);
+    }
+
+    @Override
+    public void deviceManagerStateChanged(AylaDeviceManager.DeviceManagerState oldState,
+                                          AylaDeviceManager.DeviceManagerState newState) {
+        AylaLog.i(LOG_TAG, "Device manager state: " + oldState + " --> " + newState);
+    }
+
+    // SessionManager listener methods
+
+    @Override
+    public void sessionClosed(String sessionName, AylaError error) {
+
+    }
+
+    @Override
+    public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+
     }
 }

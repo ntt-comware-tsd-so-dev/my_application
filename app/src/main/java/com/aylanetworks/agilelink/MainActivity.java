@@ -1,6 +1,9 @@
 package com.aylanetworks.agilelink;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,7 +14,6 @@ import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -41,13 +43,18 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaLanMode;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaReachability;
-import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.aaml.AylaUser;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
+import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaShare;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
-import com.aylanetworks.agilelink.device.AgileLinkDeviceCreator;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
@@ -55,12 +62,15 @@ import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
 import com.aylanetworks.agilelink.framework.UIConfig;
-import com.google.gson.annotations.Expose;
+import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.util.List;
+
+import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
 
 /*
  * MainActivity.java
@@ -70,7 +80,11 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class MainActivity extends AppCompatActivity implements SessionManager.SessionListener, AgileLinkApplication.AgileLinkApplicationListener, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity
+        implements AylaSessionManager.SessionManagerListener,
+        AgileLinkApplication.AgileLinkApplicationListener,
+        View.OnClickListener,
+        ActivityCompat.OnRequestPermissionsResultCallback{
 
     private static final String LOG_TAG = "Main Activity";
 
@@ -81,8 +95,9 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
     // request IDs for intents we want results from
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
-    public static int LOG_PERMIT = AylaNetworks.AML_LOGGING_LEVEL_NONE;
+    public static AylaLog.LogLevel LOG_PERMIT = AylaLog.LogLevel.None;
 
+    public static final String ARG_SHARE = "share";
     private static MainActivity _theInstance;
 
     /**
@@ -131,7 +146,9 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle(title);
         dialog.setIcon(R.drawable.ic_launcher);
-        dialog.setMessage(message);
+        if(message != null){
+            dialog.setMessage(message);
+        }
         dialog.setIndeterminate(true);
         dialog.setCancelable(false);
         dialog.setOnCancelListener(null);
@@ -189,7 +206,9 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         if (_progressDialog != null) {
             try {
                 _progressDialog.dismiss();
-            } catch (Exception ex) {}
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         _progressDialog = null;
         _progressDialogStart = 0;
@@ -200,16 +219,20 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
      *
      * @return The app version string
      */
-    public String getAppVersion() {
-        PackageInfo info = null;
+    private static String getAppVersion(Context context) {
+        PackageInfo info;
         try {
-            info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
-            return getString(R.string.unknown_app_version);
+            return context.getString(R.string.unknown_app_version);
         }
 
         return info.versionName + "." + info.versionCode;
+    }
+
+    public String getAppVersion() {
+        return getAppVersion(this);
     }
 
     /**
@@ -243,12 +266,12 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         popBackstackToRoot();
 
         // If we're logged out or logging out, don't enter no devices mode
-        if ( SessionManager.deviceManager() == null || SessionManager.deviceManager().isShuttingDown() ) {
+        if ( AMAPCore.sharedInstance().getDeviceManager() == null ) {
             _noDevicesMode = false;
         }
 
         if ( _noDevicesMode ) {
-            SessionManager.deviceManager().stopPolling();
+            AMAPCore.sharedInstance().getDeviceManager().stopPolling();
             if (getUIConfig()._navStyle == UIConfig.NavStyle.Material) {
                 setContentView(R.layout.activity_main_no_devices_material);
                 _toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -268,6 +291,25 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
      */
     public boolean isNoDevicesMode() {
         return _noDevicesMode;
+    }
+
+    /////////////////////////////
+    // AylaSessionManagerListener methods
+
+    @Override
+    public void sessionClosed(String sessionName, AylaError error) {
+        // User logged out.
+        setNoDevicesMode(false);
+        if (!_loginScreenUp) {
+            showLoginDialog(true);
+        } else {
+            Log.e(LOG_TAG, "nod: Login screen is already up:");
+        }
+    }
+
+    @Override
+    public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+        CachedAuthProvider.cacheAuthorization(this, authorization);
     }
 
     /**
@@ -350,7 +392,6 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                                 SORT);
                         _pickContactListener.contactPicked(c);
                         c.close();
-
                     } else {
                         _pickContactListener.contactPicked(null);
                     }
@@ -360,7 +401,15 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         } else if ( reqCode == REQ_SIGN_IN ) {
             Log.d(LOG_TAG, "nod: SignInActivity finished");
             _loginScreenUp = false;
-            if ( resultCode == RESULT_FIRST_USER ) {
+
+            if (resultCode == Activity.RESULT_OK) {
+                handleSignedIn();
+
+                // Start wearable service. If there are no wearable devices connected, the service
+                // will stop itself
+                Intent wearService = new Intent(this, WearUpdateService.class);
+                startService(wearService);
+            } else if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
             }
@@ -370,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
-        if(ActivityCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED){
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             requestStoragePermissions();
         }
         if(getResources().getBoolean(R.bool.portrait_only)){
@@ -379,30 +428,39 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         } else {
             Log.i("BOOL", "portrait_only: false");
         }
+
         _theInstance = this;
-        AylaNetworks.appContext = this;
+
         setUITheme();
         super.onCreate(savedInstanceState);
         initUI();
 
-        // Set up the session manager with our session parameters
-        SessionManager.setParameters(getAppParameters());
+        if (AMAPCore.sharedInstance() == null) {
+            AMAPCore.initialize(getAppParameters(this), this);
+        }
 
-        // We want to know when the user logs in or out
-        SessionManager.addSessionListener(this);
+        if (!_loginScreenUp) {
+            showLoginDialog(false);
+        }
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
-
-        // force to Production Service
-        //SessionManager.getInstance().setServiceType(AylaNetworks.AML_STAGING_SERVICE);
     }
 
     @Override
     public void onDestroy() {
         _theInstance = null;
-        SessionManager.removeSessionListener(this);
+        AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
+        if (sm != null) {
+            sm.removeListener(this);
+        }
         ((AgileLinkApplication)getApplication()).removeListener(this);
+
+        // Only pause Ayla services here if the wearable service is not using it
+        if (AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
+            AylaNetworks.sharedInstance().onPause();
+        }
+
         super.onDestroy();
     }
 
@@ -505,7 +563,6 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         if (_sideBarView != null) {
             findViewById(R.id.action_all_devices).setOnClickListener(this);
             findViewById(R.id.action_device_groups).setOnClickListener(this);
-            findViewById(R.id.action_device_scenes).setOnClickListener(this);
             findViewById(R.id.action_gateways).setOnClickListener(this);
             findViewById(R.id.action_shares).setOnClickListener(this);
             findViewById(R.id.action_account).setOnClickListener(this);
@@ -518,19 +575,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout, R.string.drawer_open, R.string.drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
-                AylaUser currentUser = AylaUser.getCurrent();
-                StringBuilder sb = new StringBuilder(64);
-                if (!TextUtils.isEmpty(currentUser.firstname)) {
-                    sb.append(currentUser.firstname);
-                }
-                if (sb.length() > 0) {
-                    sb.append(" ");
-                }
-                if (!TextUtils.isEmpty(currentUser.lastname)) {
-                    sb.append(currentUser.lastname);
-                }
-                _userView.setText(sb.toString());
-                _emailView.setText(currentUser.email);
+                updateDrawerHeader();
                 MainActivity.this.onDrawerOpened(drawerView);
             }
 
@@ -562,6 +607,28 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         }
     }
 
+    private void updateDrawerHeader() {
+        AylaUser currentUser = AMAPCore.sharedInstance().getCurrentUser();
+        if (currentUser != null) {
+            if (_userView != null && _emailView != null) {
+                StringBuilder sb = new StringBuilder(64);
+                if (!TextUtils.isEmpty(currentUser.getFirstname())) {
+                    sb.append(currentUser.getFirstname());
+                }
+                if (sb.length() > 0) {
+                    sb.append(" ");
+                }
+                if (!TextUtils.isEmpty(currentUser.getLastname())) {
+                    sb.append(currentUser.getLastname());
+                }
+                _userView.setText(sb.toString());
+                _emailView.setText(currentUser.getEmail());
+            }
+        } else {
+            AMAPCore.sharedInstance().updateCurrentUserInfo();
+        }
+    }
+
     public void onSelectMenuItemById(int id) {
         if (_navigationView != null) {
             Menu menu = _navigationView.getMenu();
@@ -590,9 +657,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                     _sideBarIcon.clearColorFilter();
                 }
                 _sideBarIcon = (ImageView)view;
-                if (_sideBarIcon != null) {
-                    _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
-                }
+                _sideBarIcon.setColorFilter(getResources().getColor(R.color.app_theme_accent), PorterDuff.Mode.SRC_ATOP);
             }
         }
     }
@@ -664,6 +729,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         onDrawerItemClicked(_drawerMenu.getItem(0));
     }
 
+    /**
     public void openDrawer() {
         if ( _drawerLayout != null ) {
             if (_drawerList != null) {
@@ -673,6 +739,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             }
         }
     }
+     */
 
     public void closeDrawer() {
         if ( _drawerLayout != null ) {
@@ -706,6 +773,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         Log.d(LOG_TAG, "Drawer Closed");
         supportInvalidateOptionsMenu();
     }
+
     public void settingsMenuItemClicked(MenuItem item) {
         MenuHandler.handleMenuItem(item);
     }
@@ -724,8 +792,8 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
      *
      * @return the SessionParameters for this application
      */
-    public SessionManager.SessionParameters getAppParameters() {
-        final SessionManager.SessionParameters parameters = new SessionManager.SessionParameters(this);
+    public static SessionParameters getAppParameters(Context context) {
+        final SessionParameters parameters = new SessionParameters(context);
 
         // Change this to false to connect to the production service
         boolean useDevService = true;
@@ -739,24 +807,26 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             parameters.appSecret = "AgileLinkProd-1530606";
         }
 
-        parameters.deviceCreator = new AgileLinkDeviceCreator();
+        parameters.viewModelProvider = new AMAPViewModelProvider();
 
-        parameters.appVersion = getAppVersion();
+        parameters.appVersion = getAppVersion(context);
+
+        parameters.sessionName = AMAPCore.DEFAULT_SESSION_NAME;
 
         // Will attempt to put devices into LAN mode whenever possible
         parameters.enableLANMode = true;
 
         // Allows login when the service is not reachable, using cached data or connecting directly
         // with devices in LAN mode
-        parameters.allowLANLogin = true;
+        parameters.allowLANLogin = false;
 
         parameters.loggingLevel = LOG_PERMIT;
 
-        parameters.registrationEmailSubject = getResources().getString(R.string.registraion_email_subject);
+        parameters.registrationEmailSubject = context.getResources().getString(R.string.registraion_email_subject);
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
         // REGISTRATION_EMAIL_BODY_HTML to an HTML string for the email message.
-        if(getLocaleCountry().equalsIgnoreCase("ES")){
+        if(getLocaleCountry(context).equalsIgnoreCase("ES")){
             parameters.registrationEmailTemplateId = "ayla_confirmation_template_01_es";
             parameters.resetPasswordEmailTemplateId = "ayla_passwd_reset_template_01_es";
         } else{
@@ -765,13 +835,13 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         }
 
         if (parameters.registrationEmailTemplateId == null) {
-            parameters.registrationEmailBodyHTML = getResources().getString(R.string.registration_email_body_html);
+            parameters.registrationEmailBodyHTML = context.getResources().getString(R.string.registration_email_body_html);
         } else {
             parameters.registrationEmailBodyHTML = null;
         }
 
         if(parameters.logsEmailAddress == null){
-            parameters.logsEmailAddress = AylaNetworks.DEFAULT_SUPPORT_EMAIL_ADDRESS;
+            parameters.logsEmailAddress = AMAPCore.DEFAULT_SUPPORT_EMAIL_ADDRESS;
         }
 
         return parameters;
@@ -796,7 +866,6 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                 !_noDevicesMode &&
                 isDrawerOpen() ) {
             closeDrawer();
-            //Log.e(LOG_TAG, "back: onBackPressed close menu");
             return;
         }
 
@@ -811,23 +880,10 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                     return;
                 }
 
-            } else {
-
-                //Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
             }
-        } else if(bsc == 1 ){
-            if(SessionManager.deviceManager().deviceList().isEmpty()){
+        } else if (bsc == 1 ){
+            if(AMAPCore.sharedInstance().getDeviceManager().getDevices().isEmpty()){
                 this.finish();
-
-            }
-        }else {
-            FragmentManager.BackStackEntry bse = fm.getBackStackEntryAt(bsc - 1);
-            //Log.e(LOG_TAG, "back: onBackPressed id=" + bse.getId() + ", name=" + bse.getName() + ", title=" + bse.getBreadCrumbTitle());
-            Fragment frag = fm.findFragmentById(bse.getId());
-            if (frag != null) {
-                //Log.e(LOG_TAG, "back: onBackPressed frag=" + frag.getClass().getSimpleName());
-            } else {
-                ////Log.e(LOG_TAG, "back: onBackPressed " + bsc + " frag=null");
             }
         }
         Log.e(LOG_TAG, "back: onBackPressed super");
@@ -846,20 +902,31 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
 
     private boolean _loginScreenUp;
 
-    private void showLoginDialog() {
+    public void showLoginDialog(boolean disableCachedSignin) {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
             Log.e(LOG_TAG, "nod: showLoginDialog: Already shown");
             return;
         }
-        SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
-        final String savedUsername = settings.getString(SessionManager.PREFS_USERNAME, "");
-        final String savedPassword = settings.getString(SessionManager.PREFS_PASSWORD, "");
 
-        // If we've got the username / password, we have everything we need.
-        if ( !TextUtils.isEmpty(savedUsername) && !TextUtils.isEmpty(savedPassword)) {
-            signIn(savedUsername, savedPassword);
-            return;
+        Intent intent = new Intent(this, SignInActivity.class);
+        if (disableCachedSignin) {
+            CachedAuthProvider.clearCachedAuthorization(this);
+        } else {
+            SharedPreferences settings = AgileLinkApplication.getSharedPreferences();
+            final String savedUsername = settings.getString(AMAPCore.PREFS_USERNAME, "");
+            final String savedPassword = settings.getString(AMAPCore.PREFS_PASSWORD, "");
+
+            // If we've got the username / password, we have everything we need.
+            if (!TextUtils.isEmpty(savedUsername) && !TextUtils.isEmpty(savedPassword)) {
+                signIn(savedUsername, savedPassword);
+                return;
+            }
+
+            Bundle args = new Bundle();
+            args.putString(SignInActivity.ARG_USERNAME, savedUsername);
+            args.putString(SignInActivity.ARG_PASSWORD, savedPassword);
+            intent.putExtras(args);
         }
 
         _loginScreenUp = true;
@@ -871,12 +938,7 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         popBackstackToRoot();
         onSelectMenuItemById(R.id.action_all_devices);
 
-        Bundle args = new Bundle();
-        args.putString(SignInActivity.ARG_USERNAME, savedUsername);
-        args.putString(SignInActivity.ARG_PASSWORD, savedPassword);
-
-        Intent intent = new Intent(this, SignInActivity.class);
-        intent.putExtras(args);
+        intent.putExtra(SignInActivity.EXTRA_DISABLE_CACHED_SIGNIN, disableCachedSignin);
         Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
         startActivityForResult(intent, REQ_SIGN_IN);
     }
@@ -895,11 +957,14 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         dismissWaitDialog();
 
         Log.d(LOG_TAG, "onPause");
-        if (SessionManager.deviceManager() != null) {
-            SessionManager.deviceManager().stopPolling();
+
+        AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+        // Only pause Ayla services here if the wearable service is not using it
+        if (dm != null && AgileLinkApplication.getsInstance().canPauseAylaNetworks(getClass().getName())) {
+            dm.stopPolling();
 
             // we aren't going to "pause" LAN mode if we haven't been logged in.
-            AylaNetworks.onPause(false);
+            AylaNetworks.sharedInstance().onPause();
         }
     }
 
@@ -911,63 +976,24 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         if(_theInstance == null){
             _theInstance = this;
         }
-        if (SessionManager.deviceManager() != null) {
-            // we aren't going to "resume" LAN mode if we aren't logged in.
-            AylaLanMode.resume();
 
-            SessionManager.deviceManager().startPolling();
-            setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
+        // Only resume Ayla services if the wearable service hasn't already started it
+        if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
+            AylaNetworks.sharedInstance().onResume();
+        }
+
+        AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
+        if (sm != null) {
+            // TODO: Check cloud connectivity
+            setCloudConnectivityIndicator(true);
         } else if ( !_loginScreenUp ) {
-            showLoginDialog();
+            showLoginDialog(false);
         }
     }
 
     @Override
     public void applicationLifeCycleStateChange(AgileLinkApplication.LifeCycleState state) {
         Logger.logInfo(LOG_TAG, "app: applicationLifeCycleStateChange " + state);
-        SessionManager.getInstance().setForeground((state == AgileLinkApplication.LifeCycleState.Foreground));
-    }
-
-    // SessionListener methods
-    void handleLoginChanged(boolean loggedIn, AylaUser aylaUser) {
-        dismissWaitDialog();
-        if (!loggedIn) {
-            // User logged out.
-            setNoDevicesMode(false);
-            if (!_loginScreenUp) {
-                showLoginDialog();
-            } else {
-                Log.e(LOG_TAG, "nod: Login screen is already up:");
-            }
-        } else {
-            // Finish  the login dialog
-            Log.d(LOG_TAG, "nod: finish login dialog");
-            finishActivity(REQ_SIGN_IN);
-            _loginScreenUp = false;
-            dismissWaitDialog();
-        }
-        setCloudConnectivityIndicator(AylaReachability.getReachability() == AylaNetworks.AML_REACHABILITY_REACHABLE);
-    }
-
-    @Override
-    public void loginStateChanged(final boolean loggedIn, final AylaUser aylaUser) {
-        Log.d(LOG_TAG, "nod: Login state changed. Logged in: " + loggedIn);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                handleLoginChanged(loggedIn, aylaUser);
-            }
-        });
-    }
-
-    @Override
-    public void reachabilityChanged(int reachabilityState) {
-        setCloudConnectivityIndicator(reachabilityState == AylaNetworks.AML_REACHABILITY_REACHABLE);
-    }
-
-    @Override
-    public void lanModeChanged(boolean lanModeEnabled) {
-
     }
 
     /**
@@ -1010,46 +1036,54 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                 return true;
             }
         }
-        if (MenuHandler.handleMenuItem(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return MenuHandler.handleMenuItem(item) || super.onOptionsItemSelected(item);
     }
 
     public void signIn(String username, String password) {
         showWaitDialog(R.string.signingIn, R.string.signingIn);
-        SessionManager.startSession(username, password);
+        AMAPCore.sharedInstance().startSession(username, password,
+                new Response.Listener<AylaAuthorization>() {
+                    @Override
+                    public void onResponse(AylaAuthorization response) {
+                        // We're signed in.
+                        dismissWaitDialog();
+                        // Finish  the login dialog
+                        Log.d(LOG_TAG, "nod: finish login dialog");
+                        finishActivity(REQ_SIGN_IN);
+                        _loginScreenUp = false;
+                        dismissWaitDialog();
+
+                        // TODO: BSK: Determine if the cloud is reachable
+                        setCloudConnectivityIndicator(true);
+                        handleSignedIn();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.this,
+                                ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    private class ErrorMessage {
-        @Expose
-        String error;
-    }
-
-
-    public void signInOAuth(Message msg) {
-        if (AylaNetworks.succeeded(msg)) {
-            // Make sure we have an auth token. Sometimes we get back "OK" but there is
-            // really an error message.
-            AylaUser user = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
-            if (user == null || user.getAccessToken() == null || user.getRefreshToken() == null) {
-                ErrorMessage errorMessage = AylaSystemUtils.gson.fromJson((String) msg.obj, ErrorMessage.class);
-                if (errorMessage != null) {
-                    Toast.makeText(this, errorMessage.error, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, getString(R.string.error_signing_in), Toast.LENGTH_LONG).show();
-                }
-                Log.e(LOG_TAG, "OAuth: No access token returned! Message: " + msg);
-            } else {
-                SessionManager.startOAuthSession(msg);
-            }
-        } else {
-            if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
-                Toast.makeText(this, getString(R.string.error_no_connectivity), Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, getString(R.string.unknown_error), Toast.LENGTH_LONG).show();
-            }
+    /**
+     * Called after the user has signed in
+     */
+    private void handleSignedIn() {
+        // Let the all devices fragment know we are signed in
+        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+        if (frag != null) {
+            frag.onPause();
+            frag.onResume();
         }
+
+        // fetch account settings
+        AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
+
+        // update drawer header
+        updateDrawerHeader();
     }
 
     /**
@@ -1114,8 +1148,8 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
             }
         }
     }
-    private String getLocaleCountry(){
-        return getResources().getConfiguration().locale.getCountry();
+    private static String getLocaleCountry(Context context){
+        return context.getResources().getConfiguration().locale.getCountry();
     }
 
 
@@ -1129,10 +1163,10 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
         if( requestCode == REQUEST_WRITE_EXTERNAL_STORAGE){
 
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                LOG_PERMIT = AylaNetworks.AML_LOGGING_LEVEL_INFO;
+                LOG_PERMIT = AylaLog.LogLevel.Info;
             } else{
                //ToDo Add fallback case when write is denied and LogManager cannot work
-                LOG_PERMIT = AylaNetworks.AML_LOGGING_LEVEL_NONE;
+                LOG_PERMIT = AylaLog.LogLevel.None;
             }
         }
 
@@ -1152,8 +1186,6 @@ public class MainActivity extends AppCompatActivity implements SessionManager.Se
                 Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
-
-
     }
 
     /*

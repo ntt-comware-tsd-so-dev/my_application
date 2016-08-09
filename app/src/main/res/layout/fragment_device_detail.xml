@@ -62,35 +62,6 @@
                     android:gravity="center"
                     android:text="@string/schedule"/>
 
-                <Button
-                    android:id="@+id/remote_button"
-                    style="@style/AgileLinkButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="@string/remote"/>
-
-                <Button
-                    android:id="@+id/trigger_button"
-                    style="@style/AgileLinkButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="@string/trigger"/>
-
-                <Switch
-                    android:id="@+id/identify_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="@string/identify"/>
-
             </LinearLayout>
 
         </LinearLayout>

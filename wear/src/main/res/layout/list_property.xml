@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.aylanetworks.agilelink.PropertyListItemLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:textSize="21sp"
+        android:textColor="@android:color/white"
+        android:id="@+id/property_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <RadioButton
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:clickable="false"
+        android:paddingRight="15dp"
+        android:id="@+id/ro_property"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Switch
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:paddingRight="15dp"
+        android:id="@+id/rw_property"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:id="@+id/row"
+        android:layout_width="24dp"
+        android:layout_height="24dp" />
+
+</com.aylanetworks.agilelink.PropertyListItemLayout>

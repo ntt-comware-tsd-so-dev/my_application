@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaContact;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaContact;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.List;
 
@@ -25,9 +25,8 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     private final static String LOG_TAG = "ContactListAdapter";
 
     public interface ContactCardListener {
-        public enum IconType { ICON_PUSH, ICON_EMAIL, ICON_SMS };
+        public enum IconType { ICON_EMAIL, ICON_SMS };
         boolean isOwner(AylaContact contact);
-        void pushTapped(AylaContact contact);
         void emailTapped(AylaContact contact);
         void smsTapped(AylaContact contact);
         void contactTapped(AylaContact contact);
@@ -40,7 +39,7 @@ public class ContactListAdapter extends RecyclerView.Adapter {
 
     public ContactListAdapter(boolean includeOwner, ContactCardListener listener) {
         _listener = listener;
-        _aylaContacts = SessionManager.getInstance().getContactManager().getContacts(includeOwner);
+        _aylaContacts = AMAPCore.sharedInstance().getContactManager().getContacts(includeOwner);
     }
 
     @Override
@@ -54,19 +53,21 @@ public class ContactListAdapter extends RecyclerView.Adapter {
         ContactViewHolder h = (ContactViewHolder) holder;
         h._contact = _aylaContacts.get(position);
 
-        if (TextUtils.isEmpty(h._contact.displayName) || TextUtils.isEmpty(h._contact.displayName.trim())) {
-            if (TextUtils.isEmpty(h._contact.firstname) && TextUtils.isEmpty(h._contact.lastname)) {
-                h._contactNameTextView.setText(h._contact.email);
+        if (TextUtils.isEmpty(h._contact.getDisplayName()) ||
+                TextUtils.isEmpty(h._contact.getDisplayName().trim()
+        )) {
+            if (TextUtils.isEmpty(h._contact.getFirstname()) &&
+                    TextUtils.isEmpty(h._contact.getLastname())) {
+                h._contactNameTextView.setText(h._contact.getEmail());
             } else {
-                h._contactNameTextView.setText(h._contact.firstname + " " + h._contact.lastname);
+                h._contactNameTextView.setText(h._contact.getFirstname() + " " +
+                        h._contact.getLastname());
             }
         } else {
-            h._contactNameTextView.setText(h._contact.displayName);
+            h._contactNameTextView.setText(h._contact.getDisplayName());
         }
 
         h._isOwner = _listener.isOwner(h._contact);
-        h._pushButton.setVisibility(h._isOwner ? View.VISIBLE : View.GONE);
-        h._pushButton.setColorFilter(_listener.colorForIcon(h._contact, ContactCardListener.IconType.ICON_PUSH));
         h._emailButton.setColorFilter(_listener.colorForIcon(h._contact, ContactCardListener.IconType.ICON_EMAIL));
         h._smsButton.setColorFilter(_listener.colorForIcon(h._contact, ContactCardListener.IconType.ICON_SMS));
     }
@@ -79,7 +80,6 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     protected class ContactViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         public AylaContact _contact;
         public TextView _contactNameTextView;
-        public ImageButton _pushButton;
         public ImageButton _emailButton;
         public ImageButton _smsButton;
         public ContactCardListener _listener;
@@ -92,11 +92,9 @@ public class ContactListAdapter extends RecyclerView.Adapter {
             v.setOnLongClickListener(this);
             _contactNameTextView = (TextView) v.findViewById(R.id.contact_name);
 
-            _pushButton = (ImageButton)v.findViewById(R.id.button_push);
             _emailButton = (ImageButton)v.findViewById(R.id.button_email);
             _smsButton = (ImageButton)v.findViewById(R.id.button_sms);
 
-            _pushButton.setOnClickListener(this);
             _emailButton.setOnClickListener(this);
             _smsButton.setOnClickListener(this);
         }
@@ -105,9 +103,6 @@ public class ContactListAdapter extends RecyclerView.Adapter {
         public void onClick(View v) {
             AylaContact contact = _aylaContacts.get(getPosition());
             switch (v.getId()) {
-                case R.id.button_push:
-                    _listener.pushTapped(contact);
-                    break;
 
                 case R.id.button_sms:
                     _listener.smsTapped(contact);

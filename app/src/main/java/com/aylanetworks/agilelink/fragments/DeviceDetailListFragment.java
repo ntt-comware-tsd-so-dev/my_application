@@ -7,10 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,21 +25,21 @@ public class DeviceDetailListFragment extends AboutFragment {
 
     private static String ARG_DEVICE_DSN = "device_dsn";
 
-    public static DeviceDetailListFragment newInstance(Device device) {
+    public static DeviceDetailListFragment newInstance(AylaDevice device) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
+        args.putString(ARG_DEVICE_DSN, device.getDsn());
         DeviceDetailListFragment frag = new DeviceDetailListFragment();
         frag.setArguments(args);
         return frag;
     }
 
-    private Device _device;
+    private AylaDevice _device;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         String dsn = getArguments().getString(ARG_DEVICE_DSN);
-        _device = SessionManager.deviceManager().deviceByDSN(dsn);
+        _device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
     }
 
     @Override
@@ -56,23 +55,21 @@ public class DeviceDetailListFragment extends AboutFragment {
     @Override
     protected void populateList() {
         List<AboutItem> items = new ArrayList<>();
-        SessionManager.SessionParameters params = SessionManager.sessionParameters();
+        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
 
-        AylaDevice d = _device.getDevice();
+        if ( !TextUtils.isEmpty(_device.getProductName())) items.add(new AboutItem("productName", _device.getProductName()));
+        if ( !TextUtils.isEmpty(_device.getDeviceName())) items.add(new AboutItem("deviceName", _device.getDeviceName()));
+        if ( !TextUtils.isEmpty(_device.getDsn())) items.add(new AboutItem("DSN", _device.getDsn()));
+        if ( !TextUtils.isEmpty(_device.getProductClass())) items.add(new AboutItem("productClass", _device.getProductClass()));
+        if ( !TextUtils.isEmpty(_device.getModel())) items.add(new AboutItem("model", _device.getModel()));
+        if ( !TextUtils.isEmpty(_device.getOemModel())) items.add(new AboutItem("oemModel", _device.getOemModel()));
+        if ( !TextUtils.isEmpty(_device.getConnectionStatus().toString())) items.add(new AboutItem("connectionStatus", _device.getConnectionStatus().toString()));
+        if ( !TextUtils.isEmpty(_device.getMac())) items.add(new AboutItem("MAC", formatMAC(_device.getMac())));
+        if ( !TextUtils.isEmpty(_device.getConnectedAt().toString())) items.add(new AboutItem("connectedAt", _device.getConnectedAt().toString()));
+        if ( !TextUtils.isEmpty(_device.getIp())) items.add(new AboutItem("IP", _device.getIp()));
+        if ( !TextUtils.isEmpty(_device.getSwVersion())) items.add(new AboutItem("SW Version", _device.getSwVersion()));
 
-        if ( !TextUtils.isEmpty(d.productName)) items.add(new AboutItem("productName", d.productName));
-        if ( !TextUtils.isEmpty(d.deviceName)) items.add(new AboutItem("deviceName", d.deviceName));
-        if ( !TextUtils.isEmpty(d.dsn)) items.add(new AboutItem("DSN", d.dsn));
-        if ( !TextUtils.isEmpty(d.productClass)) items.add(new AboutItem("productClass", d.productClass));
-        if ( !TextUtils.isEmpty(d.model)) items.add(new AboutItem("model", d.model));
-        if ( !TextUtils.isEmpty(d.oemModel)) items.add(new AboutItem("oemModel", d.oemModel));
-        if ( !TextUtils.isEmpty(d.connectionStatus)) items.add(new AboutItem("connectionStatus", d.connectionStatus));
-        if ( !TextUtils.isEmpty(d.mac)) items.add(new AboutItem("MAC", formatMAC(d.mac)));
-        if ( !TextUtils.isEmpty(d.connectedAt)) items.add(new AboutItem("connectedAt", d.connectedAt));
-        if ( !TextUtils.isEmpty(d.ip)) items.add(new AboutItem("IP", d.ip));
-        if ( !TextUtils.isEmpty(d.swVersion)) items.add(new AboutItem("SW Version", d.swVersion));
-
-        if ( !TextUtils.isEmpty(d.lanIp)) items.add(new AboutItem("LAN IP", d.lanIp));
+        if ( !TextUtils.isEmpty(_device.getLanIp())) items.add(new AboutItem("LAN IP", _device.getLanIp()));
 
         _listView.setAdapter(new AboutListAdapter(getActivity(), items.toArray(new AboutItem[items.size()])));
     }

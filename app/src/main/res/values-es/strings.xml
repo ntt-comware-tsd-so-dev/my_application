@@ -382,8 +382,12 @@
     <string name="now">Ahora</string>
     <string name="never">Nunca</string>
     <string name="share_button_title">Compartir dispositivo</string>
+    <string name="share_button_edit">Guardar cambios</string>
     <string name="no_date">Sin Fecha</string>
     <string name="share_email_address_required">Introduzca el correo de la cuenta de Ayla con la que se va a compartir</string>
+    <string name="share_updating">Actualizando compartición.</string>
+    <string name="share_update_success">Compartición actualizada</string>
+    <string name="share_update_error">Error al actualizar compartición.</string>
     <string name="rename_device_text">Introduzca el nombre para el dispositivo:</string>
     <string name="change_name_fail">Ocurrió un error al renombrar el dispositivo. Reintente más tarde.</string>
     <string name="registration">Registro</string>
@@ -452,6 +456,7 @@
     <string name="becomes_less_than">sea menor que</string>
     <string name="changes">cambie</string>
     <string name="push_notifcations_not_supported">Notificaciones push no compatibles</string>
+    <string name="send_push_notifications">Enviar notificaciones push a este dispositivo</string>
     <string name="notifcations_not_enabled">Las notificaciones no estan disponibles en este dispositivo</string>
     <string name="fetching_notifications">Obteniendo notificaciones. Espere por favor...</string>
     <string name="unknown_trigger_name">Disparador %d</string>
@@ -586,6 +591,7 @@
     <string name="activate_scene_icon" formatted="false">Activar %s</string>
     <string name="no_devices_available_to_pair">Sin dispositivos para asociar</string>
     <string name="no_devices_available_to_unpair">Sin dispositivos para desasociar</string>
+    <string name="no_scanned_devices"> "No se encontraron dispositivos. Intente reiniciar el dispositivo y buscar de nuevo"</string>
 
     <!-- Welcome and SEtup Guide Page -->
     <string name="welcome_text">Bienvenido a AMAP</string>

@@ -12,10 +12,7 @@ package com.aylanetworks.agilelink.fragments;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,28 +22,39 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaShare;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ShareListAdapter;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.DeviceManager;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaShare;
+import com.aylanetworks.aylasdk.AylaShare.ShareAccessLevel;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
-import java.lang.ref.WeakReference;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Queue;
 
 
-public class SharesFragment extends Fragment implements AdapterView.OnItemClickListener, ShareDevicesFragment.ShareDevicesListener {
+public class SharesFragment extends Fragment implements AdapterView.OnItemLongClickListener,
+        AdapterView.OnItemClickListener, ShareDevicesFragment.ShareDevicesListener {
     private final static String LOG_TAG = "SharesFragment";
 
     private ListView _listViewSharedByMe;
     private ListView _listViewSharedToMe;
+    private AylaShare[] _ownedShares;
+    private AylaShare[] _receivedShares;
+    private ShareListAdapter _ownedShareAdapter;
+    private ShareListAdapter _receivedShareAdapter;
 
     public static SharesFragment newInstance() {
         return new SharesFragment();
@@ -57,21 +65,28 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        ShareUpdateFragment shareUpdateFragment = ShareUpdateFragment.newInstance
+                (_ownedShareAdapter.getItem(position));
+        MainActivity.getInstance().pushFragment(shareUpdateFragment);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_shares, container, false);
 
         _listViewSharedByMe = (ListView)root.findViewById(R.id.listview_devices_i_share);
+        _listViewSharedByMe.setOnItemLongClickListener(this);
         _listViewSharedByMe.setOnItemClickListener(this);
         _listViewSharedByMe.setEmptyView(root.findViewById(R.id.my_shares_empty));
 
         _listViewSharedToMe = (ListView)root.findViewById(R.id.listview_devices_shared_with_me);
-        _listViewSharedToMe.setOnItemClickListener(this);
+        _listViewSharedToMe.setOnItemLongClickListener(this);
         _listViewSharedToMe.setEmptyView(root.findViewById(R.id.shared_with_me_empty));
 
         ImageButton addButton = (ImageButton)root.findViewById(R.id.add_button);
-
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,20 +99,61 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
         return root;
     }
 
-    private void fetchShares() {
-        DeviceManager.FetchSharesListener listener = new DeviceManager.FetchSharesListener(true, true) {
+    private void fetchShares(){
+        AMAPCore.sharedInstance().getSessionManager().fetchOwnedShares(new Response.Listener<AylaShare[]>() {
             @Override
-            public void sharesFetched(boolean successful) {
-                MainActivity.getInstance().dismissWaitDialog();
-                if ( successful ) {
-                    _listViewSharedToMe.setAdapter(new ShareListAdapter(getActivity(), receivedShares));
-                    _listViewSharedByMe.setAdapter(new ShareListAdapter(getActivity(), ownedShares));
+            public void onResponse(AylaShare[] response) {
+                _ownedShares = response;
+                if(isAdded()){
+                    if (_ownedShareAdapter == null) {
+                        _ownedShareAdapter = new ShareListAdapter(getContext(),
+                                new ArrayList<>(Arrays.asList(response)));
+                        _listViewSharedByMe.setAdapter(_ownedShareAdapter);
+                    } else {
+                        _ownedShareAdapter.clear();
+                        _ownedShareAdapter.addAll(_ownedShares);
+                        _listViewSharedByMe.setAdapter(_ownedShareAdapter);
+                        _ownedShareAdapter.notifyDataSetChanged();
+                    }
                 }
             }
-        };
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(getContext(), error,
+                                R.string.error_fetching_shares), Toast.LENGTH_LONG).show();
+            }
+        });
 
-        MainActivity.getInstance().showWaitDialog(R.string.fetching_shares_title, R.string.fetching_shares_body);
-        SessionManager.deviceManager().fetchShares(listener);
+        AMAPCore.sharedInstance().getSessionManager().fetchReceivedShares(new Response
+                .Listener<AylaShare[]>() {
+            @Override
+            public void onResponse(AylaShare[] response) {
+                _receivedShares = response;
+
+                if(isAdded()){
+                    if (_receivedShareAdapter == null) {
+                        _receivedShareAdapter = new ShareListAdapter(getContext(),
+                                new ArrayList<>(Arrays.asList(response)));
+                        _listViewSharedToMe.setAdapter(_receivedShareAdapter);
+                    } else {
+                        _receivedShareAdapter.clear();
+                        _receivedShareAdapter.addAll(_receivedShares);
+                        _listViewSharedToMe.setAdapter(_receivedShareAdapter);
+                        _receivedShareAdapter.notifyDataSetChanged();
+                    }
+                }
+
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(getContext(), error,
+                                R.string.error_fetching_shares), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void addTapped() {
@@ -107,27 +163,28 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         if ( parent == _listViewSharedByMe ) {
             AylaShare share = (AylaShare)_listViewSharedByMe.getAdapter().getItem(position);
-            Log.d(LOG_TAG, "Share clicked: " + share);
             confirmRemoveShare(share, true);
         } else {
             AylaShare share = (AylaShare)_listViewSharedToMe.getAdapter().getItem(position);
-            Log.d(LOG_TAG, "Share clicked: " + share);
             confirmRemoveShare(share, false);
         }
+        return true;
     }
 
     private void confirmRemoveShare(final AylaShare share, boolean amOwner) {
-        String email = amOwner ? share.userProfile.email : share.ownerProfile.email;
-        Device device = SessionManager.deviceManager().deviceByDSN(share.resourceId);
+        String email = amOwner ? share.getUserProfile().email : share.getOwnerProfile().email;
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(
+                share.getResourceId());
         String deviceName = "[unknown device]";
         if ( device != null ) {
-            deviceName = device.toString();
+            deviceName = device.getFriendlyName();
         }
 
-        int messageID = amOwner ? R.string.confirm_remove_share_message : R.string.confirm_remove_shared_device_message;
+        int messageID = amOwner ? R.string.confirm_remove_share_message :
+                R.string.confirm_remove_shared_device_message;
         String formattedMessage = getActivity().getString(messageID, deviceName, email);
         new AlertDialog.Builder(getActivity())
                 .setIcon(R.drawable.ic_launcher)
@@ -137,8 +194,25 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(LOG_TAG, "Removing share " + share);
-                        MainActivity.getInstance().showWaitDialog(R.string.removing_share_title, R.string.removing_share_body);
-                        share.delete(new DeleteShareHandler(SharesFragment.this));
+                        MainActivity.getInstance().showWaitDialog(R.string.removing_share_title,
+                                R.string.removing_share_body);
+                        AMAPCore.sharedInstance().getSessionManager().deleteShare(share.getId(),
+                                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                            @Override
+                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                MainActivity.getInstance().dismissWaitDialog();
+                                fetchShares();
+                            }
+                        }, new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                MainActivity.getInstance().dismissWaitDialog();
+                                Toast.makeText(MainActivity.getInstance(),
+                                        ErrorUtils.getUserMessage(getContext(), error,
+                                                R.string.error_deleting_share),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -146,110 +220,70 @@ public class SharesFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public void shareDevices(String email, String role, Calendar startDate, Calendar endDate,
-                             boolean readOnly, List<Device> devicesToShare) {
+    public void shareDevices(final String email, String role, Calendar startDate, Calendar endDate,
+                             final boolean readOnly, final List<AylaDevice> devicesToShare) {
         // We got this call from the ShareDevicesFragment.
         getFragmentManager().popBackStack();
-        if ( devicesToShare != null && !devicesToShare.isEmpty() ) {
-            AddSharesHandler handler = new AddSharesHandler(this, email, role, startDate, endDate,
-                    readOnly, devicesToShare);
-            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title, R.string.creating_share_body);
-            handler.addNextShare();
-        }
-    }
 
-    private static class AddSharesHandler extends Handler {
-        private WeakReference<SharesFragment> _frag;
-        private List<Device> _devicesToAdd;
-        private String _email;
-        private String _role;
-        private Calendar _startDate;
-        private Calendar _endDate;
-        private boolean _readOnly;
+        final Queue<AylaDevice> sharingQueue = new LinkedList<>(devicesToShare);
+        if (!sharingQueue.isEmpty()) {
+            MainActivity.getInstance().showWaitDialog(R.string.creating_share_title,
+                    R.string.creating_share_body);
 
-        private static final DateFormat _dateFormat;
-        static {
-            _dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        }
+            final SimpleDateFormat dateFormat = new SimpleDateFormat
+                    ("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            String startDateString = null;
+            String endDateString = null;
 
-        public AddSharesHandler(SharesFragment frag,
-                                String email,
-                                String role,
-                                Calendar startDate,
-                                Calendar endDate,
-                                boolean readOnly,
-                                List<Device> devicesToAdd) {
-            _frag = new WeakReference<SharesFragment>(frag);
-            _email = email;
-            _role = role;
-            _devicesToAdd = devicesToAdd;
-            _startDate = startDate;
-            _endDate = endDate;
-            _readOnly = readOnly;
-        }
-
-        public void addNextShare() {
-            if ( _devicesToAdd.isEmpty() ) {
-                MainActivity.getInstance().dismissWaitDialog();
-                _frag.get().fetchShares();
-                return;
+            if ( startDate != null ) {
+                startDateString = dateFormat.format(startDate.getTime());
+            }
+            if ( endDate != null ) {
+                endDateString = dateFormat.format(endDate.getTime());
             }
 
-            Device device = _devicesToAdd.remove(0);
-            AylaShare share = new AylaShare();
-            share.userEmail = _email;
-            if ( _startDate != null ) {
-                share.startDateAt = _dateFormat.format(_startDate.getTime());
-            }
-            if ( _endDate != null ) {
-                share.endDateAt = _dateFormat.format(_endDate.getTime());
+            if (role.equals("")) {
+                role = null;
             }
 
-            if ( TextUtils.isEmpty(_role) ) {
-                share.operation = _readOnly ? "read" : "write";
-            } else {
-                share.roleName = _role;
-            }
+            final String sharingRole = role;
+            final String sharingStart = startDateString;
+            final String sharingEnd = endDateString;
+            AylaDevice device = sharingQueue.remove();
+            AylaShare share = device.shareWithEmail(email, readOnly ?
+                    ShareAccessLevel.READ.stringValue() : ShareAccessLevel.WRITE.stringValue(), role,
+                    startDateString, endDateString);
 
-            device.getDevice().createShare(this, share);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            if ( AylaNetworks.succeeded(msg) ) {
-                addNextShare();
-            } else {
-                Log.e(LOG_TAG, "Add share failed: " + msg);
-                MainActivity.getInstance().dismissWaitDialog();
-                String message = MainActivity.getInstance().getString(R.string.error_creating_share);
-                if ( msg.obj != null ) {
-                    message = (String)msg.obj;
+            final ErrorListener errorListener = new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    MainActivity.getInstance().dismissWaitDialog();
+                    Toast.makeText(MainActivity.getInstance(),
+                            ErrorUtils.getUserMessage(getContext(), error,
+                                    R.string.error_creating_share), Toast.LENGTH_LONG).show();
                 }
-                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
+            };
 
-    private static class DeleteShareHandler extends Handler {
-        private WeakReference<SharesFragment> _frag;
-
-        public DeleteShareHandler(SharesFragment frag) {
-            _frag = new WeakReference<SharesFragment>(frag);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-            Log.d(LOG_TAG, "Delete share: " + msg);
-            if ( AylaNetworks.succeeded(msg) ) {
-                _frag.get().fetchShares();
-            } else {
-                String message = MainActivity.getInstance().getString(R.string.error_deleting_share);
-                if ( msg.obj != null ) {
-                    message = (String)msg.obj;
+            final Response.Listener<AylaShare> successListener = new Response.Listener<AylaShare>() {
+                @Override
+                public void onResponse(AylaShare response) {
+                    if (sharingQueue.isEmpty()) {
+                        // No more shares to create
+                        MainActivity.getInstance().dismissWaitDialog();
+                        fetchShares();
+                    } else {
+                        AylaDevice device = sharingQueue.remove();
+                        AylaShare share = device.shareWithEmail(email, readOnly ?
+                                ShareAccessLevel.READ.stringValue() : ShareAccessLevel.WRITE.stringValue(),
+                                sharingRole, sharingStart, sharingEnd);
+                        AMAPCore.sharedInstance().getSessionManager().createShare
+                                (share, null, this, errorListener);
+                    }
                 }
-                Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_LONG).show();
-            }
+            };
+
+            AMAPCore.sharedInstance().getSessionManager().createShare(share, null, successListener,
+                    errorListener);
         }
     }
 }

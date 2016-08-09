@@ -10,10 +10,6 @@
             android:title="@string/groups"/>
 
         <item
-            android:id="@+id/action_device_scenes"
-            android:title="@string/scenes"/>
-
-        <item
             android:id="@+id/action_add_device"
             android:title="@string/add_device_menu"/>
 

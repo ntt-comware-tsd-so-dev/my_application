@@ -1,16 +1,15 @@
 package com.aylanetworks.agilelink.fragments;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -21,20 +20,19 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaSetup;
-import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.aaml.AylaUser;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
 import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.setup.AylaRegistration;
+import com.aylanetworks.aylasdk.setup.AylaRegistrationCandidate;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,20 +45,19 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     private static final String LOG_TAG = "ConnectGatewayFragment";
     private static final int REQUEST_LOCATION = 2;
 
-    private Button btnGateway;
-    private View mView;
-
     private Timer timer;
     private TimerTask timerTask;
+
+    private AylaRegistration _aylaRegistration;
 
     private final Handler uiHandler = new Handler();
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mView = inflater.inflate(R.layout.fragment_connect_gateway, container, false);
-        btnGateway = (Button)mView.findViewById(R.id.register_btn);
+        View view = inflater.inflate(R.layout.fragment_connect_gateway, container, false);
+        Button btnGateway = (Button) view.findViewById(R.id.register_btn);
         btnGateway.setOnClickListener(this);
-        return mView;
+        return view;
     }
 
     @Override
@@ -74,110 +71,98 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private void registerButtonClick() {
         Log.i(LOG_TAG, "rn: registerNewGateway");
-        MainActivity.getInstance().showWaitDialog(null, null);
-        AylaDevice newDevice = new AylaDevice();
-        newDevice.registrationType = AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;    //Gateway is always push button
-        registerNewDevice(newDevice);
+        MainActivity.getInstance().showWaitDialog("Please wait...", "Registering gateway");
+        //Gateway is always push button
+        fetchCandidateAndRegister();
     }
 
-    RegisterHandler _handler;
-
-    private void registerNewDevice(AylaDevice device) {
+    private void fetchCandidateAndRegister() {
         MainActivity.getInstance().showWaitDialog(R.string.registering_device_title, R.string.registering_device_body);
+
+        if (_aylaRegistration == null) {
+            _aylaRegistration = new AylaRegistration(AMAPCore.sharedInstance().getDeviceManager());
+        }
+
+        AylaDevice.RegistrationType regType = AylaDevice.RegistrationType.ButtonPush;
+        _aylaRegistration.fetchCandidate(null, regType,
+                new Response.Listener<AylaRegistrationCandidate>() {
+                    @Override
+                    public void onResponse(AylaRegistrationCandidate candidate) {
+                        registerNewDevice(candidate);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void registerNewDevice(AylaRegistrationCandidate candidate) {
         Log.i(LOG_TAG, "rn: Calling registerNewDevice...");
 
-        //This is optional. Add location information to send latitude and longitude during
+        // This is optional. Add location information to send latitude and longitude during
         // registration of device.
-        if(ActivityCompat.checkSelfPermission(getActivity(), "android.permission.ACCESS_COARSE_LOCATION") != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             requestScanPermissions();
-        } else{
-            LocationManager locationManager = (LocationManager) getContext().getSystemService(Context
-                    .LOCATION_SERVICE);
+        } else {
+            LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
             Criteria criteria = new Criteria();
             criteria.setAccuracy(Criteria.ACCURACY_COARSE);
             Location currentLocation;
             List<String> locationProviders = locationManager.getAllProviders();
-            for(String provider: locationProviders){
+            for (String provider: locationProviders) {
                 currentLocation = locationManager.getLastKnownLocation(provider);
-                if(currentLocation != null){
-                    device.lat = String.valueOf(currentLocation.getLatitude());
-                    device.lng = String.valueOf(currentLocation.getLongitude());
+                if (currentLocation != null) {
+                    candidate.setLatitude(String.valueOf(currentLocation.getLatitude()));
+                    candidate.setLongitude(String.valueOf(currentLocation.getLongitude()));
                     break;
                 }
             }
         }
-        _handler = new RegisterHandler(this);
-        device.registerNewDevice(_handler);
-    }
 
-    static class RegisterHandler extends Handler {
-        private WeakReference<ConnectGatewayFragment> _connectGatewayFragment;
-
-        public RegisterHandler(ConnectGatewayFragment connectGatewayFragment) {
-            _connectGatewayFragment = new WeakReference<ConnectGatewayFragment>(connectGatewayFragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Logger.logInfo(LOG_TAG, "rn: register handler called: " + msg);
-            MainActivity.getInstance().dismissWaitDialog();
-            if (msg.arg1 >= 200 && msg.arg1 < 300) {
-                // Success!
-                // start the device refresh now!
-                SessionManager.deviceManager().refreshDeviceList();
-                AylaDevice aylaDevice = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaDevice.class);
-                Device device = SessionManager.sessionParameters().deviceCreator.deviceForAylaDevice(aylaDevice);
-                MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
-                // Now update the device notifications
-                DeviceNotificationHelper helper = new DeviceNotificationHelper(device, AylaUser.getCurrent());
-                helper.initializeNewDeviceNotifications(new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+        _aylaRegistration.registerCandidate(candidate, new Response.Listener<AylaDevice>() {
                     @Override
-                    public void newDeviceUpdated(Device device, int error) {
-                        Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
-                        MainActivity mainActivity = MainActivity.getInstance();
-                        mainActivity.dismissWaitDialog();
-                        int msgId = (error == AylaNetworks.AML_ERROR_OK ? R.string.registration_success : R.string.registration_success_notification_fail);
-                        Toast.makeText(mainActivity, msgId, Toast.LENGTH_LONG).show();
-                        if (error == AylaNetworks.AML_ERROR_OK) {
-                            // Go to the Gateway display
-                            Log.v(LOG_TAG, "rn: registration successful. select gateways.");
-                            MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
-                        } else {
-                            Log.w(LOG_TAG, "rn: registration unsuccessful.");
-                        }
+                    public void onResponse(AylaDevice device) {
+                        MainActivity.getInstance().showWaitDialog(R.string.updating_notifications_title, R.string.updating_notifications_body);
+
+                        // Now update the device notifications
+                        DeviceNotificationHelper helper = new DeviceNotificationHelper(device);
+                        helper.initializeNewDeviceNotifications(
+                                new DeviceNotificationHelper.DeviceNotificationHelperListener() {
+                                    @Override
+                                    public void newDeviceUpdated(AylaDevice device, AylaError error) {
+                                        Logger.logInfo(LOG_TAG, "rn: newDeviceUpdated [" + device + "]");
+                                        MainActivity.getInstance().dismissWaitDialog();
+
+                                        if (error != null) {
+                                            Log.e("AMAP", error.getMessage());
+                                        }
+
+                                        int msgId = (error == null ? R.string.registration_success :
+                                                R.string.registration_success_notification_fail);
+                                        Toast.makeText(MainActivity.getInstance(), msgId, Toast.LENGTH_LONG).show();
+
+                                        MainActivity.getInstance().onSelectMenuItemById(R.id.action_gateways);
+                                    }
+                                });
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+
+                        Toast.makeText(MainActivity.getInstance(),
+                                ErrorUtils.getUserMessage(getActivity(), error, R.string.registration_failure),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
-
-            } else {
-                // Something went wrong
-                Log.w(LOG_TAG, "rn: could not register device.");
-                Toast.makeText(_connectGatewayFragment.get().getActivity(), R.string.registration_failure, Toast.LENGTH_LONG).show();
-                exitSetup();
-            }
-        }
-    }
-
-    private static void exitSetup() {
-        //if ( _needsExit ) {
-            MainActivity.getInstance().showWaitDialog(R.string.exiting_setup_title, R.string.exiting_setup_body);
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    //Looper.prepare();
-                    Logger.logVerbose(LOG_TAG, "calling AylaSetup.exit()...");
-                    AylaSetup.exit();
-                    //Looper.loop();
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    Logger.logVerbose(LOG_TAG, "AylaSetup.exit() completed.");
-                   // _needsExit = false;
-                    MainActivity.getInstance().dismissWaitDialog();
-                }
-            }.execute();
-        //}
     }
 
     @Override
@@ -188,7 +173,6 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     @Override
     public void onStop() {
-        // TODO Auto-generated method stub
         super.onStop();
         if(timer != null){
             timer.cancel();
@@ -205,13 +189,11 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
     private void initializeTimer(){
         frame =0;
         timerTask = new TimerTask() {
-
             @Override
             public void run() {
                 uiHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // TODO Auto-generated method stub
                         updateLEDs();
                     }
                 });
@@ -223,6 +205,10 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
 
     private void updateLEDs(){
         Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+
         frame = (++frame)%36;
         if(frame%4 == 0){
             if(activity.findViewById(R.id.redled2) != null){
@@ -236,10 +222,11 @@ public class ConnectGatewayFragment extends Fragment implements View.OnClickList
             }
         }
     }
+
     /*
    * Scan needs location permissions. This method requests Location permission
     */
     private void requestScanPermissions(){
-        ActivityCompat.requestPermissions(getActivity(), new String[]{"android.permission.ACCESS_COARSE_LOCATION"}, REQUEST_LOCATION);
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
     }
 }
