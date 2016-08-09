@@ -173,6 +173,7 @@
 
     </FrameLayout>
     <CheckBox
+        style="@style/TextAppearance.AppCompat.Medium"
         android:text="@string/send_push_notifications"
         android:id="@+id/send_push_notifications"
         android:layout_width="wrap_content"
