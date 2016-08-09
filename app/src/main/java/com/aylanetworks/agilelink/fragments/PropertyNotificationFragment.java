@@ -219,7 +219,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override
             public void contactListUpdated(ContactManager manager, AylaError error) {
-                _recyclerView.setAdapter(new ContactListAdapter(false, PropertyNotificationFragment.this));
+                _recyclerView.setAdapter(new ContactListAdapter(true, PropertyNotificationFragment
+                        .this));
                 emptyView.setVisibility(View.INVISIBLE);
                 _recyclerView.setVisibility(View.VISIBLE);
             }
@@ -327,7 +328,9 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                                     break;
                             }
                         }
-                        _recyclerView.getAdapter().notifyDataSetChanged();
+                        if (_recyclerView != null && _recyclerView.getAdapter() != null) {
+                            _recyclerView.getAdapter().notifyDataSetChanged();
+                        }
                     }
                 },
                 new ErrorListener() {
