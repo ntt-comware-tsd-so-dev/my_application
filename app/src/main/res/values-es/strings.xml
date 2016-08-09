@@ -456,6 +456,7 @@
     <string name="becomes_less_than">sea menor que</string>
     <string name="changes">cambie</string>
     <string name="push_notifcations_not_supported">Notificaciones push no compatibles</string>
+    <string name="send_push_notifications">Enviar notificaciones push a este dispositivo</string>
     <string name="notifcations_not_enabled">Las notificaciones no estan disponibles en este dispositivo</string>
     <string name="fetching_notifications">Obteniendo notificaciones. Espere por favor...</string>
     <string name="unknown_trigger_name">Disparador %d</string>

@@ -23,16 +23,6 @@
             android:layout_height="match_parent"/>
 
         <ImageButton
-            android:id="@+id/button_push"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="right|center_vertical"
-            android:scaleType="fitXY"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_push_icon"
-            />
-
-        <ImageButton
             android:id="@+id/button_email"
             android:layout_width="48dp"
             android:layout_height="48dp"

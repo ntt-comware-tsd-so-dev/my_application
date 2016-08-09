@@ -184,13 +184,6 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
         boolean checked = false;
 
         switch (iconType) {
-            case ICON_PUSH:
-                if (accountSettings != null) {
-                    checked = accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.BaiduPush) ||
-                            accountSettings.isNotificationMethodSet(AylaServiceApp.NotificationType.GooglePush);
-                }
-                break;
-
             case ICON_EMAIL:
                 if (isOwner) {
                     if (accountSettings != null) {
@@ -280,14 +273,6 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                 MainActivity.getInstance().dismissWaitDialog();
             }
         }
-    }
-
-    @Override
-    public void pushTapped(AylaContact contact) {
-        boolean isChecked = stateForIcon(contact, IconType.ICON_PUSH);
-        Log.d(LOG_TAG, "contact: Push tapped " + contact.getEmail() + " - " + isChecked);
-        // TODO: BSK: Baidu support. Need to have a global setting of Baidu vs. Google.
-        enableNotification(AylaServiceApp.NotificationType.GooglePush, !isChecked);
     }
 
     @Override

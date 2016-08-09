@@ -25,9 +25,8 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     private final static String LOG_TAG = "ContactListAdapter";
 
     public interface ContactCardListener {
-        public enum IconType { ICON_PUSH, ICON_EMAIL, ICON_SMS };
+        public enum IconType { ICON_EMAIL, ICON_SMS };
         boolean isOwner(AylaContact contact);
-        void pushTapped(AylaContact contact);
         void emailTapped(AylaContact contact);
         void smsTapped(AylaContact contact);
         void contactTapped(AylaContact contact);
@@ -69,8 +68,6 @@ public class ContactListAdapter extends RecyclerView.Adapter {
         }
 
         h._isOwner = _listener.isOwner(h._contact);
-        h._pushButton.setVisibility(h._isOwner ? View.VISIBLE : View.GONE);
-        h._pushButton.setColorFilter(_listener.colorForIcon(h._contact, ContactCardListener.IconType.ICON_PUSH));
         h._emailButton.setColorFilter(_listener.colorForIcon(h._contact, ContactCardListener.IconType.ICON_EMAIL));
         h._smsButton.setColorFilter(_listener.colorForIcon(h._contact, ContactCardListener.IconType.ICON_SMS));
     }
@@ -83,7 +80,6 @@ public class ContactListAdapter extends RecyclerView.Adapter {
     protected class ContactViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         public AylaContact _contact;
         public TextView _contactNameTextView;
-        public ImageButton _pushButton;
         public ImageButton _emailButton;
         public ImageButton _smsButton;
         public ContactCardListener _listener;
@@ -96,11 +92,9 @@ public class ContactListAdapter extends RecyclerView.Adapter {
             v.setOnLongClickListener(this);
             _contactNameTextView = (TextView) v.findViewById(R.id.contact_name);
 
-            _pushButton = (ImageButton)v.findViewById(R.id.button_push);
             _emailButton = (ImageButton)v.findViewById(R.id.button_email);
             _smsButton = (ImageButton)v.findViewById(R.id.button_sms);
 
-            _pushButton.setOnClickListener(this);
             _emailButton.setOnClickListener(this);
             _smsButton.setOnClickListener(this);
         }
@@ -109,9 +103,6 @@ public class ContactListAdapter extends RecyclerView.Adapter {
         public void onClick(View v) {
             AylaContact contact = _aylaContacts.get(getPosition());
             switch (v.getId()) {
-                case R.id.button_push:
-                    _listener.pushTapped(contact);
-                    break;
 
                 case R.id.button_sms:
                     _listener.smsTapped(contact);
