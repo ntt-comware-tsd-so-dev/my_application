@@ -330,6 +330,8 @@
     <string name="save_contact">Se guardó el contacto</string>
     <string name="delete_contact">Borrar Contacto</string>
     <string name="street_address">Calle</string>
+    <string name="send_sms">enviar SMS</string>
+    <string name="send_email">enviar Emails</string>
     <string name="create_contact">Agregar Contacto</string>
     <string name="update_contact">Actualizar Contacto</string>
     <string name="contact_email_phone_required">Se requiere un teléfono o email</string>

@@ -353,6 +353,8 @@
     <string name="save_contact">Save Contact</string>
     <string name="delete_contact">Delete Contact</string>
     <string name="street_address">Street Address</string>
+    <string name="send_sms">Send SMS</string>
+    <string name="send_email">Send Emails</string>
     <string name="create_contact">Create Contact</string>
     <string name="update_contact">Update Contact</string>
     <string name="contact_email_phone_required">A phone number or email address is required</string>
