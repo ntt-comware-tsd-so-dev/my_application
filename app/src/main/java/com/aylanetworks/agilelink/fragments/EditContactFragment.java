@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -56,6 +57,8 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
     private EditText _zipCode;
     private Button _button;
     private Button _buttonDelete;
+    private CheckBox _sendSMSCheckbox;
+    private CheckBox _sendEMailsCheckbox;
 
     private final static String LOG_TAG = "EditContactFragment";
     private final static String ARG_CONTACT_ID = "contact_id";
@@ -121,6 +124,10 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
 
         _firstName.addTextChangedListener(this);
         _lastName.addTextChangedListener(this);
+        _sendSMSCheckbox = (CheckBox) view.findViewById(R.id.send_sms);
+        _sendSMSCheckbox.setChecked(true);
+        _sendEMailsCheckbox = (CheckBox) view.findViewById(R.id.send_email);
+        _sendEMailsCheckbox.setChecked(true);
 
         _button.setOnClickListener(this);
         _buttonDelete.setOnClickListener(this);
@@ -166,6 +173,8 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
             _phoneNumber.setText(_aylaContact.getPhoneNumber());
             _streetAddress.setText(_aylaContact.getStreetAddress());
             _zipCode.setText(_aylaContact.getZipCode());
+            _sendSMSCheckbox.setChecked(_aylaContact.getWantsSmsNotification());
+            _sendEMailsCheckbox.setChecked(_aylaContact.getWantsEmailNotification());
             _button.setText(getString(R.string.update_contact));
         }
     }
@@ -201,6 +210,9 @@ public class EditContactFragment extends Fragment implements View.OnClickListene
 
         _aylaContact.setStreetAddress(_streetAddress.getText().toString());
         _aylaContact.setZipCode(_zipCode.getText().toString());
+        _aylaContact.setWantsSmsNotification(_sendSMSCheckbox.isChecked());
+        _aylaContact.setWantsEmailNotification(_sendEMailsCheckbox.isChecked());
+
 
         final ContactManager.ContactManagerListener listener = new ContactManager.ContactManagerListener() {
             @Override

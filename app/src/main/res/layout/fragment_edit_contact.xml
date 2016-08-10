@@ -241,9 +241,30 @@
                         android:nextFocusDown="@+id/save_contact"
                         android:nextFocusForward="@+id/save_contact"
                         />
-
                 </LinearLayout>
-                <Button
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
+                <CheckBox
+                    android:text="@string/send_sms"
+                    android:id="@+id/send_sms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:orientation="horizontal">
+                    <CheckBox
+                        android:text="@string/send_email"
+                        android:id="@+id/send_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            <Button
                     android:id="@+id/save_contact"
                     style="@style/AgileLinkButton"
                     android:layout_width="match_parent"
