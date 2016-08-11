@@ -110,6 +110,7 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(getActivity(),
                                 ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
                                 Toast.LENGTH_SHORT).show();
