@@ -279,6 +279,8 @@
     <color name="dark_orange_50">#975615</color>
     <color name="dark_orange_100">#9e560e</color>
     <color name="dark_orange_200">#b06010</color>
+    <color name="dark_orange_300">#c76d12</color>
+    <color name="dark_orange_400">#de7a14</color>
     <color name="orange_grey_100">#ede7dd</color>
     <color name="dark_blue_100">#425968</color>
     <!--
@@ -297,8 +299,8 @@
     <color name="app_theme_primary_light">@color/dark_orange_50</color>
     <color name="app_theme_primary_medium_light">@color/dark_orange_100</color>
     <color name="app_theme_primary">@color/dark_orange_200</color>
-    <color name="app_theme_primary_medium_dark">@color/blue_grey_800</color>
-    <color name="app_theme_primary_dark">@color/dark_blue_100</color>
+    <color name="app_theme_primary_medium_dark">@color/dark_orange_300</color>
+    <color name="app_theme_primary_dark">@color/dark_orange_400</color>
 
     <!-- http://www.sankk.in/material-mixer/ -->
 
