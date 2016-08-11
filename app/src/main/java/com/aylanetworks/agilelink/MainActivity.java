@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity
      */
     static {
         _uiConfig = new UIConfig();
-        _uiConfig._listStyle = UIConfig.ListStyle.Grid;
+        _uiConfig._listStyle = UIConfig.ListStyle.List;
         _uiConfig._navStyle = UIConfig.NavStyle.Material;
     }
 
