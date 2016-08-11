@@ -276,11 +276,11 @@
     <color name="blue_grey_800">#37474f</color>
     <color name="blue_grey_900">#263238</color>
 
-    <color name="dark_orange_50">#975615</color>
-    <color name="dark_orange_100">#9e560e</color>
+    <color name="dark_orange_50">#e67d15</color>
+    <color name="dark_orange_100">#d47413</color>
     <color name="dark_orange_200">#b06010</color>
-    <color name="dark_orange_300">#c76d12</color>
-    <color name="dark_orange_400">#de7a14</color>
+    <color name="dark_orange_300">#9e560e</color>
+    <color name="dark_orange_400">#8c4c0d</color>
     <color name="orange_grey_100">#ede7dd</color>
     <color name="dark_blue_100">#425968</color>
     <!--
