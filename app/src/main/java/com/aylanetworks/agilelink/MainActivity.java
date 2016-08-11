@@ -1053,6 +1053,7 @@ public class MainActivity extends AppCompatActivity
                         _loginScreenUp = false;
                         dismissWaitDialog();
 
+                        CachedAuthProvider.cacheAuthorization(MainActivity.this, response);
                         // TODO: BSK: Determine if the cloud is reachable
                         setCloudConnectivityIndicator(true);
                         handleSignedIn();
@@ -1061,6 +1062,8 @@ public class MainActivity extends AppCompatActivity
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        dismissWaitDialog();
+                        CachedAuthProvider.clearCachedAuthorization(MainActivity.this);
                         Toast.makeText(MainActivity.this,
                                 ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
                                 Toast.LENGTH_SHORT).show();
