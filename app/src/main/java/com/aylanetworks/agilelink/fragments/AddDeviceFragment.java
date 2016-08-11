@@ -48,6 +48,7 @@ import com.aylanetworks.agilelink.framework.DeviceNotificationHelper;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaConnectivity;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceGateway;
 import com.aylanetworks.aylasdk.AylaLog;
@@ -248,7 +249,7 @@ public class AddDeviceFragment extends Fragment
         super.onDetach();
         Logger.logVerbose(LOG_TAG, "rn: onDetach");
 
-        if (_needsExit) {
+        if (_aylaSetup != null) {
             exitSetup();
         }
     }
@@ -623,6 +624,14 @@ public class AddDeviceFragment extends Fragment
     }
 
     private void doScan() {
+        AylaConnectivity connectivity = new AylaConnectivity(getContext());
+        if(!connectivity.isWifiEnabled()){
+            Toast.makeText(getContext(), getString(R.string.error_wifi_not_enabled),
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
         if (_registrationType == AylaDevice.RegistrationType.Node) {
             if (_nodeRegistrationGateway == null) {
                 MenuHandler.handleGatewayWelcome();
