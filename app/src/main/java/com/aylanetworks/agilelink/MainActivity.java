@@ -403,6 +403,9 @@ public class MainActivity extends AppCompatActivity
             _loginScreenUp = false;
 
             if (resultCode == Activity.RESULT_OK) {
+                if(_theInstance == null){
+                    _theInstance = this;
+                }
                 handleSignedIn();
 
                 // Start wearable service. If there are no wearable devices connected, the service
@@ -819,6 +822,8 @@ public class MainActivity extends AppCompatActivity
         // Allows login when the service is not reachable, using cached data or connecting directly
         // with devices in LAN mode
         parameters.allowLANLogin = false;
+
+        parameters.allowDSS = false;
 
         parameters.loggingLevel = LOG_PERMIT;
 
