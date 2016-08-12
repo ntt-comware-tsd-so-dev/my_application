@@ -490,8 +490,7 @@ public class AylaWidget extends AppWidgetProvider
                     remoteViews.setTextViewText(viewId, "OFF");
                 }
 
-                toggledProperty.createDatapoint(newValue, null,
-                        new Response.Listener<AylaDatapoint<Integer>>() {
+                toggledProperty.createDatapoint(newValue, null, new Response.Listener<AylaDatapoint<Integer>>() {
                             @Override
                             public void onResponse(AylaDatapoint response) {
                                 updateViews(device);
