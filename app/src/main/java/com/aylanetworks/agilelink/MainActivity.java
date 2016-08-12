@@ -936,7 +936,6 @@ public class MainActivity extends AppCompatActivity
             _viewPager.setCurrentItem(0);
         }
         popBackstackToRoot();
-        onSelectMenuItemById(R.id.action_all_devices);
 
         intent.putExtra(SignInActivity.EXTRA_DISABLE_CACHED_SIGNIN, disableCachedSignin);
         Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
@@ -977,6 +976,9 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
+        if (AMAPCore.sharedInstance() == null) {
+            AMAPCore.initialize(getAppParameters(this), this);
+        }
         // Only resume Ayla services if the wearable service hasn't already started it
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
@@ -1083,8 +1085,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         // fetch account settings
-        AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
-
+        if(!AMAPCore.sharedInstance().getSessionManager().isCachedSession()){
+            AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
+        }
         // update drawer header
         updateDrawerHeader();
     }

@@ -138,7 +138,9 @@ public class MenuHandler {
     }
 
     public static void handleAddDevice() {
-        MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
+        if(MainActivity.getInstance() != null){
+            MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
+        }
     }
 
     public static void handleGatewayWelcome() {
