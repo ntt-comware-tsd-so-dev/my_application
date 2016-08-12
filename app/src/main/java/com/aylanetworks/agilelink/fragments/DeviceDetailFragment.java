@@ -97,10 +97,11 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
 
         setHasOptionsMenu(true);
         _deviceModel = null;
-        if (getArguments() != null ) {
+        AMAPCore sharedInstance = AMAPCore.sharedInstance();
+        if (getArguments() != null && sharedInstance != null && sharedInstance.getDeviceManager() != null) {
             String dsn = getArguments().getString(ARG_DEVICE_DSN);
-            AylaDevice d = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
-            _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+            AylaDevice d = sharedInstance.getDeviceManager().deviceWithDSN(dsn);
+            _deviceModel = sharedInstance.getSessionParameters().viewModelProvider
                     .viewModelForDevice(d);
         }
      }
