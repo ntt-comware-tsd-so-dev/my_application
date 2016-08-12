@@ -974,6 +974,7 @@ public class AddDeviceFragment extends Fragment
                                 MainActivity mainActivity = MainActivity.getInstance();
                                 mainActivity.dismissWaitDialog();
                                 AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+                                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
                             }
                         });
                     }
