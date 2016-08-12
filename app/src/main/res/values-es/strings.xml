@@ -374,7 +374,7 @@
     <string name="no_devices_to_share">No hay dispositivos para compartir.</string>
     <string name="share_removed">El dispositivo compartido ha sido eliminado de la cuenta.</string>
     <string name="remove_share_failure">Ocurrió un error al borrar la compartición de la cuenta.</string>
-    <string name="lan_login_message">Ha entrado con la LAN. La funcionalidad puede ser limitada..</string>
+    <string name="lan_login_message">Usted está operando actualmente en el modo fuera de línea. La funcionalidad puede ser muy limitado hasta la conexión a Internet se restaura.</string>
     <string name="share_read_only_message">Permitir al usuario:</string>
     <string name="share_control_only_message">Permitir al usuario controlar el dispositivo</string>
     <string name="share_read_only_button">Ver</string>

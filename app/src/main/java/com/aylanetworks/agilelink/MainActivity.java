@@ -1083,6 +1083,9 @@ public class MainActivity extends AppCompatActivity
      */
     private void handleSignedIn() {
         // Let the all devices fragment know we are signed in
+        if(AMAPCore.sharedInstance().getSessionManager().isCachedSession()){
+            Toast.makeText(this, getString(R.string.lan_login_message), Toast.LENGTH_SHORT).show();
+        }
         Fragment frag = getSupportFragmentManager().findFragmentById(R.id.content_frame);
         if (frag != null) {
             frag.onPause();
