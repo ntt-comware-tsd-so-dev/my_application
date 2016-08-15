@@ -313,6 +313,7 @@
     <string name="schedule_properties_description">Seleccione la acción a actualizar con la programación:</string>
     <string name="no_actions_set">Seleccione una acción para actualizar la programación</string>
     <string name="configure_a_timer_or_a_schedule_before_saving">Configure un temporizador o una programación antes de guardar.</string>
+    <string name="configure_schedule_times">Actualización Encienda y apague Hora para que este programación.</string>
     <string name="timezone_button_text">Zona horaria...</string>
     <string name="sharing_button_text">Compartir...</string>
     <string name="choose_timezone">Seleccione la zona horaria</string>

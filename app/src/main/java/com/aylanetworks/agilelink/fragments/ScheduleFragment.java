@@ -151,23 +151,23 @@ public class ScheduleFragment extends Fragment {
                                                 if (_scheduleName.equals(schedule.getName())) {
                                                     _schedule = new Schedule(schedule, _tz);
                                                     schedule.fetchActions(new Response.Listener<AylaScheduleAction[]>() {
-                                                                              @Override
-                                                                              public void onResponse(AylaScheduleAction[] response) {
-                                                                                  _schedule.setScheduleActions(response);
-                                                                                  setupPropertySelection();
-                                                                                  updateUI();
+                                                        @Override
+                                                        public void onResponse(AylaScheduleAction[] response) {
+                                                            _schedule.setScheduleActions(response);
+                                                            setupPropertySelection();
+                                                            updateUI();
 
-                                                                                  if ( _schedule.getStartTimeEachDay() == null ) {
-                                                                                      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                                                                                          setSchedule(_scheduleTimePicker.getCurrentHour()
-                                                                                                  , _scheduleTimePicker.getCurrentMinute(), true);
-                                                                                      } else { // version >= M
-                                                                                          setSchedule(_scheduleTimePicker.getHour()
-                                                                                                  , _scheduleTimePicker.getMinute(), true);
-                                                                                      }
-                                                                                  }
-                                                                              }
-                                                                          },errorListener);
+                                                            if ( _schedule.getStartTimeEachDay() == null ) {
+                                                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                                                                    setSchedule(_scheduleTimePicker.getCurrentHour()
+                                                                            , _scheduleTimePicker.getCurrentMinute(), true);
+                                                                } else { // version >= M
+                                                                    setSchedule(_scheduleTimePicker.getHour()
+                                                                            , _scheduleTimePicker.getMinute(), true);
+                                                                }
+                                                            }
+                                                        }
+                                                    },errorListener);
                                                     break;
                                                 }
                                             }
@@ -397,11 +397,11 @@ public class ScheduleFragment extends Fragment {
     private boolean checkSchedule() {
         int errorMessage = 0;
         if ( _schedule.isActive() && _schedule.getActions().size() == 0 ) {
-           errorMessage = R.string.no_actions_set;
+            errorMessage = R.string.no_actions_set;
         }
 
         if ( !_schedule.isTimer() && _schedule.getStartTimeEachDay() == null) {
-            errorMessage = R.string.configure_a_timer_or_a_schedule_before_saving;
+            errorMessage = R.string.configure_schedule_time_saving;
         }
 
         if ( errorMessage != 0 ) {
@@ -448,26 +448,20 @@ public class ScheduleFragment extends Fragment {
                     public void onResponse(final AylaSchedule response) {
                         //Now update the actions
                         final AylaScheduleAction[] actions = _schedule.getScheduleActions();
+                        final int actionsSize= actions.length;
                         response.updateActions(actions, new Response
                                 .Listener<AylaScheduleAction[]>() {
-                                    @Override
-                                    public void onResponse(final AylaScheduleAction[]
-                                                                   responseActions) {
-                                        //Now update the actions
-                                        _schedule = new Schedule(response, _tz);
-                                        _schedule.setScheduleActions(actions);
-                                        //Now Update the Actions
-                                        MainActivity.getInstance().dismissWaitDialog();
-                                        Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
-                                        updateUI();
-                                    }
-                                },errorListener);
-
-                        _schedule = new Schedule(response, _tz);
-                        //Now Update the Actions
-                        MainActivity.getInstance().dismissWaitDialog();
-                        Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
-                        updateUI();
+                            @Override
+                            public void onResponse(final AylaScheduleAction[]
+                                                           responseActions) {
+                                if(responseActions != null && responseActions
+                                        .length==actionsSize) {
+                                    //Now Update the Actions
+                                    MainActivity.getInstance().dismissWaitDialog();
+                                    Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        },errorListener);
                     }
                 },errorListener);
     }
