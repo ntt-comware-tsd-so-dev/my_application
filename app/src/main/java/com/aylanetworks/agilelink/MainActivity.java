@@ -403,6 +403,9 @@ public class MainActivity extends AppCompatActivity
             _loginScreenUp = false;
 
             if (resultCode == Activity.RESULT_OK) {
+                if(_theInstance == null){
+                    _theInstance = this;
+                }
                 handleSignedIn();
 
                 // Start wearable service. If there are no wearable devices connected, the service
@@ -820,6 +823,8 @@ public class MainActivity extends AppCompatActivity
         // with devices in LAN mode
         parameters.allowLANLogin = false;
 
+        parameters.allowDSS = false;
+
         parameters.loggingLevel = LOG_PERMIT;
 
         parameters.registrationEmailSubject = context.getResources().getString(R.string.registraion_email_subject);
@@ -936,7 +941,6 @@ public class MainActivity extends AppCompatActivity
             _viewPager.setCurrentItem(0);
         }
         popBackstackToRoot();
-        onSelectMenuItemById(R.id.action_all_devices);
 
         intent.putExtra(SignInActivity.EXTRA_DISABLE_CACHED_SIGNIN, disableCachedSignin);
         Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
@@ -977,6 +981,9 @@ public class MainActivity extends AppCompatActivity
             _theInstance = this;
         }
 
+        if (AMAPCore.sharedInstance() == null) {
+            AMAPCore.initialize(getAppParameters(this), this);
+        }
         // Only resume Ayla services if the wearable service hasn't already started it
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
@@ -1076,6 +1083,9 @@ public class MainActivity extends AppCompatActivity
      */
     private void handleSignedIn() {
         // Let the all devices fragment know we are signed in
+        if(AMAPCore.sharedInstance().getSessionManager().isCachedSession()){
+            Toast.makeText(this, getString(R.string.lan_login_message), Toast.LENGTH_SHORT).show();
+        }
         Fragment frag = getSupportFragmentManager().findFragmentById(R.id.content_frame);
         if (frag != null) {
             frag.onPause();
@@ -1083,8 +1093,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         // fetch account settings
-        AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
-
+        if(!AMAPCore.sharedInstance().getSessionManager().isCachedSession()){
+            AMAPCore.sharedInstance().fetchAccountSettings(new AccountSettings.AccountSettingsCallback());
+        }
         // update drawer header
         updateDrawerHeader();
     }

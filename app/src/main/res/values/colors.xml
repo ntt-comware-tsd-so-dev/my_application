@@ -293,8 +293,8 @@
 
     -->
 
-    <color name="app_theme_accent">@color/light_blue_A400</color>
-    <color name="app_theme_accent_light">@color/light_blue_A200</color>
+    <color name="app_theme_accent">@color/brown_400</color>
+    <color name="app_theme_accent_light">@color/brown_200</color>
     <color name="app_theme_accent_text">@android:color/white</color>
     <color name="app_theme_primary_light">@color/dark_orange_50</color>
     <color name="app_theme_primary_medium_light">@color/dark_orange_100</color>

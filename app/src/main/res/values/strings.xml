@@ -398,7 +398,7 @@
     <string name="no_devices_to_share">There are no devices that can be shared registered to this account.</string>
     <string name="share_removed">The shared device has been removed from your account.</string>
     <string name="remove_share_failure">An unknown error occurred while trying to remove this shared device from your account.</string>
-    <string name="lan_login_message">Logging in LAN. The functionality will be limited.</string>
+    <string name="lan_login_message">You are currently operating in Offline Mode. Functionality may be very limited until Internet connectivity is restored.</string>
     <string name="share_read_only_message">Allow this user to:</string>
     <string name="share_control_only_message">Allow this user to control your device</string>
     <string name="share_read_only_button">View</string>

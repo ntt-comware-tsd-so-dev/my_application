@@ -919,9 +919,11 @@ public class AddDeviceFragment extends Fragment
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
-                        Toast.makeText(getActivity(),
-                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
-                                Toast.LENGTH_LONG).show();
+                        if(isAdded()){
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getContext(), error, R.string.error_fetch_candidates),
+                                    Toast.LENGTH_LONG).show();
+                        }
                         exitSetup();
                     }
                 });
@@ -974,6 +976,7 @@ public class AddDeviceFragment extends Fragment
                                 MainActivity mainActivity = MainActivity.getInstance();
                                 mainActivity.dismissWaitDialog();
                                 AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+                                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
                             }
                         });
                     }
