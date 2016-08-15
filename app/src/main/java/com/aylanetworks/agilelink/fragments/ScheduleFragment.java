@@ -401,7 +401,7 @@ public class ScheduleFragment extends Fragment {
         }
 
         if ( !_schedule.isTimer() && _schedule.getStartTimeEachDay() == null) {
-            errorMessage = R.string.configure_schedule_time_saving;
+            errorMessage = R.string.configure_schedule_times;
         }
 
         if ( errorMessage != 0 ) {
