@@ -410,8 +410,10 @@ public class MainActivity extends AppCompatActivity
 
                 // Start wearable service. If there are no wearable devices connected, the service
                 // will stop itself
-                Intent wearService = new Intent(this, WearUpdateService.class);
-                startService(wearService);
+                if(!AMAPCore.sharedInstance().getSessionManager().isCachedSession()){
+                    Intent wearService = new Intent(this, WearUpdateService.class);
+                    startService(wearService);
+                }
             } else if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
