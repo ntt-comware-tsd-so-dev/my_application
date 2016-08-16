@@ -495,6 +495,7 @@
     <string name="notification_created">The notification was created successfully</string>
     <string name="delete_notification_title">Delete Notification?</string>
     <string name="delete_notification_message">Do you want to remove the notification \"%s\"?</string>
+    <string name="no_property_found">No property found for</string>
     <string name="warning_location_accuracy">Enable GPS in Android Settings to improve device location accuracy</string>
     <string name="error_gateway_join_window">Unable to open registration window.</string>
     <string name="error_no_gateway">No Gateway was found</string>

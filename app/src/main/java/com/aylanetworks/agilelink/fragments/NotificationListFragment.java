@@ -190,7 +190,7 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
                         String propNickName = trigger.getPropertyNickname();
                         AylaProperty property = _deviceModel.getDevice().getProperty(propNickName);
                         if (property == null) {
-                            String error = "No property returned for " + propNickName;
+                            String error = MainActivity.getInstance().getString(R.string.no_property_found) +" " +propNickName;
                             AylaLog.e(LOG_TAG, error);
                             Toast.makeText(MainActivity.getInstance(), error, Toast.LENGTH_LONG).show();
                             return;
