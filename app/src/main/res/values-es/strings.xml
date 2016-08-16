@@ -170,6 +170,7 @@
     <string name="connect">Conectar</string>
     <string name="wifi_password">Password de WiFi</string>
     <string name="wifi_show_password">Mostrar password</string>
+    <string name="wifi_requires_auth">La red Wi-Fi requiere autenticación</string>
     <string name="connect_device">Conectar Dispositivo</string>
     <string name="connect_to_service_success">Conectado a la nube</string>
     <string name="bad_wifi_password">Password WiFi Incorrecto. Reintente por favor.</string>
@@ -371,6 +372,7 @@
     <string name="sharing_with_others_empty">No hay comparticiones</string>
     <string name="shared_with_me_empty">No har comparticiones recibidas</string>
     <string name="error_deleting_share">Ocurrió un error al borrar la compartición. Reintente más tarde.</string>
+    <string name="error_fetching_shares">Ocurrió un error al recibir las comparticiones. Reintente más tarde.</string>
     <string name="error_creating_share">Ocurrió un error al compartir. Reintente más tarde.</string>
     <string name="no_devices_to_share">No hay dispositivos para compartir.</string>
     <string name="share_removed">El dispositivo compartido ha sido eliminado de la cuenta.</string>
@@ -420,6 +422,8 @@
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
     <string name="service_reachability">Accesibilidad al Servicio</string>
+    <string name="wifi_enabled">WiFi Habilitada</string>
+    <string name="cellular_enabled">Celular Habilitada</string>
     <string name="offline_no_functionality">El dipositivo esta desconectado, no se puede modificar</string>
     <string name="drawer_open">Abra</string>
     <string name="drawer_close">Cerrar</string>
@@ -481,6 +485,12 @@
     <string name="error_gateway_register_no_device">Busque Dispositivos primero</string>
     <string name="error_no_gateway_instructions">No hay Gateways. Primero registre uno.</string>
     <string name="add_device_sensor_warning">Se estan efectuando más configuraciones. El sensor puede no responder inmediatamente los siguientes minutos.</string>
+    <string name="error_device_scan">Ocurrió un error al escanear dispositivos</string>
+    <string name="error_device_connect">Ocurrió un error al conectar con el dispositivo</string>
+    <string name="error_device_connect_service">Ocurrió un error al conectar el dispositivo a la red WiFi</string>
+    <string name="error_fetch_candidates">Ocurrió un error al recibir los candidatos a registrar</string>
+    <string name="error_register_candidate">Ocurrió un error al registrar los candidatos</string>
+    <string name="error_confirm_device">Ocurrió un error al confirmar la conexión del dispositivo</string>
     <string name="message_attention">Atención</string>
     <string name="lan_mode_enabled">Modo LAN Activo</string>
     <string name="online">Conectado</string>
@@ -644,6 +654,7 @@
     <string name="newEmailAddress">Nuevo Email</string>
     <string name="invalid_email">Email inválido</string>
     <string name="update_email_success">éxito alerta por correo electrónico</string>
+    <string name="update_password_success">Éxito actualizando contraseña</string>
     <string name="updating_email_body">Actualizando Email. Espere por favor...</string>
     <string name="updating_email_title">Actualizando Email</string>
     <string name="update_email_confirm_title">Actualizar Email?</string>
