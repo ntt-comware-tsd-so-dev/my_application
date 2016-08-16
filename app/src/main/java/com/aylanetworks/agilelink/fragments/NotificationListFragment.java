@@ -189,6 +189,12 @@ public class NotificationListFragment extends Fragment implements View.OnClickLi
                         AylaPropertyTrigger trigger = _propertyTriggers.get(index);
                         String propNickName = trigger.getPropertyNickname();
                         AylaProperty property = _deviceModel.getDevice().getProperty(propNickName);
+                        if (property == null) {
+                            String error = "No property returned for " + propNickName;
+                            AylaLog.e(LOG_TAG, error);
+                            Toast.makeText(MainActivity.getInstance(), error, Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         property.deleteTrigger(trigger, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                                     @Override
                                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
