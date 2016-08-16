@@ -470,6 +470,7 @@
     <string name="notification_created">Notificación creada con éxito</string>
     <string name="delete_notification_title">¿Borrar Notificación?</string>
     <string name="delete_notification_message">¿Quiere borrar la notificación \"%s\"?</string>
+    <string name="no_property_found">No se encontró una propiedad llamada</string>
     <string name="warning_location_accuracy">Active GPS en los ajustes de Android para mejorar la precisión</string>
     <string name="error_gateway_join_window">No se pudo activar la ventana de registro.</string>
     <string name="error_no_gateway">Sin Gateways</string>
