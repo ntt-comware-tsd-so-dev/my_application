@@ -155,8 +155,6 @@ public class ScheduleFragment extends Fragment {
                                                         public void onResponse(AylaScheduleAction[] response) {
                                                             _schedule.setScheduleActions(response);
                                                             setupPropertySelection();
-                                                            updateUI();
-
                                                             if ( _schedule.getStartTimeEachDay() == null ) {
                                                                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                                                                     setSchedule(_scheduleTimePicker.getCurrentHour()
@@ -166,6 +164,7 @@ public class ScheduleFragment extends Fragment {
                                                                             , _scheduleTimePicker.getMinute(), true);
                                                                 }
                                                             }
+                                                            updateUI();
                                                         }
                                                     },errorListener);
                                                     break;
