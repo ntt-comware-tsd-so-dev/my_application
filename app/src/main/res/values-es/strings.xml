@@ -421,7 +421,6 @@
     <string name="reachable">Alcanzable</string>
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
-    <string name="service_reachability">Accesibilidad al Servicio</string>
     <string name="wifi_enabled">WiFi Habilitada</string>
     <string name="cellular_enabled">Celular Habilitada</string>
     <string name="offline_no_functionality">El dipositivo esta desconectado, no se puede modificar</string>
