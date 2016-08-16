@@ -773,11 +773,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                     return;
                                 }
 
-                                MainActivity.getInstance().showWaitDialog(R.string.please_wait, R.string.please_wait);
                                 _deviceModel.setDatapoint(prop.getName(), isChecked ? 1 : 0, new ViewModel.SetDatapointListener() {
                                     @Override
                                     public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-                                        MainActivity.getInstance().dismissWaitDialog();
                                         updateUI();
                                     }
                                 });
