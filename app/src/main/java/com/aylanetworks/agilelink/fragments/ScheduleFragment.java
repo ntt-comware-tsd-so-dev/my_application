@@ -455,11 +455,7 @@ public class ScheduleFragment extends Fragment {
                             public void onResponse(final AylaScheduleAction[]
                                                            responseActions) {
                                 MainActivity.getInstance().dismissWaitDialog();
-                                if(responseActions != null && responseActions
-                                        .length==actionsSize) {
-                                    //Now Update the Actions
                                     Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
-                                }
                             }
                         },errorListener);
                     }
