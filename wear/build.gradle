@@ -9,13 +9,25 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 1
+        versionCode 32
         versionName "1.0"
     }
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("KEYSTORE"))
+            storePassword System.getenv("KEYSTORE_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true
+            signingConfig signingConfigs.release
         }
     }
 }
