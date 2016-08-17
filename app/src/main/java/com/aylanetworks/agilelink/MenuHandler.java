@@ -27,6 +27,7 @@ import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -275,20 +276,27 @@ public class MenuHandler {
             Logger.logError(LOG_TAG, "AylaSessionManager is null.");
             return;
         }
+        MainActivity.getInstance().showWaitDialog(MainActivity.getInstance().getString(
+                R.string.signing_out), null);
         sessionManager.shutDown(
                 new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                     @Override
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
                         MainActivity.getInstance().showLoginDialog(true);
                     }
                 },
                 new ErrorListener() {
                     @Override
                     public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
                         Toast.makeText(MainActivity.getInstance(),
                                 ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
                                 Toast.LENGTH_LONG).show();
+                        MainActivity.getInstance().showLoginDialog(true);
                     }
                 });
     }
