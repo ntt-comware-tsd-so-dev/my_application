@@ -33,6 +33,7 @@ import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaShare;
@@ -776,7 +777,14 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                 _deviceModel.setDatapoint(prop.getName(), isChecked ? 1 : 0, new ViewModel.SetDatapointListener() {
                                     @Override
                                     public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-                                        updateUI();
+                                        if(AMAPCore.sharedInstance() != null){
+                                            AylaDeviceManager dm = AMAPCore.sharedInstance()
+                                                    .getDeviceManager();
+                                            if( dm!=null && dm.getState() !=
+                                                    AylaDeviceManager.DeviceManagerState.Paused){
+                                                updateUI();
+                                            }
+                                        }
                                     }
                                 });
                             }
