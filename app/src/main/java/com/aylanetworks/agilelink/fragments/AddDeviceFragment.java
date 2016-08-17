@@ -854,7 +854,7 @@ public class AddDeviceFragment extends Fragment
     private void connectMobileToOriginalNetworkAndConfirmDeviceConnection(final String dsn, final String setupToken) {
         MainActivity.getInstance().showWaitDialog(R.string.confirm_new_device_title, R.string.confirm_new_device_body);
 
-        _aylaSetup.reconnectToOriginalNetwork(10,
+        _aylaSetup.reconnectToOriginalNetwork(20,
                 new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                     @Override
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
