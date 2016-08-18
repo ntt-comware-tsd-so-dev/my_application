@@ -408,7 +408,7 @@
     <string name="about_app" formatted="false">Acerca de AMAP</string>
     <string name="about">Acerca de</string>
     <string name="more_options">Más...</string>
-    <string name="service_type">Service Type</string>
+    <string name="service_type">Service</string>
     <string name="device_service">Device Service</string>
     <string name="field_service">Field Service</string>
     <string name="production_service">Production Service</string>
@@ -416,13 +416,13 @@
     <string name="demo_service">Demo Service</string>
     <string name="unknown_service">Desconocido Tipo de Servicio: %d</string>
     <string name="app_version">Versión de aplicación:</string>
-    <string name="core_version">Versión Core</string>
+    <string name="core_version">Versión Framework</string>
     <string name="library_version">Versión AAML</string>
     <string name="reachable">Alcanzable</string>
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
-    <string name="wifi_enabled">WiFi Habilitada</string>
-    <string name="cellular_enabled">Celular Habilitada</string>
+    <string name="wifi_enabled">Wi-Fi</string>
+    <string name="cellular_enabled">Celular</string>
     <string name="offline_no_functionality">El dipositivo esta desconectado, no se puede modificar</string>
     <string name="drawer_open">Abra</string>
     <string name="drawer_close">Cerrar</string>
