@@ -57,7 +57,7 @@ public class UiBasicWalkTest {
         onView(withId(R.id.group_name)).perform(replaceText("TestGroup"));
 
         onView(withText("Add Group")).perform(click());
-        onView(withText("Ayla EVB")).perform(click());
+        onView(withText("Ayla EVB G")).perform(click());
         onView(withText("Ayla EVB FF8a8 :)")).perform(click());
 
         onView(withText("OK")).perform(click());
@@ -68,25 +68,11 @@ public class UiBasicWalkTest {
         pressBack();
     }
 
-    private void checkScenes() {
-        onView(withContentDescription("Open")).perform(click());
-        onView(withText("Scenes")).perform(click());
-
-        openActionBarOverflowOrOptionsMenu(getInstrumentation().getTargetContext());
-        onView(withText("Add Scene")).perform(click());
-        onView(withId(R.id.scene_name)).perform(replaceText("Test Scene"));
-        onView(withText("Smart Bulb")).perform(click());
-        onView(withText("Smart Plug")).perform(click());
-        onView(withText("OK")).perform(click());
-
-        pressBack();
-    }
-
     private void checkGateways() {
         onView(withContentDescription("Open")).perform(click());
         onView(withText("Gateways")).perform(click());
 
-        onView(withText("Generic Gateway")).perform(click());
+        onView(withText("Linux Gateway")).perform(click());
 
         openActionBarOverflowOrOptionsMenu(getInstrumentation().getTargetContext());
         onView(withText("Timezone...")).perform(click());
@@ -166,18 +152,6 @@ public class UiBasicWalkTest {
         onView(withText("Share Device...")).perform(click());
         pressBack();
         pressBack();
-
-        //onView(withText("Ayla f5d6")).perform(click());
-        //pressBack();
-
-        onView(withText("Smart Bulb")).perform(click());
-        pressBack();
-
-        onView(withText("Smart Plug")).perform(click());
-        pressBack();
-
-        //onView(withText("Generic Node")).perform(click());
-        //pressBack();
     }
 
     String getAdbOption(String key) {
@@ -221,7 +195,6 @@ public class UiBasicWalkTest {
     public void testBasicWalk() {
         login();
         checkGroups();
-        checkScenes();
         checkGateways();
         checkShares();
 
