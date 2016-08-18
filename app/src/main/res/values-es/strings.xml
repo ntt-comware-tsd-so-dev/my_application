@@ -77,6 +77,8 @@
     <string name="firstName">Nombre</string>
     <string name="phoneNumber">Teléfono</string>
     <string name="phoneCountryCode">código de País</string>
+    <string name="city">Ciudad</string>
+    <string name="zipcode">C.P.</string>
     <string name="evbNumber">Número de EVB</string>
     <string name="zip">C.P.</string>
     <string name="signUp">Inscribirme</string>
