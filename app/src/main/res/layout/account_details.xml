@@ -79,6 +79,26 @@
             android:textStyle="italic"
             android:inputType="phone" />
 
+        <EditText
+            android:id="@+id/etCity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:ems="10"
+            android:hint="@string/city"
+            android:textStyle="italic"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etZip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:ems="10"
+            android:hint="@string/zip"
+            android:textStyle="italic"
+            android:inputType="text" />
+
         <Button
             android:id="@+id/btnUpdate"
             style="@style/AgileLinkButton"

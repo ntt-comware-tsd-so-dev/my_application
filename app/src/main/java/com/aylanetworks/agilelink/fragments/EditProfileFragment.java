@@ -47,6 +47,8 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     private EditText _country;
     private EditText _phoneCountryCode;
     private EditText _phoneNumber;
+    private EditText _city;
+    private EditText _zip;
 
     private EditText _oldPassword;
     private EditText _password;
@@ -80,6 +82,8 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         _country = (EditText) root.findViewById(R.id.etCountry);
         _phoneCountryCode = (EditText) root.findViewById(R.id.etPhoneCountryCode);
         _phoneNumber = (EditText) root.findViewById(R.id.etPhoneNumber);
+        _city = (EditText) root.findViewById(R.id.etCity);
+        _zip = (EditText) root.findViewById(R.id.etZip);
 
         _oldPassword = (EditText) root.findViewById(R.id.etCurrentPassword);
         _password = (EditText) root.findViewById(R.id.etNewPassword);
@@ -138,6 +142,8 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         _country.setText(currentUser.getCountry());
         _phoneCountryCode.setText(currentUser.getPhoneCountryCode());
         _phoneNumber.setText(currentUser.getPhone());
+        _city.setText(currentUser.getCity());
+        _zip.setText(currentUser.getZip());
         _password.setText("");
         _confirmPassword.setText("");
     }
@@ -149,6 +155,8 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         user.setCountry(_country.getText().toString());
         user.setPhoneCountryCode(_phoneCountryCode.getText().toString());
         user.setPhone(_phoneNumber.getText().toString());
+        user.setCity(_city.getText().toString());
+        user.setZip(_zip.getText().toString());
 
         return user;
     }

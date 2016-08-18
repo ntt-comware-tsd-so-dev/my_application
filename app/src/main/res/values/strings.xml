@@ -89,6 +89,8 @@
     <string name="firstName">First Name</string>
     <string name="phoneNumber">Phone Number</string>
     <string name="phoneCountryCode">Phone Country Code</string>
+    <string name="city">City</string>
+    <string name="zipcode">ZipCode</string>
     <string name="evbNumber">EVB Number</string>
     <string name="zip">Zip</string>
     <string name="signUp">Sign up</string>
