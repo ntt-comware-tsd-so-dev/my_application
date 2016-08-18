@@ -933,11 +933,10 @@ public class AddDeviceFragment extends Fragment
         if (regToken != null) {
             candidate.setRegistrationToken(regToken);
         } else if (TextUtils.equals(dsn, candidate.getDsn())) {
-            candidate.setRegistrationToken(_setupToken);
+            candidate.setSetupToken(_setupToken);
         } else {
             candidate.setRegistrationToken(ObjectUtils.generateRandomToken(8));
         }
-
         candidate.setRegistrationType(regType);
 
         // This is optional. Add location information to send latitude and longitude during
