@@ -219,6 +219,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     void updateUI() {
+        if(!isAdded()){
+            return;
+        }
         if ( _deviceModel == null ) {
             Log.e(LOG_TAG, "Unable to find device!");
             getFragmentManager().popBackStack();
