@@ -183,9 +183,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 @Override
                                 public void onErrorResponse(AylaError error) {
                                     dismissSigningInDialog();
-                                    Toast.makeText(MainActivity.getInstance(),
-                                            ErrorUtils.getUserMessage(getContext(), error, R.string.error_signing_in),
-                                            Toast.LENGTH_LONG).show();
+                                    Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
+                                    Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                            .LENGTH_LONG).show();
                                 }
                             });
                 }
