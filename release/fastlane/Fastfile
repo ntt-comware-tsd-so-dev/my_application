@@ -145,6 +145,13 @@ platform :android do
     ensure_git_status_clean
     git_command(full_command: "git push public release/#{release_number}")
 
+    # push to incoming branch
+    git_command(full_command: "git checkout incoming")
+    git_command(full_command: "git pull")
+    ensure_git_branch(branch: "incoming")
+    ensure_git_status_clean
+    git_command(full_command: "git push public incoming")
+
     # create PR to merge master back to develop and notify tech lead
     git_command(full_command: "git checkout master")
     ensure_git_status_clean
