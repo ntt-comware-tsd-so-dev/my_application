@@ -302,11 +302,12 @@ public class ShareDevicesFragment extends Fragment implements View.OnFocusChange
             for (int i = 0; i < _deviceList.getAdapter().getCount(); i++) {
                 if (checkedItems.get(i)) {
                     AylaDevice device = (AylaDevice) _deviceList.getAdapter().getItem(i);
-                    if(!device.isGateway()){
-                        devicesToAdd.add(device);
-                    } else {
-                        Toast.makeText(getActivity(), "Sharing of Gateways not supported", Toast.LENGTH_LONG).show();
+                    if(device.isGateway()  || device.isNode()){
+                        Toast.makeText(getActivity(), "Sharing of Gateways and Nodes not " +
+                                "supported", Toast.LENGTH_LONG).show();
                         return;
+                    } else {
+                        devicesToAdd.add(device);
                     }
                 }
             }
