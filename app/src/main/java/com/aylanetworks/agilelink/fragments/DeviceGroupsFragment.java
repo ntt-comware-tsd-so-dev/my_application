@@ -99,6 +99,9 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     @Override
     public void updateDeviceList() {
+        if(!isAdded()){
+            return;
+        }
         if (_selectedGroup != null) {
 
             _adapter = DeviceListAdapter.fromDeviceList(_selectedGroup.getDevices(), this);
