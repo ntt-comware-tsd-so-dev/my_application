@@ -1,0 +1,139 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/app_theme_window_background"
+            tools:context="com.aylanetworks.agilelink.fragments.ShareDevicesFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <EditText
+            android:id="@+id/share_dsn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/instructions"
+            android:layout_margin="8dp"
+            android:editable="false"/>
+
+        <EditText
+            android:id="@+id/share_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/share_dsn"
+            android:layout_margin="8dp"
+            android:hint="@string/emailAddress"
+            android:editable="false"/>
+
+        <EditText
+            android:id="@+id/share_role"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/share_email"
+            android:layout_margin="8dp"
+            android:hint="@string/role"
+            android:inputType="text"/>
+
+        <RelativeLayout
+            android:id="@+id/date_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/share_role">
+
+            <TextView
+                android:id="@+id/text_starting_on"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:text="@string/starting_on"/>
+
+            <Button
+                android:id="@+id/button_start_date"
+                style="@style/AgileLinkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:layout_toRightOf="@id/text_starting_on"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:text="@string/now"
+                />
+
+            <Button
+                android:id="@+id/button_end_date"
+                style="@style/AgileLinkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:text="@string/never"
+                />
+
+            <TextView
+                android:id="@+id/text_ending_on"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:gravity="right"
+                android:layout_margin="8dp"
+                android:layout_toLeftOf="@id/button_end_date"
+                android:text="@string/ending_on"/>
+
+        </RelativeLayout>
+
+
+        <TextView
+            android:id="@+id/textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/date_layout"
+            android:layout_margin="8dp"
+            android:text="@string/share_read_only_message"
+            />
+
+        <RadioGroup
+            android:id="@+id/access_radio_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textview"
+            android:layout_margin="8dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radio_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/share_read_only_button"
+                />
+
+            <RadioButton
+                android:id="@+id/radio_control"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/share_read_write_button"
+                />
+
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/share_update_button"
+            style="@style/AgileLinkButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/access_radio_group"
+            android:layout_margin="8dp"
+            android:text="@string/share_button_edit"/>
+
+    </RelativeLayout>
+
+</ScrollView>

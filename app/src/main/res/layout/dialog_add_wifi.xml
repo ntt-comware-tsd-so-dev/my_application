@@ -41,9 +41,10 @@
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
             android:text="@string/security"/>
-        <Spinner
-            android:id="@+id/spinnerSecurityType"
-            android:layout_width="match_parent"
+        <CheckBox
+            android:text="@string/wifi_requires_auth"
+            android:id="@+id/wifi_requires_auth"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <LinearLayout

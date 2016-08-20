@@ -91,7 +91,12 @@ platform :android do
     supply(json_key: ENV['JSON_KEY_FILE'], track: "production")
   end
 
-  lane :setversion do |options|
+  lane :show_version do
+     release_number = get_version_string
+     puts "Your release version is: " + release_number
+  end
+
+  lane :set_version do |options|
     check_required_argument(options[:version], "version:x.y.z")
     set_version_string(options[:version])
   end
@@ -119,18 +124,18 @@ platform :android do
     ensure_git_status_clean
     git_command(full_command: "git push public master");
 
-    # not use automatic publish for now since it will trigger massive release emails immediately so be careful
-    #publish a release which will create the tag on public. this requires you to set your own environment variable GITHUB_API_TOKEN
-    #set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: public_repo, tag_name: v, name: v+" Release", description: "see README.md for details")
+    # this will trigger massive release emails immediately so be careful
+    # publish a release which will create the tag on public. this requires you to set your own environment variable GITHUB_API_TOKEN
+    set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: public_repo, tag_name: v, name: v+" Release", description: "see README.md for details")
     # pull tag to local
-    #git_command(full_command: "git pull public master --tags");
+    git_command(full_command: "git pull public master --tags");
     # push tag to internal repo
-    #git_command(full_command: "git push origin #{v}");
+    git_command(full_command: "git push origin #{v}");
 
     #when the above auto-publish is not used, create and push tags here.
-    git_command(full_command: "git tag -a #{v} -m \"#{v} tag\"");
-    git_command(full_command: "git push origin #{v}");
-    git_command(full_command: "git push public #{v}");
+    #git_command(full_command: "git tag -a #{v} -m \"#{v} tag\"");
+    #git_command(full_command: "git push origin #{v}");
+    #git_command(full_command: "git push public #{v}");
 
     # push a release branch
     git_command(full_command: "git checkout release/#{release_number}")
@@ -139,6 +144,13 @@ platform :android do
     ensure_git_branch(branch: "release/#{release_number}")
     ensure_git_status_clean
     git_command(full_command: "git push public release/#{release_number}")
+
+    # push to incoming branch
+    git_command(full_command: "git checkout incoming")
+    git_command(full_command: "git pull")
+    ensure_git_branch(branch: "incoming")
+    ensure_git_status_clean
+    git_command(full_command: "git push public incoming")
 
     # create PR to merge master back to develop and notify tech lead
     git_command(full_command: "git checkout master")

@@ -9,12 +9,12 @@ Building in Android Studio
 
 // Requires Gradle 2.1+
 // supported Android version: 4.4 and higher
-// Each build requires the correct Ayla Mobile Library. export AYLA_LIB_BRANCH &
-// AYLA_ZLIB_BRANCH to the shell environment if using other than 'master'.
+// Each build requires the correct Ayla SDK and Ayla Core Framework branch. export AYLA_SDK_BRANCH &
+// AYLA_CORE_BRANCH to the shell environment if using other than 'master'.
 
 $ git clone https://github.com/AylaNetworks/AMAP_Android.git
 $ cd AMAP_Android/gradle_scripts
-$ gradle -q execTasks
+$ ../gradlew -q execTasks
 
 To build the project in Android Studio, click 'Build' and select 'Make Project'
 
@@ -29,7 +29,7 @@ To build the project in Android Studio, click 'Build' and select 'Make Project'
 Generating Documentation
 ===========================
 
-$ gradle generateDebugJavadoc
+$ ./gradlew generateDebugJavadoc
 (ignore warnings and the error/failure message)
 Open app/build/docs/javadoc/index.html in your browser
 
@@ -37,14 +37,44 @@ Open app/build/docs/javadoc/index.html in your browser
 Generate a library jar file
 ===========================
 
-$ gradle clean compileReleaseJava jar                                                                   
+$ ./gradlew clean compileReleaseJava jar
 Jar file will be generated at libraries/Android_AylaLibrary_Public/build/libs.
 External jars required by the library need to be included in applications using this jar (gson-2.2.4, log4j-1.2.17).
 
+Contribute your code
+====================
+
+If you would like to contribute your own code change to our project, please submit pull requests against the "incoming" branch on Github. We will review and approve your pull requests if appropriate.
+
+Dependencies
+============
+
+Google Volley		http://developer.android.com/license.html  
+Google Gson		http://developer.android.com/license.html  
+NanoHttpd		https://github.com/NanoHttpd/nanohttpd/blob/master/LICENSE.md  
+Autobahn Websockets	https://github.com/crossbario/autobahn-android/blob/master/LICENSE  
+SpongyCastle		http://www.bouncycastle.org/licence.html  
+Joda			http://www.joda.org/joda-time/license.html  
+Robolectric 		https://github.com/robolectric/robolectric/blob/master/LICENSE.txt
 
 
 Release Notes
 ===========================
+
+AMAP v5.2.00 : AYLA_SDK_BRANCH=release/5.2.00, AYLA_CORE_BRANCH=release/5.2.00 (8/19/2016)
+
+New & Improved
+- Improved performance and reliability
+- New Android Wearable watch app
+- UI & UX Improvements
+- Dropped support for Zigbee Gateways (use Generic Gateway)
+
+Bug Fixes & Chores
+- Built using new Ayla_SDK  v5.2.00
+- Built using new AMAP Core Framework v5.2.00
+
+Known Issues
+- Wifi setup will not work with Android N Beta. Scanning for WLAN access points fails. See https://code.google.com/p/android/issues/detail?id=2192
 
 AMAP v4.4.01 : AYLA_LIB_BRANCH=release/4.4.04, AYLA_ZIGBEE_LIB_BRANCH=release/4.4.00, AYLA_CORE_BRANCH=release/4.4.03 (5/11/2016)
 - make push notification permission unique in Manifest file by including application ID

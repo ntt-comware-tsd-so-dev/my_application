@@ -2,31 +2,25 @@
 #
 # The following environment variables are optional for you to control your build:
 # AYLA_BUILD_BRANCH: default to the current branch
-# AYLA_LIB_BRANCH: default to AYLA_BUILD_BRANCH
-# AYLA_ZIGBEE_LIB_BRANCH: default to AYLA_BUILD_BRANCH
-#
+# AYLA_SDK_BRANCH: default to AYLA_BUILD_BRANCH
+# AYLA_CORE_BRANCH: default to AYLA_BUILD_BRANCH
 # if you want to build a branch other than your crrent branch, switch to that branch to build it
-# for public release we set lib branch by replacing $AYLA_BUILD_BRANCH with release/4.4.00 etc because
-# their branch names are different; for internal repos, lib branches can be the same as build branch
-# such as "develop" etc
 #
 # The following are for rare cases when you use a git protocol other than https or a different remote
 # AYLA_PUBLIC: "" internal, "_Public" public repo, script detects this automatically unless you specify
-# AYLA_LIB_REPO: default to https://github.com/AylaNetworks/Android_AylaLibrary(_Public).git
-# AYLA_ZIGBEE_LIB_REPO: default to https://github.com/AylaNetworks/Android_AylaZigbeeLibrary(_Public).git
+# AYLA_SDK_REPO: default to https://github.com/AylaNetworks/Android_AylaSDK(_Public).git
+# AYLA_CORE_REPO: default to https://github.com/AylaNetworks/AMAP_Android_Core_Framework${AYLA_PUBLIC}.git
 # AYLA_REMOTE: default to origin
 #
 
 # You can change the following variables to configure your build
-AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-}  # or: AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/4.4.00}
-AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-release/4.4.04} # or: -release/4.4.00
-AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-release/4.4.00} # or -release/4.4.00
-AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/4.4.03}
+AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/5.2.00} # Internal use during porting only
+AYLA_SDK_BRANCH=${AYLA_SDK_BRANCH:-release/5.2.00} # Internal use during porting only
+AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/5.2.00} # Internal use during porting only
 AYLA_REMOTE=${AYLA_REMOTE:-origin}
-AYLA_PUBLIC=${AYLA_PUBLIC:-}
-AYLA_LIB_REPO=${AYLA_LIB_REPO:-} # or: -https://github.com/AylaNetworks/Android_AylaLibrary.git
-AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-}
+AYLA_SDK_REPO=${AYLA_SDK_REPO:-}
 AYLA_CORE_REPO=${AYLA_CORE_REPO:-}
+AYLA_PUBLIC=${AYLA_PUBLIC:-}
 
 cur_path=`pwd`
 parent_path=`dirname $cur_path`
@@ -38,8 +32,7 @@ else
     AYLA_PUBLIC=${AYLA_PUBLIC:-}
 fi
 [ "X$AYLA_PUBLIC" == "X" ] && repo_type="internal" || repo_type="public"
-AYLA_LIB_REPO=${AYLA_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaLibrary${AYLA_PUBLIC}.git}
-AYLA_ZIGBEE_LIB_REPO=${AYLA_ZIGBEE_LIB_REPO:-https://github.com/AylaNetworks/Android_AylaZigbeeLibrary${AYLA_PUBLIC}.git}
+AYLA_SDK_REPO=${AYLA_SDK_REPO:-https://github.com/AylaNetworks/Android_AylaSDK${AYLA_PUBLIC}.git}
 AYLA_CORE_REPO=${AYLA_CORE_REPO:-https://github.com/AylaNetworks/AMAP_Android_Core_Framework${AYLA_PUBLIC}.git}
 
 branch_string=`git branch |grep -E "\*"`
@@ -53,47 +46,29 @@ else
 fi
 
 # in case when AYLA_BUILD_BRANCH is default to current branch
-AYLA_LIB_BRANCH=${AYLA_LIB_BRANCH:-$AYLA_BUILD_BRANCH}
-AYLA_ZIGBEE_LIB_BRANCH=${AYLA_ZIGBEE_LIB_BRANCH:-$AYLA_BUILD_BRANCH}
+AYLA_SDK_BRANCH=${AYLA_SDK_BRANCH:-$AYLA_BUILD_BRANCH}
 AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-$AYLA_BUILD_BRANCH}
 
-green=`tput setaf 2`
-reset=`tput sgr0`
-styled_warning=${green}"Warning: "${reset}
-release_branch_pattern="release.*"
-if [[ $cur_branch =~ $release_branch_pattern ]]; then
-    if [ "X$AYLA_LIB_BRANCH" == "X${AYLA_BUILD_BRANCH}" ]; then
-        echo "${styled_warning} for release branches, library branch should be different form build branch."
-        echo -e "Please set your AYLA_LIB_BRANCH to the right value.\n"
-    fi
-    if [ "X$AYLA_ZIGBEE_LIB_BRANCH" == "X${AYLA_BUILD_BRANCH}" ]; then
-        echo "${styled_warning} for release branches, zigbee library branch should be different form build branch."
-        echo -e "Please set your AYLA_ZIGBEE_LIB_BRANCH to the right value.\n"
-    fi
-fi
-
 # conext display: show value whenever related environment variables are set
-build_var_name_list="AYLA_BUILD_BRANCH AYLA_LIB_BRANCH AYLA_ZIGBEE_LIB_BRANCH AYLA_CORE_BRANCH AYLA_LIB_REPO AYLA_ZIGBEE_LIB_REPO AYLA_CORE_REPO AYLA_PUBLIC AYLA_REMOTE"
+build_var_name_list="AYLA_BUILD_BRANCH AYLA_SDK_BRANCH AYLA_SDK_REPO AYLA_CORE_BRANCH AYLA_CORE_REPO AYLA_REMOTE AYLA_PUBLIC"
 for n in $build_var_name_list; do
     [ `printenv | grep "$n"` ] && echo -e "Your $n is set to \"${!n}\""
 done
 
+green=`tput setaf 2`
+reset=`tput sgr0`
 styled_repo_type=${green}${repo_type}${reset}
 styled_branch=${green}${AYLA_BUILD_BRANCH}${reset}
-styled_lib_branch=${green}${AYLA_LIB_BRANCH}${reset}
-styled_zigbee_lib_branch=${green}${AYLA_ZIGBEE_LIB_BRANCH}${reset}
+styled_sdk_branch=${green}${AYLA_SDK_BRANCH}${reset}
+styled_sdk_repo=${green}${AYLA_SDK_REPO}${reset}
 styled_core_branch=${green}${AYLA_CORE_BRANCH}${reset}
-styled_lib_repo=${green}${AYLA_LIB_REPO}${reset}
-styled_zigbee_lib_repo=${green}${AYLA_ZIGBEE_LIB_REPO}${reset}
 styled_core_repo=${green}${AYLA_CORE_REPO}${reset}
-echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with lib branch ${styled_lib_branch} and zigbee branch ${styled_zigbee_lib_branch} and core brach ${styled_core_branch} ***"
-echo -e "*** lib repo: ${styled_lib_repo}  zigbee lib repo: ${styled_zigbee_lib_repo} ***"
-echo -e "*** core repo: ${styled_core_repo} ***\n"
+echo -e "\n*** Building ${styled_repo_type} repo on branch ${styled_branch} with sdk branch ${styled_sdk_branch} and core branch ${styled_core_branch} ***"
+echo "*** sdk repo: ${styled_sdk_repo} and core repo: ${styled_core_repo} ***"
 
 for n in $build_var_name_list; do
     echo -e "Now $n = \"${!n}\""
 done
-
 echo -e "\ncheckout git repo"
 
 cd ..
@@ -105,50 +80,27 @@ git pull
 rm -rf libraries
 mkdir libraries
 cd libraries
-git clone $AYLA_LIB_REPO
-git clone $AYLA_ZIGBEE_LIB_REPO
+git clone $AYLA_SDK_REPO
 git clone $AYLA_CORE_REPO
 
 if [ "$AYLA_PUBLIC" == "" ]; then
     echo "Set up symbolic link for gradle project dependency"
-    ln -sf Android_AylaLibrary Android_AylaLibrary_Public
-    ln -sf Android_AylaZigbeeLibrary Android_AylaZigbeeLibrary_Public
+    ln -sf Android_AylaSDK Android_AylaSDK_Public
     ln -sf AMAP_Android_Core_Framework AMAP_Android_Core_Framework_Public
 fi
 
-export ZIGBEE_PATH=$PWD
+cd Android_AylaSDK$AYLA_PUBLIC
+echo Get Android_AylaSDK from branch $AYLA_SDK_BRANCH
+git fetch $AYLA_REMOTE $AYLA_SDK_BRANCH
+git checkout $AYLA_SDK_BRANCH
 
-pushd Android_AylaZigbeeLibrary$AYLA_PUBLIC
-echo Get Android_AylaZigbeeLibrary from branch $AYLA_ZIGBEE_LIB_BRANCH
-git fetch $AYLA_REMOTE
-git branch $AYLA_ZIGBEE_LIB_BRANCH $AYLA_REMOTE/$AYLA_ZIGBEE_LIB_BRANCH
-git checkout $AYLA_ZIGBEE_LIB_BRANCH
-popd
+cd ../
 
-pushd AMAP_Android_Core_Framework$AYLA_PUBLIC
-echo Get Android_Core_Framework from branch $AYLA_CORE_BRANCH
-git fetch $AYLA_REMOTE
-git branch $AYLA_CORE_BRANCH $AYLA_REMOTE/$AYLA_CORE_BRANCH
+cd AMAP_Android_Core_Framework$AYLA_PUBLIC
+echo Get AMAP_Android_Core_Framework from branch $AYLA_CORE_BRANCH
+git fetch $AYLA_REMOTE $AYLA_CORE_BRANCH
 git checkout $AYLA_CORE_BRANCH
-popd
 
-pushd Android_AylaLibrary$AYLA_PUBLIC
-echo Get Android_AylaLibrary from branch $AYLA_LIB_BRANCH
-git fetch $AYLA_REMOTE
-git branch $AYLA_LIB_BRANCH $AYLA_REMOTE/$AYLA_LIB_BRANCH
-git checkout $AYLA_LIB_BRANCH
+cd ../
 
-rm -rf lib/src/com/aylanetworks/aaml/zigbee
-ln -s $ZIGBEE_PATH/Android_AylaZigbeeLibrary$AYLA_PUBLIC/zigbee lib/src/com/aylanetworks/aaml/zigbee
-
-#check if symlink is created
-export symlinkPath=$PWD/lib/src/com/aylanetworks/aaml/zigbee
-if [[ -L $symlinkPath ]]; then
-    #statements
-    echo -e '\nCreated symlink for zigbee package\n '
-    cd lib
-    gradle build
-else
-    echo 'Symlink creation for zigbee package failed. '
-    echo 'BUILD FAILED'
-fi
+../gradlew build

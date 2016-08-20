@@ -12,11 +12,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaSchedule;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 /*
  * ScheduleContainerFragment.java
@@ -30,17 +36,18 @@ public class ScheduleContainerFragment extends Fragment {
     private final static String ARG_DEVICE_DSN = "deviceDSN";
 
     private ViewPager _pager;
-    private Device _device;
+    private ViewModel _deviceModel;
     private SchedulePagerAdapter _adapter;
+    private AylaSchedule[] _schedules;
 
     public ScheduleContainerFragment() {
         // Required empty public constructor
     }
 
-    public static ScheduleContainerFragment newInstance(Device device) {
+    public static ScheduleContainerFragment newInstance(ViewModel deviceModel) {
         ScheduleContainerFragment frag = new ScheduleContainerFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
+        args.putString(ARG_DEVICE_DSN, deviceModel.getDevice().getDsn());
         frag.setArguments(args);
         return frag;
     }
@@ -52,14 +59,29 @@ public class ScheduleContainerFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_schedule_container, container, false);
 
         _pager = (ViewPager)root.findViewById(R.id.pager);
-        _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DEVICE_DSN));
-        _device.fetchSchedules(new Device.DeviceStatusListener() {
-            @Override
-            public void statusUpdated(Device device, boolean changed) {
-                MainActivity.getInstance().dismissWaitDialog();
-                onDeviceUpdated();
-            }
-        });
+        String dsn = getArguments().getString(ARG_DEVICE_DSN);
+
+        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                .deviceWithDSN(dsn);
+        _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                .viewModelForDevice(device);
+        device.fetchSchedules(
+                new Response.Listener<AylaSchedule[]>() {
+                    @Override
+                    public void onResponse(AylaSchedule[] response) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        _schedules=response;
+                        onDeviceUpdated();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        Toast.makeText(MainActivity.getInstance(), error.toString(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
 
         MainActivity.getInstance().showWaitDialog(R.string.updating_schedule_title, R.string.updating_schedule_body);
 
@@ -92,31 +114,32 @@ public class ScheduleContainerFragment extends Fragment {
 
         @Override
         public Fragment getItem(int position) {
-            if ( _device.getSchedules().size() == 0 ) {
+            if ( _schedules.length == 0 ) {
                 return new EmptyFragment();
             }
 
-            ScheduleFragment frag = ScheduleFragment.newInstance(_device, position);
+            ScheduleFragment frag = ScheduleFragment.newInstance(_deviceModel.getDevice(),
+                    _schedules[position].getName());
             return frag;
         }
 
         @Override
         public int getCount() {
-            int count = _device.getSchedules().size();
+            int count = _schedules.length ;
             if ( count == 0 ) {
                 return 1;
             }
 
-            return _device.getSchedules().size();
+            return _schedules.length  ;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if ( _device.getSchedules().size() == 0 ) {
+            if ( _schedules.length  == 0 ) {
                 return getString(R.string.no_schedules_found);
             }
 
-            return _device.getSchedules().get(position).getName();
+            return _schedules[position].getName();
         }
     }
 }

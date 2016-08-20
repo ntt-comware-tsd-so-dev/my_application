@@ -1,7 +1,13 @@
-include ':app'
+include ':app', ':wear'
+
+include ':websocketLibrary'
+project(':websocketLibrary').projectDir =
+        new File(settingsDir, "libraries/Android_AylaSDK_Public/websocketLibrary/websocketLib")
+
+include ':Android_AylaSDK'
+project(':Android_AylaSDK').projectDir =
+        new File(settingsDir, "libraries/Android_AylaSDK_Public/library")
+
 include ':AMAP_Core'
 project(':AMAP_Core').projectDir =
         new File(settingsDir, "libraries/AMAP_Android_Core_Framework_Public/AMAP_Core")
-include ':Android_AylaLibrary_Public'
-project(':Android_AylaLibrary_Public').projectDir =
-        new File(settingsDir, "libraries/Android_AylaLibrary_Public")

@@ -12,11 +12,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaLogManager;
-import com.aylanetworks.aaml.AylaSystemUtils;
 import com.aylanetworks.agilelink.BuildConfig;
+import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.util.SystemInfoUtils;
 
 /**
  * Created by Emmanuel Luna on 06/16/15.
@@ -29,6 +30,8 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
     private View mTermsAndConditionView;
     private View mEmailLogsView;
     private View mView;
+    public static final String SUPPORT_EMAIL = "mobile-libraries@aylanetworks.com";
+    public static final String EMAIL_SUBJECT = "AMAP Logs";
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -73,17 +76,31 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
                 break;
 
             case R.id.terms_and_condition:
-                Intent termsAndConditionIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(	getResources().getString(R.string.terms_and_condition_link)));
+                Intent termsAndConditionIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.terms_and_condition_link)));
                 startActivity(termsAndConditionIntent);
                 break;
 
             case R.id.email_logs:
-                Intent emailLogsIntent = AylaSystemUtils.emailLogsToSupport(SessionManager.sessionParameters().appId);
-                if (emailLogsIntent != null) {
-                    startActivity(emailLogsIntent);
-                }
+                handleSendEmail();
                 break;
         }
     }
+    public void handleSendEmail(){
+        String[] supportEmailAddress = {SUPPORT_EMAIL};
+        StringBuilder strBuilder = new StringBuilder(200);
+        strBuilder.append( "Latest logs from Aura app attached")
+        .append("\n\n OS Version: ").append(SystemInfoUtils.getOSVersion())
+        .append("\n SDK Version: ").append(SystemInfoUtils.getSDKVersion())
+        .append("\nCountry: ").append(SystemInfoUtils.getCountry())
+        .append("\nLanguage: ").append(SystemInfoUtils.getLanguage())
+        .append("\nNetwork Operator: ").append(SystemInfoUtils.getNetworkOperator())
+        .append("\nAyla SDK version: ").append(AylaNetworks.getVersion())
+        .append("\nAura app version: ").append(MainActivity.getInstance().getAppVersion());
 
+        Intent emailIntent = AylaLog.getEmailIntent(supportEmailAddress, EMAIL_SUBJECT,
+                strBuilder.toString() );
+        if(emailIntent != null){
+            startActivity(emailIntent);
+        }
+    }
 }

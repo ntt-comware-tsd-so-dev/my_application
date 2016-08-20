@@ -1,57 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="com.aylanetworks.agilelink"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.aylanetworks.agilelink">
 
     <!-- Google Cloud Messaging permission -->
     <permission
         android:name="${applicationId}.permission.C2D_MESSAGE"
-        android:protectionLevel="signature"/>
-    <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
     <!-- GCM requires a Google account. -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
     <!-- Keeps the processor from sleeping when a GCM message is received, required. -->
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Networking and permissions needed for WiFi setup -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- For mDNS -->
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <!-- Save app settings -->
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <!-- Caching -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- For adding AylaContacts from your contact list -->
-    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- Required for Google Play Services -->
-    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
     <!-- Location services required to set lat / long on newly registered devices -->
     <uses-feature
         android:name="android.hardware.telephony"
-        android:required="false"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <uses-feature
         android:name="android.hardware.location"
-        android:required="false"/>
+        android:required="false" />
     <uses-feature
         android:name="android.hardware.location.network"
-        android:required="false"/>
+        android:required="false" />
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Required to start WearableUpdateService on device restart -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
     <uses-feature
         android:name="android.hardware.location.gps"
-        android:required="false"/>
+        android:required="false" />
 
     <application
         android:name=".AgileLinkApplication"
@@ -59,18 +64,19 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Splash screen. Uncomment the below code and comment the MainActivity above if the app needs splash screen
+        <!--
+        Splash screen. Uncomment the below code and comment the MainActivity above if the app needs splash screen
         <activity
             android:name=".MainSplashScreen"
             android:label="@string/app_name"
@@ -87,7 +93,7 @@
                 android:label="@string/app_name"
                 android:launchMode="singleTop">
             </activity>
-          -->
+        -->
 
         <activity
             android:name=".AccountConfirmActivity"
@@ -95,32 +101,26 @@
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter android:label="AgileLink">
-                <action android:name="android.intent.action.VIEW"/>
+                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="aylacontrol"/>
+                <data android:scheme="aylacontrol" />
             </intent-filter>
-
         </activity>
 
         <activity
             android:name=".SignInActivity"
             android:label="AgileLink"
-            android:launchMode="singleInstance">
-
-        </activity>
+            android:launchMode="singleInstance" />
 
         <activity
             android:name=".DeveloperOptions"
             android:label="AgileLink"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance" />
 
-        </activity>
-
-
-        <service android:name="com.aylanetworks.aaml.AylaExecuteRequest"/>
+        <!-- service android:name="com.aylanetworks.aaml.AylaExecuteRequest" / -->
 
         <!--
              WakefulBroadcastReceiver that will receive intents from GCM
@@ -128,26 +128,37 @@
 
              The com.google.android.c2dm.permission.SEND permission is necessary
              so only GCM services can send data messages for the app.
-           -->
+        -->
         <receiver
-            android:name="com.aylanetworks.agilelink.framework.GcmBroadcastReceiver"
+            android:name=".framework.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
-        <intent-filter>
-            <!-- Receives the actual messages. -->
-            <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
-            <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>
+            <intent-filter>
 
-            <category android:name="com.aylanetworks.agileLink.MainActivity"/>
-        </intent-filter>
+                <!-- Receives the actual messages. -->
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="com.aylanetworks.agileLink.MainActivity" />
+            </intent-filter>
         </receiver>
+
         <service
             android:name=".framework.GcmIntentService"
             android:exported="true" />
 
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version"/>
-        <receiver android:name=".AylaWidget" >
+            android:value="@integer/google_play_services_version" />
+
+        <service android:name=".WearUpdateService" />
+
+        <receiver android:name=".BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".AylaWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -157,4 +168,5 @@
                 android:resource="@xml/ayla_widget_info" />
         </receiver>
     </application>
+
 </manifest>

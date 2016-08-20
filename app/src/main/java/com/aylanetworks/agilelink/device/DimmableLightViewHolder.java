@@ -8,14 +8,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaDatapoint;
-import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.controls.AylaVerticalSlider;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 /*
  * DimmableLightViewHolder.java
@@ -28,6 +27,7 @@ import com.aylanetworks.agilelink.framework.SessionManager;
 public class DimmableLightViewHolder extends GenericDeviceViewHolder implements SeekBar.OnSeekBarChangeListener {
 
     private final static String LOG_TAG = "DimmableLightViewHolder";
+    public final static String DIMMABLE_PROP_NAME = "dimmer";
 
     public View _switchButton;
     public AylaVerticalSlider _slider;
@@ -42,31 +42,32 @@ public class DimmableLightViewHolder extends GenericDeviceViewHolder implements 
         _switchActivityView = view.findViewById(R.id.control_activity_container);
     }
 
+    public String getDimmablePropertyName() {
+        return DIMMABLE_PROP_NAME;
+    }
+
     void updateDimmableProperty(int value) {
-        String propertyName = ZigbeeDimmableLightDevice.PROPERTY_ZB_DIMMABLE_LIGHT;
-        AylaProperty prop = _currentDevice.getProperty(propertyName);
+        String propertyName = getDimmablePropertyName();
+        AylaProperty prop = _currentDeviceModel.getProperty(propertyName);
         if (prop == null) {
-            SessionManager.deviceManager().refreshDeviceStatus(_currentDevice);
             Resources res = MainActivity.getInstance().getResources();
             Toast.makeText(MainActivity.getInstance(), res.getString(R.string.no_property), Toast.LENGTH_SHORT).show();
             return;
         }
 
         showSwitchBusyIndicator(true);
-        final Integer newValue = new Integer(value);
-        _currentDevice.setDatapoint(propertyName, newValue, new Device.SetDatapointListener() {
+        _currentDeviceModel.setDatapoint(propertyName, value, new ViewModel.SetDatapointListener() {
             @Override
-            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                 showSwitchBusyIndicator(false);
             }
         });
     }
 
     void updateSwitch() {
-        String propertyName = _currentDevice.getObservablePropertyName();
-        AylaProperty prop = _currentDevice.getProperty(propertyName);
+        String propertyName = _currentDeviceModel.getObservablePropertyName();
+        AylaProperty prop = _currentDeviceModel.getProperty(propertyName);
         if (prop == null) {
-            SessionManager.deviceManager().refreshDeviceStatus(_currentDevice);
             Resources res = MainActivity.getInstance().getResources();
             Toast.makeText(MainActivity.getInstance(), res.getString(R.string.no_property), Toast.LENGTH_SHORT).show();
             return;
@@ -74,10 +75,10 @@ public class DimmableLightViewHolder extends GenericDeviceViewHolder implements 
 
         // Get the opposite boolean value and set it
         showSwitchBusyIndicator(true);
-        final Boolean newValue = "0".equals(prop.value);
-        _currentDevice.setDatapoint(propertyName, newValue, new Device.SetDatapointListener() {
+        final Boolean newValue = "0".equals(prop.getValue());
+        _currentDeviceModel.setDatapoint(propertyName, newValue, new ViewModel.SetDatapointListener() {
             @Override
-            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
+            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
                 Resources res = MainActivity.getInstance().getResources();
                 _switchLabel.setText(res.getString(newValue ? R.string.switched_off_name : R.string.switched_on_name));
                 showSwitchBusyIndicator(false);
@@ -149,7 +150,7 @@ public class DimmableLightViewHolder extends GenericDeviceViewHolder implements 
             updateDimmableProperty(_sliderViewValue);
             /*
             showSwitchBusyIndicator(true);
-            if (!_currentDevice.updateDimmableProperty(_sliderViewValue, this, _currentDevice)) {
+            if (!_currentDeviceModel.updateDimmableProperty(_sliderViewValue, this, _currentDeviceModel)) {
                 Toast.makeText(getActivity(), getString(R.string.no_property), Toast.LENGTH_SHORT).show();
                 showSwitchBusyIndicator(h, false);
             }

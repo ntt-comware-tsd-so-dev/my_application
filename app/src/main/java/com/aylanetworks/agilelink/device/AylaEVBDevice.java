@@ -7,14 +7,18 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaDatapoint;
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.agilelink.AgileLinkApplication;
+import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 
@@ -27,6 +31,7 @@ import java.util.ArrayList;
  */
 
 public class AylaEVBDevice extends GenericDevice implements View.OnClickListener {
+
     private static final String LOG_TAG = "AylaEVBDevice";
 
     private static final String PROPERTY_BLUE_LED = "Blue_LED";
@@ -43,43 +48,55 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     }
 
     public boolean isBlueButtonPressed() {
-        AylaProperty prop = getProperty(PROPERTY_BLUE_BUTTON);
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        AylaProperty prop = _device.getProperty(PROPERTY_BLUE_BUTTON);
+        if (prop != null && prop.getValue() != null && (Integer)prop.getValue() != 0) {
             return true;
         }
         return false;
     }
 
 
-    public void setGreenLED(boolean on) {
-       setDatapoint(PROPERTY_GREEN_LED, on, new SetDatapointListener() {
+    public void setGreenLED(final boolean on, final ImageView button) {
+       setDatapoint(PROPERTY_GREEN_LED, on ? 1 : 0, new SetDatapointListener() {
            @Override
-           public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-               Log.d(LOG_TAG, "lm: setGreenLED: " + succeeded + " ***^^^");
+           public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+               button.setImageDrawable(button.getContext().getResources().getDrawable(isGreenLEDOn() ? R.drawable.dup : R.drawable.ddown));
+
+               if (error != null) {
+                   Toast.makeText(button.getContext(),
+                           ErrorUtils.getUserMessage(error, "Error setting green LED state"), //TODO: Localize message in R.string
+                           Toast.LENGTH_SHORT).show();
+               }
            }
        });
     }
 
-    public void setBlueLED(boolean on) {
-        setDatapoint(PROPERTY_BLUE_LED, on, new SetDatapointListener() {
+    public void setBlueLED(final boolean on, final ImageView button) {
+        setDatapoint(PROPERTY_BLUE_LED, on ? 1 : 0, new SetDatapointListener() {
             @Override
-            public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                Log.d(LOG_TAG, "lm: setBlueLED: " + succeeded + " ***^^^");
+            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                button.setImageDrawable(button.getContext().getResources().getDrawable(isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown));
+
+                if (error != null) {
+                    Toast.makeText(button.getContext(),
+                            ErrorUtils.getUserMessage(error, "Error setting blue LED state"), //TODO: Localize message in R.string
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
     public boolean isGreenLEDOn() {
-        AylaProperty prop = getProperty(PROPERTY_GREEN_LED);
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        AylaProperty prop = _device.getProperty(PROPERTY_GREEN_LED);
+        if (prop != null && prop.getValue() != null && (int) prop.getValue() != 0) {
             return true;
         }
         return false;
     }
 
     public boolean isBlueLEDOn() {
-        AylaProperty prop = getProperty(PROPERTY_BLUE_LED);
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        AylaProperty prop = _device.getProperty(PROPERTY_BLUE_LED);
+        if (prop != null && prop.getValue() != null && (int) prop.getValue() != 0) {
             return true;
         }
         return false;
@@ -99,14 +116,16 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
     public String friendlyNameForPropertyName(String propertyName) {
         switch (propertyName) {
             case PROPERTY_BLUE_LED:
-                return MainActivity.getInstance().getString(R.string.blue_led);
+                return AgileLinkApplication.getAppContext().getString(R.string.blue_led);
 
             case PROPERTY_GREEN_LED:
-                return MainActivity.getInstance().getString(R.string.green_led);
+                return AgileLinkApplication.getAppContext().getString(R.string.green_led);
 
             case PROPERTY_BLUE_BUTTON:
-                return MainActivity.getInstance().getString(R.string.blue_button);
+                return AgileLinkApplication.getAppContext().getString(R.string.blue_button);
         }
+
+
         return super.friendlyNameForPropertyName(propertyName);
     }
 
@@ -134,17 +153,20 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         boolean isGreenButton = (v.getId() == R.id.green_button);
         Log.d(LOG_TAG, "lm: Button tapped: " + (isGreenButton ? "GREEN" : "BLUE") + " ***vvv");
         if(isOnline() || isInLanMode()){
+            ImageButton button = (ImageButton) v;
+
             if (isGreenButton) {
-                setGreenLED(!isGreenLEDOn());
+                setGreenLED(!isGreenLEDOn(), button);
             } else {
-                setBlueLED(!isBlueLEDOn());
+                setBlueLED(!isBlueLEDOn(), button);
             }
 
             // Update the image view to show the transient state
-            ImageButton button = (ImageButton) v;
             button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
+        } else {
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
+                    Toast.LENGTH_SHORT).show();
         }
-
     }
 
     public static final int ITEM_VIEW_TYPE_DEVKIT_DEVICE = 1;
@@ -162,7 +184,7 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         AylaEVBDeviceViewHolder h = (AylaEVBDeviceViewHolder) holder;
         Resources res = MainActivity.getInstance().getResources();
         
-        h._deviceNameTextView.setText(getProductName());
+        h._deviceNameTextView.setText(_device.getProductName());
 
         // Blue button state
         int imageId = isBlueButtonPressed() ? R.drawable.buttondown : R.drawable.buttonup;

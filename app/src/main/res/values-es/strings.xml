@@ -77,6 +77,8 @@
     <string name="firstName">Nombre</string>
     <string name="phoneNumber">Teléfono</string>
     <string name="phoneCountryCode">código de País</string>
+    <string name="city">Ciudad</string>
+    <string name="zipcode">C.P.</string>
     <string name="evbNumber">Número de EVB</string>
     <string name="zip">C.P.</string>
     <string name="signUp">Inscribirme</string>
@@ -145,6 +147,7 @@
     <string name="gateway_find_devices"><![CDATA[Encienda su dispositivo y presione \"Buscar Dispositivos\".\nDespues mantenga la varita magnética contra el icono de asociación en su dispositivo hasta que la luz deje de parpadear. El dispositivo aparecerá en la lista en unos momentos. Selecciónela y presione \"Registrar\".]]></string>
 
     <string name="registration_display_instructions">Por favor asegúrese de que el LED naranja en el dispositivo este encendido.</string>
+    <string name="enter_reg_token">Introduzca el registration token.</string>
     <string name="please_wait">Por favor espere...</string>
     <string name="registration_success">Registro exitoso!</string>
     <string name="registration_failure">No se pudo registrar. Asegúrese de que el dispositivo esté listo.</string>
@@ -169,6 +172,7 @@
     <string name="connect">Conectar</string>
     <string name="wifi_password">Password de WiFi</string>
     <string name="wifi_show_password">Mostrar password</string>
+    <string name="wifi_requires_auth">La red Wi-Fi requiere autenticación</string>
     <string name="connect_device">Conectar Dispositivo</string>
     <string name="connect_to_service_success">Conectado a la nube</string>
     <string name="bad_wifi_password">Password WiFi Incorrecto. Reintente por favor.</string>
@@ -311,6 +315,8 @@
     <string name="green_led">LED Verde</string>
     <string name="schedule_properties_description">Seleccione la acción a actualizar con la programación:</string>
     <string name="no_actions_set">Seleccione una acción para actualizar la programación</string>
+    <string name="configure_a_timer_or_a_schedule_before_saving">Configure un temporizador o una programación antes de guardar.</string>
+    <string name="configure_schedule_times">Actualizar tiempo de encendido y apagado para ésta programación.</string>
     <string name="timezone_button_text">Zona horaria...</string>
     <string name="sharing_button_text">Compartir...</string>
     <string name="choose_timezone">Seleccione la zona horaria</string>
@@ -328,6 +334,8 @@
     <string name="save_contact">Se guardó el contacto</string>
     <string name="delete_contact">Borrar Contacto</string>
     <string name="street_address">Calle</string>
+    <string name="send_sms">enviar SMS</string>
+    <string name="send_email">enviar Emails</string>
     <string name="create_contact">Agregar Contacto</string>
     <string name="update_contact">Actualizar Contacto</string>
     <string name="contact_email_phone_required">Se requiere un teléfono o email</string>
@@ -366,11 +374,12 @@
     <string name="sharing_with_others_empty">No hay comparticiones</string>
     <string name="shared_with_me_empty">No har comparticiones recibidas</string>
     <string name="error_deleting_share">Ocurrió un error al borrar la compartición. Reintente más tarde.</string>
+    <string name="error_fetching_shares">Ocurrió un error al recibir las comparticiones. Reintente más tarde.</string>
     <string name="error_creating_share">Ocurrió un error al compartir. Reintente más tarde.</string>
     <string name="no_devices_to_share">No hay dispositivos para compartir.</string>
     <string name="share_removed">El dispositivo compartido ha sido eliminado de la cuenta.</string>
     <string name="remove_share_failure">Ocurrió un error al borrar la compartición de la cuenta.</string>
-    <string name="lan_login_message">Ha entrado con la LAN. La funcionalidad puede ser limitada..</string>
+    <string name="lan_login_message">Usted está operando actualmente en el modo sin conexión. La funcionalidad puede ser muy limitada hasta la conexión a Internet se restaure.</string>
     <string name="share_read_only_message">Permitir al usuario:</string>
     <string name="share_control_only_message">Permitir al usuario controlar el dispositivo</string>
     <string name="share_read_only_button">Ver</string>
@@ -380,8 +389,12 @@
     <string name="now">Ahora</string>
     <string name="never">Nunca</string>
     <string name="share_button_title">Compartir dispositivo</string>
+    <string name="share_button_edit">Guardar cambios</string>
     <string name="no_date">Sin Fecha</string>
     <string name="share_email_address_required">Introduzca el correo de la cuenta de Ayla con la que se va a compartir</string>
+    <string name="share_updating">Actualizando compartición.</string>
+    <string name="share_update_success">Compartición actualizada</string>
+    <string name="share_update_error">Error al actualizar compartición.</string>
     <string name="rename_device_text">Introduzca el nombre para el dispositivo:</string>
     <string name="change_name_fail">Ocurrió un error al renombrar el dispositivo. Reintente más tarde.</string>
     <string name="registration">Registro</string>
@@ -397,19 +410,21 @@
     <string name="about_app" formatted="false">Acerca de AMAP</string>
     <string name="about">Acerca de</string>
     <string name="more_options">Más...</string>
-    <string name="service_type">Service Type</string>
+    <string name="service_type">Service</string>
     <string name="device_service">Device Service</string>
     <string name="field_service">Field Service</string>
     <string name="production_service">Production Service</string>
     <string name="staging_service">Staging Service</string>
     <string name="demo_service">Demo Service</string>
-    <string name="unknown_service">Unknown Service Type: %d</string>
+    <string name="unknown_service">Desconocido Tipo de Servicio: %d</string>
     <string name="app_version">Versión de aplicación:</string>
-    <string name="library_version">AAML Version</string>
+    <string name="core_version">Versión Framework</string>
+    <string name="library_version">Versión AAML</string>
     <string name="reachable">Alcanzable</string>
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
-    <string name="service_reachability">Accesibilidad al Servicio</string>
+    <string name="wifi_enabled">Wi-Fi</string>
+    <string name="cellular_enabled">Celular</string>
     <string name="offline_no_functionality">El dipositivo esta desconectado, no se puede modificar</string>
     <string name="drawer_open">Abra</string>
     <string name="drawer_close">Cerrar</string>
@@ -449,6 +464,7 @@
     <string name="becomes_less_than">sea menor que</string>
     <string name="changes">cambie</string>
     <string name="push_notifcations_not_supported">Notificaciones push no compatibles</string>
+    <string name="send_push_notifications">Enviar notificaciones push a este dispositivo</string>
     <string name="notifcations_not_enabled">Las notificaciones no estan disponibles en este dispositivo</string>
     <string name="fetching_notifications">Obteniendo notificaciones. Espere por favor...</string>
     <string name="unknown_trigger_name">Disparador %d</string>
@@ -460,6 +476,7 @@
     <string name="notification_created">Notificación creada con éxito</string>
     <string name="delete_notification_title">¿Borrar Notificación?</string>
     <string name="delete_notification_message">¿Quiere borrar la notificación \"%s\"?</string>
+    <string name="no_property_found">No se encontró una propiedad llamada</string>
     <string name="warning_location_accuracy">Active GPS en los ajustes de Android para mejorar la precisión</string>
     <string name="error_gateway_join_window">No se pudo activar la ventana de registro.</string>
     <string name="error_no_gateway">Sin Gateways</string>
@@ -469,6 +486,12 @@
     <string name="error_gateway_register_no_device">Busque Dispositivos primero</string>
     <string name="error_no_gateway_instructions">No hay Gateways. Primero registre uno.</string>
     <string name="add_device_sensor_warning">Se estan efectuando más configuraciones. El sensor puede no responder inmediatamente los siguientes minutos.</string>
+    <string name="error_device_scan">Ocurrió un error al escanear dispositivos</string>
+    <string name="error_device_connect">Ocurrió un error al conectar con el dispositivo</string>
+    <string name="error_device_connect_service">Ocurrió un error al conectar el dispositivo a la red WiFi</string>
+    <string name="error_fetch_candidates">Ocurrió un error al recibir los candidatos a registrar</string>
+    <string name="error_register_candidate">Ocurrió un error al registrar los candidatos</string>
+    <string name="error_confirm_device">Ocurrió un error al confirmar la conexión del dispositivo</string>
     <string name="message_attention">Atención</string>
     <string name="lan_mode_enabled">Modo LAN Activo</string>
     <string name="online">Conectado</string>
@@ -583,6 +606,7 @@
     <string name="activate_scene_icon" formatted="false">Activar %s</string>
     <string name="no_devices_available_to_pair">Sin dispositivos para asociar</string>
     <string name="no_devices_available_to_unpair">Sin dispositivos para desasociar</string>
+    <string name="no_scanned_devices"> "No se encontraron dispositivos. Intente reiniciar el dispositivo y buscar de nuevo"</string>
 
     <!-- Welcome and SEtup Guide Page -->
     <string name="welcome_text">Bienvenido a AMAP</string>
@@ -628,6 +652,15 @@
         <item>Slow Connection</item>
         <item>LAN Mode</item>
     </string-array>
+    <string name="newEmailAddress">Nuevo Email</string>
+    <string name="invalid_email">Email inválido</string>
+    <string name="update_email_success">éxito alerta por correo electrónico</string>
+    <string name="update_password_success">Éxito actualizando contraseña</string>
+    <string name="updating_email_body">Actualizando Email. Espere por favor...</string>
+    <string name="updating_email_title">Actualizando Email</string>
+    <string name="update_email_confirm_title">Actualizar Email?</string>
+    <string name="update_email_confirm_msg">Once your email changed, you have to sigin with the new email.</string>
+ <string name="error_updating_email">Ocurrió un error al actualizar el Email. Reintente más tarde.</string>
 
 
 </resources>

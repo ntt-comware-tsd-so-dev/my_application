@@ -7,14 +7,14 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaDatapoint;
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 
@@ -31,35 +31,32 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
     private final static String LOG_TAG = "SwitchedDevice";
     private final static String PROPERTY_OUTLET = "outlet1";
 
-    //TODO: This has bias towards zigbee, generic solution uses two property to control a switch.
     public SwitchedDevice(AylaDevice device) {
         super(device);
     }
 
     public void toggle() {
-        if(isOnline() || isInLanMode()){
+        if (isOnline() || isInLanMode()) {
             AylaProperty prop = getProperty(getObservablePropertyName());
             if (prop == null) {
                 Log.e(LOG_TAG, "Could not find property " + getObservablePropertyName());
-                SessionManager.deviceManager().refreshDeviceStatus(this);
                 return;
             }
 
-            // Get the opposite boolean value and set it
-            Boolean newValue = "0".equals(prop.value);
+            // Get the opposite value and set it
+            Integer newValue = ((Integer) prop.getValue() == 0) ? 1 : 0;
             setDatapoint(getObservablePropertyName(), newValue, new SetDatapointListener() {
                 @Override
-                public void setDatapointComplete(boolean succeeded, AylaDatapoint newDatapoint) {
-                    Log.d(LOG_TAG, "lm: setSwitch: " + succeeded + " ***^^^");
+                public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
+                    Log.d(LOG_TAG, "lm: setSwitch error: " + error + " ***^^^");
                 }
             });
         }
-
     }
 
     public boolean isOn() {
         AylaProperty prop = getProperty(getObservablePropertyName());
-        if (prop != null && prop.value != null && Integer.parseInt(prop.value) != 0) {
+        if (prop != null && prop.getValue() != null && (Integer) prop.getValue() != 0) {
             return true;
         }
 
@@ -117,13 +114,13 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
     }
 
     @Override
-    public String registrationType() {
-        return AylaNetworks.AML_REGISTRATION_TYPE_BUTTON_PUSH;
+    public AylaDevice.RegistrationType registrationType() {
+        return AylaDevice.RegistrationType.ButtonPush;
     }
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_SWITCHED;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_SWITCHED;
     }
 
     @Override
@@ -139,13 +136,17 @@ public class SwitchedDevice extends GenericDevice implements View.OnClickListene
         }
     }
 
-
     @Override
     public void onClick(View v) {
-        // Toggle the button state
-        Log.d(LOG_TAG, "lm: Switch tapped ***vvv");
-        ImageButton button = (ImageButton) v;
-        button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
-        toggle();
+        if (isOnline() || isInLanMode()) {
+            // Toggle the button state
+            Log.d(LOG_TAG, "lm: Switch tapped ***vvv");
+            ImageButton button = (ImageButton) v;
+            button.setImageDrawable(getSwitchedPendingDrawable(v.getResources()));
+            toggle();
+        } else {
+            Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }

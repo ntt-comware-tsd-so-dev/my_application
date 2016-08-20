@@ -2,8 +2,8 @@ package com.aylanetworks.agilelink.device;
 
 import android.text.TextUtils;
 
-import com.aylanetworks.aaml.AylaDevice;
-import com.aylanetworks.aaml.AylaProperty;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -46,10 +46,10 @@ public class GenericTriggerDevice extends GenericDevice {
     @Override
     public String friendlyNameForPropertyName(String propertyName) {
         AylaProperty ap = getProperty(propertyName);
-        if (ap == null || TextUtils.isEmpty(ap.displayName)) {
+        if (ap == null || TextUtils.isEmpty(ap.getDisplayName())) {
             return super.friendlyNameForPropertyName(propertyName);
         }
-        return ap.displayName;
+        return ap.getDisplayName();
     }
 
 }// end of GenericTriggerDevice class

@@ -18,23 +18,30 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.DeviceDetailFragment;
-import com.aylanetworks.agilelink.framework.Gateway;
-import com.aylanetworks.agilelink.framework.GenericDeviceViewHolder;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
+import com.aylanetworks.aylasdk.AylaDeviceNode;
+import com.aylanetworks.aylasdk.error.AylaError;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GenericGateway extends Gateway implements DeviceUIProvider {
-    public GenericGateway(AylaDevice aylaDevice) {
-        super(aylaDevice);
+public class GenericGateway extends ViewModel {
+
+    public GenericGateway(AylaDeviceGateway aylaDeviceGateway) {
+        super(aylaDeviceGateway);
     }
 
     public Drawable getDeviceDrawable(Context context) {
         return ContextCompat.getDrawable(context, R.drawable.ic_generic_gateway_red);
+    }
+
+    public AylaDeviceGateway getGateway() {
+        return (AylaDeviceGateway) getDevice();
     }
 
     @Override
@@ -44,36 +51,65 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
 
     @Override
     public String getName() {
-        return getProductName();
+        return getDevice().getProductName();
+    }
+
+    @Override
+    public String deviceTypeName() {
+        return "Gateway";
     }
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_GENERIC_DEVICE;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_GENERIC_DEVICE;
     }
 
     @Override
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
-        h._deviceNameTextView.setText(getProductName());
+        h._deviceNameTextView.setText(getDevice().getProductName());
         if (h._deviceStatusTextView != null) {
             h._deviceStatusTextView.setText(getDeviceState());
         }
         if ( !isIcon()) {
-            h._spinner.setVisibility(getDevice().properties == null ? View.VISIBLE : View.GONE);
+            h._spinner.setVisibility(getDevice().getProperties() == null ? View.VISIBLE : View.GONE);
         } else {
             h._spinner.setVisibility(View.GONE);
         }
 
-        Resources res = SessionManager.getContext().getResources();
+        Resources res = AMAPCore.sharedInstance().getContext().getResources();
         int color = isOnline() ? res.getColor(R.color.card_text) : res.getColor(R.color
                 .disabled_text);
-        if (!getDevice().amOwner()) {
+        if (_device.getGrant() != null) {
             // Yes, this device is shared.
             color = res.getColor(R.color.card_shared_text);
         }
         h._deviceNameTextView.setTextColor(color);
-        h._currentDevice = this;
+        h._currentDeviceModel = this;
+    }
+
+    @Override
+    protected ArrayList<String> getPropertyNames() {
+        // Get the superclass' property names (probably none)
+        ArrayList<String> propertyNames = super.getPropertyNames();
+
+        // Add our own
+        propertyNames.add("attr_set_cmd");
+        propertyNames.add("attr_set_result");
+        propertyNames.add("attr_read_data");
+        propertyNames.add("join_enable");
+        propertyNames.add("join_status");
+
+        return propertyNames;
+    }
+    @Override
+    public AylaDevice.RegistrationType registrationType() {
+        return AylaDevice.RegistrationType.ButtonPush;
+    }
+
+    @Override
+    public boolean isGateway() {
+        return true;
     }
 
     @Override
@@ -87,44 +123,16 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
     }
 
     @Override
-    public Fragment getTriggerFragment() {
-        return null;
-    }
-
-    @Override
     public Fragment getRemoteFragment() {
         return null;
     }
 
-    public static List<DeviceUIProvider> fromGateways(List<Gateway> gatewayDevices) {
-        List<DeviceUIProvider> genericGateways = new ArrayList<>(gatewayDevices.size());
-        for (Gateway g : gatewayDevices) {
-            if (g instanceof DeviceUIProvider) {
-                genericGateways.add((DeviceUIProvider) g);
-            }
-        }
-        return genericGateways;
-    }
-
-    public static class GatewayTypeAdapter extends ArrayAdapter<DeviceUIProvider> {
+    public static class GatewayTypeAdapter extends ArrayAdapter<ViewModel> {
 
         public boolean useProductName;
 
-        public GatewayTypeAdapter(Context c, DeviceUIProvider[] objects, boolean productName) {
+        public GatewayTypeAdapter(Context c, ViewModel[] objects, boolean productName) {
             super(c, R.layout.spinner_device_selection, objects);
-            useProductName = productName;
-        }
-
-        public GatewayTypeAdapter(Context c, Gateway[] objects, boolean productName) {
-            super(c, R.layout.spinner_device_selection);
-            List<DeviceUIProvider> gateways = new ArrayList<>(objects.length);
-            for (Gateway g : objects) {
-                if (g instanceof DeviceUIProvider) {
-                    gateways.add((DeviceUIProvider) g);
-                }
-            }
-
-            addAll(gateways);
             useProductName = productName;
         }
 
@@ -133,10 +141,10 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
             LayoutInflater inflater = LayoutInflater.from(getContext());
             View spinner = inflater.inflate(R.layout.spinner_device_selection, parent, false);
 
-            DeviceUIProvider d = getItem(position);
+            ViewModel d = getItem(position);
 
             ImageView iv = (ImageView) spinner.findViewById(R.id.device_image);
-            iv.setImageDrawable(d.getDeviceDrawable(SessionManager.getContext()));
+            iv.setImageDrawable(d.getDeviceDrawable(AMAPCore.sharedInstance().getContext()));
 
             TextView name = (TextView) spinner.findViewById(R.id.device_name);
             name.setText(useProductName ? d.getName() : d.deviceTypeName());
@@ -149,5 +157,41 @@ public class GenericGateway extends Gateway implements DeviceUIProvider {
             return getDropDownView(position, convertView, parent);
         }
     }
+
+    /**
+     * Interface used when scanning for and registering a gateway's device nodes
+     */
+    public interface GatewayNodeRegistrationListener {
+
+        /**
+         * Notify that a registration candidate has been successfully registered as a device.
+         *
+         * @param device Device
+         * @param moreComing When register
+         * @param tag Optional user specified data.
+         */
+        void gatewayRegistrationCandidateAdded(AylaDevice device, boolean moreComing, Object tag);
+
+        /**
+         * Notify that registration candidates are available, the UI is then
+         * given a chance to allow the user to select which devices to actually
+         * register.  Then call back to gateway.registerCandidates
+         *
+         * @param list List of AylaDeviceNode objects
+         * @param tag Optional user specified data.
+         */
+        void gatewayRegistrationCandidates(List<AylaDeviceNode> list, Object tag);
+
+        /**
+         * Notify that the the processs of scanning and registering a gateway's
+         * device nodes has completed.
+         *
+         * @param error an error, if one occurred, or null
+         * @param messageResourceId String resource id to display a toast to the user.
+         * @param tag Optional user specified data.
+         */
+        void gatewayRegistrationComplete(AylaError error, int messageResourceId, Object tag);
+    }
+
 }
 

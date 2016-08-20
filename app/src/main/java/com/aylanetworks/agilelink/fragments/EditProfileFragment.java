@@ -1,8 +1,8 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
@@ -14,20 +14,20 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.aylanetworks.aaml.AylaContact;
-import com.aylanetworks.aaml.AylaNetworks;
-import com.aylanetworks.aaml.AylaSystemUtils;
-import com.aylanetworks.aaml.AylaUser;
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaContact;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.ContactManager;
-import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
-
-import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Map;
+import com.aylanetworks.agilelink.MenuHandler;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.util.EmptyListener;
 
 /*
  * EditProfileFragment.java
@@ -43,9 +43,12 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     private EditText _firstName;
     private EditText _lastName;
     private EditText _email;
+    private EditText _newEmail;
     private EditText _country;
     private EditText _phoneCountryCode;
     private EditText _phoneNumber;
+    private EditText _city;
+    private EditText _zip;
 
     private EditText _oldPassword;
     private EditText _password;
@@ -70,13 +73,17 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         root.findViewById(R.id.btnChangePassword).setOnClickListener(this);
         root.findViewById(R.id.btnLogOut).setOnClickListener(this);
         root.findViewById(R.id.btnDeleteAccount).setOnClickListener(this);
+        root.findViewById(R.id.btnUpdateEmail).setOnClickListener(this);
 
         _firstName = (EditText) root.findViewById(R.id.etFirstName);
         _lastName = (EditText) root.findViewById(R.id.etLastName);
         _email = (EditText) root.findViewById(R.id.etEmail);
+        _newEmail = (EditText) root.findViewById(R.id.etNewEmail);
         _country = (EditText) root.findViewById(R.id.etCountry);
         _phoneCountryCode = (EditText) root.findViewById(R.id.etPhoneCountryCode);
         _phoneNumber = (EditText) root.findViewById(R.id.etPhoneNumber);
+        _city = (EditText) root.findViewById(R.id.etCity);
+        _zip = (EditText) root.findViewById(R.id.etZip);
 
         _oldPassword = (EditText) root.findViewById(R.id.etCurrentPassword);
         _password = (EditText) root.findViewById(R.id.etNewPassword);
@@ -95,7 +102,24 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         String body = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_body);
         MainActivity.getInstance().showWaitDialog(title, body);
         Log.d(LOG_TAG, "user: AylaUser.getInfo started");
-        AylaUser.getInfo(_getInfoHandler);
+        AMAPCore.sharedInstance().getSessionManager().fetchUserProfile(
+                new Response.Listener<AylaUser>() {
+                    @Override
+                    public void onResponse(AylaUser response) {
+                        AMAPCore.sharedInstance().setCurrentUser(response);
+                        updateFields();
+                        MainActivity.getInstance().dismissWaitDialog();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override
@@ -111,51 +135,107 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     }
 
     private void updateFields() {
-        AylaUser currentUser = AylaUser.getCurrent();
-        _firstName.setText(currentUser.firstname);
-        _lastName.setText(currentUser.lastname);
-        _email.setText(currentUser.email);
-        _country.setText(currentUser.country);
-        _phoneCountryCode.setText(currentUser.phoneCountryCode);
-        _phoneNumber.setText(currentUser.phone);
+        AylaUser currentUser = AMAPCore.sharedInstance().getCurrentUser();
+        _firstName.setText(currentUser.getFirstname());
+        _lastName.setText(currentUser.getLastname());
+        _email.setText(currentUser.getEmail());
+        _country.setText(currentUser.getCountry());
+        _phoneCountryCode.setText(currentUser.getPhoneCountryCode());
+        _phoneNumber.setText(currentUser.getPhone());
+        _city.setText(currentUser.getCity());
+        _zip.setText(currentUser.getZip());
         _password.setText("");
         _confirmPassword.setText("");
     }
 
-    private Map<String, String> getParameters() {
-        Map<String, String> params = new HashMap<>();
-        params.put("firstname", _firstName.getText().toString());
-        params.put("lastname", _lastName.getText().toString());
-        params.put("country", _country.getText().toString());
-        params.put("phone_country_code", _phoneCountryCode.getText().toString());
-        params.put("phone", _phoneNumber.getText().toString());
-        return params;
-    }
+    private AylaUser userFromFields() {
+        AylaUser user = new AylaUser();
+        user.setFirstname(_firstName.getText().toString());
+        user.setLastname(_lastName.getText().toString());
+        user.setCountry(_country.getText().toString());
+        user.setPhoneCountryCode(_phoneCountryCode.getText().toString());
+        user.setPhone(_phoneNumber.getText().toString());
+        user.setCity(_city.getText().toString());
+        user.setZip(_zip.getText().toString());
 
-    /*
-    Add Editable fields for the Identity Provider
-     */
-    private Map<String, String> getSSOUserParameters() {
-        Map<String, String> params = new HashMap<>();
-        params.put("email", _email.getText().toString());
-        params.put("firstname", _firstName.getText().toString());
-        params.put("lastname", _lastName.getText().toString());
-        params.put("country", _country.getText().toString());
-        params.put("phone", _phoneNumber.getText().toString());
-        return params;
+        return user;
     }
 
     void onUpdateClicked() {
         // Normal profile update
         MainActivity.getInstance().showWaitDialog(getString(R.string.updating_profile_title), getString(R.string.updating_profile_body));
-        SessionManager.SessionParameters params = SessionManager.sessionParameters();
-        if(params.ssoLogin){
-            params.ssoManager.updateUserInfo(_ssoUpdateProfileHandler, getSSOUserParameters());
-        }else{
-            AylaUser.updateInfo(_updateProfileHandler, getParameters(), params.appId, params.appSecret);
+        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
+        final AylaUser updatedUser = userFromFields();
+        if (params.ssoLogin) {
+            params.ssoManager.updateUserInfo(updatedUser, new Response.Listener<AylaUser>() {
+                        @Override
+                        public void onResponse(AylaUser response) {
+                            AylaLog.i(LOG_TAG, "SSO user updated successfully");
+                            updateOwnerContact(updatedUser);
+                            MainActivity.getInstance().dismissWaitDialog();
+                        }
+                    },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } else {
+            AMAPCore.sharedInstance().getSessionManager().updateUserProfile(updatedUser,
+                    new Response.Listener<AylaUser>() {
+                        @Override
+                        public void onResponse(AylaUser response) {
+                            AylaLog.i(LOG_TAG, "User profile updated successfully");
+                            updateOwnerContact(updatedUser);
+                            MainActivity.getInstance().dismissWaitDialog();
+                        }
+                    },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
+    }
 
-        AylaUser.updateInfo(_updateProfileHandler, getParameters(), params.appId, params.appSecret);
+    void updateOwnerContact(AylaUser user) {
+        ContactManager cm = AMAPCore.sharedInstance().getContactManager();
+        AylaContact ownerContact = cm.getOwnerContact();
+
+        if (ownerContact == null) {
+            Log.e(LOG_TAG, "No owner contact found! Creating...");
+            cm.createOwnerContact();
+            getFragmentManager().popBackStack();
+            Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
+        } else {
+            ownerContact.setFirstname(user.getFirstname());
+            ownerContact.setLastname(user.getLastname());
+            ownerContact.setPhoneCountryCode(user.getPhoneCountryCode());
+            ownerContact.setPhoneNumber(user.getPhone());
+            ownerContact.setCountry(user.getCountry());
+            ownerContact.setDisplayName(ownerContact.getFirstname() + " " + ownerContact
+                    .getLastname());
+            ContactManager.normalizePhoneNumber(ownerContact);
+
+            cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
+                @Override
+                public void contactListUpdated(ContactManager manager, AylaError error) {
+                    if (getFragmentManager() != null) {
+                        getFragmentManager().popBackStack();
+                    }
+                    Toast.makeText(getActivity(),
+                            ErrorUtils.getUserMessage(getActivity(), error,
+                                    error == null ? R.string.profile_updated : R.string.error_changing_profile),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     void onChangePasswordClicked() {
@@ -176,7 +256,73 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         } else {
             // Update the password
             MainActivity.getInstance().showWaitDialog(getString(R.string.updating_profile_title), getString(R.string.updating_profile_body));
-            AylaUser.changePassword(_changePasswordHandler, currentPassword, newPassword);
+            AMAPCore.sharedInstance().getSessionManager().updatePassword(currentPassword, newPassword,
+                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                        @Override
+                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                            Toast.makeText(MainActivity.getInstance(), R.string.update_password_success, Toast.LENGTH_SHORT).show();
+                            // Re-login with new password
+                            EmptyListener<AylaAPIRequest.EmptyResponse>
+                                    emptyListener = new EmptyListener<>();
+                            AMAPCore.sharedInstance().getSessionManager()
+                                    .shutDown(emptyListener, emptyListener);
+                            MainActivity.getInstance().showLoginDialog(true);
+                        }
+                    },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            MainActivity.getInstance().dismissWaitDialog();
+                            Toast.makeText(getActivity(),
+                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.error_changing_profile),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+    void onUpdateEmailClicked() {
+        String currentEmail = _email.getText().toString();
+        final String newEmail = _newEmail.getText().toString();
+        if (TextUtils.isEmpty(newEmail) || !newEmail.contains("@")
+                || currentEmail.equals(newEmail)) {
+            Toast.makeText(MainActivity.getInstance(), R.string.invalid_email, Toast.LENGTH_SHORT).show();
+            _newEmail.requestFocus();
+        } else {
+            new AlertDialog.Builder(MainActivity.getInstance())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setTitle(R.string.update_email_confirm_title)
+                    .setMessage(R.string.update_email_confirm_msg)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Update the email
+                            MainActivity.getInstance().showWaitDialog(R.string.updating_email_title, R.string.updating_email_body);
+                            AMAPCore.sharedInstance().getSessionManager()
+                                    .updateUserEmailAddress(newEmail, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                                @Override
+                                                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                                    Toast.makeText(MainActivity.getInstance(), R.string.update_email_success, Toast.LENGTH_SHORT).show();
+                                                    // Once change email, sign in with new email is required
+                                                    EmptyListener<AylaAPIRequest.EmptyResponse>
+                                                            emptyListener = new EmptyListener<>();
+                                                    AMAPCore.sharedInstance().getSessionManager()
+                                                            .shutDown(emptyListener, emptyListener);
+                                                    MainActivity.getInstance().showLoginDialog(true);
+                                                }
+                                            },
+                                            new ErrorListener() {
+                                                @Override
+                                                public void onErrorResponse(AylaError error) {
+                                                    Toast.makeText(getActivity(),
+                                                            ErrorUtils.getUserMessage(getActivity(), error, R.string.error_updating_email),
+                                                            Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .create().show();
         }
     }
 
@@ -203,225 +349,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
             case R.id.btnDeleteAccount:
                 onDeleteAccountClicked();
                 break;
+            case R.id.btnUpdateEmail:
+                onUpdateEmailClicked();
+                break;
         }
     }
-
-    static class ChangePasswordHandler extends Handler {
-        private WeakReference<EditProfileFragment> _editProfileDialog;
-        public ChangePasswordHandler(EditProfileFragment editProfileFragment) {
-            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "Change password handler: " + msg);
-            String jsonResults = (String) msg.obj;
-
-            if (AylaNetworks.succeeded(msg)) {
-                SessionManager.SessionParameters params = SessionManager.sessionParameters();
-                params.password = _editProfileDialog.get()._password.getText().toString();
-
-                // Clear out the password edit fields so we don't try to set the password again
-                _editProfileDialog.get()._password.setText("");
-                _editProfileDialog.get()._confirmPassword.setText("");
-
-                // Continue updating the rest of the information
-                _editProfileDialog.get().onClick(_editProfileDialog.get().getView().findViewById(R.id.btnUpdate));
-            } else {
-                MainActivity.getInstance().dismissWaitDialog();
-                String errMsg = null;
-
-                if (msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS) {
-                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "errors", jsonResults, "myProfile");
-
-                    AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
-                    if (aylaUser.password != null) {
-                        _editProfileDialog.get()._password.requestFocus();
-                        errMsg = _editProfileDialog.get()._password.getHint() + " " + aylaUser.password;
-                        Toast.makeText(MainActivity.getInstance(), errMsg, Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
-    private ChangePasswordHandler _changePasswordHandler = new ChangePasswordHandler(this);
-
-    static class GetInfoHandler extends Handler {
-        private WeakReference<EditProfileFragment> _editProfileDialog;
-
-        public GetInfoHandler(EditProfileFragment editProfileFragment) {
-            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Log.d(LOG_TAG, "user: GetInfo handleMessage [" + msg + "]");
-            Logger.logMessage(LOG_TAG, msg, "GetInfoHandler");
-            MainActivity.getInstance().dismissWaitDialog();
-            if (AylaNetworks.succeeded(msg)) {
-                AylaUser user = AylaSystemUtils.gson.fromJson((String) msg.obj, AylaUser.class);
-                Log.d(LOG_TAG, "user: " + user);
-                // Save the auth info- it's not filled out in the returned user object
-                AylaUser oldUser = AylaUser.getCurrent();
-                user.setAccessToken(oldUser.getAccessToken());
-                user.setRefreshToken(oldUser.getRefreshToken());
-                user.setExpiresIn(oldUser.getExpiresIn());
-                AylaUser.setCurrent(user);
-            } else {
-                Log.e(LOG_TAG, "user: Failed to fetch current user details: " + msg);
-            }
-            _editProfileDialog.get().updateFields();
-        }
-    }
-
-    private GetInfoHandler _getInfoHandler = new GetInfoHandler(this);
-
-    static class UpdateProfileHandler extends Handler {
-        private WeakReference<EditProfileFragment> _editProfileDialog;
-
-        public UpdateProfileHandler(EditProfileFragment editProfileFragment) {
-            _editProfileDialog = new WeakReference<>(editProfileFragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-            String jsonResults = (String) msg.obj;
-            Log.d(LOG_TAG, "Update profile handler: " + msg);
-
-            if (AylaNetworks.succeeded(msg)) {
-                // Update the owner contact information
-                ContactManager cm = SessionManager.getInstance().getContactManager();
-                AylaContact ownerContact = cm.getOwnerContact();
-
-                if ( ownerContact == null ) {
-                    Log.e(LOG_TAG, "No owner contact found! Creating...");
-                    cm.createOwnerContact();
-                    _editProfileDialog.get().getFragmentManager().popBackStack();
-                    Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
-                } else {
-                    ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
-                    ownerContact.lastname = _editProfileDialog.get()._lastName.getText().toString();
-                    ownerContact.phoneCountryCode = _editProfileDialog.get()._phoneCountryCode.getText().toString();
-                    ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
-                    ownerContact.country = _editProfileDialog.get()._country.getText().toString();
-                    ownerContact.displayName = ownerContact.firstname + " " + ownerContact.lastname;
-                    ContactManager.normalizePhoneNumber(ownerContact);
-
-                    cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
-                        @Override
-                        public void contactListUpdated(ContactManager manager, boolean succeeded) {
-                            if(_editProfileDialog.get().getFragmentManager() != null){
-                                _editProfileDialog.get().getFragmentManager().popBackStack();
-                            }
-                            Toast.makeText(MainActivity.getInstance(),
-                                    succeeded ? R.string.profile_updated : R.string.error_changing_profile,
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            } else {
-                String errMsg = null;
-                if (msg.arg1 == AylaNetworks.AML_USER_INVALID_PARAMETERS) {
-                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "errors", jsonResults, "userSignUp");
-
-                    // In the error case, the returned aylaUser will contain an error message in the field that had an error.
-                    AylaUser aylaUser = AylaSystemUtils.gson.fromJson(jsonResults, AylaUser.class);
-                    if (aylaUser.firstname != null) {
-                        _editProfileDialog.get()._firstName.requestFocus();
-                        errMsg = _editProfileDialog.get()._firstName.getHint() + " " + aylaUser.firstname;
-                    } else if (aylaUser.lastname != null) {
-                        _editProfileDialog.get()._lastName.requestFocus();
-                        errMsg = _editProfileDialog.get()._lastName.getHint() + " " + aylaUser.lastname;
-                    } else if (aylaUser.phoneCountryCode != null) {
-                        _editProfileDialog.get()._phoneCountryCode.requestFocus();
-                        errMsg = _editProfileDialog.get()._phoneCountryCode.getHint() + " " + aylaUser.phoneCountryCode;
-                    } else if (aylaUser.phone != null) {
-                        _editProfileDialog.get()._phoneNumber.requestFocus();
-                        errMsg = _editProfileDialog.get()._phoneNumber.getHint() + " " + aylaUser.phone;
-                    } else if (aylaUser.country != null) {
-                        _editProfileDialog.get()._country.requestFocus();
-                        errMsg = _editProfileDialog.get()._country.getHint() + " " + aylaUser.country;
-                    }
-
-                    if (errMsg != null) {
-                        Toast.makeText(MainActivity.getInstance(), errMsg, Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-    private UpdateProfileHandler _updateProfileHandler = new UpdateProfileHandler(this);
-
-
-    /**
-     * Handler for updating profile on Identity provider's service
-     * To be modified by app developer
-     */
-    static class SsoUpdateProfileHandler extends Handler {
-        private WeakReference<EditProfileFragment> _editProfileDialog;
-
-        public SsoUpdateProfileHandler(EditProfileFragment editProfileFragment) {
-            _editProfileDialog = new WeakReference<EditProfileFragment>(editProfileFragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity.getInstance().dismissWaitDialog();
-            String jsonResults = (String) msg.obj;
-            Log.d(LOG_TAG, "SSO Update profile handler: " + msg);
-
-            if (msg.arg1 >= 200 && msg.arg1 <300)  {
-                // Update the owner contact information
-                ContactManager cm = SessionManager.getInstance().getContactManager();
-                AylaContact ownerContact = cm.getOwnerContact();
-
-                if ( ownerContact == null ) {
-                    Log.d(LOG_TAG, "No owner contact found! Creating...");
-                    cm.createOwnerContact();
-                    _editProfileDialog.get().getFragmentManager().popBackStack();
-                    Toast.makeText(MainActivity.getInstance(), R.string.profile_updated, Toast.LENGTH_LONG).show();
-                } else {
-                    ownerContact.firstname = _editProfileDialog.get()._firstName.getText().toString();
-                    ownerContact.lastname = _editProfileDialog.get()._lastName.getText().toString();
-                    ownerContact.phoneCountryCode = _editProfileDialog.get()._phoneCountryCode.getText().toString();
-                    ownerContact.phoneNumber = _editProfileDialog.get()._phoneNumber.getText().toString();
-                    ownerContact.country = _editProfileDialog.get()._country.getText().toString();
-                    ownerContact.displayName = ownerContact.firstname + " " + ownerContact.lastname;
-                    ContactManager.normalizePhoneNumber(ownerContact);
-
-                    cm.updateContact(ownerContact, new ContactManager.ContactManagerListener() {
-                        @Override
-                        public void contactListUpdated(ContactManager manager, boolean succeeded) {
-                            _editProfileDialog.get().getFragmentManager().popBackStack();
-                            Toast.makeText(MainActivity.getInstance(),
-                                    succeeded ? R.string.profile_updated : R.string.error_changing_profile,
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            } else {
-                if (msg.arg1 == AylaNetworks.AML_ERROR_UNREACHABLE) {
-                    AylaSystemUtils.saveToLog("%s, %s, %s:%s, %s", "E", "amca.signin", "errors", jsonResults, "userSignUp");
-                    if (jsonResults != null) {
-                        Toast.makeText(MainActivity.getInstance(), jsonResults, Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), R.string.error_changing_profile, Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
-    private SsoUpdateProfileHandler _ssoUpdateProfileHandler = new SsoUpdateProfileHandler(this);
 }
-

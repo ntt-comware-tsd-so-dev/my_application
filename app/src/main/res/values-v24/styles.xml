@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android N currently does something with our button style and turns its buttons
+    transparent or white-on-white. This override skips the custom buttons in N runs. -->
+    <style name="AgileLinkButton" parent="android:style/Widget.Button">
+</style>
+</resources>

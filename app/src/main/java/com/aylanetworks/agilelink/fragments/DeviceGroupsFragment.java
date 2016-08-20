@@ -21,10 +21,12 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.DeviceGroup;
 import com.aylanetworks.agilelink.framework.GroupManager;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.change.ListChange;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,11 +99,14 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
 
     @Override
     public void updateDeviceList() {
+        if(!isAdded()){
+            return;
+        }
         if (_selectedGroup != null) {
-            List<Device> selectedGroupDeviceList = _selectedGroup.getDevices();
-            _adapter = DeviceListAdapter.fromDeviceList(selectedGroupDeviceList, this);
+
+            _adapter = DeviceListAdapter.fromDeviceList(_selectedGroup.getDevices(), this);
             _recyclerView.setAdapter(_adapter);
-            if ( selectedGroupDeviceList.isEmpty() ) {
+            if ( _selectedGroup.getDevices().isEmpty() ) {
                 _emptyView.setText(R.string.no_devices_in_group);
                 _recyclerView.setVisibility(View.GONE);
                 _emptyView.setVisibility(View.VISIBLE);
@@ -119,14 +124,14 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     protected void createGroupButtonHeader() {
-        if (SessionManager.deviceManager() == null) {
+        if (AMAPCore.sharedInstance().getDeviceManager() == null) {
             Log.d(LOG_TAG, "Not yet ready to create group buttons...");
             return;
         }
 
         List<DeviceGroup> groups;
-        if (SessionManager.deviceManager() != null) {
-            groups = SessionManager.deviceManager().getGroupManager().getGroups();
+        if (AMAPCore.sharedInstance().getDeviceManager() != null) {
+            groups = AMAPCore.sharedInstance().getGroupManager().getGroups();
         } else {
             groups = new ArrayList<>();
         }
@@ -231,27 +236,32 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     @Override
-    public void deviceListChanged() {
-        super.deviceListChanged();
-        if(this.isAdded()){
+    public void deviceListChanged(ListChange change) {
+        super.deviceListChanged(change);
+        if (this.isAdded()) {
             createGroupButtonHeader();
             updateDeviceList();
-        } else{
-            return;
         }
-
     }
 
     protected void onAddDeviceToGroup() {
-        final List<Device> allDevices = SessionManager.deviceManager().deviceList();
+        if ( _selectedGroup == null ) {
+            // There is no group yet. We need to offer to add one.
+            onAddGroup();
+            return;
+        }
+
+        final List<ViewModel> allDevices = ViewModel.fromDeviceList(AMAPCore.sharedInstance().getDeviceManager()
+                .getDevices());
+
         if ((allDevices != null) && (allDevices.size() > 0)) {
             final String deviceNames[] = new String[allDevices.size()];
             final boolean isGroupMember[] = new boolean[allDevices.size()];
 
             for (int i = 0; i < allDevices.size(); i++) {
-                Device d = allDevices.get(i);
-                deviceNames[i] = d.toString();
-                isGroupMember[i] = (_selectedGroup.isDeviceInGroup(d));
+                ViewModel d = allDevices.get(i);
+                deviceNames[i] = d.getDevice().getFriendlyName();
+                isGroupMember[i] = (_selectedGroup.isDeviceInGroup(d.getDevice()));
             }
 
             new AlertDialog.Builder(getActivity())
@@ -266,11 +276,11 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            List<Device> newGroupList = new ArrayList<>();
+                            List<AylaDevice> newGroupList = new ArrayList<>();
                             for (int i = 0; i < allDevices.size(); i++) {
-                                Device d = allDevices.get(i);
+                                ViewModel d = allDevices.get(i);
                                 if (isGroupMember[i]) {
-                                    newGroupList.add(d);
+                                    newGroupList.add(d.getDevice());
                                 }
                             }
                             _selectedGroup.setDevices(newGroupList);
@@ -286,7 +296,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
     }
 
     protected void onAddGroup() {
-        final GroupManager gm = SessionManager.deviceManager().getGroupManager();
+        final GroupManager gm = AMAPCore.sharedInstance().getGroupManager();
 
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         final View alertView = inflater.inflate(R.layout.dialog_add_group, null);
@@ -305,13 +315,12 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                             Toast.makeText(getActivity(), R.string.invalid_group_name, Toast.LENGTH_LONG).show();
                         } else {
                             // Add the group and select it
-                            DeviceGroup newGroup = gm.createGroup(et.getText().toString(), null);
-                            _selectedGroup = newGroup;
+                            _selectedGroup = gm.createGroup(et.getText().toString(), null);
                             gm.pushGroupList();
 
                             // Group is not useful with nothing in it! Bring up the UI to add
                             // devices to the group
-                            deviceListChanged();
+                            deviceListChanged(null);
                             onAddDeviceToGroup();
                         }
                     }
@@ -333,7 +342,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            GroupManager gm = SessionManager.deviceManager().getGroupManager();
+                            GroupManager gm = AMAPCore.sharedInstance().getGroupManager();
                             gm.removeGroup(_selectedGroup);
                             gm.pushGroupList();
                             if ( gm.getGroups().isEmpty() ) {
@@ -341,7 +350,7 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
                             } else {
                                 _selectedGroup = gm.getGroups().get(0);
                             }
-                            deviceListChanged();
+                            deviceListChanged(null);
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)

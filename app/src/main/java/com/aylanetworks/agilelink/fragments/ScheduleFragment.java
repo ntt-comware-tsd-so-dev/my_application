@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -26,15 +27,21 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.Device;
+import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Schedule;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaSchedule;
+import com.aylanetworks.aylasdk.AylaScheduleAction;
+import com.aylanetworks.aylasdk.AylaTimeZone;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -51,11 +58,11 @@ public class ScheduleFragment extends Fragment {
     private final static String LOG_TAG = "ScheduleFragment";
 
     private final static String ARG_DEVICE_DSN = "deviceDSN";
-    private final static String ARG_SCHEDULE_INDEX = "scheduleIndex";
+    private final static String ARG_SCHEDULE_NAME = "scheduleName";
 
-    private Device _device;
-    private Schedule _schedule;
-    private int _scheduleIndex;
+    private AylaDevice _device;
+    private  Schedule _schedule;
+    private String _scheduleName;
 
     private EditText _scheduleTitleEditText;
     private Switch _scheduleEnabledSwitch;
@@ -67,6 +74,7 @@ public class ScheduleFragment extends Fragment {
     private TimePicker _scheduleTimePicker;
     private TimePicker _timerTimePicker;
     private Button _saveScheduleButton;
+    private TimeZone _tz;
 
     private LinearLayout _propertySelectionLayout;
     private LinearLayout _propertySelectionCheckboxLayout;
@@ -83,6 +91,7 @@ public class ScheduleFragment extends Fragment {
     private int _timerOffDuration;
 
     private boolean _updatingUI;
+    private ViewModel _deviceModel;
 
     private static final int[] _weekdayButtonIDs = {
             R.id.button_sunday,
@@ -94,10 +103,10 @@ public class ScheduleFragment extends Fragment {
             R.id.button_saturday
     };
 
-    public static ScheduleFragment newInstance(Device device, int scheduleIndex) {
+    public static ScheduleFragment newInstance(AylaDevice device, String scheduleName) {
         Bundle args = new Bundle();
-        args.putString(ARG_DEVICE_DSN, device.getDeviceDsn());
-        args.putInt(ARG_SCHEDULE_INDEX, scheduleIndex);
+        args.putString(ARG_DEVICE_DSN, device.getDsn());
+        args.putString(ARG_SCHEDULE_NAME, scheduleName);
         ScheduleFragment frag = new ScheduleFragment();
         frag.setArguments(args);
 
@@ -113,29 +122,67 @@ public class ScheduleFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Get our device argument
-        _device = SessionManager.deviceManager().deviceByDSN(getArguments().getString(ARG_DEVICE_DSN));
-        _scheduleIndex = getArguments().getInt(ARG_SCHEDULE_INDEX);
-
-        // Make a copy to work with.
-        try {
-            List<Schedule> schedules = _device.getSchedules();
-            if ( schedules != null ) {
-                _schedule = schedules.get(_scheduleIndex).clone();
+        _device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(getArguments().getString(ARG_DEVICE_DSN));
+        _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                .viewModelForDevice(_device);
+        _scheduleName = getArguments().getString(ARG_SCHEDULE_NAME);
+        final ErrorListener errorListener = new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Toast.makeText(MainActivity.getInstance(), error.toString(),
+                        Toast.LENGTH_LONG).show();
             }
-        } catch (CloneNotSupportedException | NullPointerException e) {
-            e.printStackTrace();
-            MainActivity.getInstance().popBackstackToRoot();
-            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-            return new View(getActivity());
-        }
-        if(_schedule == null){
-            Log.d(LOG_TAG, "onCreateView _schedule is null ");
-            MainActivity.getInstance().popBackstackToRoot();
-            Toast.makeText(getActivity(), R.string.unknown_error, Toast.LENGTH_LONG).show();
-            return new View(getActivity());
-        }
+        };
+        _device.fetchTimeZone(
+                new Response.Listener<AylaTimeZone>() {
+                    @Override
+                    public void onResponse(AylaTimeZone response) {
+                        if (response.tzId != null) {
+                            _tz = TimeZone.getTimeZone(response.tzId);
+                        } else {
+                            _tz = TimeZone.getTimeZone("UTC");
+                        }
+                        _device.fetchSchedules(
+                                new Response.Listener<AylaSchedule[]>() {
+                                    @Override
+                                    public void onResponse(AylaSchedule[] response) {
+                                        if (response != null && response.length > 0) {
+                                            for (AylaSchedule schedule : response) {
+                                                if (_scheduleName.equals(schedule.getName())) {
+                                                    _schedule = new Schedule(schedule, _tz);
+                                                    schedule.fetchActions(new Response.Listener<AylaScheduleAction[]>() {
+                                                        @Override
+                                                        public void onResponse(AylaScheduleAction[] response) {
+                                                            _schedule.setScheduleActions(response);
+                                                            setupPropertySelection();
+                                                            if ( _schedule.getStartTimeEachDay() == null ) {
+                                                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                                                                    setSchedule(_scheduleTimePicker.getCurrentHour()
+                                                                            , _scheduleTimePicker.getCurrentMinute(), true);
+                                                                } else { // version >= M
+                                                                    setSchedule(_scheduleTimePicker.getHour()
+                                                                            , _scheduleTimePicker.getMinute(), true);
+                                                                }
+                                                            }
+                                                            updateUI();
+                                                        }
+                                                    },errorListener);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                },errorListener);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(MainActivity.getInstance(), "Error while getting " +
+                                "TimeZone:"+error.toString(), Toast.LENGTH_LONG).show();
+                    }
+                });
 
-        Log.d(LOG_TAG, "onCreateView(" + _schedule.getName() + ")");
 
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_schedule, container, false);
@@ -162,7 +209,7 @@ public class ScheduleFragment extends Fragment {
         _saveScheduleButton = (Button)root.findViewById(R.id.save_schedule);
 
         // Control configuration / setup
-        _scheduleEnabledSwitch.setChecked(_schedule.isActive());
+
         _scheduleEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -242,7 +289,6 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-
         _timerTimePicker.setIs24HourView(true);
         _timerTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @Override
@@ -298,18 +344,8 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        setupPropertySelection();
-
         updateUI();
         return root;
-    }
-
-    TimeZone getTimeZone() {
-        TimeZone tz = _device.getTimeZone();
-        if (tz == null) {
-            tz = TimeZone.getTimeZone("UTC");
-        }
-        return tz;
     }
 
     private void scheduleTimeChanged(int hourOfDay, int minute) {
@@ -317,13 +353,17 @@ public class ScheduleFragment extends Fragment {
             return;
         }
 
+        setSchedule(hourOfDay, minute, _scheduleOnTimeButton.isSelected());
+    }
+
+    private void setSchedule(int hourOfDay, int minute, boolean isOnTimeButtonSelected) {
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(getTimeZone());
+        cal.setTimeZone(_tz);
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
-        if (_scheduleOnTimeButton.isSelected()) {
+        if (isOnTimeButtonSelected) {
             _schedule.setStartTimeEachDay(cal);
         } else {
             _schedule.setEndTimeEachDay(cal);
@@ -338,13 +378,17 @@ public class ScheduleFragment extends Fragment {
 
         if (_timerTurnOnButton.isSelected()) {
             _timerOnDuration = hourOfDay * 60 + minute;
+            Log.e("AMAP", "ON: " + _timerOnDuration);
         } else {
             _timerOffDuration = hourOfDay * 60 + minute;
+            Log.e("AMAP", "OFF: " + _timerOffDuration);
         }
     }
 
     private void scheduleEnabledChanged(boolean isChecked) {
-        _schedule.setActive(isChecked);
+        if(_schedule != null) {
+            _schedule.setActive(isChecked);
+        }
         _scheduleDetailsLayout.setVisibility((isChecked ? View.VISIBLE : View.GONE));
         updateUI();
     }
@@ -352,7 +396,11 @@ public class ScheduleFragment extends Fragment {
     private boolean checkSchedule() {
         int errorMessage = 0;
         if ( _schedule.isActive() && _schedule.getActions().size() == 0 ) {
-           errorMessage = R.string.no_actions_set;
+            errorMessage = R.string.no_actions_set;
+        }
+
+        if ( !_schedule.isTimer() && _schedule.getStartTimeEachDay() == null) {
+            errorMessage = R.string.configure_schedule_times;
         }
 
         if ( errorMessage != 0 ) {
@@ -372,7 +420,7 @@ public class ScheduleFragment extends Fragment {
 
         // Start date is always "right now".
         Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(getTimeZone());
+        cal.setTimeZone(_tz);
         _schedule.setStartDate(cal);
 
 
@@ -381,43 +429,49 @@ public class ScheduleFragment extends Fragment {
             _schedule.setTimer(_timerOnDuration, _timerOffDuration);
         }
 
-        Log.d(LOG_TAG, "start: " + _schedule.getSchedule().startDate);
-        Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().endDate);
+        Log.d(LOG_TAG, "start: " + _schedule.getSchedule().getStartDate());
+        Log.d(LOG_TAG, "end:   " + _schedule.getSchedule().getEndDate());
 
-        // Copy our local schedule copy over to the device's schedule object
-        Schedule s = _device.getSchedules().get(_scheduleIndex);
-        _schedule.cloneTo(s);
+        final ErrorListener errorListener = new ErrorListener() {
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                Toast.makeText(MainActivity.getInstance(), error.toString(),
+                        Toast.LENGTH_LONG).show();
+            }
+        };
 
         // Save the updated schedule
-        _device.updateSchedule(s, new Device.DeviceStatusListener() {
-            @Override
-            public void statusUpdated(Device device, boolean changed) {
-                MainActivity.getInstance().dismissWaitDialog();
-                if (changed) {
-                    Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getActivity(), R.string.schedule_update_failed, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        _device.updateSchedule(_schedule.getSchedule(),
+                new Response.Listener<AylaSchedule>() {
+                    @Override
+                    public void onResponse(final AylaSchedule response) {
+                        //Now update the actions
+                        final AylaScheduleAction[] actions = _schedule.getScheduleActions();
+                        final int actionsSize= actions.length;
+                        response.updateActions(actions, new Response
+                                .Listener<AylaScheduleAction[]>() {
+                            @Override
+                            public void onResponse(final AylaScheduleAction[]
+                                                           responseActions) {
+                                MainActivity.getInstance().dismissWaitDialog();
+                                    Toast.makeText(getActivity(), R.string.schedule_updated, Toast.LENGTH_SHORT).show();
+                            }
+                        },errorListener);
+                    }
+                },errorListener);
     }
 
     private void setupPropertySelection() {
         _propertySelectionCheckboxLayout.removeAllViewsInLayout();
 
-        Map<String, String> enableActions = new HashMap<>();
-        Map<String, String> disableActions = new HashMap<>();
-        int nSelected = 0;
-        CheckBox firstCheckBox = null;
-        String[] propertyNames = _device.getSchedulablePropertyNames();
+        String[] propertyNames = _deviceModel.getSchedulablePropertyNames();
         for ( String propertyName : propertyNames ) {
             CheckBox cb = new CheckBox(getActivity());
-            cb.setText(_device.friendlyNameForPropertyName(propertyName));
+            cb.setText(_deviceModel.friendlyNameForPropertyName(propertyName));
             cb.setTag(propertyName);
             if ( _schedule.isPropertyActive(propertyName) ) {
                 cb.setChecked(true);
                 _schedule.addAction(propertyName);
-                nSelected++;
             }
             cb.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
             cb.setTextColor(getResources().getColor(R.color.enabled_text));
@@ -427,9 +481,7 @@ public class ScheduleFragment extends Fragment {
                     propertySelectionChanged((CheckBox) buttonView, isChecked);
                 }
             });
-            if ( firstCheckBox == null ) {
-                firstCheckBox = cb;
-            }
+
             _propertySelectionCheckboxLayout.addView(cb);
         }
 
@@ -439,10 +491,6 @@ public class ScheduleFragment extends Fragment {
             _schedule.addAction(propertyNames[0]);
         } else {
             _propertySelectionLayout.setVisibility(View.VISIBLE);
-            if ( nSelected == 0 && firstCheckBox != null ) {
-                // Check the first box
-                firstCheckBox.setChecked(true);
-            }
         }
 
         _schedule.updateScheduleActions();
@@ -465,9 +513,10 @@ public class ScheduleFragment extends Fragment {
         // Make the UI reflect the schedule for this device
         if ( _schedule != null ) {
             _scheduleTitleEditText.setText(_schedule.getName());
+            _scheduleEnabledSwitch.setChecked(_schedule.isActive());
         }
 
-        if (_schedule == null || !_schedule.isActive()) {
+        if (_schedule == null || !_schedule.isActive() || _schedule.getActions() == null ) {
             // Nothing shown except for the switch
             return;
         }

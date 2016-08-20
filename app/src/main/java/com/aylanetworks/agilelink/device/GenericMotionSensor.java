@@ -5,7 +5,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 
-import com.aylanetworks.aaml.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 
@@ -44,7 +44,7 @@ public class GenericMotionSensor extends GenericTriggerDevice {
 
     @Override
     public int getItemViewType() {
-        return AgileLinkDeviceCreator.ITEM_VIEW_TYPE_WITH_STATUS;
+        return AMAPViewModelProvider.ITEM_VIEW_TYPE_GENERIC_NODE_DEVICE;
     }
 
 

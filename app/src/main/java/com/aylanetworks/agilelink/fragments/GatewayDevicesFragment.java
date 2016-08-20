@@ -9,19 +9,18 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.view.View;
 
-import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
-import com.aylanetworks.agilelink.framework.Device;
-import com.aylanetworks.agilelink.framework.MenuHandler;
-import com.aylanetworks.agilelink.framework.SessionManager;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaDeviceGateway;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayDevicesFragment extends AllDevicesFragment {
-
-    private final static String LOG_TAG = "GatewayDevicesFragment";
 
     public static GatewayDevicesFragment newInstance() {
         GatewayDevicesFragment fragment = new GatewayDevicesFragment();
@@ -32,24 +31,28 @@ public class GatewayDevicesFragment extends AllDevicesFragment {
 
     @Override
     public void updateDeviceList() {
-        List<Device> deviceList = new ArrayList<Device>();
-        if (SessionManager.deviceManager() != null) {
-            deviceList.addAll(SessionManager.deviceManager().getGatewayDevices());
+        List<AylaDevice> gatewaysList = new ArrayList<>();
+        if (AMAPCore.sharedInstance().getDeviceManager() != null) {
+            List<AylaDeviceGateway> gateways = AMAPCore.sharedInstance().getDeviceManager().getGateways();
+            for (AylaDevice device : gateways) {
+                if (device.isGateway()) {
+                    gatewaysList.add(device);
+                }
+            }
         }
 
-        if ( deviceList != null ) {
-            MainActivity.getInstance().setNoDevicesMode(false);
-            if ( _emptyView != null ) {
-                if (deviceList.isEmpty()) {
-                    _emptyView.setVisibility(View.VISIBLE);
-                    _emptyView.setText(R.string.no_gateways);
-                    _recyclerView.setVisibility(View.GONE);
-                } else {
-                    _emptyView.setVisibility(View.GONE);
-                    _recyclerView.setVisibility(View.VISIBLE);
-                    _adapter = DeviceListAdapter.fromDeviceList(deviceList, this);
-                    _recyclerView.setAdapter(_adapter);
-                }
+        MainActivity.getInstance().setNoDevicesMode(false);
+
+        if (_emptyView != null) {
+            if (gatewaysList.isEmpty()) {
+                _emptyView.setVisibility(View.VISIBLE);
+                _emptyView.setText(R.string.no_gateways);
+                _recyclerView.setVisibility(View.GONE);
+            } else {
+                _emptyView.setVisibility(View.GONE);
+                _recyclerView.setVisibility(View.VISIBLE);
+                _adapter = DeviceListAdapter.fromDeviceList(gatewaysList, this);
+                _recyclerView.setAdapter(_adapter);
             }
         }
     }
