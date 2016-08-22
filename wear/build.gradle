@@ -9,8 +9,8 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 32
-        versionName "1.0"
+        versionCode 37
+        versionName "5.2.00"
     }
 
     signingConfigs {
