@@ -7,14 +7,14 @@ An application designed to support multiple devices, themes, with strong separat
 Building in Android Studio
 =========================
 
-// Requires Gradle 2.1+
-// supported Android version: 4.4 and higher
-// Each build requires the correct Ayla SDK and Ayla Core Framework branch. export AYLA_SDK_BRANCH &
+// Requires Gradle 2.1+  
+// supported Android version: 4.4 and higher  
+// Each build requires the correct Ayla SDK and Ayla Core Framework branch. export AYLA_SDK_BRANCH &  
 // AYLA_CORE_BRANCH to the shell environment if using other than 'master'.
 
-$ git clone https://github.com/AylaNetworks/AMAP_Android.git
-$ cd AMAP_Android/gradle_scripts
-$ ../gradlew -q execTasks
+$ git clone https://github.com/AylaNetworks/AMAP_Android_Public.git  
+$ cd AMAP_Android_Public/gradle_scripts  
+$ ../gradlew -q execTasks  
 
 To build the project in Android Studio, click 'Build' and select 'Make Project'
 
@@ -29,16 +29,16 @@ To build the project in Android Studio, click 'Build' and select 'Make Project'
 Generating Documentation
 ===========================
 
-$ ./gradlew generateDebugJavadoc
-(ignore warnings and the error/failure message)
+$ ./gradlew generateDebugJavadoc  
+(ignore warnings and the error/failure message)  
 Open app/build/docs/javadoc/index.html in your browser
 
 
 Generate a library jar file
 ===========================
 
-$ ./gradlew clean compileReleaseJava jar
-Jar file will be generated at libraries/Android_AylaLibrary_Public/build/libs.
+$ ./gradlew clean compileReleaseJava jar  
+Jar file will be generated at libraries/Android_AylaLibrary_Public/build/libs.  
 External jars required by the library need to be included in applications using this jar (gson-2.2.4, log4j-1.2.17).
 
 Contribute your code
