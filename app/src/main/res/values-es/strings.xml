@@ -248,6 +248,7 @@
         <item>Same-LAN</item>
         <item>Button-Push</item>
         <item>Display</item>
+        <item>AP-Mode</item>
         <item>Nodo</item>
     </string-array>
 
