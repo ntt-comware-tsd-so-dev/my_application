@@ -92,6 +92,7 @@ public class AddDeviceFragment extends Fragment
             .RegistrationType.SameLan,
             AylaDevice.RegistrationType.ButtonPush,
             AylaDevice.RegistrationType.Display,
+            AylaDevice.RegistrationType.APMode,
             AylaDevice.RegistrationType.Node};
 
     private static final String DEFAULT_HOST_SCAN_REGEX = "Ayla-[0-9a-zA-Z]{12}";
@@ -365,6 +366,11 @@ public class AddDeviceFragment extends Fragment
                     textId = R.string.registration_display_instructions;
                     break;
 
+                case APMode:
+                    //The instructions are same as display. No need of any extra instructions
+                    textId = R.string.registration_display_instructions;
+                    break;
+
                 case Node: {
                     textId = R.string.gateway_find_devices;
                     showGateways = true;
@@ -383,7 +389,11 @@ public class AddDeviceFragment extends Fragment
                 }
                     break;
             }
-            _registerButton.setVisibility(showGateways ? View.GONE : View.VISIBLE);
+            boolean showRegButton = true;
+            if(showGateways || _registrationType == AylaDevice.RegistrationType.APMode) {
+                showRegButton = false;
+            }
+            _registerButton.setVisibility(showRegButton ? View.VISIBLE : View.GONE);
             _descriptionTextView.setText(Html.fromHtml(getActivity().getResources().getString(textId)));
             _spinnerRegistrationTypeLabel.setText(getString(showGateways ? R.string.select_gateway : R.string.registration_type));
             _spinnerRegistrationTypeLabel.setVisibility(spinnerVisible);
@@ -885,6 +895,10 @@ public class AddDeviceFragment extends Fragment
                                 showPushButtonDialog(dsn);
                             } else if (_registrationType == AylaDevice.RegistrationType.Display) {
                                 showDisplayRegDialog(dsn);
+                            } else if (_registrationType == AylaDevice.RegistrationType.APMode) {
+                                AylaRegistrationCandidate candidate = new AylaRegistrationCandidate();
+                                candidate.setDsn(dsn);
+                                registerCandidate(candidate,dsn,AylaDevice.RegistrationType.APMode, null);
                             } else {
                                 fetchCandidateAndRegister(dsn, AylaDevice.RegistrationType.SameLan, null);
                             }
@@ -932,7 +946,7 @@ public class AddDeviceFragment extends Fragment
     private void registerCandidate(AylaRegistrationCandidate candidate, String dsn, AylaDevice.RegistrationType regType, String regToken) {
         if (regToken != null) {
             candidate.setRegistrationToken(regToken);
-        } else if (TextUtils.equals(dsn, candidate.getDsn())) {
+        } else if (TextUtils.equals(dsn, candidate.getDsn()) || regType == AylaDevice.RegistrationType.APMode) {
             candidate.setSetupToken(_setupToken);
         } else {
             candidate.setRegistrationToken(ObjectUtils.generateRandomToken(8));
