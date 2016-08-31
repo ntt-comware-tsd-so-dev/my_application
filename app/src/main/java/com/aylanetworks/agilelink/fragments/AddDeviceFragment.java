@@ -81,6 +81,7 @@ public class AddDeviceFragment extends Fragment
         ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String LOG_TAG = "AddDeviceFragment";
+    private static final String ZIGBEE_PRODUCT_CLASS = "zigbee";
     private static final int REQUEST_LOCATION = 2;
 
     private static final boolean USE_WELCOME_FRAGMENT = true;
@@ -279,7 +280,8 @@ public class AddDeviceFragment extends Fragment
                 .getDevices(new Predicate<AylaDevice>() {
                     @Override
                     public boolean apply(AylaDevice aylaDevice) {
-                        return aylaDevice.isGateway();
+                        return aylaDevice.isGateway() &&
+                                !(ZIGBEE_PRODUCT_CLASS.equals(aylaDevice.getProductClass()));
                     }
                 });
 
@@ -378,7 +380,8 @@ public class AddDeviceFragment extends Fragment
                             .getDevices(new Predicate<AylaDevice>() {
                                 @Override
                                 public boolean apply(AylaDevice aylaDevice) {
-                                    return aylaDevice.isGateway();
+                                    return aylaDevice.isGateway() &&
+                                            !(ZIGBEE_PRODUCT_CLASS.equals(aylaDevice.getProductClass()));
                                 }
                             });
 
