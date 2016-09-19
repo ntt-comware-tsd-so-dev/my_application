@@ -61,6 +61,9 @@ Robolectric 		https://github.com/robolectric/robolectric/blob/master/LICENSE.txt
 Release Notes
 ===========================
 
+AMAP v5.2.01 : AYLA_SDK_BRANCH=release/5.2.00, AYLA_CORE_BRANCH=release/5.2.00 (9/16/2016)
+- add AP mode registration support
+
 AMAP v5.2.00 : AYLA_SDK_BRANCH=release/5.2.00, AYLA_CORE_BRANCH=release/5.2.00 (8/19/2016)
 
 New & Improved

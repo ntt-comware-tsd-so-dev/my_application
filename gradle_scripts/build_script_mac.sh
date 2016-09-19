@@ -14,7 +14,7 @@
 #
 
 # You can change the following variables to configure your build
-AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/5.2.00} # Internal use during porting only
+AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/5.2.01} # Internal use during porting only
 AYLA_SDK_BRANCH=${AYLA_SDK_BRANCH:-release/5.2.00} # Internal use during porting only
 AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/5.2.00} # Internal use during porting only
 AYLA_REMOTE=${AYLA_REMOTE:-origin}
