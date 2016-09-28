@@ -57,6 +57,10 @@ SpongyCastle		http://www.bouncycastle.org/licence.html
 Joda			http://www.joda.org/joda-time/license.html  
 Robolectric 		https://github.com/robolectric/robolectric/blob/master/LICENSE.txt
 
+Version of major build tools used
+=================================
+Android Studio: 2.1.1  
+Gradle: 2.10
 
 Release Notes
 ===========================
