@@ -54,6 +54,8 @@
     <!-- Required to start WearableUpdateService on device restart -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
@@ -119,6 +121,9 @@
             android:name=".DeveloperOptions"
             android:label="AgileLink"
             android:launchMode="singleInstance" />
+        <activity
+            android:name=".FingerPrintSettingsActivity"
+            android:label="@string/action_settings" />
 
         <!-- service android:name="com.aylanetworks.aaml.AylaExecuteRequest" / -->
 

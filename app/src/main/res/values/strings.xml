@@ -648,6 +648,13 @@
     <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
     <!-- -->
 
+    <string name="use_fingerprint_to_authenticate_title">Use fingerprint to authenticate</string>
+    <string name="use_fingerprint_to_authenticate_key" >use_fingerprint_to_authenticate_key</string>
+    <string name="fingerprint_description">Confirm fingerprint to continue</string>
+    <string name="fingerprint_hint">Touch sensor</string>
+    <string name="fingerprint_not_recognized">fingerprint not recognized</string>
+    <string name="fingerprint_retry_authentication">Fingerprint not recognized. Do you want to retry one more time?</string>
+    <string name="fingerprint_not_available">There is no existing fingerPrint for thisDevice.Please go to Android Settings and add a new fingerprint.</string>
     <!--  Permissions  -->
     <string name="contacts_permission_granted">Contacts access permission granted. You can now add contacts</string>
     <string name="contacts_permission_denied">Contacts access permission denied. You cannot add contacts</string>
