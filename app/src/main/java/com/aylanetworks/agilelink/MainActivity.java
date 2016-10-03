@@ -479,7 +479,9 @@ public class MainActivity extends AppCompatActivity
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
-        createKey();
+        if(checkFingerPrintOption()) {
+            createKey();
+        }
 
     }
 
@@ -1297,8 +1299,10 @@ public class MainActivity extends AppCompatActivity
                     "AndroidKeyStore");
         } catch (NoSuchAlgorithmException |
                 NoSuchProviderException e) {
-            throw new RuntimeException(
-                    "Failed to get KeyGenerator instance", e);
+            String errMsg = "Failed to get KeyGenerator instance " + e.getMessage();
+            Logger.logError(LOG_TAG, "Failed to create key " + e.getMessage());
+            Toast.makeText(this, errMsg, Toast.LENGTH_LONG).show();
+            return;
         }
 
         try {
@@ -1317,7 +1321,9 @@ public class MainActivity extends AppCompatActivity
             _keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException
                 | CertificateException | IOException e) {
-            throw new RuntimeException(e);
+            String errMsg = "Failed to create key " + e.getMessage();
+            Logger.logError(LOG_TAG, "Failed to create key " + e.getMessage());
+            Toast.makeText(this, errMsg, Toast.LENGTH_LONG).show();
         }
     }
 
