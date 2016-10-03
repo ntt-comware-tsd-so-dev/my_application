@@ -56,6 +56,32 @@ def set_version_string(version)
     File.write(vFile, file_contents)
 end
 
+def get_android_studio_version
+    vFile="/Applications/\"Android Studio.app\"/Contents/Info.plist"
+    version_sentence = `cat #{vFile} | grep -A1 "<key>CFBundleShortVersionString</key>"`
+    version_string = version_sentence.split("\n").last.gsub!(/.*<string>(.*)<\/string>.*/, "\\1")
+    version_string + "\n"
+end
+
+def get_gradle_version
+    vFile="../gradle/wrapper/gradle-wrapper.properties"
+    version_string = `cat #{vFile} | grep distributionUrl | cut -d'/' -f 5 | cut -d'-' -f 2`
+    version_string
+end
+
+def set_build_tool_version
+    vAndroidStudio = get_android_studio_version
+    vGradle = get_gradle_version
+    readmeFile = "../README.md"
+
+    puts "Your Android Studio version is: #{vAndroidStudio.chomp}"
+    puts "Your Gradle version is: #{vGradle}"
+    file_contents = File.read(readmeFile)
+    file_contents.gsub!(/(.*Android Studio: )(.*[\s])(.*)/, "\\1#{vAndroidStudio}\\3")
+    file_contents.gsub!(/(.*Gradle: )(.*[\s])(.*)/, "\\1#{vGradle}\\3")
+    File.write(readmeFile, file_contents)
+end
+
 platform :android do
   before_all do
     # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
@@ -99,6 +125,11 @@ platform :android do
   lane :set_version do |options|
     check_required_argument(options[:version], "version:x.y.z")
     set_version_string(options[:version])
+  end
+
+  lane :set_build_tool_version do
+    # automatically set build too version in README.md file
+    set_build_tool_version
   end
 
   desc "make a release. This lane requires: 1) \"public\" and \"origin\" remote have been configured; 2) developers should have already added release notes in README.md"
