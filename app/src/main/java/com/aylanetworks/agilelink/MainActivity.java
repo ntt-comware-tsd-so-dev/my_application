@@ -952,6 +952,7 @@ public class MainActivity extends AppCompatActivity
         }
         if (initCipher()) {
             FingerPrintDialogFragment mFragment = new FingerPrintDialogFragment();
+            mFragment.setCancelable(false);
             // Show the fingerprint dialog. The user has the option to use the fingerprint with
             // crypto, or you can fall back to using a server-side verified password.
             mFragment.setCryptoObject(new FingerprintManager.CryptoObject(_cipher));
@@ -1348,6 +1349,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         try {
+            if(_keyStore == null) {
+                createKey();
+            }
             _keyStore.load(null);
             SecretKey key = (SecretKey) _keyStore.getKey(KEY_NAME, null);
             _cipher.init(Cipher.ENCRYPT_MODE, key);
