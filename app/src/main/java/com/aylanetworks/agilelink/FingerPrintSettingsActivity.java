@@ -1,10 +1,9 @@
 package com.aylanetworks.agilelink;
 /*
- * AylaSDK
+ * AMAP_Android
  *
- * Copyright 2015 Ayla Networks, all rights reserved
+ * Copyright 2016 Ayla Networks, all rights reserved
  */
-
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
