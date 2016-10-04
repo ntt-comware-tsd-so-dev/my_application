@@ -41,6 +41,8 @@ public class FingerPrintDialogFragment extends DialogFragment
         super.onCreate(savedInstanceState);
         // Do not create a new Fragment when the Activity is re-created such as orientation changes.
         setRetainInstance(true);
+        //setStyle(R.style.PageHeader, android.R.style.Theme_NoTitleBar_Fullscreen);
+        setStyle(R.style.PageHeader, R.style.FingerPrintDialog);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -90,7 +92,7 @@ public class FingerPrintDialogFragment extends DialogFragment
     public void onError() {
         String body = MainActivity.getInstance().getString(R.string.fingerprint_retry_authentication);
         new AlertDialog.Builder(MainActivity.getInstance())
-                .setTitle(R.string.confirm_delete_contact_title)
+                .setTitle(R.string.attention)
                 .setMessage(body)
                 .setPositiveButton(android.R.string.yes, null)
                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
