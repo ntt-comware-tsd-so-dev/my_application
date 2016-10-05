@@ -249,9 +249,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             });
         }
 
-        if(AMAPCore.sharedInstance().getSessionManager() != null) {
-            AMAPCore.sharedInstance().getSessionManager().addListener(this);
-        }
+
     }
 
     @Override
@@ -280,6 +278,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             handleOpenURI(uri);
             // Clear out the URI
             AccountConfirmActivity.uri = null;
+        }
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
         }
     }
 
@@ -569,7 +570,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-
+        if(MainActivity.getInstance().checkFingerPrintOption()){
+            MainActivity.getInstance().showFingerPrint();
+        }
     }
 
     private static Context mContext;

@@ -944,7 +944,7 @@ public class MainActivity extends AppCompatActivity
     private boolean _fingerPrintScreenUp;
 
     @TargetApi(Build.VERSION_CODES.M)
-    private void showFingerPrint(){
+    public void showFingerPrint(){
         Log.d(LOG_TAG, "nod: _fingerPrintScreenUp:");
         if ( _fingerPrintScreenUp ) {
             Log.i(LOG_TAG, "nod: _fingerPrintScreenUp: Already shown");
@@ -961,7 +961,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private boolean checkFingerPrintOption() {
+    public boolean checkFingerPrintOption() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             //Fingerprint API only available on from Android 6.0 (M)
             boolean fingetPrintOption= AgileLinkApplication.getSharedPreferences()
@@ -1053,9 +1053,7 @@ public class MainActivity extends AppCompatActivity
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
         }
-        if(checkFingerPrintOption()){
-            showFingerPrint();
-        }else {
+        else {
             checkLoginAndConnectivity();
         }
     }

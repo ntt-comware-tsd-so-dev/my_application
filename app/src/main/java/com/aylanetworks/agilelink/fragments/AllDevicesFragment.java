@@ -82,11 +82,6 @@ public class AllDevicesFragment extends Fragment implements
 
         _expandedDevices = new ArrayList<>();
 
-        // Listen for login events. Our fragment exists before the user has logged in, so we need
-        // to know when that happens so we can start listening to the device manager notifications.
-        if(AMAPCore.sharedInstance().getSessionManager() != null) {
-            AMAPCore.sharedInstance().getSessionManager().addListener(this);
-        }
     }
 
     @Override
@@ -240,6 +235,11 @@ public class AllDevicesFragment extends Fragment implements
             startListening();
             updateDeviceList();
         }
+        // Listen for login events. Our fragment exists before the user has logged in, so we need
+        // to know when that happens so we can start listening to the device manager notifications.
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        }
     }
 
     @Override
@@ -355,6 +355,8 @@ public class AllDevicesFragment extends Fragment implements
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-
+        if(MainActivity.getInstance().checkFingerPrintOption()){
+            MainActivity.getInstance().showFingerPrint();
+        }
     }
 }
