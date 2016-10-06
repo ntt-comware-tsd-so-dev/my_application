@@ -476,11 +476,16 @@ public class MainActivity extends AppCompatActivity
             AMAPCore.initialize(getAppParameters(this), this);
         }
 
-        boolean expireAuthToken= AgileLinkApplication.getSharedPreferences()
-                .getBoolean(getString(R.string.always_expire_auth_token), false);
-
         if (!_loginScreenUp) {
-            showLoginDialog(expireAuthToken);
+            boolean allowOfflineUse = AylaNetworks.sharedInstance().getSystemSettings().allowOfflineUse;
+            if(allowOfflineUse) {
+                //For off line mode don't disable existing cache
+                showLoginDialog(false);
+            } else {
+                boolean expireAuthToken= AgileLinkApplication.getSharedPreferences()
+                        .getBoolean(getString(R.string.always_expire_auth_token), false);
+                showLoginDialog(expireAuthToken);
+            }
         }
 
         // We want to know about application state changes

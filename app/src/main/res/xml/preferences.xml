@@ -9,6 +9,7 @@
         android:key="@string/always_expire_auth_token"
         android:title="@string/always_expire_auth_token"
         android:persistent="true"
-        android:defaultValue="false" />
+        android:defaultValue="false"
+        android:summary="@string/require_login_summary"/>
     />
 </PreferenceScreen>
