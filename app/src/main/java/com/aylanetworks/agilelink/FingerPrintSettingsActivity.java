@@ -4,6 +4,7 @@ package com.aylanetworks.agilelink;
  *
  * Copyright 2016 Ayla Networks, all rights reserved
  */
+
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,7 +37,7 @@ public class FingerPrintSettingsActivity extends Activity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
             CheckBoxPreference fingerprintPreference = (CheckBoxPreference) getPreferenceManager()
-                    .findPreference(getString(R.string.use_fingerprint_to_authenticate_key));
+                    .findPreference(getString(R.string.use_fingerprint_to_authenticate));
             //The finger print is available only on Android devices M and up.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 getPreferenceScreen().removePreference(fingerprintPreference);
@@ -45,10 +46,10 @@ public class FingerPrintSettingsActivity extends Activity {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     boolean checked = Boolean.valueOf(newValue.toString());
-                    if(checked) {
+                    if (checked) {
                         //Make sure the device has finger print available
-                        if( !FingerprintUiHelper.isFingerprintAuthAvailable()) {
-                            String errString =MainActivity.getInstance().getString(R.string.fingerprint_not_available);
+                        if (!FingerprintUiHelper.isFingerprintAuthAvailable()) {
+                            String errString = MainActivity.getInstance().getString(R.string.fingerprint_not_available);
                             Toast.makeText(AMAPCore.sharedInstance().getContext(), errString,
                                     Toast.LENGTH_LONG).show();
                             return false;

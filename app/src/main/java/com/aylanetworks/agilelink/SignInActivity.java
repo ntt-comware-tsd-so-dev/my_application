@@ -570,6 +570,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+        CachedAuthProvider.cacheAuthorization(this, authorization);
         if(MainActivity.getInstance().checkFingerPrintOption()){
             MainActivity.getInstance().showFingerPrint();
         }

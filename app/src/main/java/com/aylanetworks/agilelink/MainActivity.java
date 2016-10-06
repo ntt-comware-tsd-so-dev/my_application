@@ -337,6 +337,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
         CachedAuthProvider.cacheAuthorization(this, authorization);
+        if(MainActivity.getInstance().checkFingerPrintOption()){
+            MainActivity.getInstance().showFingerPrint();
+        }
     }
 
     /**
@@ -473,8 +476,11 @@ public class MainActivity extends AppCompatActivity
             AMAPCore.initialize(getAppParameters(this), this);
         }
 
+        boolean expireAuthToken= AgileLinkApplication.getSharedPreferences()
+                .getBoolean(getString(R.string.always_expire_auth_token), false);
+
         if (!_loginScreenUp) {
-            showLoginDialog(false);
+            showLoginDialog(expireAuthToken);
         }
 
         // We want to know about application state changes
@@ -965,7 +971,7 @@ public class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             //Fingerprint API only available on from Android 6.0 (M)
             boolean fingetPrintOption= AgileLinkApplication.getSharedPreferences()
-                    .getBoolean(getString(R.string.use_fingerprint_to_authenticate_key), false);
+                    .getBoolean(getString(R.string.use_fingerprint_to_authenticate), false);
             if(fingetPrintOption) {
                 return FingerprintUiHelper.isFingerprintAuthAvailable();
             }

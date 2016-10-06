@@ -35,6 +35,7 @@ public class FingerPrintDialogFragment extends DialogFragment
     private FingerprintManager.CryptoObject _cryptoObject;
     private FingerprintUiHelper _fingerprintUiHelper;
     private MainActivity _mainActivity;
+    private AlertDialog _alertDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -85,13 +86,19 @@ public class FingerPrintDialogFragment extends DialogFragment
         // Callback from FingerprintUiHelper. Let the activity know that authentication was
         // successful.
         _mainActivity.checkLoginAndConnectivity();
+        if (_alertDialog != null) {
+            _alertDialog.dismiss();
+        }
         dismiss();
     }
 
     @Override
     public void onError() {
+        if (_alertDialog != null && _alertDialog.isShowing()) {
+            return;
+        }
         String body = MainActivity.getInstance().getString(R.string.fingerprint_retry_authentication);
-        new AlertDialog.Builder(MainActivity.getInstance())
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance())
                 .setTitle(R.string.attention)
                 .setMessage(body)
                 .setPositiveButton(android.R.string.yes, null)
@@ -101,8 +108,10 @@ public class FingerPrintDialogFragment extends DialogFragment
                         _mainActivity.showLoginDialog(true);
                         dismiss();
                     }
-                })
-                .create().show();
+                });
+
+        _alertDialog = builder.create();
+        _alertDialog.show();
     }
 
     /**

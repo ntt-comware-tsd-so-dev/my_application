@@ -28,6 +28,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -355,6 +356,7 @@ public class AllDevicesFragment extends Fragment implements
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
+        CachedAuthProvider.cacheAuthorization(MainActivity.getInstance(), authorization);
         if(MainActivity.getInstance().checkFingerPrintOption()){
             MainActivity.getInstance().showFingerPrint();
         }
