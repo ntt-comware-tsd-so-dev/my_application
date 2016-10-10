@@ -44,25 +44,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
-import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
-import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.AccountSettings;
-import com.aylanetworks.aylasdk.AylaDeviceManager;
-import com.aylanetworks.aylasdk.AylaLog;
-import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaSessionManager;
-import com.aylanetworks.aylasdk.AylaShare;
-import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.agilelink.framework.IdentityProviderAuth;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -829,6 +828,14 @@ public class MainActivity extends AppCompatActivity
 
         parameters.loggingLevel = LOG_PERMIT;
 
+        parameters.ssoLogin = false;
+        if(parameters.ssoLogin){
+            parameters.appId = "client-id";
+            parameters.appSecret = "client-2839357";
+        }
+
+        parameters.ssoManager = new AgilelinkSSOManager();
+
         parameters.registrationEmailSubject = context.getResources().getString(R.string.registraion_email_subject);
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
@@ -1050,7 +1057,8 @@ public class MainActivity extends AppCompatActivity
 
     public void signIn(String username, String password) {
         showWaitDialog(R.string.signingIn, R.string.signingIn);
-        AMAPCore.sharedInstance().startSession(username, password,
+
+        final Response.Listener<AylaAuthorization> successListener =
                 new Response.Listener<AylaAuthorization>() {
                     @Override
                     public void onResponse(AylaAuthorization response) {
@@ -1067,17 +1075,50 @@ public class MainActivity extends AppCompatActivity
                         setCloudConnectivityIndicator(true);
                         handleSignedIn();
                     }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        dismissWaitDialog();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.this);
-                        Toast.makeText(MainActivity.this,
-                                ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                };
+
+        final ErrorListener errorListener = new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                dismissWaitDialog();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.this);
+                Toast.makeText(MainActivity.this,
+                        ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        if(getAppParameters(this).ssoLogin){
+            AylaLog.d(LOG_TAG, " Login to Identity provider");
+            // Login to Identity Provider first and get the access token for Ayla service
+            getAppParameters(this).ssoManager.login(username, password,
+                    new Response.Listener<IdentityProviderAuth>() {
+                @Override
+                public void onResponse(IdentityProviderAuth response) {
+                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
+                    SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString(AgilelinkSSOManager.USER_ID_KEY, response.getUuid());
+                    editor.commit();
+
+                    AMAPCore.sharedInstance().startSession(response.getAccessToken(),
+                          successListener, errorListener);
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider failed "+
+                            error.getLocalizedMessage());
+                }
+            });
+
+
+        } else{
+            AylaLog.d(LOG_TAG, "Login to Ayla user service");
+            AMAPCore.sharedInstance().startSession(username, password,
+                    successListener, errorListener);
+        }
+
     }
 
     /**

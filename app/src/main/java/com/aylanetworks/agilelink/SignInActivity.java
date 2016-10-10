@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,8 +32,10 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.IdentityProviderAuth;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
@@ -119,7 +122,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         ImageButton facebookLoginButton = (ImageButton) findViewById(R.id.facebook_login);
         ImageButton googleLoginButton = (ImageButton) findViewById(R.id.google_login);
         TextView signUpTextView = (TextView) findViewById(R.id.signUpTextView);
-        TextView resendEmailTextView = (TextView) findViewById(R.id.resendConfirmationTextView);
+        final TextView resendEmailTextView = (TextView) findViewById(R.id.resendConfirmationTextView);
         TextView forgotPasswordTextView = (TextView) findViewById(R.id.forgot_password);
 
         // The serviceTypeSpinner is only shown if the user taps "Forgot Password" and enters
@@ -169,25 +172,59 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(_loginButton.getWindowToken(), 0);
                     showSigningInDialog();
-                    AMAPCore.sharedInstance().startSession(_username.getText().toString(), _password.getText().toString(),
-                            new Response.Listener<AylaAuthorization>() {
-                                @Override
-                                public void onResponse(AylaAuthorization response) {
-                                    // Cache the authorization
-                                    CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
-                                    setResult(Activity.RESULT_OK);
-                                    finish();
-                                }
-                            },
-                            new ErrorListener() {
-                                @Override
-                                public void onErrorResponse(AylaError error) {
-                                    dismissSigningInDialog();
-                                    Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
-                                    Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
-                                            .LENGTH_LONG).show();
-                                }
-                            });
+
+                    final Response.Listener successListener = new Response
+                            .Listener<AylaAuthorization>() {
+                        @Override
+                        public void onResponse(AylaAuthorization response) {
+                            CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
+                            setResult(Activity.RESULT_OK);
+                            finish();
+                        }
+                    };
+
+                    final ErrorListener errorListener = new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            dismissSigningInDialog();
+                            Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
+                            Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                    .LENGTH_LONG).show();
+                        }
+                    };
+
+                    if(AMAPCore.sharedInstance().getSessionParameters().ssoLogin){
+                        AylaLog.d(LOG_TAG, "Startig SSO login to Identity provider");
+                        AMAPCore.sharedInstance().getSessionParameters().ssoManager.login(
+                                _username.getText().toString(), _password.getText().toString(),
+                                new Response.Listener<IdentityProviderAuth>() {
+                                    @Override
+                                    public void onResponse(IdentityProviderAuth response) {
+                                        // Save the Identity provider auth here since we need the
+                                        // uuId for all identity provider APIs
+                                        AMAPCore.sharedInstance().setSsoProviderAuth(response);
+                                        SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
+                                        SharedPreferences.Editor editor = prefs.edit();
+                                        editor.putString(AgilelinkSSOManager.USER_ID_KEY, response.getUuid());
+                                        editor.commit();
+                                        AMAPCore.sharedInstance().startSession(
+                                                response.getAccessToken(), successListener, errorListener);
+                                    }
+                                }, new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        dismissSigningInDialog();
+                                        Log.e(LOG_TAG, "Sign In to identity provider failed "+ error
+                                                .getMessage());
+                                        Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                                .LENGTH_LONG).show();
+                                    }
+                                });
+                    } else{
+                        AMAPCore.sharedInstance().startSession(_username.getText().toString(), _password.getText().toString(),
+                                successListener, errorListener);
+                    }
+
                 }
             }
         );
