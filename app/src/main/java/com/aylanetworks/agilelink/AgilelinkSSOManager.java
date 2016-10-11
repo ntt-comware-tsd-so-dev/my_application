@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink;
 
 import android.content.SharedPreferences;
+
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
@@ -53,7 +54,7 @@ public class AgilelinkSSOManager extends SSOManager {
      * @param errorListener listener to receive error information in case of failure
      */
     @Override
-    public void login(String username, String password, Response.Listener<IdentityProviderAuth> successListener,
+    public AylaAPIRequest login(String username, String password, Response.Listener<IdentityProviderAuth> successListener,
                       ErrorListener errorListener) {
         AylaLog.d(LOG_TAG, " Starting SSO login to provider");
         final String loginUrl = _identityProviderBaseUrl + "sign_in?email=" + username +
@@ -64,6 +65,7 @@ public class AgilelinkSSOManager extends SSOManager {
                 errorListener);
         AylaLoginManager loginManager = AylaNetworks.sharedInstance().getLoginManager();
         loginManager.sendUserServiceRequest(request);
+        return request;
     }
 
     /**
@@ -73,18 +75,18 @@ public class AgilelinkSSOManager extends SSOManager {
      * @param errorListener listener to receive error information in case of failure
      */
     @Override
-    public void updateUserInfo(final AylaUser updatedUser, final Response.Listener<AylaUser>
+    public AylaAPIRequest updateUserInfo(final AylaUser updatedUser, final Response.Listener<AylaUser>
             successListener, final ErrorListener errorListener) {
 
         String uuid = getUUid();
         if(uuid == null){
             errorListener.onErrorResponse(new PreconditionError("No user id"));
-            return;
+            return null;
         }
         AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
         if(sessionManager == null){
             errorListener.onErrorResponse(new PreconditionError("No valid session"));
-            return;
+            return null;
         }
         final String url = _identityProviderBaseUrl + "users/" +uuid;
 
@@ -117,22 +119,22 @@ public class AgilelinkSSOManager extends SSOManager {
             }
         };
         sessionManager.sendUserServiceRequest(request);
-
+        return  request;
 
     }
 
     @Override
-    public void deleteUser(Response.Listener<AylaAPIRequest.EmptyResponse> successListener, ErrorListener errorListener) {
+    public AylaAPIRequest deleteUser(Response.Listener<AylaAPIRequest.EmptyResponse> successListener, ErrorListener errorListener) {
 
         AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
         if(sessionManager == null){
             errorListener.onErrorResponse(new PreconditionError("No valid session"));
-            return;
+            return null;
         }
         String uuid = getUUid();
         if(uuid == null){
             errorListener.onErrorResponse(new PreconditionError("No user id"));
-            return;
+            return null;
         }
         String url = _identityProviderBaseUrl + "users/" + uuid;
 
@@ -140,18 +142,38 @@ public class AgilelinkSSOManager extends SSOManager {
                 Request.Method.DELETE, url, getSSOHeaders(), AylaAPIRequest.EmptyResponse.class,
                 sessionManager, successListener, errorListener );
         sessionManager.sendUserServiceRequest(request);
-
+        return  request;
 
     }
 
     @Override
-    public void signOut(Response.Listener<AylaAPIRequest.EmptyResponse> successListener,
+    public AylaAPIRequest signOut(Response.Listener<AylaAPIRequest.EmptyResponse> successListener,
                         ErrorListener errorListener) {
         AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
         if(sessionManager == null){
             errorListener.onErrorResponse(new PreconditionError("No valid session"));
-            return;
+            return null;
         }
+        String uuid = getUUid();
+        if(uuid == null){
+            errorListener.onErrorResponse(new PreconditionError("No user id"));
+            return null;
+        }
+        JSONObject jsonObj = new JSONObject();
+        try {
+            jsonObj.put("sign_out", "true");
+        } catch (JSONException e) {
+            errorListener.onErrorResponse(new PreconditionError("JsonException while creating " +
+                    "json body"));
+            return null;
+        }
+
+        String url = _identityProviderBaseUrl + "users/" + uuid ;
+        AylaJsonRequest<AylaAPIRequest.EmptyResponse> request = new AylaJsonRequest<>(Request
+                .Method.POST, url, jsonObj.toString(), getSSOHeaders(), AylaAPIRequest
+                .EmptyResponse.class, sessionManager, successListener, errorListener);
+        sessionManager.sendUserServiceRequest(request);
+        return request;
     }
 
 

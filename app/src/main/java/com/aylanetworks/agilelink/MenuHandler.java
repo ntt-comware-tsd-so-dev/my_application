@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.fragments.ScheduleContainerFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -278,27 +279,37 @@ public class MenuHandler {
         }
         MainActivity.getInstance().showWaitDialog(MainActivity.getInstance().getString(
                 R.string.signing_out), null);
-        sessionManager.shutDown(
-                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                    @Override
-                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
-                        MainActivity.getInstance().showLoginDialog(true);
-                    }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
-                        Toast.makeText(MainActivity.getInstance(),
-                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                Toast.LENGTH_LONG).show();
-                        MainActivity.getInstance().showLoginDialog(true);
-                    }
-                });
+
+        Response.Listener<AylaAPIRequest.EmptyResponse> successListener = new Response
+                .Listener<AylaAPIRequest.EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                MainActivity.getInstance().dismissWaitDialog();
+                Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
+                MainActivity.getInstance().showLoginDialog(true);
+            }
+        };
+
+        ErrorListener errorListener =  new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                        Toast.LENGTH_LONG).show();
+                MainActivity.getInstance().showLoginDialog(true);
+            }
+        };
+
+
+        if(AMAPCore.sharedInstance().getSessionParameters().ssoLogin){
+            AMAPCore.sharedInstance().getSessionParameters().ssoManager.signOut(successListener,
+                    errorListener);
+        } else{
+            sessionManager.shutDown(successListener, errorListener);
+        }
     }
 
     public static void about() {
