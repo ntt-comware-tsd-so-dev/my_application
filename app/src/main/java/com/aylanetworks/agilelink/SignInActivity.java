@@ -565,15 +565,15 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
-
+        //Make sure the user did not sign out normally (i.e error=null)
+        if(error !=null && MainActivity.getInstance().checkFingerprintOption()){
+            MainActivity.getInstance().showFingerPrint();
+        }
     }
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
         CachedAuthProvider.cacheAuthorization(this, authorization);
-        if(MainActivity.getInstance().checkFingerPrintOption()){
-            MainActivity.getInstance().showFingerPrint();
-        }
     }
 
     private static Context mContext;

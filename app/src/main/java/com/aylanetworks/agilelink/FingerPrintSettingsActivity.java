@@ -5,18 +5,18 @@ package com.aylanetworks.agilelink;
  * Copyright 2016 Ayla Networks, all rights reserved
  */
 
-import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
 import com.aylanetworks.agilelink.fragments.FingerprintUiHelper;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 
-public class FingerPrintSettingsActivity extends Activity {
+public class FingerPrintSettingsActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

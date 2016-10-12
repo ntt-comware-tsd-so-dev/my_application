@@ -325,21 +325,24 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
-        // User logged out.
-        setNoDevicesMode(false);
-        if (!_loginScreenUp) {
-            showLoginDialog(true);
-        } else {
-            Log.e(LOG_TAG, "nod: Login screen is already up:");
+        //Make sure the user did not sign out normally (i.e error=null)
+        if(error !=null && MainActivity.getInstance().checkFingerprintOption()){
+            MainActivity.getInstance().showFingerPrint();
+        }
+        else {
+            // User logged out.
+            setNoDevicesMode(false);
+            if (!_loginScreenUp) {
+                showLoginDialog(true);
+            } else {
+                Log.e(LOG_TAG, "nod: Login screen is already up:");
+            }
         }
     }
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
         CachedAuthProvider.cacheAuthorization(this, authorization);
-        if(MainActivity.getInstance().checkFingerPrintOption()){
-            MainActivity.getInstance().showFingerPrint();
-        }
     }
 
     /**
@@ -490,7 +493,7 @@ public class MainActivity extends AppCompatActivity
 
         // We want to know about application state changes
         ((AgileLinkApplication)getApplication()).addListener(this);
-        if(checkFingerPrintOption()) {
+        if(checkFingerprintOption()) {
             createKey();
         }
 
@@ -954,7 +957,6 @@ public class MainActivity extends AppCompatActivity
     private boolean _loginScreenUp;
     private boolean _fingerPrintScreenUp;
 
-    @TargetApi(Build.VERSION_CODES.M)
     public void showFingerPrint(){
         Log.d(LOG_TAG, "nod: _fingerPrintScreenUp:");
         if ( _fingerPrintScreenUp ) {
@@ -972,12 +974,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public boolean checkFingerPrintOption() {
+    public boolean checkFingerprintOption() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             //Fingerprint API only available on from Android 6.0 (M)
-            boolean fingetPrintOption= AgileLinkApplication.getSharedPreferences()
+            boolean fingerPrintOption= AgileLinkApplication.getSharedPreferences()
                     .getBoolean(getString(R.string.use_fingerprint_to_authenticate), false);
-            if(fingetPrintOption) {
+            if(fingerPrintOption) {
                 return FingerprintUiHelper.isFingerprintAuthAvailable();
             }
         }
@@ -1289,7 +1291,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private void createKey() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return;
@@ -1301,10 +1302,11 @@ public class MainActivity extends AppCompatActivity
             _keyStore = KeyStore.getInstance("AndroidKeyStore");
         } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
-        KeyGenerator _keyGenerator;
+        KeyGenerator keyGenerator;
         try {
-            _keyGenerator = KeyGenerator.getInstance(
+            keyGenerator = KeyGenerator.getInstance(
                     KeyProperties.KEY_ALGORITHM_AES,
                     "AndroidKeyStore");
         } catch (NoSuchAlgorithmException |
@@ -1319,7 +1321,7 @@ public class MainActivity extends AppCompatActivity
             _keyStore.load(null);
             // Set the alias of the entry in Android KeyStore where the key will appear
             // and the constrains (purposes) in the constructor of the Builder
-            _keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
+            keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
                     KeyProperties.PURPOSE_ENCRYPT |
                             KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
@@ -1328,7 +1330,7 @@ public class MainActivity extends AppCompatActivity
                     .setUserAuthenticationRequired(true)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                     .build());
-            _keyGenerator.generateKey();
+            keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException
                 | CertificateException | IOException e) {
             String errMsg = "Failed to create key " + e.getMessage();
@@ -1345,7 +1347,6 @@ public class MainActivity extends AppCompatActivity
      * been disabled or reset after the key was generated, or if a fingerprint got enrolled after
      * the key was generated.
      */
-    @TargetApi(Build.VERSION_CODES.M)
     private boolean initCipher() {
         try {
             _cipher = Cipher.getInstance(

@@ -23,7 +23,6 @@ import com.aylanetworks.agilelink.R;
 /**
  * Small helper class to manage text/icon around fingerprint authentication UI.
  */
-@TargetApi(Build.VERSION_CODES.M)
 public class FingerprintUiHelper extends FingerprintManager.AuthenticationCallback {
 
     private static final long ERROR_TIMEOUT_MILLIS = 1600;
