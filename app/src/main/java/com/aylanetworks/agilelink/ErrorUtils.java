@@ -25,8 +25,6 @@ public class ErrorUtils {
             return messageUnknownError;
         }
 
-        Log.e("AMAP5-ERR", "Unhandled AylaError: ", error);
-
         if (error instanceof ServerError) {
             ServerError serverError = ((ServerError) error);
             int code = serverError.getServerResponseCode();
