@@ -64,6 +64,7 @@ import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
+import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -834,8 +835,6 @@ public class MainActivity extends AppCompatActivity
             parameters.appSecret = "client-2839357";
         }
 
-        parameters.ssoManager = new AgilelinkSSOManager();
-
         parameters.registrationEmailSubject = context.getResources().getString(R.string.registraion_email_subject);
 
         // For a custom HTML message, set REGISTRATION_EMAIL_TEMPLATE_ID to null and
@@ -1091,17 +1090,13 @@ public class MainActivity extends AppCompatActivity
         if(getAppParameters(this).ssoLogin){
             AylaLog.d(LOG_TAG, " Login to Identity provider");
             // Login to Identity Provider first and get the access token for Ayla service
-            getAppParameters(this).ssoManager.login(username, password,
+            final SSOAuthProvider ssoProvider = new SSOAuthProvider();
+            ssoProvider.ssoLogin(username, password,
                     new Response.Listener<IdentityProviderAuth>() {
                 @Override
                 public void onResponse(IdentityProviderAuth response) {
                     AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
-                    SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString(AgilelinkSSOManager.USER_ID_KEY, response.getUuid());
-                    editor.commit();
-
-                    AMAPCore.sharedInstance().startSession(response.getAccessToken(),
+                    AMAPCore.sharedInstance().startSession(ssoProvider,
                           successListener, errorListener);
                 }
             }, new ErrorListener() {
@@ -1115,7 +1110,8 @@ public class MainActivity extends AppCompatActivity
 
         } else{
             AylaLog.d(LOG_TAG, "Login to Ayla user service");
-            AMAPCore.sharedInstance().startSession(username, password,
+            UsernameAuthProvider authProvider = new UsernameAuthProvider(username, password);
+            AMAPCore.sharedInstance().startSession(authProvider,
                     successListener, errorListener);
         }
 

@@ -195,14 +195,25 @@ public class SSOAuthProvider implements AylaAuthProvider {
         return request;
     }
 
-    public AylaAPIRequest ssoLogin(String username, String password, Response
+    public AylaAPIRequest ssoLogin(String username, String password, final Response
             .Listener<IdentityProviderAuth> successListener, ErrorListener errorListener){
         AylaLog.d(LOG_TAG, " Starting SSO login to provider");
         final String loginUrl = _identityProviderBaseUrl + "sign_in?email=" + username +
                 "&password=" + password;
         AylaSessionManager sessionManager = AMAPCore.sharedInstance().getSessionManager();
         AylaAPIRequest<IdentityProviderAuth> request = new AylaAPIRequest<>(Request.Method.GET,
-                loginUrl, null, IdentityProviderAuth.class, sessionManager, successListener,
+                loginUrl, null, IdentityProviderAuth.class, sessionManager, new Response.Listener<IdentityProviderAuth>() {
+            @Override
+            public void onResponse(IdentityProviderAuth response) {
+                // uuId for all identity provider APIs
+                SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString(SSOAuthProvider.USER_ID_KEY, response.getUuid());
+                editor.commit();
+                _token = response.getAccessToken();
+                successListener.onResponse(response);
+            }
+        },
                 errorListener);
         AylaLoginManager loginManager = AylaNetworks.sharedInstance().getLoginManager();
         loginManager.sendUserServiceRequest(request);

@@ -30,12 +30,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.IdentityProviderAuth;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
 import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaLoginManager;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
@@ -45,6 +47,7 @@ import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.AylaOAuthProvider;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
+import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -193,36 +196,32 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         }
                     };
 
+                    final String username = _username.getText().toString();
                     if(AMAPCore.sharedInstance().getSessionParameters().ssoLogin){
                         AylaLog.d(LOG_TAG, "Startig SSO login to Identity provider");
-                        AMAPCore.sharedInstance().getSessionParameters().ssoManager.login(
-                                _username.getText().toString(), _password.getText().toString(),
+                        final SSOAuthProvider ssoAuthProvider = new SSOAuthProvider();
+                        ssoAuthProvider.ssoLogin(username, password,
                                 new Response.Listener<IdentityProviderAuth>() {
-                                    @Override
-                                    public void onResponse(IdentityProviderAuth response) {
-                                        // Save the Identity provider auth here since we need the
-                                        // uuId for all identity provider APIs
-                                        AMAPCore.sharedInstance().setSsoProviderAuth(response);
-                                        SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
-                                        SharedPreferences.Editor editor = prefs.edit();
-                                        editor.putString(AgilelinkSSOManager.USER_ID_KEY, response.getUuid());
-                                        editor.commit();
-                                        AMAPCore.sharedInstance().startSession(
-                                                response.getAccessToken(), successListener, errorListener);
-                                    }
-                                }, new ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(AylaError error) {
-                                        dismissSigningInDialog();
-                                        Log.e(LOG_TAG, "Sign In to identity provider failed "+ error
-                                                .getMessage());
-                                        Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
-                                                .LENGTH_LONG).show();
-                                    }
-                                });
+                            @Override
+                            public void onResponse(IdentityProviderAuth response) {
+                                AMAPCore.sharedInstance().startSession(
+                                        ssoAuthProvider, successListener, errorListener);
+                            }
+                        }, new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                dismissSigningInDialog();
+                                Log.e(LOG_TAG, "Sign In to identity provider failed "+ error
+                                        .getMessage());
+                                Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                        .LENGTH_LONG).show();
+                            }
+                        });
                     } else{
-                        AMAPCore.sharedInstance().startSession(_username.getText().toString(), _password.getText().toString(),
-                                successListener, errorListener);
+                        UsernameAuthProvider authProvider = new UsernameAuthProvider(
+                                _username.getText().toString(), _password.getText().toString());
+                        AMAPCore.sharedInstance().startSession(authProvider, successListener,
+                                errorListener);
                     }
 
                 }
@@ -707,5 +706,4 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         //TODO: Add more matches when necessary, SVC-2335.
         return R.string.unauthorized;
     }// end of getLocalizedString
-
 }
