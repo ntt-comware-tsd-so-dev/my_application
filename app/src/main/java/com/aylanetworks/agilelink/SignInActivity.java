@@ -7,7 +7,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,14 +29,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.IdentityProviderAuth;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
 import com.aylanetworks.aylasdk.AylaLog;
-import com.aylanetworks.aylasdk.AylaLoginManager;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
@@ -208,9 +204,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         AylaLog.d(LOG_TAG, "Startig SSO login to Identity provider");
                         final SSOAuthProvider ssoAuthProvider = new SSOAuthProvider();
                         ssoAuthProvider.ssoLogin(username, password,
-                                new Response.Listener<IdentityProviderAuth>() {
+                                new Response.Listener<SSOAuthProvider.IdentityProviderAuth>() {
                             @Override
-                            public void onResponse(IdentityProviderAuth response) {
+                            public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
                                 AMAPCore.sharedInstance().startSession(
                                         ssoAuthProvider, successListener, errorListener);
                             }

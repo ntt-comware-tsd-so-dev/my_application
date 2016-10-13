@@ -54,7 +54,6 @@ import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
-import com.aylanetworks.agilelink.framework.IdentityProviderAuth;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
@@ -829,7 +828,7 @@ public class MainActivity extends AppCompatActivity
 
         parameters.loggingLevel = LOG_PERMIT;
 
-        parameters.ssoLogin = false;
+        parameters.ssoLogin = true;
         if(parameters.ssoLogin){
             parameters.appId = "client-id";
             parameters.appSecret = "client-2839357";
@@ -1092,9 +1091,9 @@ public class MainActivity extends AppCompatActivity
             // Login to Identity Provider first and get the access token for Ayla service
             final SSOAuthProvider ssoProvider = new SSOAuthProvider();
             ssoProvider.ssoLogin(username, password,
-                    new Response.Listener<IdentityProviderAuth>() {
+                    new Response.Listener<SSOAuthProvider.IdentityProviderAuth>() {
                 @Override
-                public void onResponse(IdentityProviderAuth response) {
+                public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
                     AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
                     AMAPCore.sharedInstance().startSession(ssoProvider,
                           successListener, errorListener);

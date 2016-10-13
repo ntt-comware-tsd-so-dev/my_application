@@ -15,7 +15,6 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.IdentityProviderAuth;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaJsonRequest;
 import com.aylanetworks.aylasdk.AylaLog;
@@ -298,6 +297,29 @@ public class SSOAuthProvider extends BaseAuthProvider {
                 .sharedInstance().getContext());
         cachedAuthProvider.authenticate(listener);
     }
+
+    public class IdentityProviderAuth {
+        /**
+         * User Id received from SSO Identity provider.
+         */
+        @Expose
+        private String uuid;
+
+        /**
+         * Access token of the SSO Identity provider.
+         */
+        @Expose
+        private String accessToken;
+
+        public String getAccessToken() {
+            return accessToken;
+        }
+
+        public String getUuid() {
+            return uuid;
+        }
+    }
+
 
 }
 
