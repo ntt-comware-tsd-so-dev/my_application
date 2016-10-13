@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -83,7 +84,9 @@ public class MenuHandler {
             case R.id.action_contact_list:
                 handleContacts();
                 break;
-
+            case R.id.action_settings:
+                handleSettings();
+                break;
             case R.id.action_notifications:
                 handleNotifications();
                 break;
@@ -158,6 +161,11 @@ public class MenuHandler {
 
     public static void updateProfile() {
         MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
+    }
+
+    public static void handleSettings() {
+        Intent intent = new Intent(MainActivity.getInstance(), FingerPrintSettingsActivity.class);
+        MainActivity.getInstance().startActivity(intent);
     }
 
     public static AlertDialog _confirmDeleteDialog;
