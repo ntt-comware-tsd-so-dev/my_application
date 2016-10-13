@@ -391,7 +391,7 @@
     <color name="device_offline_bg">@color/grey_700</color>
     <color name="device_onoff_fg">@android:color/white</color>
     <color name="sign_in_edit_bg">#60FFFFFF</color>
-    <color name="sign_in_button_bg">@color/light_green_500</color>
+    <color name="sign_in_button_bg">@color/light_green_400</color>
     <color name="sign_in_bottom_bg">#80AAAAAA</color>
 
 </resources>
