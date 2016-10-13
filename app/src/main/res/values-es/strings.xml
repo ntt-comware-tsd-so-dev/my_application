@@ -58,9 +58,9 @@
     <string name="trigger">Disparador</string>
     <string name="identify">Identificar</string>
     <string name="device_properties">Propiedades</string>
-    <string name="up"><u>Inscribirme</u></string>
-    <string name="forgot"><u>Olvidé Password</u></string>
-    <string name="resend_confirmation"><u>Reenviar Confirmación</u></string>
+    <string name="up">Inscribirme</string>
+    <string name="forgot">Olvidé Password</string>
+    <string name="resend_confirmation">Reenviar Confirmación</string>
     <string name="signIn">Entrar</string>
     <string name="userInformation">Información de Usuario</string>
     <string name="emailAddress">Email</string>
