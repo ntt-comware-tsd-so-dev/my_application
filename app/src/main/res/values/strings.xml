@@ -69,9 +69,9 @@
     <string name="trigger">Trigger</string>
     <string name="identify">Identify</string>
     <string name="device_properties">Properties</string>
-    <string name="up"><u>Sign Up</u></string>
-    <string name="forgot"><u>Forgot Password</u></string>
-    <string name="resend_confirmation"><u>Re-send Email Confirmation</u></string>
+    <string name="up">Sign Up</string>
+    <string name="forgot">Forgot Password</string>
+    <string name="resend_confirmation">Re-send Email Confirmation</string>
     <string name="signIn">Sign In</string>
     <string name="userInformation">User Information</string>
     <string name="emailAddress">Email Address</string>
