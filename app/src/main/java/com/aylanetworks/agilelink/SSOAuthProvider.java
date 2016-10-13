@@ -6,6 +6,7 @@ package com.aylanetworks.agilelink;
  * Copyright 2016 Ayla Networks, all rights reserved
  */
 
+import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.android.volley.NetworkResponse;
@@ -23,8 +24,9 @@ import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
-import com.aylanetworks.aylasdk.auth.AylaAuthProvider;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.auth.BaseAuthProvider;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AuthError;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -43,56 +45,75 @@ import java.util.Map;
  * SSOAuthProvider that provides authorization to the Ayla network using the access token
  * provided by external identity provider for Single Sign On.
  */
-public class SSOAuthProvider implements AylaAuthProvider {
+public class SSOAuthProvider extends BaseAuthProvider {
     private String _token;
     private final static String LOG_TAG = "AgileLinkSSOManager";
     public String _identityProviderBaseUrl = "https://idp-emulation.ayladev.com/api/v1/";
     public static final String USER_ID_KEY = "UUID";
+    private boolean _isCachedAuth;
 
-    public void setToken(String token) {
-        this._token = token;
+    public SSOAuthProvider() {
+        this._isCachedAuth = false;
+    }
+
+    public static SSOAuthProvider getCachedProvider(Context context){
+        CachedAuthProvider cachedAuthProvider = CachedAuthProvider.getCachedProvider(context);
+        if(cachedAuthProvider == null){
+            return null;
+        } else{
+           SSOAuthProvider authprovider = new SSOAuthProvider();
+            authprovider._isCachedAuth = true;
+            return authprovider;
+        }
+
     }
 
     @Override
     public void authenticate(final AuthProviderListener listener) {
-        AylaLoginManager loginManager = AylaNetworks.sharedInstance().getLoginManager();
-        String url = loginManager.userServiceUrl("api/v1/token_sign_in.json");
 
-        AylaSystemSettings settings = AylaNetworks.sharedInstance().getSystemSettings();
+        if(_isCachedAuth){
+            cachedAuthenticate(listener);
+        } else{
+            AylaLoginManager loginManager = AylaNetworks.sharedInstance().getLoginManager();
+            String url = loginManager.userServiceUrl("api/v1/token_sign_in.json");
 
-        // Construct a JSON object to contain the parameters.
-        JSONObject userParam = new JSONObject();
-        try {
-            userParam.put("token", _token);
-            userParam.put("app_id", settings.appId);
-            userParam.put("app_secret", settings.appSecret);
-        } catch (JSONException e) {
-            listener.didFailAuthentication(new AuthError("JSONException in signIn()", e));
-            return;
+            AylaSystemSettings settings = AylaNetworks.sharedInstance().getSystemSettings();
+
+            // Construct a JSON object to contain the parameters.
+            JSONObject userParam = new JSONObject();
+            try {
+                userParam.put("token", _token);
+                userParam.put("app_id", settings.appId);
+                userParam.put("app_secret", settings.appSecret);
+            } catch (JSONException e) {
+                listener.didFailAuthentication(new AuthError("JSONException in signIn()", e));
+                return;
+            }
+
+            String bodyText = userParam.toString();
+            AylaAPIRequest<AylaAuthorization> request = new AylaJsonRequest<>(
+                    Request.Method.POST,
+                    url,
+                    bodyText,
+                    null,
+                    AylaAuthorization.class,
+                    null, // No session manager exists until we are logged in!
+                    new Response.Listener<AylaAuthorization>() {
+                        @Override
+                        public void onResponse(AylaAuthorization response) {
+                            listener.didAuthenticate(response, false);
+                        }
+                    },
+                    new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            listener.didFailAuthentication(error);
+                        }
+                    });
+
+            loginManager.sendUserServiceRequest(request);
         }
 
-        String bodyText = userParam.toString();
-        AylaAPIRequest<AylaAuthorization> request = new AylaJsonRequest<>(
-                Request.Method.POST,
-                url,
-                bodyText,
-                null,
-                AylaAuthorization.class,
-                null, // No session manager exists until we are logged in!
-                new Response.Listener<AylaAuthorization>() {
-                    @Override
-                    public void onResponse(AylaAuthorization response) {
-                        listener.didAuthenticate(response, false);
-                    }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        listener.didFailAuthentication(error);
-                    }
-                });
-
-        loginManager.sendUserServiceRequest(request);
     }
 
     @Override
@@ -146,6 +167,8 @@ public class SSOAuthProvider implements AylaAuthProvider {
         sessionManager.sendUserServiceRequest(request);
         return  request;
     }
+
+
 
     @Override
     public AylaAPIRequest deleteUser(AylaSessionManager sessionManager, Response.Listener<AylaAPIRequest.EmptyResponse> successListener, ErrorListener errorListener) {
@@ -268,6 +291,12 @@ public class SSOAuthProvider implements AylaAuthProvider {
         SharedPreferences prefs = AgileLinkApplication.getSharedPreferences();
         return prefs.getString(USER_ID_KEY, null);
 
+    }
+
+    private void cachedAuthenticate(final AuthProviderListener listener) {
+        CachedAuthProvider cachedAuthProvider = CachedAuthProvider.getCachedProvider(AMAPCore
+                .sharedInstance().getContext());
+        cachedAuthProvider.authenticate(listener);
     }
 
 }

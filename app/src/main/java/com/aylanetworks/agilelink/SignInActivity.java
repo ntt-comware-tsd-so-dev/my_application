@@ -44,6 +44,7 @@ import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
+import com.aylanetworks.aylasdk.auth.AylaAuthProvider;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.AylaOAuthProvider;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
@@ -92,11 +93,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
 
         setContentView(R.layout.login);
-        CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this);
-        if (cachedProvider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
+        AylaAuthProvider authprovider;
+        if(AMAPCore.sharedInstance().getSessionParameters().ssoLogin){
+            authprovider = SSOAuthProvider.getCachedProvider(this);
+
+        } else{
+            authprovider = CachedAuthProvider.getCachedProvider(this);
+        }
+        if (authprovider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
             showSigningInDialog();
 
-            AylaNetworks.sharedInstance().getLoginManager().signIn(cachedProvider,
+            AylaNetworks.sharedInstance().getLoginManager().signIn(authprovider,
                     AMAPCore.sharedInstance().getSessionParameters().sessionName,
                     new Response.Listener<AylaAuthorization>() {
                         @Override
