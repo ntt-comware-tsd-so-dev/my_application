@@ -326,8 +326,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
         //Make sure the user did not sign out normally (i.e error=null)
-        if(error !=null && MainActivity.getInstance().checkFingerprintOption()){
-            MainActivity.getInstance().showFingerPrint();
+        if(error !=null && checkFingerprintOption()){
+            showFingerPrint();
         }
         else {
             // User logged out.
@@ -964,13 +964,16 @@ public class MainActivity extends AppCompatActivity
             return;
         }
         if (initCipher()) {
-            FingerPrintDialogFragment mFragment = new FingerPrintDialogFragment();
-            mFragment.setCancelable(false);
+
             // Show the fingerprint dialog. The user has the option to use the fingerprint with
             // crypto, or you can fall back to using a server-side verified password.
-            mFragment.setCryptoObject(new FingerprintManager.CryptoObject(_cipher));
-            _fingerPrintScreenUp=true;
-            mFragment.show(getFragmentManager(), "DIALOG_FRAGMENT_TAG");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                FingerPrintDialogFragment mFragment = new FingerPrintDialogFragment();
+                mFragment.setCancelable(false);
+                mFragment.setCryptoObject(new FingerprintManager.CryptoObject(_cipher));
+                _fingerPrintScreenUp=true;
+                mFragment.show(getFragmentManager(), "DIALOG_FRAGMENT_TAG");
+            }
         }
     }
 
@@ -1348,30 +1351,32 @@ public class MainActivity extends AppCompatActivity
      * the key was generated.
      */
     private boolean initCipher() {
-        try {
-            _cipher = Cipher.getInstance(
-                    KeyProperties.KEY_ALGORITHM_AES + "/"
-                            + KeyProperties.BLOCK_MODE_CBC + "/"
-                            + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-        } catch (NoSuchAlgorithmException |
-                NoSuchPaddingException e) {
-            throw new RuntimeException("Failed to get Cipher", e);
-        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
 
-        try {
-            if(_keyStore == null) {
-                createKey();
+                _cipher = Cipher.getInstance(
+                        KeyProperties.KEY_ALGORITHM_AES + "/"
+                                + KeyProperties.BLOCK_MODE_CBC + "/"
+                                + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+            } catch (NoSuchAlgorithmException |
+                    NoSuchPaddingException e) {
+                throw new RuntimeException("Failed to get Cipher", e);
             }
-            _keyStore.load(null);
-            SecretKey key = (SecretKey) _keyStore.getKey(KEY_NAME, null);
-            _cipher.init(Cipher.ENCRYPT_MODE, key);
-            return true;
-        } catch (KeyPermanentlyInvalidatedException e) {
-            return false;
-        } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | IOException
-                | NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException("Failed to init Cipher", e);
+
+            try {
+                if (_keyStore == null) {
+                    createKey();
+                }
+                _keyStore.load(null);
+                SecretKey key = (SecretKey) _keyStore.getKey(KEY_NAME, null);
+                _cipher.init(Cipher.ENCRYPT_MODE, key);
+                return true;
+            } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | IOException
+                    | NoSuchAlgorithmException | InvalidKeyException e) {
+                throw new RuntimeException("Failed to init Cipher", e);
+            }
         }
+        return false;
     }
 
     public void checkLoginAndConnectivity() {
