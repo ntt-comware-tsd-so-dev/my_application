@@ -33,15 +33,18 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
+import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
 import com.aylanetworks.agilelink.fragments.SignUpDialog;
+import com.aylanetworks.aylasdk.auth.AylaAuthProvider;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.AylaOAuthProvider;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
+import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -86,11 +89,17 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         }
 
         setContentView(R.layout.login);
-        CachedAuthProvider cachedProvider = CachedAuthProvider.getCachedProvider(this);
-        if (cachedProvider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
+        AylaAuthProvider authprovider;
+        if(AMAPCore.sharedInstance().getSessionParameters().ssoLogin){
+            authprovider = SSOAuthProvider.getCachedProvider(this);
+
+        } else{
+            authprovider = CachedAuthProvider.getCachedProvider(this);
+        }
+        if (authprovider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
             showSigningInDialog();
 
-            AylaNetworks.sharedInstance().getLoginManager().signIn(cachedProvider,
+            AylaNetworks.sharedInstance().getLoginManager().signIn(authprovider,
                     AMAPCore.sharedInstance().getSessionParameters().sessionName,
                     new Response.Listener<AylaAuthorization>() {
                         @Override
@@ -119,7 +128,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         ImageButton facebookLoginButton = (ImageButton) findViewById(R.id.facebook_login);
         ImageButton googleLoginButton = (ImageButton) findViewById(R.id.google_login);
         TextView signUpTextView = (TextView) findViewById(R.id.signUpTextView);
-        TextView resendEmailTextView = (TextView) findViewById(R.id.resendConfirmationTextView);
+        final TextView resendEmailTextView = (TextView) findViewById(R.id.resendConfirmationTextView);
         TextView forgotPasswordTextView = (TextView) findViewById(R.id.forgot_password);
 
         // The serviceTypeSpinner is only shown if the user taps "Forgot Password" and enters
@@ -169,25 +178,55 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(_loginButton.getWindowToken(), 0);
                     showSigningInDialog();
-                    AMAPCore.sharedInstance().startSession(_username.getText().toString(), _password.getText().toString(),
-                            new Response.Listener<AylaAuthorization>() {
-                                @Override
-                                public void onResponse(AylaAuthorization response) {
-                                    // Cache the authorization
-                                    CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
-                                    setResult(Activity.RESULT_OK);
-                                    finish();
-                                }
-                            },
-                            new ErrorListener() {
-                                @Override
-                                public void onErrorResponse(AylaError error) {
-                                    dismissSigningInDialog();
-                                    Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
-                                    Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
-                                            .LENGTH_LONG).show();
-                                }
-                            });
+
+                    final Response.Listener successListener = new Response
+                            .Listener<AylaAuthorization>() {
+                        @Override
+                        public void onResponse(AylaAuthorization response) {
+                            CachedAuthProvider.cacheAuthorization(SignInActivity.this, response);
+                            setResult(Activity.RESULT_OK);
+                            finish();
+                        }
+                    };
+
+                    final ErrorListener errorListener = new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            dismissSigningInDialog();
+                            Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
+                            Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                    .LENGTH_LONG).show();
+                        }
+                    };
+
+                    final String username = _username.getText().toString();
+                    if(AMAPCore.sharedInstance().getSessionParameters().ssoLogin){
+                        AylaLog.d(LOG_TAG, "Startig SSO login to Identity provider");
+                        final SSOAuthProvider ssoAuthProvider = new SSOAuthProvider();
+                        ssoAuthProvider.ssoLogin(username, password,
+                                new Response.Listener<SSOAuthProvider.IdentityProviderAuth>() {
+                            @Override
+                            public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
+                                AMAPCore.sharedInstance().startSession(
+                                        ssoAuthProvider, successListener, errorListener);
+                            }
+                        }, new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                dismissSigningInDialog();
+                                Log.e(LOG_TAG, "Sign In to identity provider failed "+ error
+                                        .getMessage());
+                                Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                        .LENGTH_LONG).show();
+                            }
+                        });
+                    } else{
+                        UsernameAuthProvider authProvider = new UsernameAuthProvider(
+                                _username.getText().toString(), _password.getText().toString());
+                        AMAPCore.sharedInstance().startSession(authProvider, successListener,
+                                errorListener);
+                    }
+
                 }
             }
         );
@@ -249,9 +288,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             });
         }
 
-        if(AMAPCore.sharedInstance().getSessionManager() != null) {
-            AMAPCore.sharedInstance().getSessionManager().addListener(this);
-        }
+
     }
 
     @Override
@@ -280,6 +317,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
             handleOpenURI(uri);
             // Clear out the URI
             AccountConfirmActivity.uri = null;
+        }
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
         }
     }
 
@@ -564,12 +604,15 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
-
+        //Make sure the user did not sign out normally (i.e error=null)
+        if(error !=null && MainActivity.getInstance().checkFingerprintOption()){
+            MainActivity.getInstance().showFingerPrint();
+        }
     }
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-
+        CachedAuthProvider.cacheAuthorization(this, authorization);
     }
 
     private static Context mContext;
@@ -670,5 +713,4 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         //TODO: Add more matches when necessary, SVC-2335.
         return R.string.unauthorized;
     }// end of getLocalizedString
-
 }

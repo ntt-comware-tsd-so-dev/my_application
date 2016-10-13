@@ -199,6 +199,7 @@
     <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
     <string name="invalid_email_password">Invalid email or password</string>
     <string name="invalid_email">Invalid email</string>
+    <string name="invalid_token">Invalid SSO  token</string>
     <string name="update_email_success">Update email success</string>
     <string name="update_password_success">Update password success</string>
     <string name="updating_email_title">Updating Email</string>
@@ -647,6 +648,15 @@
     <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
     <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
     <!-- -->
+
+    <string name="use_fingerprint_to_authenticate">Use fingerprint to authenticate</string>
+    <string name="fingerprint_description">Confirm fingerprint to continue</string>
+    <string name="fingerprint_hint">Touch sensor</string>
+    <string name="fingerprint_not_recognized">fingerprint not recognized</string>
+    <string name="fingerprint_retry_authentication">Fingerprint not recognized. Do you want to retry one more time?</string>
+    <string name="fingerprint_not_available">There is no existing fingerPrint for this Device.Please go to Android Settings and add a new fingerprint.</string>
+    <string name="always_expire_auth_token">Require Login</string>
+    <string name="require_login_summary">When enabled, the application will always request credentials when the application is launched." If disabled, your credentials will be securely saved and automatically applied on product launch.</string>
 
     <!--  Permissions  -->
     <string name="contacts_permission_granted">Contacts access permission granted. You can now add contacts</string>
