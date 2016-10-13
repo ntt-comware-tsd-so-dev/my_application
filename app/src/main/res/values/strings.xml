@@ -199,6 +199,7 @@
     <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
     <string name="invalid_email_password">Invalid email or password</string>
     <string name="invalid_email">Invalid email</string>
+    <string name="invalid_token">Invalid SSO  token</string>
     <string name="update_email_success">Update email success</string>
     <string name="update_password_success">Update password success</string>
     <string name="updating_email_title">Updating Email</string>

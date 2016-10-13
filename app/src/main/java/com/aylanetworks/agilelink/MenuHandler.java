@@ -12,11 +12,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.aylasdk.AylaAPIRequest;
-import com.aylanetworks.aylasdk.AylaSessionManager;
-import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -24,10 +19,15 @@ import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
-import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -188,48 +188,24 @@ public class MenuHandler {
                         MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title, R.string.deleting_account_message);
                         // Actually delete the account
                         Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
-
-                        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
-                        if(params.ssoLogin){
-                            params.ssoManager.deleteUser(
-                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                                        @Override
-                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            MainActivity.getInstance().dismissWaitDialog();
-                                            shutdownSession();
-                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-                                        }
-                                    },
-                                    new ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(AylaError error) {
-                                            MainActivity.getInstance().dismissWaitDialog();
-                                            Toast.makeText(MainActivity.getInstance(),
-                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                                    Toast.LENGTH_LONG).show();
-                                        }
+                        AMAPCore.sharedInstance().getSessionManager().deleteAccount(
+                                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                    @Override
+                                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                        // Log out and show a toast
+                                        shutdownSession();
+                                        Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
                                     }
-                            );
-                        } else{
-                            AMAPCore.sharedInstance().getSessionManager().deleteAccount(
-                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                                        @Override
-                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            // Log out and show a toast
-                                            shutdownSession();
-                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-                                        }
-                                    },
-                                    new ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(AylaError error) {
-                                            Toast.makeText(MainActivity.getInstance(),
-                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                                    Toast.LENGTH_LONG).show();
-                                        }
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(MainActivity.getInstance(),
+                                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                                Toast.LENGTH_LONG).show();
                                     }
-                            );
-                        }
+                                }
+                        );
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -286,27 +262,26 @@ public class MenuHandler {
         }
         MainActivity.getInstance().showWaitDialog(MainActivity.getInstance().getString(
                 R.string.signing_out), null);
-        sessionManager.shutDown(
-                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                    @Override
-                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
-                        MainActivity.getInstance().showLoginDialog(true);
-                    }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
-                        Toast.makeText(MainActivity.getInstance(),
-                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                Toast.LENGTH_LONG).show();
-                        MainActivity.getInstance().showLoginDialog(true);
-                    }
-                });
+        sessionManager.shutDown(new Response
+                .Listener<AylaAPIRequest.EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                MainActivity.getInstance().dismissWaitDialog();
+                Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
+                MainActivity.getInstance().showLoginDialog(true);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                        Toast.LENGTH_LONG).show();
+                MainActivity.getInstance().showLoginDialog(true);
+            }
+        });
     }
 
     public static void about() {
