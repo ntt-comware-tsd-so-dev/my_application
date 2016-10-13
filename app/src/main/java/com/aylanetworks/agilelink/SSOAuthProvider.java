@@ -23,8 +23,8 @@ import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
+import com.aylanetworks.aylasdk.auth.AylaAuthProvider;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
-import com.aylanetworks.aylasdk.auth.BaseAuthProvider;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AuthError;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -44,7 +44,7 @@ import java.util.Map;
  * SSOAuthProvider that provides authorization to the Ayla network using the access token
  * provided by external identity provider for Single Sign On.
  */
-public class SSOAuthProvider extends BaseAuthProvider {
+public class SSOAuthProvider implements AylaAuthProvider {
     private String _token;
     private final static String LOG_TAG = "AgileLinkSSOManager";
     public String _identityProviderBaseUrl = "https://idp-emulation.ayladev.com/api/v1/";
