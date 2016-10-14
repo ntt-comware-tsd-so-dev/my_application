@@ -36,8 +36,10 @@ public class FingerPrintSettingsActivity extends FragmentActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
-            CheckBoxPreference fingerprintPreference = (CheckBoxPreference) getPreferenceManager()
+            final CheckBoxPreference fingerprintPreference = (CheckBoxPreference) getPreferenceManager()
                     .findPreference(getString(R.string.use_fingerprint_to_authenticate));
+            final  CheckBoxPreference expireTokenPreference = (CheckBoxPreference) getPreferenceManager()
+                    .findPreference(getString(R.string.always_expire_auth_token));
             //The finger print is available only on Android devices M and up.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 getPreferenceScreen().removePreference(fingerprintPreference);
@@ -54,11 +56,30 @@ public class FingerPrintSettingsActivity extends FragmentActivity {
                                     Toast.LENGTH_LONG).show();
                             return false;
                         }
+                        //If fingerprint is checked make expire token as unchecked
+                        expireTokenPreference.setChecked(false);
+                    }
+                    return true;
+                }
+            });
+
+            expireTokenPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    boolean checked = Boolean.valueOf(newValue.toString());
+                    if (checked) {
+                        //The finger print is available only on Android devices M and up.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            //If expire token is checked make fingerprint as unchecked
+                            fingerprintPreference.setChecked(false);
+                        }
                     }
                     return true;
                 }
             });
         }
+
     }
+
 }
 
