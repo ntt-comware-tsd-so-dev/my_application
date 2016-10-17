@@ -34,12 +34,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center_vertical"/>
 
-            <TextView
+            <ImageView
                 android:id="@+id/device_state"
-                style="@style/DeviceListItemStatusTextView"
-                android:layout_width="wrap_content"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_gravity="center"
                 android:layout_margin="2dp"
                 android:gravity="center"
