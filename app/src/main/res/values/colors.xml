@@ -394,4 +394,6 @@
     <color name="sign_in_button_bg">@color/light_green_400</color>
     <color name="sign_in_bottom_bg">#80AAAAAA</color>
 
+    <color name="colorIconError">#880000</color>
+
 </resources>

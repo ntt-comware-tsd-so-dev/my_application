@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
@@ -53,8 +54,8 @@ public class GenericDevice extends ViewModel {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         final GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(_device.getProductName());
-        if (h._deviceStatusTextView != null) {
-            h._deviceStatusTextView.setText(getDeviceState());
+        if (h._deviceStatusImageView != null) {
+            h._deviceStatusImageView.setImageDrawable(getStatusDrawable());
         }
 
         Resources res = AMAPCore.sharedInstance().getContext().getResources();
@@ -160,6 +161,27 @@ public class GenericDevice extends ViewModel {
      */
     public Fragment getNotificationsFragment() {
         return NotificationListFragment.newInstance(this);
+    }
+
+    public Drawable getStatusDrawable() {
+        Context context = AMAPCore.sharedInstance().getContext();
+        Drawable image = null;
+        if ( context != null ) {
+            image = ContextCompat.getDrawable(context, R.drawable.ic_cloud_off_black_24dp);
+            int imageColor = ContextCompat.getColor(context, R.color.colorIconError);
+            if (_device.getConnectionStatus().equals(AylaDevice.ConnectionStatus.Online)) {
+                imageColor = ContextCompat.getColor(context, R.color.green_600);
+                if (_device.isLanModeActive()) {
+                    image = ContextCompat.getDrawable(context,
+                            R.drawable.ic_signal_wifi_4_bar_black_24dp);
+                } else {
+                    image = ContextCompat.getDrawable(context,
+                            R.drawable.ic_cloud_circle_black_24dp);
+                }
+            }
+            image.setColorFilter(imageColor, PorterDuff.Mode.SRC_ATOP);
+        }
+        return image;
     }
 
     /**

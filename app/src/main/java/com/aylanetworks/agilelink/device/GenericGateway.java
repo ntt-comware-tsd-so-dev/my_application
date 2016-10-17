@@ -7,6 +7,7 @@ package com.aylanetworks.agilelink.device;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -68,8 +69,8 @@ public class GenericGateway extends ViewModel {
     public void bindViewHolder(RecyclerView.ViewHolder holder) {
         GenericDeviceViewHolder h = (GenericDeviceViewHolder) holder;
         h._deviceNameTextView.setText(getDevice().getProductName());
-        if (h._deviceStatusTextView != null) {
-            h._deviceStatusTextView.setText(getDeviceState());
+        if (h._deviceStatusImageView != null) {
+            h._deviceStatusImageView.setImageDrawable(getStatusDrawable());
         }
         if ( !isIcon()) {
             h._spinner.setVisibility(getDevice().getProperties() == null ? View.VISIBLE : View.GONE);
@@ -88,6 +89,26 @@ public class GenericGateway extends ViewModel {
         h._currentDeviceModel = this;
     }
 
+    public Drawable getStatusDrawable() {
+        Context context = AMAPCore.sharedInstance().getContext();
+        Drawable image = null;
+        if ( context != null ) {
+            image = ContextCompat.getDrawable(context, R.drawable.ic_cloud_off_black_24dp);
+            int imageColor = ContextCompat.getColor(context, R.color.colorIconError);
+            if (_device.getConnectionStatus().equals(AylaDevice.ConnectionStatus.Online)) {
+                imageColor = ContextCompat.getColor(context, R.color.green_600);
+                if (_device.isLanModeActive()) {
+                    image = ContextCompat.getDrawable(context,
+                            R.drawable.ic_signal_wifi_4_bar_black_24dp);
+                } else {
+                    image = ContextCompat.getDrawable(context,
+                            R.drawable.ic_cloud_circle_black_24dp);
+                }
+            }
+            image.setColorFilter(imageColor, PorterDuff.Mode.SRC_ATOP);
+        }
+        return image;
+    }
     @Override
     protected ArrayList<String> getPropertyNames() {
         // Get the superclass' property names (probably none)
