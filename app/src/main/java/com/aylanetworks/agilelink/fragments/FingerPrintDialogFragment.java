@@ -5,13 +5,9 @@
  */
 package com.aylanetworks.agilelink.fragments;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.hardware.fingerprint.FingerprintManager;
-import android.os.Build;
 import android.os.Bundle;
 
 import android.view.LayoutInflater;
@@ -19,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
@@ -35,8 +32,8 @@ public class FingerPrintDialogFragment extends DialogFragment
     private FingerprintManager.CryptoObject _cryptoObject;
     private FingerprintUiHelper _fingerprintUiHelper;
     private MainActivity _mainActivity;
-    private AlertDialog _alertDialog;
-
+    private int _failedLogins;
+    private static final int MAX_FAILED_FINGERPRINT_LOGINS=5;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,13 +48,19 @@ public class FingerPrintDialogFragment extends DialogFragment
                              Bundle savedInstanceState) {
         getDialog().setTitle(getString(R.string.signIn));
         View v = inflater.inflate(R.layout.fingerprint_dialog_content, container, false);
-        FingerprintManager fingerprintManager =
-                (FingerprintManager) getActivity().getSystemService(FINGERPRINT_SERVICE);
+        FingerprintManager fingerprintManager;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            fingerprintManager = (FingerprintManager) getActivity().getSystemService(FINGERPRINT_SERVICE);
+        } else {
+            return null;
+        }
+
         FingerprintUiHelper.FingerprintUiHelperBuilder _fingerprintUiHelperBuilder = new
                 FingerprintUiHelper.FingerprintUiHelperBuilder(fingerprintManager);
         _fingerprintUiHelper = _fingerprintUiHelperBuilder.build(
                 (ImageView) v.findViewById(R.id.fingerprint_icon),
                 (TextView) v.findViewById(R.id.fingerprint_status), this);
+        _failedLogins =0;
         return v;
     }
 
@@ -85,32 +88,19 @@ public class FingerPrintDialogFragment extends DialogFragment
         // Callback from FingerprintUiHelper. Let the activity know that authentication was
         // successful.
         _mainActivity.checkLoginAndConnectivity();
-        if (_alertDialog != null) {
-            _alertDialog.dismiss();
-        }
+        _failedLogins =0;
         dismiss();
     }
 
     @Override
     public void onError() {
-        if (_alertDialog != null && _alertDialog.isShowing()) {
-            return;
+        _failedLogins ++;
+        if(_failedLogins >= MAX_FAILED_FINGERPRINT_LOGINS) {
+            String body = MainActivity.getInstance().getString(R.string.fingerprint_failed_authentication);
+            Toast.makeText(MainActivity.getInstance(), body, Toast.LENGTH_LONG).show();
+            _mainActivity.showLoginDialog(true);
         }
-        String body = MainActivity.getInstance().getString(R.string.fingerprint_retry_authentication);
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance())
-                .setTitle(R.string.attention)
-                .setMessage(body)
-                .setPositiveButton(android.R.string.yes, null)
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        _mainActivity.showLoginDialog(true);
-                        dismiss();
-                    }
-                });
 
-        _alertDialog = builder.create();
-        _alertDialog.show();
     }
 
     /**
