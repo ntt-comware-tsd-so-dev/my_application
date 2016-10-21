@@ -680,6 +680,7 @@
     <string name="geofence_radius">radius:</string>
     <string name="radius_units">m</string>
     <string name="delete_geofence_action">delete action</string>
+    <string name="delete_automation">delete automation</string>
     <string name="device_dsn">Device DSN</string>
     <string name="property_name">Property Name</string>
     <string name="property_value">Property Value</string>
@@ -694,9 +695,17 @@
     <string name="geofence_location">Geofence Location</string>
     <string name="add_automation">Add Automation</string>
     <string name="btn_save">Save</string>
+    <string name="confirm_delete_geofence">Are you sure to delete this AMAP Geofence?</string>
+    <string name="automation_empty_text">You have no automations associated with your account. Tap on the add button to create one.</string>
+    <string name="confirm_remove_automation">Are you sure you want to remove this Automation?</string>
+    <string name="confirm_remove_action">Are you sure you want to remove this Action?</string>
 
     <string name="actions">Geofence Actions</string>
     <string name="automations">Automtations</string>
+    <string name="saved_success">Saved Successfully</string>
+    <string name="updated_success">Updated Successfully</string>
+    <string name="deleted_success">Deleted successfully</string>
+    <string name="confirm_delete_automation">Are you sure to delete this Automation?</string>
 
     <!-- Hints -->
     <string name="Hint.Name">Name for the geofence</string>
@@ -713,8 +722,6 @@
     <!-- Units -->
     <string name="Units.Degrees">\u00B0</string>
     <string name="Units.miles">m</string>
-    <string name="AreYouSure">Are you sure to delete this AMAP Geofence?</string>
-    <string name="automation_empty_text">You have no automations associated with your account. Tap on the add button to create one.</string>
 
     <!-- Notification -->
     <string name="Notification.Title">AMAP Geofence?</string>

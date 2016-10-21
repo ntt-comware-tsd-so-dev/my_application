@@ -1,5 +1,7 @@
 package com.aylanetworks.agilelink.geofence;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -52,6 +54,7 @@ public class EditActionsFragment extends Fragment {
     private Spinner _propertyActionSpinner;
     private ViewModel _deviceModel;
     private boolean _isUpdateAction;
+    private ALAction _alAction;
 
     public EditActionsFragment() {
         // Required empty public constructor
@@ -86,10 +89,11 @@ public class EditActionsFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_delete_action:
-                deleteAction();
+                if (_actionID != null) {
+                    confirmRemoveAction();
+                }
                 return true;
         }
-
         return false;
     }
 
@@ -101,7 +105,7 @@ public class EditActionsFragment extends Fragment {
         _actionNameEditText = (EditText) root.findViewById(R.id.action_name);
         _actionValueEditText = (EditText) root.findViewById(R.id.action_value_text);
         if (getArguments() != null) {
-            ALAction _alAction = (ALAction) getArguments().getSerializable(OBJ_KEY);
+            _alAction = (ALAction) getArguments().getSerializable(OBJ_KEY);
             String dsn = getArguments().getString(ARG_DSN);
             _device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
             _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
@@ -139,7 +143,7 @@ public class EditActionsFragment extends Fragment {
                             .EmptyResponse>() {
                         @Override
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                            String msg = "Updated Successfully";
+                            String msg = MainActivity.getInstance().getString(R.string.saved_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                             MainActivity.getInstance().popBackstackToRoot();
                         }
@@ -157,7 +161,7 @@ public class EditActionsFragment extends Fragment {
                             .EmptyResponse>() {
                         @Override
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                            String msg = "Saved Successfully";
+                            String msg = MainActivity.getInstance().getString(R.string.updated_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                             MainActivity.getInstance().popBackstackToRoot();
                         }
@@ -201,13 +205,11 @@ public class EditActionsFragment extends Fragment {
     }
 
     private void deleteAction() {
-        ALAction alAction = new ALAction();
-        alAction.setId(_actionID);
-        AylaDeviceActions.deleteAction(alAction, new Response.Listener<AylaAPIRequest
+        AylaDeviceActions.deleteAction(_alAction, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                String msg = "Deleted Successfully";
+                String msg = MainActivity.getInstance().getString(R.string.deleted_success);
                 Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                 MainActivity.getInstance().popBackstackToRoot();
             }
@@ -221,4 +223,20 @@ public class EditActionsFragment extends Fragment {
             }
         });
     }
+
+    private void confirmRemoveAction() {
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setMessage(MainActivity.getInstance().getString(R.string
+                        .confirm_remove_action))
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteAction();
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
 }

@@ -50,7 +50,7 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
             public void onClick(View v) {
                 new AlertDialog.Builder(MainActivity.getInstance())
                         .setIcon(R.drawable.ic_launcher)
-                        .setTitle(R.string.AreYouSure)
+                        .setTitle(R.string.confirm_delete_geofence)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

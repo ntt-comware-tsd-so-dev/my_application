@@ -8,10 +8,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,8 +34,7 @@ import java.util.Arrays;
  * Copyright 2016 Ayla Networks, all rights reserved
  */
 
-public class AutomationListFragment extends Fragment implements AdapterView.OnItemLongClickListener,
-        AdapterView.OnItemClickListener {
+public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
 
     private ListView _listViewAutomations;
@@ -50,25 +50,15 @@ public class AutomationListFragment extends Fragment implements AdapterView.OnIt
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      ALAutomation alAutomation = _automationsAdapter.getItem(position);
-        EditAutomationFragment frag = EditAutomationFragment.newInstance(alAutomation);
-        MainActivity.getInstance().pushFragment(frag);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_all_automations, container, false);
-
-        _listViewAutomations = (ListView)root.findViewById(R.id.listViewAutomations);
-        _listViewAutomations.setOnItemLongClickListener(this);
-        _listViewAutomations.setOnItemClickListener(this);
+        _listViewAutomations = (ListView) root.findViewById(R.id.listViewAutomations);
         _listViewAutomations.setEmptyView(root.findViewById(R.id.automations_empty));
-        
 
-        ImageButton addButton = (ImageButton)root.findViewById(R.id.add_button);
+
+        ImageButton addButton = (ImageButton) root.findViewById(R.id.add_button);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,12 +77,12 @@ public class AutomationListFragment extends Fragment implements AdapterView.OnIt
         return root;
     }
 
-    private void fetchAutomations(){
+    private void fetchAutomations() {
         ALAutomationManager.fetchAutomation(new Response.Listener<ALAutomation[]>() {
             @Override
             public void onResponse(ALAutomation[] response) {
                 _alAutomations = response;
-                if(isAdded()){
+                if (isAdded()) {
                     if (_automationsAdapter == null) {
                         _automationsAdapter = new AutomationListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
                         _listViewAutomations.setAdapter(_automationsAdapter);
@@ -120,51 +110,60 @@ public class AutomationListFragment extends Fragment implements AdapterView.OnIt
         MainActivity.getInstance().pushFragment(frag);
     }
 
-    @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        ALAutomation alAutomation = (ALAutomation)_listViewAutomations.getAdapter().getItem(position);
-        confirmRemoveAutomation(alAutomation);
-        return true;
-    }
-
-    private void confirmRemoveAutomation(final ALAutomation alAutomation) {
-             ALAutomationManager.deleteAutomation(alAutomation, new Response.Listener<AylaAPIRequest
-                    .EmptyResponse>() {
-                @Override
-                public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                    String msg = "Deleted Successfully";
-                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    MainActivity.getInstance().popBackstackToRoot();
-                }
-            }, new ErrorListener() {
-                @Override
-                public void onErrorResponse(AylaError error) {
-                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                            error.toString();
-                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
-                    MainActivity.getInstance().popBackstackToRoot();
-                }
-            });
-    }
 
     public class AutomationListAdapter extends ArrayAdapter<ALAutomation> {
-        public AutomationListAdapter(Context c, ArrayList<ALAutomation> alAutomations) {
-            super(c, android.R.layout.simple_list_item_1, android.R.id.text1, alAutomations);
+        public AutomationListAdapter(Context context, ArrayList<ALAutomation> alAutomations) {
+            super(context, R.layout.automation_list, alAutomations);
         }
 
         @NonNull
-        @Override
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            View v = super.getView(position, convertView, parent);
-            TextView tv1 = (TextView)v.findViewById(android.R.id.text1);
-            ALAutomation alAutomation = getItem(position);
-
-            if ( alAutomation!=null && alAutomation.getId() != null ) {
-                tv1.setText(alAutomation.getName());
-            } else {
-                tv1.setText("");
+        public View getView(final int position, View convertView, @NonNull ViewGroup parent) {
+            if (convertView == null) {
+                LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                convertView = inflater.inflate(R.layout.automation_list, parent, false);
             }
-            return v;
+
+            final ALAutomation alAutomation = getItem(position);
+            TextView tv1 = (TextView) convertView.findViewById(R.id.listItemAutomation);
+            Switch enabledSwitch = (Switch) convertView.findViewById(R.id.toggle_switch);
+            if(alAutomation == null) {
+               return  convertView;
+            }
+            tv1.setText(alAutomation.getName());
+            enabledSwitch.setChecked(alAutomation.isEnabled());
+            enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    alAutomation.setEnabled(isChecked);
+                    ALAutomationManager.updateAutomation(alAutomation, new Response.Listener<AylaAPIRequest
+                            .EmptyResponse>() {
+                        @Override
+                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                            String msg = MainActivity.getInstance().getString(R
+                                    .string.updated_success);
+                            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                            MainActivity.getInstance().popBackstackToRoot();
+                        }
+                    }, new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                                    error.toString();
+                            Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                            MainActivity.getInstance().popBackstackToRoot();
+                        }
+                    });
+                }
+            });
+
+            convertView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    EditAutomationFragment frag = EditAutomationFragment.newInstance(alAutomation);
+                    MainActivity.getInstance().pushFragment(frag);
+                }
+            });
+            return convertView;
         }
     }
 }

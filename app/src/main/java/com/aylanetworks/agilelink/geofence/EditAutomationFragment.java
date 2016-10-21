@@ -1,10 +1,15 @@
 package com.aylanetworks.agilelink.geofence;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -19,8 +24,10 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.geofence.ALAutomation;
+import com.aylanetworks.agilelink.framework.geofence.ALAutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.ALLocationManager;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -64,6 +71,62 @@ public class EditAutomationFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_automation, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.delete_automation:
+                if(_alAutomation != null) {
+                    confirmRemoveAutomation();
+                }
+                return true;
+        }
+        return false;
+    }
+
+    private void confirmRemoveAutomation() {
+        new AlertDialog.Builder(getActivity())
+                .setIcon(R.drawable.ic_launcher)
+                .setMessage(MainActivity.getInstance().getString(R.string
+                        .confirm_remove_automation))
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteAutomation();
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    private void deleteAutomation() {
+        //confirm_delete_automation
+        ALAutomationManager.deleteAutomation(_alAutomation, new Response.Listener<AylaAPIRequest
+                .EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                String msg = MainActivity.getInstance().getString(R.string.deleted_success);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                MainActivity.getInstance().popBackstackToRoot();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                MainActivity.getInstance().popBackstackToRoot();
+            }
+        });
     }
 
     @Override

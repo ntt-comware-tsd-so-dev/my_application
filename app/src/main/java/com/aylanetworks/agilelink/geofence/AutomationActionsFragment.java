@@ -144,12 +144,14 @@ public class AutomationActionsFragment extends Fragment {
                                 alAutomation.setALActions(alActionsArray);
 
                                 if (_alAutomation == null) {//This is a new Automation
+                                    alAutomation.setEnabled(true); //For new one always enable it
                                     ALAutomationManager.addAutomation(alAutomation, new Response
                                             .Listener<AylaAPIRequest
                                             .EmptyResponse>() {
                                         @Override
                                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            String msg = "Saved Successfully";
+                                            String msg = MainActivity.getInstance().getString(R
+                                                    .string.saved_success);
                                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                                             MainActivity.getInstance().popBackstackToRoot();
                                         }
@@ -167,7 +169,8 @@ public class AutomationActionsFragment extends Fragment {
                                             .EmptyResponse>() {
                                         @Override
                                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            String msg = "Updated Successfully";
+                                            String msg = MainActivity.getInstance().getString(R
+                                                    .string.updated_success);
                                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                                             MainActivity.getInstance().popBackstackToRoot();
                                         }
