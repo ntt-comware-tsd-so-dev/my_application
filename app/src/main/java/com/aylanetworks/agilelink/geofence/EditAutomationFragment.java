@@ -214,13 +214,15 @@ public class EditAutomationFragment extends Fragment {
                 String automationName = _automatioNameEditText.getText().toString();
 
                 if (TextUtils.isEmpty(automationName)){
-                    String msg = "Automation Name is empty";
+                    String msg = MainActivity.getInstance().getString(R.string
+                            .automation_name_empty);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                    return;
                 }
                 String triggerId = _triggerIDMap.get(_locationName);
                 if (TextUtils.isEmpty(triggerId)){
-                    String msg = "Unknown Geofence Location";
+                    String msg = MainActivity.getInstance().getString(R.string
+                            .unknown_geo_fence);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                     return;
                 }

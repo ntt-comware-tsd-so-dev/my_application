@@ -699,6 +699,8 @@
     <string name="automation_empty_text">You have no automations associated with your account. Tap on the add button to create one.</string>
     <string name="confirm_remove_automation">Are you sure you want to remove this Automation?</string>
     <string name="confirm_remove_action">Are you sure you want to remove this Action?</string>
+    <string name="automation_name_empty">Automation Name is empty</string>
+    <string name="unknown_geo_fence"> Unknown Geofence Location</string>
 
     <string name="actions">Geofence Actions</string>
     <string name="automations">Automtations</string>
