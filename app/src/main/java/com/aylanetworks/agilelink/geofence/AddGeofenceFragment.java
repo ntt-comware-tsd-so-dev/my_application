@@ -62,12 +62,13 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     private EditText _geofenceName;
     private String _latitude;
     private String _longitude;
-    private int _progress = 0;
+    private float _progress = 0;
     private AllGeofencesFragment _geofenceListener;
     private GoogleMap _googleMap;
     private LinearLayout _mapLayout;
     private LatLng _latLng;
     private static final int REQUEST_LOCATION = 0;
+    private static final float MINIMAL_RADIUS =50;
 
     public void setListener(AllGeofencesFragment listener) {
         this._geofenceListener = listener;
@@ -109,8 +110,10 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         final SeekBar seekBar = (SeekBar) view.findViewById(R.id.radius_seekbar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progresValue, boolean fromUser) {
-                _progress = progresValue * 3; //The total progress is 300 ft. So multiply by 3
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                //The total progress is 500 ft.
+                float pvalue = new Double(progressValue * 4.5).floatValue();
+                _progress = MINIMAL_RADIUS + pvalue;
             }
 
             @Override
