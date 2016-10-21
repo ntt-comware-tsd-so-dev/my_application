@@ -61,7 +61,10 @@ public class AMAPGeofenceService extends IntentService {
                     triggerType = ALAutomation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
                 }
                 for (ALAutomation alAutomation : response) {
-                    if (alAutomation.getAutomationTriggerType().equals(triggerType)) {
+                    //Make sure Trigger Type matches and the automation is also enabled before
+                    // firing the events
+                    if (alAutomation.getAutomationTriggerType().equals(triggerType) &&
+                            alAutomation.isEnabled()) {
                         ALAction[] alActions = alAutomation.getALActions();
                         for (final ALAction alAction : alActions) {
 
