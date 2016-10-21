@@ -38,6 +38,20 @@
             android:title="@string/settings"/>
 
         <item
+            android:id="@+id/action_geofences"
+            android:icon="@drawable/ic_add_location"
+            android:title="@string/geofences"/>
+        <item
+            android:id="@+id/action_al_actions"
+            android:icon="@drawable/ic_add_location"
+            android:title="@string/actions"/>
+        <item
+            android:id="@+id/action_automations"
+            android:icon="@drawable/ic_add_location"
+            android:title="@string/automations"/>
+
+
+        <item
             android:id="@+id/action_help"
             android:icon="@drawable/ic_help_icon_gray40"
             android:title="@string/help"/>

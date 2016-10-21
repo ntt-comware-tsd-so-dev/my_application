@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools" android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <EditText
+        android:id="@+id/geofence_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/Hint.Name"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp" android:weightSum="1">
+            <ImageButton
+                android:id="@+id/button_add_geofence"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="right|center_vertical"
+                android:scaleType="fitXY"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_add_location"
+            />
+            <TextView
+                android:id="@+id/edit_location"
+                style="@style/DeviceListItemTextView"
+                android:text="@string/edit_location"
+                android:layout_width="48dp"
+                android:layout_height="48dp" android:layout_weight="0.78"/>
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/location_address"
+            android:layout_below="@+id/button_add_geofence"
+            android:layout_marginTop="5dp"
+            android:layout_width="260dp"
+            android:layout_height="90dp"
+            android:hint="@string/street_address"
+            android:inputType="textMultiLine|textCapWords"
+            android:textColor="@color/green_900"
+            android:maxLines="4"
+            android:minLines="1"
+            android:nextFocusDown="@+id/radius_seekbar"
+            android:nextFocusForward="@+id/radius_seekbar"
+            android:layout_alignEnd="@+id/button_add_geofence"/>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:id="@+id/map_layout"
+                      android:orientation="vertical"
+                      android:layout_width="match_parent"
+                      android:layout_below="@+id/location_address"
+                      android:layout_height="0dp"
+                      android:layout_weight="0.5">
+            <fragment
+                android:id="@+id/map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                class="com.google.android.gms.maps.SupportMapFragment"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/radius_text"
+            android:layout_below="@+id/map_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="29dp"
+            android:text="@string/geofence_radius"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="2dp"/>
+        <SeekBar
+            android:id="@+id/radius_seekbar"
+            android:layout_width="match_parent"
+            android:layout_below="@+id/radius_text"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/button_save_geofence"
+            style="@style/AgileLinkButton"
+            android:layout_below="@+id/radius_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_margin="10dp"
+            android:text="@string/Label.AddGeofence"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -156,6 +156,9 @@
             android:value="@integer/google_play_services_version" />
 
         <service android:name=".WearUpdateService" />
+        <service android:name=".geofence.AMAPGeofenceService"
+                 android:exported="true" ></service>
+
 
         <receiver android:name=".BootReceiver">
             <intent-filter>
@@ -172,6 +175,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/ayla_widget_info" />
         </receiver>
+        <!-- NOTE: This API Key is for test only. Replace it actual key" / -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBex0MSQxrjzSwtB18Iv15pupeVlcEydxI"/>
+
     </application>
 
 </manifest>

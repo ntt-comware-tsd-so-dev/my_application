@@ -161,5 +161,10 @@
         <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
         <item name="android:gravity">center</item>
     </style>
+    <style name="Divider.Horizontal" parent="AppTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/divider_width</item>
+        <item name="android:background">@color/grey_900</item>
+    </style>
 
 </resources>

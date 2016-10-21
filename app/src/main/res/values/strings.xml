@@ -668,6 +668,63 @@
     <!-- Developer Options -->
     <string name="dev_options">Developer Options</string>
 
+    <!-- geofence related strings -->
+    <string name="geofences">Geofence Locations</string>
+    <string name="add_geofence">Add Geofence</string>
+    <string name="use_current_geofence">Use Current Location Geofence</string>
+    <string name="contact_address_geofence">Use Contact address</string>
+    <string name="delete_geofence">Delete Geofence</string>
+    <string name="geofence_validation">Please enter valid data for all fields</string>
+    <string name="on_enter">On Enter</string>
+    <string name="on_exit">On Exit</string>
+    <string name="geofence_radius">radius:</string>
+    <string name="radius_units">m</string>
+    <string name="delete_geofence_action">delete action</string>
+    <string name="device_dsn">Device DSN</string>
+    <string name="property_name">Property Name</string>
+    <string name="property_value">Property Value</string>
+    <string name="add_action">Add Action</string>
+    <string name="edit_location">Edit Location</string>
+    <string name="set_geofence_radius">Set GeoFence Radius</string>
+    <string name="geofence_name">Geofence Name</string>
+    <string name="automation_name">Automation Name</string>
+    <string name="upon">Upon</string>
+    <string name="geofence_entering">Entering</string>
+    <string name="geofence_leaving">Leaving</string>
+    <string name="geofence_location">Geofence Location</string>
+    <string name="add_automation">Add Automation</string>
+    <string name="btn_save">Save</string>
+
+    <string name="actions">Geofence Actions</string>
+    <string name="automations">Automtations</string>
+
+    <!-- Hints -->
+    <string name="Hint.Name">Name for the geofence</string>
+    <string name="Hint.Latitude" formatted="false">Latitude (%3.1f\u00B0 to %3.1f\u00B0)</string>
+    <string name="Hint.Longitude" formatted="false">Longitude (%4.1f\u00B0 to %4.1f\u00B0) </string>
+    <string name="Hint.Radius" formatted="false">Radius (0-300 meters)</string>
+    <!-- Labels -->
+    <string name="Label.Name">Name</string>
+    <string name="Label.Latitude">Latitude</string>
+    <string name="Label.Longitude">Longitude</string>
+    <string name="Label.Radius">Radius</string>
+    <string name="Label.AddGeofence">Add a Geofence</string>
+    <string name="Label.EmptyState">You haven\'t created any geofences yet. Tap the plus button to create one</string>
+    <!-- Units -->
+    <string name="Units.Degrees">\u00B0</string>
+    <string name="Units.miles">m</string>
+    <string name="AreYouSure">Are you sure to delete this AMAP Geofence?</string>
+    <string name="automation_empty_text">You have no automations associated with your account. Tap on the add button to create one.</string>
+
+    <!-- Notification -->
+    <string name="Notification.Title">AMAP Geofence?</string>
+    <string name="Notification.Text">We\'re at %1$s!!!</string>
+
+    <string name="Toast.Error">There was an error. Please try again.</string>
+    <string name="location_permission_denied_geofence">Location permission denied.This permission is required for Geofences</string>
+    <string name="location_permission_required_toast">Location permission is required for Geofence.</string>
+
+
     <string-array name="location_options">
         <item>United States</item>
         <item>China</item>

@@ -1,0 +1,111 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/app_theme_window_background"
+              android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_weight="0">
+        <TextView
+            style="@style/ContactTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/device_dsn"/>
+        <TextView
+            style="@style/ContactTextView"
+            android:id="@+id/device_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </LinearLayout>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <RelativeLayout android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.16"
+        android:orientation="vertical" android:weightSum="1">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                style="@style/ContactTextView"
+                android:layout_width="94dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:text="@string/on_enter"/>
+        </LinearLayout>
+        <EditText
+            style="@style/ContactTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:id="@+id/property_name_enter"
+            android:text="@string/property_name"/>
+        <EditText
+            style="@style/ContactTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/property_value_enter"
+            android:hint="@string/property_value"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="30dp"
+            android:orientation="horizontal">
+            <TextView
+                style="@style/ContactTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="@string/on_exit"/>
+        </LinearLayout>
+        <EditText
+            style="@style/ContactTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:id="@+id/property_name_exit"
+            android:text="@string/property_name"/>
+        <EditText
+            style="@style/ContactTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/property_value_exit"
+            android:hint="@string/property_value"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_weight="0.09">
+
+            <Button
+                android:id="@+id/button_cancel"
+                style="@style/AgileLinkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:text="@android:string/cancel"/>
+
+            <Button
+                android:id="@+id/button_add_action"
+                style="@style/AgileLinkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:text="@string/add_action"/>
+        </LinearLayout>
+    </LinearLayout>
+
+        </RelativeLayout>
+    </ScrollView>
+
+</LinearLayout>

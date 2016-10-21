@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/LinearLayout2"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical" >
+
+    <ExpandableListView
+        android:id="@+id/expListView"
+        android:layout_width="match_parent"
+        android:layout_height="310dp"
+        android:layout_weight="0.14" >
+    </ExpandableListView>
+    <Button
+        android:id="@+id/button_save_automation"
+        style="@style/AgileLinkButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_margin="10dp"
+        android:visibility="gone"
+        android:text="@string/btn_save"/>
+
+</LinearLayout>

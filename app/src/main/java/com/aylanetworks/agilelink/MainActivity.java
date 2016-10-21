@@ -127,6 +127,9 @@ public class MainActivity extends AppCompatActivity
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
     public static final int REQ_CHECK_FINGERPRINT = 3;
+    public static final int REQUEST_FINE_LOCATION = 4;
+    public static final int PLACE_PICKER_REQUEST = 5;
+
     public static AylaLog.LogLevel LOG_PERMIT = AylaLog.LogLevel.None;
 
     public static final String ARG_SHARE = "share";
@@ -392,6 +395,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
         final int rc = resultCode;
         final Intent finalData = data;
 
@@ -461,8 +465,11 @@ public class MainActivity extends AppCompatActivity
             }
         } else if(reqCode == REQ_CHECK_FINGERPRINT) {
             showLoginDialog(false);
+        } else if(reqCode == PLACE_PICKER_REQUEST){
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag("AddGeofenceFragment");
+            fragment.onActivityResult(reqCode, resultCode, data);
         }
-    }
+}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
