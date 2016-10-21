@@ -77,8 +77,7 @@ public class AMAPGeofenceService extends IntentService {
                                         public void onResponse(final AylaDatapoint<Integer> response) {
                                             String str = "Property Name:" +entryProperty.getName();
                                             str += " value " +alAction.getValue();
-                                            Toast.makeText(MainActivity.getInstance(), str, Toast
-                                                    .LENGTH_LONG).show();
+                                            Log.d(TAG, "OnEnteredExitedGeofences success: " + str);
                                         }
                                     },
                                     new ErrorListener() {
