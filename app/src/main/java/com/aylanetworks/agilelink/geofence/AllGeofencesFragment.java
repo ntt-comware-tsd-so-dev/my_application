@@ -1,8 +1,13 @@
 package com.aylanetworks.agilelink.geofence;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -119,6 +124,9 @@ public class AllGeofencesFragment extends Fragment {
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(!isLocationEnabled(MainActivity.getInstance())) {
+                    return;
+                }
                 _dialogFragment = new AddGeofenceFragment();
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
@@ -187,6 +195,49 @@ public class AllGeofencesFragment extends Fragment {
 
     private void showErrorToast() {
         Toast.makeText(getActivity(), getActivity().getString(R.string.Toast_Error), Toast.LENGTH_SHORT).show();
+    }
+
+    public static boolean isLocationEnabled(final Context context) {
+        LocationManager lm = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ex) {
+            Log.d(LOG_TAG, ex.getMessage());
+        }
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(Exception ex) {
+            Log.d(LOG_TAG, ex.getMessage());
+        }
+
+        if(!gps_enabled && !network_enabled) {
+            // notify user
+            AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+            dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
+            dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    context.startActivity(myIntent);
+                }
+            });
+            dialog.setNegativeButton(context.getString(android.R.string.cancel), new DialogInterface
+                    .OnClickListener() {
+                @Override
+                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    Toast.makeText(context, context.getString(R.string.location_permission_required_toast), Toast.LENGTH_SHORT).show();
+                }
+            });
+            dialog.show();
+        }
+        else{
+            return true;
+        }
+        return false;
     }
 
     @Override

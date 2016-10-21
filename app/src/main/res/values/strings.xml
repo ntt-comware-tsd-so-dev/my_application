@@ -713,7 +713,9 @@
     <string name="Toast.Error">There was an error. Please try again.</string>
     <string name="location_permission_denied_geofence">Location permission denied.This permission is required for Geofences</string>
     <string name="location_permission_required_toast">Location permission is required for Geofence.</string>
-    
+    <string name="gps_network_not_enabled">GPS Network not enabled</string>
+    <string name="open_location_settings">Open Location Settings</string>
+
     <string-array name="location_options">
         <item>United States</item>
         <item>China</item>
