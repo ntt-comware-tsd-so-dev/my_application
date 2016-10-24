@@ -194,8 +194,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         public void onErrorResponse(AylaError error) {
                             dismissSigningInDialog();
                             Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
-                            Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
-                                    .LENGTH_LONG).show();
+                            Toast.makeText(SignInActivity.this, R.string.invalid_email_password,
+                                    Toast.LENGTH_LONG).show();
                         }
                     };
 
@@ -216,7 +216,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 dismissSigningInDialog();
                                 Log.e(LOG_TAG, "Sign In to identity provider failed "+ error
                                         .getMessage());
-                                Toast.makeText(MainActivity.getInstance(),R.string.invalid_email_password,Toast
+                                Toast.makeText(SignInActivity.this, R.string.invalid_email_password,
+                                        Toast
                                         .LENGTH_LONG).show();
                             }
                         });
