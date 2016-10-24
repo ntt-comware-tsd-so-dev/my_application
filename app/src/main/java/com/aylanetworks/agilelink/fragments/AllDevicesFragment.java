@@ -351,8 +351,9 @@ public class AllDevicesFragment extends Fragment implements
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
+        MainActivity instance = MainActivity.getInstance();
         //Make sure the user did not sign out normally (i.e error=null)
-        if(error !=null && MainActivity.getInstance().checkFingerprintOption()){
+        if (error != null && instance != null && instance.checkFingerprintOption()) {
             MainActivity.getInstance().showFingerPrint();
         }
     }
