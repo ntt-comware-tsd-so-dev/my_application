@@ -509,7 +509,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDestroy() {
-        _theInstance = null;
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {
             sm.removeListener(this);
