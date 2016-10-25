@@ -38,7 +38,7 @@ public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
 
     private ListView _listViewAutomations;
-    private Automation[] _Automations;
+    private Automation[] _automations;
     private AutomationListAdapter _automationsAdapter;
 
     public static AutomationListFragment newInstance() {
@@ -81,14 +81,14 @@ public class AutomationListFragment extends Fragment {
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
-                _Automations = response;
+                _automations = response;
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
                         _automationsAdapter = new AutomationListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
                         _listViewAutomations.setAdapter(_automationsAdapter);
                     } else {
                         _automationsAdapter.clear();
-                        _automationsAdapter.addAll(_Automations);
+                        _automationsAdapter.addAll(_automations);
                         _listViewAutomations.setAdapter(_automationsAdapter);
                         _automationsAdapter.notifyDataSetChanged();
                     }

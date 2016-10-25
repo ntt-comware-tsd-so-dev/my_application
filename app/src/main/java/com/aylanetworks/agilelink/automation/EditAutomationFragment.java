@@ -47,7 +47,7 @@ public class EditAutomationFragment extends Fragment {
     private EditText _automatioNameEditText;
     private Switch _geofenceSwitch;
     private Spinner _locationNameSpinner;
-    private Automation _Automation;
+    private Automation _automation;
     private String _locationName;
     private String _triggerID;
     private Map<String,String> _triggerIDMap;
@@ -85,7 +85,7 @@ public class EditAutomationFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.delete_automation:
-                if(_Automation != null) {
+                if(_automation != null) {
                     confirmRemoveAutomation();
                 }
                 return true;
@@ -110,7 +110,7 @@ public class EditAutomationFragment extends Fragment {
 
     private void deleteAutomation() {
         //confirm_delete_automation
-        AutomationManager.deleteAutomation(_Automation, new Response.Listener<AylaAPIRequest
+        AutomationManager.deleteAutomation(_automation, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -140,13 +140,12 @@ public class EditAutomationFragment extends Fragment {
         _automatioNameEditText = (EditText) root.findViewById(R.id.automation_name);
         Button saveActionButton = (Button) root.findViewById(R.id.button_action_save);
         if (getArguments() != null) {
-
-            _Automation = (Automation) getArguments().getSerializable(OBJ_KEY);
-            if (_Automation != null) {
-                String automatioName = _Automation.getName();
-                String triggerType = _Automation.getAutomationTriggerType().stringValue();
-                _triggerID = _Automation.getTriggerUUID();
-                _automatioNameEditText.setText(automatioName);
+            _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
+            if (_automation != null) {
+                String automationName = _automation.getName();
+                String triggerType = _automation.getAutomationTriggerType().stringValue();
+                _triggerID = _automation.getTriggerUUID();
+                _automatioNameEditText.setText(automationName);
                 saveActionButton.setText(R.string.update);
 
                 if (triggerType.equals(Automation.ALAutomationTriggerType
@@ -235,7 +234,7 @@ public class EditAutomationFragment extends Fragment {
                 }
 
                 AutomationActionsFragment frag = AutomationActionsFragment.newInstance
-                        (_Automation,automationName,triggerId,triggerType);
+                        (_automation,automationName,triggerId,triggerType);
                 MainActivity.getInstance().pushFragment(frag);
             }
         });

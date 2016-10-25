@@ -143,8 +143,6 @@ public class ActionsListFragment extends Fragment {
 
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(_activity, _actionsList.get(childPosition).getName(),
-                            Toast.LENGTH_SHORT).show();
                     Action action = _actionsList.get(childPosition);
                     EditActionsFragment frag = EditActionsFragment.newInstance(dsn, action);
                     MainActivity.getInstance().pushFragment(frag);

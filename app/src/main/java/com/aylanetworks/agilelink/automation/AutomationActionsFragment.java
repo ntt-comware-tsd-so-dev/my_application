@@ -112,11 +112,11 @@ public class AutomationActionsFragment extends Fragment {
                             _actionItems.add(actions);
                         }
 
-                        Action[] actions = null;
+                        String[] actionUUIDs = null;
                         if (_automation != null) {
-                            actions = _automation.getALActions();
+                            actionUUIDs = _automation.getActions();
                         }
-                        final DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems, actions);
+                        final DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems, actionUUIDs);
                         adapter.setInflater((LayoutInflater) getActivity().getSystemService
                                 (Context.LAYOUT_INFLATER_SERVICE), getActivity());
                         _expandableListView.setAdapter(adapter);
@@ -141,7 +141,7 @@ public class AutomationActionsFragment extends Fragment {
 
                                 Action[] actionsArray = new Action[adapter.getCheckedItems().size()];
                                 actionsArray = adapter.getCheckedItems().toArray(actionsArray);
-                                automation.setALActions(actionsArray);
+                                automation.setActions(actionsArray);
 
                                 if (_automation == null) {//This is a new Automation
                                     automation.setEnabled(true); //For new one always enable it
@@ -209,13 +209,13 @@ public class AutomationActionsFragment extends Fragment {
         private final ArrayList<String> _deviceListNames;
         private ArrayList<Action> _actionsList;
         private final ArrayList<Action> _checkedList;
-        private final Action[] _Actions;
+        private final String[] _actionUUIDs;
 
-        public DeviceActionAdapter(ArrayList<String> parents, ArrayList<Object> objectArrayList, Action[] actions) {
+        public DeviceActionAdapter(ArrayList<String> parents, ArrayList<Object> objectArrayList, String[] actionUUIDs) {
             this._deviceListNames = parents;
             this._actionListItems = objectArrayList;
             _checkedList = new ArrayList<>();
-            _Actions = actions;
+            _actionUUIDs = actionUUIDs;
         }
 
         public void setInflater(LayoutInflater _inflater, Activity _activity) {
@@ -237,12 +237,9 @@ public class AutomationActionsFragment extends Fragment {
             checkBoxView = (CheckBox) convertView.findViewById(R.id.checkbox_action);
             checkBoxView.setText(_actionsList.get(childPosition).getName());
             final Action action = _actionsList.get(childPosition);
-            if (_Actions != null) {
-                for (Action action1 : _Actions) {
-                    if (action1 == null) {
-                        continue;
-                    }
-                    if (action1.getId().equals(action.getId())) {
+            if (_actionUUIDs != null) {
+                for (String actionID : _actionUUIDs) {
+                    if (actionID.equals(action.getId())) {
                         checkBoxView.setChecked(true);
                     }
                 }
