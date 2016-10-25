@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.geofence;
+package com.aylanetworks.agilelink.automation;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;

@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.geofence;
+package com.aylanetworks.agilelink.automation;
 
 import android.app.Activity;
 import android.content.Context;
