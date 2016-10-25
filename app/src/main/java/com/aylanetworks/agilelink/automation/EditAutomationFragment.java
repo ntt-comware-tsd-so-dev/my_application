@@ -156,56 +156,51 @@ public class EditAutomationFragment extends Fragment {
                 }
             }
         }
-        Runnable r = new Runnable() {
+
+        LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
-            public void run() {
-                LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
-                    @Override
-                    public void onResponse(GeofenceLocation[] arrayAlAction) {
-                        String locationNames[] = new String[arrayAlAction.length];
-                        String selectedLocation = null;
-                        int index = 0;
-                        _triggerIDMap = new HashMap<>();
-                        for (GeofenceLocation alGeofenceLocation : arrayAlAction) {
-                            locationNames[index] = alGeofenceLocation.getName();
-                            if (_triggerID != null && _triggerID.equals(alGeofenceLocation.getId()
-                            )) {
-                                selectedLocation = alGeofenceLocation.getName();
+            public void onResponse(GeofenceLocation[] arrayAlAction) {
+                String locationNames[] = new String[arrayAlAction.length];
+                String selectedLocation = null;
+                int index = 0;
+                _triggerIDMap = new HashMap<>();
+                for (GeofenceLocation alGeofenceLocation : arrayAlAction) {
+                    locationNames[index] = alGeofenceLocation.getName();
+                    if (_triggerID != null && _triggerID.equals(alGeofenceLocation.getId()
+                    )) {
+                        selectedLocation = alGeofenceLocation.getName();
 
-                            }
-                            _triggerIDMap.put(alGeofenceLocation.getName(),alGeofenceLocation.getId());
-                            index++;
-                        }
-
-                        ArrayAdapter locationAdapter = new ArrayAdapter<>(getActivity(),
-                                android.R.layout.simple_list_item_1, locationNames);
-                        _locationNameSpinner.setAdapter(locationAdapter);
-                        if (selectedLocation != null) {
-                            int spinnerPosition = locationAdapter.getPosition(selectedLocation);
-                            _locationNameSpinner.setSelection(spinnerPosition);
-                        }
-                        _locationNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                _locationName = (String) _locationNameSpinner.getItemAtPosition
-                                        (position);
-                            }
-
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-                            }
-                        });
                     }
-                }, new ErrorListener() {
+                    _triggerIDMap.put(alGeofenceLocation.getName(), alGeofenceLocation.getId());
+                    index++;
+                }
+
+                ArrayAdapter locationAdapter = new ArrayAdapter<>(getActivity(),
+                        android.R.layout.simple_list_item_1, locationNames);
+                _locationNameSpinner.setAdapter(locationAdapter);
+                if (selectedLocation != null) {
+                    int spinnerPosition = locationAdapter.getPosition(selectedLocation);
+                    _locationNameSpinner.setSelection(spinnerPosition);
+                }
+                _locationNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        _locationName = (String) _locationNameSpinner.getItemAtPosition
+                                (position);
+                    }
+
                     @Override
-                    public void onErrorResponse(AylaError error) {
-                        Log.d(LOG_TAG, error.getMessage());
+                    public void onNothingSelected(AdapterView<?> parent) {
                     }
                 });
             }
-        };
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.d(LOG_TAG, error.getMessage());
+            }
+        });
 
-        android.os.Handler h = new android.os.Handler();
-        h.post(r);
+
 
         saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override

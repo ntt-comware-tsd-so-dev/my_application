@@ -73,52 +73,44 @@ public class AllGeofencesFragment extends Fragment {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         _viewHolder.geofenceRecyclerView.setLayoutManager(layoutManager);
-        Runnable r = new Runnable() {
+        LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
-            public void run() {
-                LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
+            public void onResponse(GeofenceLocation[] arrayGeofences) {
+                List<GeofenceLocation> geofenceLocations = new ArrayList<>();
+                geofenceLocations.addAll(Arrays.asList(arrayGeofences));
+                GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
+
+                _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
+                _viewHolder.geofenceRecyclerView.setAdapter(_allGeofencesAdapter);
+                refresh();
+                _allGeofencesAdapter.setListener(new AllGeofencesAdapter.AllGeofencesAdapterListener() {
                     @Override
-                    public void onResponse(GeofenceLocation[] arrayGeofences) {
-                        List<GeofenceLocation> geofenceLocations = new ArrayList<>();
-                        geofenceLocations.addAll(Arrays.asList(arrayGeofences));
-                        GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
+                    public void onDeleteTapped(final GeofenceLocation alGeofenceLocation) {
 
-                        _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
-                        _viewHolder.geofenceRecyclerView.setAdapter(_allGeofencesAdapter);
-                        refresh();
-                        _allGeofencesAdapter.setListener(new AllGeofencesAdapter.AllGeofencesAdapterListener() {
+                        LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                             @Override
-                            public void onDeleteTapped(final GeofenceLocation alGeofenceLocation) {
-
-                                LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                                    @Override
-                                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                        List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
-                                        GeofenceLocations.add(alGeofenceLocation);
-                                        GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
-                                    }
-                                }, new ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(AylaError error) {
-                                        String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                                                error.toString();
-                                        Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
+                                GeofenceLocations.add(alGeofenceLocation);
+                                GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
+                            }
+                        }, new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                                        error.toString();
+                                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
-                }, new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        Log.d(LOG_TAG, error.getMessage());
-                    }
                 });
             }
-        };
-
-        android.os.Handler h = new android.os.Handler();
-        h.post(r);
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.d(LOG_TAG, error.getMessage());
+            }
+        });
 
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override

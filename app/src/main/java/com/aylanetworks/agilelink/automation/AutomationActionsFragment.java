@@ -92,115 +92,108 @@ public class AutomationActionsFragment extends Fragment {
         }
         final List<AylaDevice> deviceList = AMAPCore.sharedInstance().getDeviceManager()
                 .getDevices();
-        Runnable r = new Runnable() {
+        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
-            public void run() {
-                AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
-                    @Override
-                    public void onResponse(Action[] arrayAlAction) {
-                        for (AylaDevice aylaDevice : deviceList) {
-                            _deviceNames.add(aylaDevice.getProductName());
-                            ArrayList<Action> actions = new ArrayList<>();
-                            for (Action alAction : arrayAlAction) {
-                                if (alAction == null) {
-                                    continue;
-                                }
-                                if (aylaDevice.getDsn().equals(alAction.getDSN())) {
-                                    actions.add(alAction);
-                                }
-                            }
-                            _actionItems.add(actions);
+            public void onResponse(Action[] arrayAlAction) {
+                for (AylaDevice aylaDevice : deviceList) {
+                    _deviceNames.add(aylaDevice.getProductName());
+                    ArrayList<Action> actions = new ArrayList<>();
+                    for (Action alAction : arrayAlAction) {
+                        if (alAction == null) {
+                            continue;
                         }
-
-                        String[] actionUUIDs = null;
-                        if (_automation != null) {
-                            actionUUIDs = _automation.getActions();
+                        if (aylaDevice.getDsn().equals(alAction.getDSN())) {
+                            actions.add(alAction);
                         }
-                        final DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems, actionUUIDs);
-                        adapter.setInflater((LayoutInflater) getActivity().getSystemService
-                                (Context.LAYOUT_INFLATER_SERVICE), getActivity());
-                        _expandableListView.setAdapter(adapter);
-
-                        _expandableListView.setGroupIndicator(null);
-                        _saveButton.setVisibility(View.VISIBLE);
-                        _saveButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Log.d(LOG_TAG, "Clicked Save");
-                                Automation automation = new Automation();
-                                automation.setName(_automationName);
-                                if (_automation != null) {
-                                    automation.setId(_automation.getId());
-                                } else {
-                                    automation.setId(UUID.randomUUID().toString());
-                                }
-                                automation.setTriggerUUID(_triggerUUID);
-
-                                automation.setAutomationTriggerType(Automation
-                                        .ALAutomationTriggerType.fromStringValue(_triggerType));
-
-                                Action[] actionsArray = new Action[adapter.getCheckedItems().size()];
-                                actionsArray = adapter.getCheckedItems().toArray(actionsArray);
-                                automation.setActions(actionsArray);
-
-                                if (_automation == null) {//This is a new Automation
-                                    automation.setEnabled(true); //For new one always enable it
-                                    AutomationManager.addAutomation(automation, new Response
-                                            .Listener<AylaAPIRequest
-                                            .EmptyResponse>() {
-                                        @Override
-                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            String msg = MainActivity.getInstance().getString(R
-                                                    .string.saved_success);
-                                            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                                            MainActivity.getInstance().popBackstackToRoot();
-                                        }
-                                    }, new ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(AylaError error) {
-                                            String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                                                    error.toString();
-                                            Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
-                                            MainActivity.getInstance().popBackstackToRoot();
-                                        }
-                                    });
-                                } else {
-                                    AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
-                                            .EmptyResponse>() {
-                                        @Override
-                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            String msg = MainActivity.getInstance().getString(R
-                                                    .string.updated_success);
-                                            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                                            MainActivity.getInstance().popBackstackToRoot();
-                                        }
-                                    }, new ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(AylaError error) {
-                                            String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                                                    error.toString();
-                                            Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
-                                            MainActivity.getInstance().popBackstackToRoot();
-                                        }
-                                    });
-                                }
-                                MainActivity.getInstance().popBackstackToRoot();
-                            }
-                        });
-
                     }
-                }, new ErrorListener() {
+                    _actionItems.add(actions);
+                }
+
+                String[] actionUUIDs = null;
+                if (_automation != null) {
+                    actionUUIDs = _automation.getActions();
+                }
+                final DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems, actionUUIDs);
+                adapter.setInflater((LayoutInflater) getActivity().getSystemService
+                        (Context.LAYOUT_INFLATER_SERVICE), getActivity());
+                _expandableListView.setAdapter(adapter);
+
+                _expandableListView.setGroupIndicator(null);
+                _saveButton.setVisibility(View.VISIBLE);
+                _saveButton.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onErrorResponse(AylaError error) {
-                        Log.d(LOG_TAG, error.getMessage());
+                    public void onClick(View v) {
+                        Log.d(LOG_TAG, "Clicked Save");
+                        Automation automation = new Automation();
+                        automation.setName(_automationName);
+                        if (_automation != null) {
+                            automation.setId(_automation.getId());
+                        } else {
+                            automation.setId(UUID.randomUUID().toString());
+                        }
+                        automation.setTriggerUUID(_triggerUUID);
+
+                        automation.setAutomationTriggerType(Automation
+                                .ALAutomationTriggerType.fromStringValue(_triggerType));
+
+                        Action[] actionsArray = new Action[adapter.getCheckedItems().size()];
+                        actionsArray = adapter.getCheckedItems().toArray(actionsArray);
+                        automation.setActions(actionsArray);
+
+                        if (_automation == null) {//This is a new Automation
+                            automation.setEnabled(true); //For new one always enable it
+                            AutomationManager.addAutomation(automation, new Response
+                                    .Listener<AylaAPIRequest
+                                    .EmptyResponse>() {
+                                @Override
+                                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                    String msg = MainActivity.getInstance().getString(R
+                                            .string.saved_success);
+                                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                                    MainActivity.getInstance().popBackstackToRoot();
+                                }
+                            }, new ErrorListener() {
+                                @Override
+                                public void onErrorResponse(AylaError error) {
+                                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                                            error.toString();
+                                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                                    MainActivity.getInstance().popBackstackToRoot();
+                                }
+                            });
+                        } else {
+                            AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
+                                    .EmptyResponse>() {
+                                @Override
+                                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                    String msg = MainActivity.getInstance().getString(R
+                                            .string.updated_success);
+                                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                                    MainActivity.getInstance().popBackstackToRoot();
+                                }
+                            }, new ErrorListener() {
+                                @Override
+                                public void onErrorResponse(AylaError error) {
+                                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                                            error.toString();
+                                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                                    MainActivity.getInstance().popBackstackToRoot();
+                                }
+                            });
+                        }
+                        MainActivity.getInstance().popBackstackToRoot();
                     }
                 });
-            }
-        };
 
-        android.os.Handler h = new android.os.Handler();
-        h.post(r);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.d(LOG_TAG, error.getMessage());
+            }
+        });
     }
+
 
     public class DeviceActionAdapter extends BaseExpandableListAdapter {
         private Activity _activity;

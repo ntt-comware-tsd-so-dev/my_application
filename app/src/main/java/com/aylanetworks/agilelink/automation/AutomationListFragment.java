@@ -65,15 +65,7 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                fetchAutomations();
-            }
-        };
-
-        android.os.Handler h = new android.os.Handler();
-        h.post(r);
+        fetchAutomations();
         return root;
     }
 

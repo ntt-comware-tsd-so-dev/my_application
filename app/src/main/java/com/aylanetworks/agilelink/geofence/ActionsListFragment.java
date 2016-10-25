@@ -62,43 +62,36 @@ public class ActionsListFragment extends Fragment {
 
         final List<AylaDevice> deviceList = AMAPCore.sharedInstance().getDeviceManager()
                 .getDevices();
-        Runnable r = new Runnable() {
+        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
-            public void run() {
-                AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
-                    @Override
-                    public void onResponse(Action[] arrayAlAction) {
-                        for (AylaDevice aylaDevice : deviceList) {
-                            _deviceMap.put(aylaDevice.getProductName(), aylaDevice.getDsn());
-                            _deviceNames.add(aylaDevice.getProductName());
-                            ArrayList<Action> actions = new ArrayList<>();
-                            for (Action alAction : arrayAlAction) {
-                                if (alAction == null) {
-                                    continue;
-                                }
-                                if (aylaDevice.getDsn().equals(alAction.getDSN())) {
-                                    actions.add(alAction);
-                                }
-                            }
-                            _actionItems.add(actions);
+            public void onResponse(Action[] arrayAlAction) {
+                for (AylaDevice aylaDevice : deviceList) {
+                    _deviceMap.put(aylaDevice.getProductName(), aylaDevice.getDsn());
+                    _deviceNames.add(aylaDevice.getProductName());
+                    ArrayList<Action> actions = new ArrayList<>();
+                    for (Action alAction : arrayAlAction) {
+                        if (alAction == null) {
+                            continue;
                         }
-                        DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
-                        adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
-                        _expandleListView.setAdapter(adapter);
+                        if (aylaDevice.getDsn().equals(alAction.getDSN())) {
+                            actions.add(alAction);
+                        }
+                    }
+                    _actionItems.add(actions);
+                }
+                DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
+                adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
+                _expandleListView.setAdapter(adapter);
 
-                        _expandleListView.setGroupIndicator(null);
-                    }
-                }, new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        Log.d(LOG_TAG, error.getMessage());
-                    }
-                });
+                _expandleListView.setGroupIndicator(null);
             }
-        };
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.d(LOG_TAG, error.getMessage());
+            }
+        });
 
-        android.os.Handler h = new android.os.Handler();
-        h.post(r);
         DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
         adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
         _expandleListView.setAdapter(adapter);
