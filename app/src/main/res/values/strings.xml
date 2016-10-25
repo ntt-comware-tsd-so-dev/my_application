@@ -686,6 +686,8 @@
     <string name="edit_location">Edit Location</string>
     <string name="geofence_name">Geofence Name</string>
     <string name="automation_name">Automation Name</string>
+    <string name="fetching_automations_title">Fetching Automations</string>
+    <string name="fetching_automations_body">Fetching Automations. Please wait...</string>
     <string name="upon">Upon</string>
     <string name="geofence_entering">Entering</string>
     <string name="geofence_leaving">Leaving</string>

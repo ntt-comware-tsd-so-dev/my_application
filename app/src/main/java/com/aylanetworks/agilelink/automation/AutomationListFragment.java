@@ -78,9 +78,11 @@ public class AutomationListFragment extends Fragment {
     }
 
     private void fetchAutomations() {
+        MainActivity.getInstance().showWaitDialog(R.string.fetching_automations_title, R.string.fetching_automations_body);
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
+                MainActivity.getInstance().dismissWaitDialog();
                 _automations = response;
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
@@ -97,6 +99,7 @@ public class AutomationListFragment extends Fragment {
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
                 String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
                         error.toString();
                 Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
