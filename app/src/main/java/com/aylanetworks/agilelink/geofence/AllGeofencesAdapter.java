@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 
 import java.util.List;
 
@@ -23,15 +23,15 @@ import java.util.List;
 
 public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapter.ViewHolder> {
 
-    private final List<ALGeofenceLocation> _alGeofenceLocations;
+    private final List<GeofenceLocation> _GeofenceLocations;
     private AllGeofencesAdapterListener _listener;
 
     public void setListener(AllGeofencesAdapterListener _listener) {
         this._listener = _listener;
     }
 
-    public AllGeofencesAdapter(List<ALGeofenceLocation> _alGeofenceLocations) {
-        this._alGeofenceLocations = _alGeofenceLocations;
+    public AllGeofencesAdapter(List<GeofenceLocation> _GeofenceLocations) {
+        this._GeofenceLocations = _GeofenceLocations;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        final ALGeofenceLocation geofence = _alGeofenceLocations.get(position);
+        final GeofenceLocation geofence = _GeofenceLocations.get(position);
         holder.name.setText(geofence.getName());
 
         holder.deleteButton.setOnClickListener(new View.OnClickListener() {
@@ -67,10 +67,10 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
 
     @Override
     public int getItemCount() {
-        if (_alGeofenceLocations == null) {
+        if (_GeofenceLocations == null) {
             return 0;
         }
-        return _alGeofenceLocations.size();
+        return _GeofenceLocations.size();
     }
 
     protected class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -89,7 +89,7 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
     }
 
     public interface AllGeofencesAdapterListener {
-        void onDeleteTapped(ALGeofenceLocation ALGeofenceLocation);
+        void onDeleteTapped(GeofenceLocation GeofenceLocation);
     }
 }
 

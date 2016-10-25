@@ -8,9 +8,9 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.geofence.ALAction;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomation;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomationManager;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.Automation;
+import com.aylanetworks.agilelink.framework.geofence.AutomationManager;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
@@ -53,33 +53,32 @@ public class AMAPGeofenceService extends IntentService {
     }
 
     private void onEnteredExitedGeofences(final boolean entered) {
-        ALAutomationManager.fetchAutomation(new Response.Listener<ALAutomation[]>() {
+        AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
-            public void onResponse(ALAutomation[] response) {
-                ALAutomation.ALAutomationTriggerType triggerType = ALAutomation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
+            public void onResponse(Automation[] response) {
+                Automation.ALAutomationTriggerType triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
                 if (!entered) {
-                    triggerType = ALAutomation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+                    triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
                 }
-                for (ALAutomation alAutomation : response) {
+                for (Automation automation : response) {
                     //Make sure Trigger Type matches and the automation is also enabled before
                     // firing the events
-                    if (alAutomation.getAutomationTriggerType().equals(triggerType) &&
-                            alAutomation.isEnabled()) {
-                        ALAction[] alActions = alAutomation.getALActions();
-                        for (final ALAction alAction : alActions) {
+                    if (automation.getAutomationTriggerType().equals(triggerType) &&
+                            automation.isEnabled()) {
+                        Action[] actions = automation.getALActions();
+                        for (final Action action : actions) {
 
                             AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
-                                    .deviceWithDSN(alAction.getDSN());
-                            final AylaProperty entryProperty = device.getProperty(alAction.getAylaProperty().getName());
-                          // final AylaProperty entryProperty = alAction.getAylaProperty();
+                                    .deviceWithDSN(action.getDSN());
+                            final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
 
-                            Object value = TypeUtils.getTypeConvertedValue(entryProperty.getBaseType(), alAction.getValue());
+                            Object value = TypeUtils.getTypeConvertedValue(entryProperty.getBaseType(), action.getValue());
                             entryProperty.createDatapoint(value, null, new Response
                                     .Listener<AylaDatapoint<Integer>>() {
                                         @Override
                                         public void onResponse(final AylaDatapoint<Integer> response) {
                                             String str = "Property Name:" +entryProperty.getName();
-                                            str += " value " +alAction.getValue();
+                                            str += " value " + action.getValue();
                                             Log.d(TAG, "OnEnteredExitedGeofences success: " + str);
                                         }
                                     },

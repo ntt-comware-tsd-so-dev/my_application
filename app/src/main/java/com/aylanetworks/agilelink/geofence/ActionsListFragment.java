@@ -18,7 +18,7 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.geofence.ALAction;
+import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -65,14 +65,14 @@ public class ActionsListFragment extends Fragment {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                AylaDeviceActions.fetchActions(new Response.Listener<ALAction[]>() {
+                AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
                     @Override
-                    public void onResponse(ALAction[] arrayAlAction) {
+                    public void onResponse(Action[] arrayAlAction) {
                         for (AylaDevice aylaDevice : deviceList) {
                             _deviceMap.put(aylaDevice.getProductName(), aylaDevice.getDsn());
                             _deviceNames.add(aylaDevice.getProductName());
-                            ArrayList<ALAction> actions = new ArrayList<>();
-                            for (ALAction alAction : arrayAlAction) {
+                            ArrayList<Action> actions = new ArrayList<>();
+                            for (Action alAction : arrayAlAction) {
                                 if (alAction == null) {
                                     continue;
                                 }
@@ -110,7 +110,7 @@ public class ActionsListFragment extends Fragment {
         private final ArrayList<Object> _actionListItems;
         private LayoutInflater _inflater;
         private final ArrayList<String> _deviceListNames;
-        private ArrayList<ALAction> _actionsList;
+        private ArrayList<Action> _actionsList;
 
         public DeviceActionAdapter(ArrayList<String> parents, ArrayList<Object> objectArrayList) {
             this._deviceListNames = parents;
@@ -128,7 +128,7 @@ public class ActionsListFragment extends Fragment {
             String deviceName = _deviceListNames.get(groupPosition);
             final String dsn = _deviceMap.get(deviceName);
 
-            _actionsList = (ArrayList<ALAction>) _actionListItems.get(groupPosition);
+            _actionsList = (ArrayList<Action>) _actionListItems.get(groupPosition);
 
             TextView textBoxView;
 
@@ -145,8 +145,8 @@ public class ActionsListFragment extends Fragment {
                 public void onClick(View view) {
                     Toast.makeText(_activity, _actionsList.get(childPosition).getName(),
                             Toast.LENGTH_SHORT).show();
-                    ALAction alAction = _actionsList.get(childPosition);
-                    EditActionsFragment frag = EditActionsFragment.newInstance(dsn, alAction);
+                    Action action = _actionsList.get(childPosition);
+                    EditActionsFragment frag = EditActionsFragment.newInstance(dsn, action);
                     MainActivity.getInstance().pushFragment(frag);
                 }
             });

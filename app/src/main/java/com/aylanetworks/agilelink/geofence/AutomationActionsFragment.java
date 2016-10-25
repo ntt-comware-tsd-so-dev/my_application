@@ -21,9 +21,9 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.geofence.ALAction;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomation;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomationManager;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.Automation;
+import com.aylanetworks.agilelink.framework.geofence.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -49,19 +49,19 @@ public class AutomationActionsFragment extends Fragment {
 
     private ExpandableListView _expandableListView;
     private final ArrayList<String> _deviceNames = new ArrayList<>();
-    private ALAutomation _alAutomation;
+    private Automation _automation;
     private final ArrayList<Object> _actionItems = new ArrayList<>();
     private Button _saveButton;
     private String _automationName;
     private String _triggerUUID;
     private String _triggerType;
 
-    public static AutomationActionsFragment newInstance(ALAutomation alAutomation, String
-            automationName, String triggerID, ALAutomation.ALAutomationTriggerType triggerType) {
+    public static AutomationActionsFragment newInstance(Automation automation, String
+            automationName, String triggerID, Automation.ALAutomationTriggerType triggerType) {
         AutomationActionsFragment frag = new AutomationActionsFragment();
         Bundle args = new Bundle();
-        if (alAutomation != null) {
-            args.putSerializable(OBJ_KEY, alAutomation);
+        if (automation != null) {
+            args.putSerializable(OBJ_KEY, automation);
         }
         args.putString(PARAM_AUTOMATION_NAME, automationName);
         args.putString(PARAM_TRIGGER_UUID, triggerID);
@@ -85,7 +85,7 @@ public class AutomationActionsFragment extends Fragment {
 
         _expandableListView = (ExpandableListView) view.findViewById(R.id.expListView);
         if (getArguments() != null) {
-            _alAutomation = (ALAutomation) getArguments().getSerializable(OBJ_KEY);
+            _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
             _automationName = getArguments().getString(PARAM_AUTOMATION_NAME);
             _triggerUUID = getArguments().getString(PARAM_TRIGGER_UUID);
             _triggerType = getArguments().getString(PARAM_TRIGGER_TYPE);
@@ -95,13 +95,13 @@ public class AutomationActionsFragment extends Fragment {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                AylaDeviceActions.fetchActions(new Response.Listener<ALAction[]>() {
+                AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
                     @Override
-                    public void onResponse(ALAction[] arrayAlAction) {
+                    public void onResponse(Action[] arrayAlAction) {
                         for (AylaDevice aylaDevice : deviceList) {
                             _deviceNames.add(aylaDevice.getProductName());
-                            ArrayList<ALAction> actions = new ArrayList<>();
-                            for (ALAction alAction : arrayAlAction) {
+                            ArrayList<Action> actions = new ArrayList<>();
+                            for (Action alAction : arrayAlAction) {
                                 if (alAction == null) {
                                     continue;
                                 }
@@ -112,11 +112,11 @@ public class AutomationActionsFragment extends Fragment {
                             _actionItems.add(actions);
                         }
 
-                        ALAction[] alActions = null;
-                        if (_alAutomation != null) {
-                            alActions = _alAutomation.getALActions();
+                        Action[] actions = null;
+                        if (_automation != null) {
+                            actions = _automation.getALActions();
                         }
-                        final DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems, alActions);
+                        final DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems, actions);
                         adapter.setInflater((LayoutInflater) getActivity().getSystemService
                                 (Context.LAYOUT_INFLATER_SERVICE), getActivity());
                         _expandableListView.setAdapter(adapter);
@@ -127,25 +127,25 @@ public class AutomationActionsFragment extends Fragment {
                             @Override
                             public void onClick(View v) {
                                 Log.d(LOG_TAG, "Clicked Save");
-                                ALAutomation alAutomation = new ALAutomation();
-                                alAutomation.setName(_automationName);
-                                if (_alAutomation != null) {
-                                    alAutomation.setId(_alAutomation.getId());
+                                Automation automation = new Automation();
+                                automation.setName(_automationName);
+                                if (_automation != null) {
+                                    automation.setId(_automation.getId());
                                 } else {
-                                    alAutomation.setId(UUID.randomUUID().toString());
+                                    automation.setId(UUID.randomUUID().toString());
                                 }
-                                alAutomation.setTriggerUUID(_triggerUUID);
+                                automation.setTriggerUUID(_triggerUUID);
 
-                                alAutomation.setAutomationTriggerType(ALAutomation
+                                automation.setAutomationTriggerType(Automation
                                         .ALAutomationTriggerType.fromStringValue(_triggerType));
 
-                                ALAction[] alActionsArray = new ALAction[adapter.getCheckedItems().size()];
-                                alActionsArray = adapter.getCheckedItems().toArray(alActionsArray);
-                                alAutomation.setALActions(alActionsArray);
+                                Action[] actionsArray = new Action[adapter.getCheckedItems().size()];
+                                actionsArray = adapter.getCheckedItems().toArray(actionsArray);
+                                automation.setALActions(actionsArray);
 
-                                if (_alAutomation == null) {//This is a new Automation
-                                    alAutomation.setEnabled(true); //For new one always enable it
-                                    ALAutomationManager.addAutomation(alAutomation, new Response
+                                if (_automation == null) {//This is a new Automation
+                                    automation.setEnabled(true); //For new one always enable it
+                                    AutomationManager.addAutomation(automation, new Response
                                             .Listener<AylaAPIRequest
                                             .EmptyResponse>() {
                                         @Override
@@ -165,7 +165,7 @@ public class AutomationActionsFragment extends Fragment {
                                         }
                                     });
                                 } else {
-                                    ALAutomationManager.updateAutomation(alAutomation, new Response.Listener<AylaAPIRequest
+                                    AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
                                             .EmptyResponse>() {
                                         @Override
                                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -207,15 +207,15 @@ public class AutomationActionsFragment extends Fragment {
         private final ArrayList<Object> _actionListItems;
         private LayoutInflater _inflater;
         private final ArrayList<String> _deviceListNames;
-        private ArrayList<ALAction> _actionsList;
-        private final ArrayList<ALAction> _checkedList;
-        private final ALAction[] _alActions;
+        private ArrayList<Action> _actionsList;
+        private final ArrayList<Action> _checkedList;
+        private final Action[] _Actions;
 
-        public DeviceActionAdapter(ArrayList<String> parents, ArrayList<Object> objectArrayList, ALAction[] alActions) {
+        public DeviceActionAdapter(ArrayList<String> parents, ArrayList<Object> objectArrayList, Action[] actions) {
             this._deviceListNames = parents;
             this._actionListItems = objectArrayList;
             _checkedList = new ArrayList<>();
-            _alActions = alActions;
+            _Actions = actions;
         }
 
         public void setInflater(LayoutInflater _inflater, Activity _activity) {
@@ -226,7 +226,7 @@ public class AutomationActionsFragment extends Fragment {
         @Override
         public View getChildView(int groupPosition, final int childPosition, boolean isLastChild,
                                  View convertView, ViewGroup parent) {
-            _actionsList = (ArrayList<ALAction>) _actionListItems.get(groupPosition);
+            _actionsList = (ArrayList<Action>) _actionListItems.get(groupPosition);
 
             CheckBox checkBoxView;
 
@@ -236,31 +236,31 @@ public class AutomationActionsFragment extends Fragment {
 
             checkBoxView = (CheckBox) convertView.findViewById(R.id.checkbox_action);
             checkBoxView.setText(_actionsList.get(childPosition).getName());
-            final ALAction alAction = _actionsList.get(childPosition);
-            if (_alActions != null) {
-                for (ALAction alAction1 : _alActions) {
-                    if (alAction1 == null) {
+            final Action action = _actionsList.get(childPosition);
+            if (_Actions != null) {
+                for (Action action1 : _Actions) {
+                    if (action1 == null) {
                         continue;
                     }
-                    if (alAction1.getId().equals(alAction.getId())) {
+                    if (action1.getId().equals(action.getId())) {
                         checkBoxView.setChecked(true);
                     }
                 }
             }
 
             if (checkBoxView.isChecked()) {
-                _checkedList.add(alAction);
+                _checkedList.add(action);
             }
             checkBoxView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
-                        if (!_checkedList.contains(alAction)) {
-                            _checkedList.add(alAction);
+                        if (!_checkedList.contains(action)) {
+                            _checkedList.add(action);
                         }
                     } else {
-                        if (_checkedList.contains(alAction)) {
-                            _checkedList.remove(alAction);
+                        if (_checkedList.contains(action)) {
+                            _checkedList.remove(action);
                         }
                     }
                 }
@@ -329,7 +329,7 @@ public class AutomationActionsFragment extends Fragment {
             return false;
         }
 
-        public ArrayList<ALAction> getCheckedItems() {
+        public ArrayList<Action> getCheckedItems() {
             return _checkedList;
         }
     }

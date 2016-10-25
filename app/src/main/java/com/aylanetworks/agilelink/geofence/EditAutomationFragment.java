@@ -23,10 +23,10 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomation;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomationManager;
-import com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation;
-import com.aylanetworks.agilelink.framework.geofence.ALLocationManager;
+import com.aylanetworks.agilelink.framework.geofence.Automation;
+import com.aylanetworks.agilelink.framework.geofence.AutomationManager;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -47,7 +47,7 @@ public class EditAutomationFragment extends Fragment {
     private EditText _automatioNameEditText;
     private Switch _geofenceSwitch;
     private Spinner _locationNameSpinner;
-    private ALAutomation _alAutomation;
+    private Automation _Automation;
     private String _locationName;
     private String _triggerID;
     private Map<String,String> _triggerIDMap;
@@ -56,12 +56,12 @@ public class EditAutomationFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static EditAutomationFragment newInstance(ALAutomation alAutomation) {
+    public static EditAutomationFragment newInstance(Automation automation) {
         EditAutomationFragment fragment = new EditAutomationFragment();
 
-        if (alAutomation != null) {
+        if (automation != null) {
             Bundle args = new Bundle();
-            args.putSerializable(OBJ_KEY, alAutomation);
+            args.putSerializable(OBJ_KEY, automation);
             fragment.setArguments(args);
         }
         return fragment;
@@ -85,7 +85,7 @@ public class EditAutomationFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.delete_automation:
-                if(_alAutomation != null) {
+                if(_Automation != null) {
                     confirmRemoveAutomation();
                 }
                 return true;
@@ -110,7 +110,7 @@ public class EditAutomationFragment extends Fragment {
 
     private void deleteAutomation() {
         //confirm_delete_automation
-        ALAutomationManager.deleteAutomation(_alAutomation, new Response.Listener<AylaAPIRequest
+        AutomationManager.deleteAutomation(_Automation, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -141,15 +141,15 @@ public class EditAutomationFragment extends Fragment {
         Button saveActionButton = (Button) root.findViewById(R.id.button_action_save);
         if (getArguments() != null) {
 
-            _alAutomation = (ALAutomation) getArguments().getSerializable(OBJ_KEY);
-            if (_alAutomation != null) {
-                String automatioName = _alAutomation.getName();
-                String triggerType = _alAutomation.getAutomationTriggerType().stringValue();
-                _triggerID = _alAutomation.getTriggerUUID();
+            _Automation = (Automation) getArguments().getSerializable(OBJ_KEY);
+            if (_Automation != null) {
+                String automatioName = _Automation.getName();
+                String triggerType = _Automation.getAutomationTriggerType().stringValue();
+                _triggerID = _Automation.getTriggerUUID();
                 _automatioNameEditText.setText(automatioName);
                 saveActionButton.setText(R.string.update);
 
-                if (triggerType.equals(ALAutomation.ALAutomationTriggerType
+                if (triggerType.equals(Automation.ALAutomationTriggerType
                         .TriggerTypeGeofenceEnter.stringValue())) {
                     _geofenceSwitch.setChecked(true);
                 } else {
@@ -160,14 +160,14 @@ public class EditAutomationFragment extends Fragment {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                ALLocationManager.fetchGeofenceLocations(new Response.Listener<ALGeofenceLocation[]>() {
+                LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
                     @Override
-                    public void onResponse(ALGeofenceLocation[] arrayAlAction) {
+                    public void onResponse(GeofenceLocation[] arrayAlAction) {
                         String locationNames[] = new String[arrayAlAction.length];
                         String selectedLocation = null;
                         int index = 0;
                         _triggerIDMap = new HashMap<>();
-                        for (ALGeofenceLocation alGeofenceLocation : arrayAlAction) {
+                        for (GeofenceLocation alGeofenceLocation : arrayAlAction) {
                             locationNames[index] = alGeofenceLocation.getName();
                             if (_triggerID != null && _triggerID.equals(alGeofenceLocation.getId()
                             )) {
@@ -227,15 +227,15 @@ public class EditAutomationFragment extends Fragment {
                     return;
                 }
 
-                ALAutomation.ALAutomationTriggerType triggerType = ALAutomation.
+                Automation.ALAutomationTriggerType triggerType = Automation.
                         ALAutomationTriggerType.TriggerTypeGeofenceEnter;
                 boolean bSwitchValue = _geofenceSwitch.isChecked();
                 if(!bSwitchValue){
-                    triggerType = ALAutomation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+                    triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
                 }
 
                 AutomationActionsFragment frag = AutomationActionsFragment.newInstance
-                        (_alAutomation,automationName,triggerId,triggerType);
+                        (_Automation,automationName,triggerId,triggerType);
                 MainActivity.getInstance().pushFragment(frag);
             }
         });

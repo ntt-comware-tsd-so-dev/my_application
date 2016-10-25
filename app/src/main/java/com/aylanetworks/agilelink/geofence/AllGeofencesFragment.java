@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
@@ -21,8 +20,8 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation;
-import com.aylanetworks.agilelink.framework.geofence.ALLocationManager;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -77,26 +76,26 @@ public class AllGeofencesFragment extends Fragment {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                ALLocationManager.fetchGeofenceLocations(new Response.Listener<ALGeofenceLocation[]>() {
+                LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
                     @Override
-                    public void onResponse(ALGeofenceLocation[] arrayGeofences) {
-                        List<ALGeofenceLocation> alGeofenceLocations = new ArrayList<>();
-                        alGeofenceLocations.addAll(Arrays.asList(arrayGeofences));
-                        GeofenceController.getInstance().setALGeofenceLocations(alGeofenceLocations);
+                    public void onResponse(GeofenceLocation[] arrayGeofences) {
+                        List<GeofenceLocation> geofenceLocations = new ArrayList<>();
+                        geofenceLocations.addAll(Arrays.asList(arrayGeofences));
+                        GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
 
                         _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
                         _viewHolder.geofenceRecyclerView.setAdapter(_allGeofencesAdapter);
                         refresh();
                         _allGeofencesAdapter.setListener(new AllGeofencesAdapter.AllGeofencesAdapterListener() {
                             @Override
-                            public void onDeleteTapped(final ALGeofenceLocation alGeofenceLocation) {
+                            public void onDeleteTapped(final GeofenceLocation alGeofenceLocation) {
 
-                                ALLocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                                     @Override
                                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                        List<ALGeofenceLocation> ALGeofenceLocations = new ArrayList<>();
-                                        ALGeofenceLocations.add(alGeofenceLocation);
-                                        GeofenceController.getInstance().removeGeofences(ALGeofenceLocations, geofenceControllerListener);
+                                        List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
+                                        GeofenceLocations.add(alGeofenceLocation);
+                                        GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
                                     }
                                 }, new ErrorListener() {
                                     @Override
@@ -134,11 +133,11 @@ public class AllGeofencesFragment extends Fragment {
         });
     }
 
-    private ArrayList<ALGeofenceLocation> loadGeofences() {
-        final ArrayList<ALGeofenceLocation> locationArrayList = new ArrayList<>();
-        ALLocationManager.fetchGeofenceLocations(new Response.Listener<ALGeofenceLocation[]>() {
+    private ArrayList<GeofenceLocation> loadGeofences() {
+        final ArrayList<GeofenceLocation> locationArrayList = new ArrayList<>();
+        LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
-            public void onResponse(ALGeofenceLocation[] response) {
+            public void onResponse(GeofenceLocation[] response) {
                 locationArrayList.addAll(Arrays.asList(response));
             }
         }, new ErrorListener() {
@@ -151,8 +150,8 @@ public class AllGeofencesFragment extends Fragment {
         return locationArrayList;
     }
 
-    public void addGeofence(final ALGeofenceLocation geofence) {
-        ALLocationManager.addGeofenceLocation(geofence, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+    public void addGeofence(final GeofenceLocation geofence) {
+        LocationManager.addGeofenceLocation(geofence, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
             @Override
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
                 GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
@@ -198,18 +197,18 @@ public class AllGeofencesFragment extends Fragment {
     }
 
     public static boolean isLocationEnabled(final Context context) {
-        LocationManager lm = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        android.location.LocationManager lm = (android.location.LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
         boolean network_enabled = false;
 
         try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            gps_enabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
         } catch(Exception ex) {
             Log.d(LOG_TAG, ex.getMessage());
         }
 
         try {
-            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            network_enabled = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
         } catch(Exception ex) {
             Log.d(LOG_TAG, ex.getMessage());
         }

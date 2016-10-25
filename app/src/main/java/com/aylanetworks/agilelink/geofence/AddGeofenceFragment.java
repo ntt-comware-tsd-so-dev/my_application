@@ -29,7 +29,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -137,7 +137,7 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             @Override
             public void onClick(View v) {
                 if (dataIsValid()) {
-                    ALGeofenceLocation geofence = new ALGeofenceLocation();
+                    GeofenceLocation geofence = new GeofenceLocation();
                     String uuid = UUID.randomUUID().toString();
                     geofence.setId(uuid);
                     geofence.setName(_geofenceName.getText().toString());
@@ -168,7 +168,7 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
                     @Override
                     public void onClick(View view) {
                         if (dataIsValid()) {
-                            ALGeofenceLocation geofence = new ALGeofenceLocation();
+                            GeofenceLocation geofence = new GeofenceLocation();
                             if (_geofenceListener != null) {
                                 _geofenceListener.addGeofence(geofence);
                                 dialog.dismiss();
@@ -222,9 +222,9 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             double latitude = Double.parseDouble(_latitude);
             double longitude = Double.parseDouble(_longitude);
             float radius = _progress;
-            if ((latitude < ALGeofenceLocation.Geometry.MinLatitude || latitude > ALGeofenceLocation.Geometry.MaxLatitude)
-                    || (longitude < ALGeofenceLocation.Geometry.MinLongitude || longitude > ALGeofenceLocation.Geometry.MaxLongitude)
-                    || (radius < ALGeofenceLocation.Geometry.MinRadius || radius > ALGeofenceLocation.Geometry.MaxRadius)) {
+            if ((latitude < GeofenceLocation.Geometry.MinLatitude || latitude > GeofenceLocation.Geometry.MaxLatitude)
+                    || (longitude < GeofenceLocation.Geometry.MinLongitude || longitude > GeofenceLocation.Geometry.MaxLongitude)
+                    || (radius < GeofenceLocation.Geometry.MinRadius || radius > GeofenceLocation.Geometry.MaxRadius)) {
                 validData = false;
             }
         }

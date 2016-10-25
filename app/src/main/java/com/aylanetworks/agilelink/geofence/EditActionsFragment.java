@@ -22,7 +22,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
-import com.aylanetworks.agilelink.framework.geofence.ALAction;
+import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -54,17 +54,17 @@ public class EditActionsFragment extends Fragment {
     private Spinner _propertyActionSpinner;
     private ViewModel _deviceModel;
     private boolean _isUpdateAction;
-    private ALAction _alAction;
+    private Action _action;
 
     public EditActionsFragment() {
         // Required empty public constructor
     }
 
-    public static EditActionsFragment newInstance(String dsn, ALAction alAction) {
+    public static EditActionsFragment newInstance(String dsn, Action action) {
         EditActionsFragment fragment = new EditActionsFragment();
         Bundle args = new Bundle();
-        if (alAction != null) {
-            args.putSerializable(OBJ_KEY, alAction);
+        if (action != null) {
+            args.putSerializable(OBJ_KEY, action);
         }
         args.putString(ARG_DSN, dsn);
         fragment.setArguments(args);
@@ -105,20 +105,19 @@ public class EditActionsFragment extends Fragment {
         _actionNameEditText = (EditText) root.findViewById(R.id.action_name);
         _actionValueEditText = (EditText) root.findViewById(R.id.action_value_text);
         if (getArguments() != null) {
-            _alAction = (ALAction) getArguments().getSerializable(OBJ_KEY);
+            _action = (Action) getArguments().getSerializable(OBJ_KEY);
             String dsn = getArguments().getString(ARG_DSN);
             _device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
             _deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
                     .viewModelForDevice(_device);
             _isUpdateAction = false;
-            if (_alAction != null) {
+            if (_action != null) {
                 _isUpdateAction = true;
-                _actionID = _alAction.getId();
-                String actionName = _alAction.getName();
-                _propertyName = _alAction.getAylaProperty().getName();
-                String propertyValue = _alAction.getValue();
+                _actionID = _action.getId();
+                String actionName = _action.getName();
+                _propertyName = _action.getPropertyName();
+                String propertyValue = _action.getValue();
                 _actionNameEditText.setText(actionName);
-                _actionValueEditText.setText(propertyValue);
                 _actionValueEditText.setText(propertyValue);
             }
         }
@@ -127,19 +126,19 @@ public class EditActionsFragment extends Fragment {
         _saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final ALAction alAction = new ALAction();
+                final Action action = new Action();
                 if (_isUpdateAction) {
-                    alAction.setId(_actionID);
+                    action.setId(_actionID);
                 } else {
-                    alAction.setId(UUID.randomUUID().toString());
+                    action.setId(UUID.randomUUID().toString());
                 }
-                alAction.setName(_actionNameEditText.getText().toString());
+                action.setName(_actionNameEditText.getText().toString());
                 AylaProperty<Integer> property = _device.getProperty(_propertyName);
-                alAction.setAylaProperty(property);
-                alAction.setDSN(_device.getDsn());
-                alAction.setValue(_actionValueEditText.getText().toString());
+                action.setPropertyName(property.getName());
+                action.setDSN(_device.getDsn());
+                action.setValue(_actionValueEditText.getText().toString());
                 if (!_isUpdateAction) {//This is a new Action just call add action
-                    AylaDeviceActions.addAction(alAction, new Response.Listener<AylaAPIRequest
+                    AylaDeviceActions.addAction(action, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
                         @Override
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -157,7 +156,7 @@ public class EditActionsFragment extends Fragment {
                         }
                     });
                 } else {
-                    AylaDeviceActions.updateAction(alAction, new Response.Listener<AylaAPIRequest
+                    AylaDeviceActions.updateAction(action, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
                         @Override
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -205,7 +204,7 @@ public class EditActionsFragment extends Fragment {
     }
 
     private void deleteAction() {
-        AylaDeviceActions.deleteAction(_alAction, new Response.Listener<AylaAPIRequest
+        AylaDeviceActions.deleteAction(_action, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override
             public void onResponse(AylaAPIRequest.EmptyResponse response) {

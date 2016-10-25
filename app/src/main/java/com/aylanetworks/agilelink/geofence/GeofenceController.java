@@ -11,7 +11,7 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -36,17 +36,17 @@ public class GeofenceController {
     private Context _context;
     private GoogleApiClient _googleApiClient;
     private GeofenceControllerListener _listener;
-    private List<ALGeofenceLocation> _alGeofenceLocations;
+    private List<GeofenceLocation> _GeofenceLocations;
     private Geofence _geofenceToAdd;
-    private ALGeofenceLocation _alGeofenceLocationToAdd;
+    private GeofenceLocation _GeofenceLocationToAdd;
 
     public static GeofenceController _instance;
 
-    public List<ALGeofenceLocation> getALGeofenceLocations() {
-        return _alGeofenceLocations;
+    public List<GeofenceLocation> getALGeofenceLocations() {
+        return _GeofenceLocations;
     }
 
-    private List<ALGeofenceLocation> ALGeofenceLocationsToRemove;
+    private List<GeofenceLocation> GeofenceLocationsToRemove;
 
 
     public static GeofenceController getInstance() {
@@ -58,43 +58,43 @@ public class GeofenceController {
 
     public void init(Context context) {
         _context = context.getApplicationContext();
-        ALGeofenceLocationsToRemove = new ArrayList<>();
+        GeofenceLocationsToRemove = new ArrayList<>();
     }
 
-    public void setALGeofenceLocations(List<ALGeofenceLocation> geofenceLocationList) {
-        _alGeofenceLocations = geofenceLocationList;
+    public void setALGeofenceLocations(List<GeofenceLocation> geofenceLocationList) {
+        _GeofenceLocations = geofenceLocationList;
     }
 
-    public void addGeofence(ALGeofenceLocation alGeofenceLocation, GeofenceControllerListener
+    public void addGeofence(GeofenceLocation geofenceLocation, GeofenceControllerListener
             _listener) {
-        this._alGeofenceLocationToAdd = alGeofenceLocation;
-        this._geofenceToAdd = geofence(alGeofenceLocation);
+        this._GeofenceLocationToAdd = geofenceLocation;
+        this._geofenceToAdd = geofence(geofenceLocation);
         this._listener = _listener;
 
         connectWithCallbacks(connectionAddListener);
     }
 
-    private Geofence geofence(ALGeofenceLocation alGeofenceLocation) {
+    private Geofence geofence(GeofenceLocation geofenceLocation) {
         return new Geofence.Builder()
-                .setRequestId(alGeofenceLocation.getId())
+                .setRequestId(geofenceLocation.getId())
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-                .setCircularRegion(alGeofenceLocation.getLatitude(), alGeofenceLocation
-                        .getLongitude(), alGeofenceLocation.getRadius())
+                .setCircularRegion(geofenceLocation.getLatitude(), geofenceLocation
+                        .getLongitude(), geofenceLocation.getRadius())
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build();
     }
 
-    public void removeGeofences(List<ALGeofenceLocation> ALGeofenceLocationsToRemove, GeofenceControllerListener _listener) {
-        this.ALGeofenceLocationsToRemove = ALGeofenceLocationsToRemove;
+    public void removeGeofences(List<GeofenceLocation> GeofenceLocationsToRemove, GeofenceControllerListener _listener) {
+        this.GeofenceLocationsToRemove = GeofenceLocationsToRemove;
         this._listener = _listener;
 
         connectWithCallbacks(connectionRemoveListener);
     }
 
     public void removeAllGeofences(GeofenceControllerListener _listener) {
-        ALGeofenceLocationsToRemove = new ArrayList<>();
-        for (com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation ALGeofenceLocation : _alGeofenceLocations) {
-            ALGeofenceLocationsToRemove.add(ALGeofenceLocation);
+        GeofenceLocationsToRemove = new ArrayList<>();
+        for (GeofenceLocation GeofenceLocation : _GeofenceLocations) {
+            GeofenceLocationsToRemove.add(GeofenceLocation);
         }
         this._listener = _listener;
 
@@ -120,16 +120,16 @@ public class GeofenceController {
     }
 
     private void saveGeofence() {
-        _alGeofenceLocations.add(_alGeofenceLocationToAdd);
+        _GeofenceLocations.add(_GeofenceLocationToAdd);
         if (_listener != null) {
             _listener.onGeofencesUpdated();
         }
     }
 
     private void removeSavedGeofences() {
-        for (com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation ALGeofenceLocation : ALGeofenceLocationsToRemove) {
-            int index = _alGeofenceLocations.indexOf(ALGeofenceLocation);
-            _alGeofenceLocations.remove(index);
+        for (GeofenceLocation GeofenceLocation : GeofenceLocationsToRemove) {
+            int index = _GeofenceLocations.indexOf(GeofenceLocation);
+            _GeofenceLocations.remove(index);
         }
 
         if (_listener != null) {
@@ -182,8 +182,8 @@ public class GeofenceController {
         @Override
         public void onConnected(Bundle bundle) {
             List<String> removeIds = new ArrayList<>();
-            for (com.aylanetworks.agilelink.framework.geofence.ALGeofenceLocation ALGeofenceLocation : ALGeofenceLocationsToRemove) {
-                removeIds.add(ALGeofenceLocation.getId());
+            for (GeofenceLocation GeofenceLocation : GeofenceLocationsToRemove) {
+                removeIds.add(GeofenceLocation.getId());
             }
 
             if (removeIds.size() > 0) {

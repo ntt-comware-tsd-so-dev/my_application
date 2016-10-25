@@ -19,8 +19,8 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomation;
-import com.aylanetworks.agilelink.framework.geofence.ALAutomationManager;
+import com.aylanetworks.agilelink.framework.geofence.Automation;
+import com.aylanetworks.agilelink.framework.geofence.AutomationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -38,7 +38,7 @@ public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
 
     private ListView _listViewAutomations;
-    private ALAutomation[] _alAutomations;
+    private Automation[] _Automations;
     private AutomationListAdapter _automationsAdapter;
 
     public static AutomationListFragment newInstance() {
@@ -78,17 +78,17 @@ public class AutomationListFragment extends Fragment {
     }
 
     private void fetchAutomations() {
-        ALAutomationManager.fetchAutomation(new Response.Listener<ALAutomation[]>() {
+        AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
-            public void onResponse(ALAutomation[] response) {
-                _alAutomations = response;
+            public void onResponse(Automation[] response) {
+                _Automations = response;
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
                         _automationsAdapter = new AutomationListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
                         _listViewAutomations.setAdapter(_automationsAdapter);
                     } else {
                         _automationsAdapter.clear();
-                        _automationsAdapter.addAll(_alAutomations);
+                        _automationsAdapter.addAll(_Automations);
                         _listViewAutomations.setAdapter(_automationsAdapter);
                         _automationsAdapter.notifyDataSetChanged();
                     }
@@ -111,9 +111,9 @@ public class AutomationListFragment extends Fragment {
     }
 
 
-    public class AutomationListAdapter extends ArrayAdapter<ALAutomation> {
-        public AutomationListAdapter(Context context, ArrayList<ALAutomation> alAutomations) {
-            super(context, R.layout.automation_list, alAutomations);
+    public class AutomationListAdapter extends ArrayAdapter<Automation> {
+        public AutomationListAdapter(Context context, ArrayList<Automation> automations) {
+            super(context, R.layout.automation_list, automations);
         }
 
         @NonNull
@@ -123,19 +123,19 @@ public class AutomationListFragment extends Fragment {
                 convertView = inflater.inflate(R.layout.automation_list, parent, false);
             }
 
-            final ALAutomation alAutomation = getItem(position);
+            final Automation automation = getItem(position);
             TextView tv1 = (TextView) convertView.findViewById(R.id.listItemAutomation);
             Switch enabledSwitch = (Switch) convertView.findViewById(R.id.toggle_switch);
-            if(alAutomation == null) {
+            if(automation == null) {
                return  convertView;
             }
-            tv1.setText(alAutomation.getName());
-            enabledSwitch.setChecked(alAutomation.isEnabled());
+            tv1.setText(automation.getName());
+            enabledSwitch.setChecked(automation.isEnabled());
             enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    alAutomation.setEnabled(isChecked);
-                    ALAutomationManager.updateAutomation(alAutomation, new Response.Listener<AylaAPIRequest
+                    automation.setEnabled(isChecked);
+                    AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
                         @Override
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -159,7 +159,7 @@ public class AutomationListFragment extends Fragment {
             convertView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v) {
-                    EditAutomationFragment frag = EditAutomationFragment.newInstance(alAutomation);
+                    EditAutomationFragment frag = EditAutomationFragment.newInstance(automation);
                     MainActivity.getInstance().pushFragment(frag);
                 }
             });
