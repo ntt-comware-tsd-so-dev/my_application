@@ -2,28 +2,19 @@ package com.aylanetworks.agilelink.geofence;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
-
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
-import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.geofence.Action;
-import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
-import com.aylanetworks.aylasdk.AylaDatapoint;
-import com.aylanetworks.aylasdk.AylaDevice;
-import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
-import com.aylanetworks.aylasdk.util.TypeUtils;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 /*
  * AMAP_Android
@@ -83,47 +74,20 @@ public class AMAPGeofenceService extends IntentService {
     }
 
     private void getActions(final String[] actionUUIDs) {
-        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
-            @Override
-            public void onResponse(Action[] arrayAction) {
-                Set<String> actionSet = new HashSet<>(Arrays.asList(actionUUIDs));
-                for (final Action action : arrayAction) {
-                    if (actionSet.contains((action.getId()))) {
-                        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
-                                .deviceWithDSN(action.getDSN());
-                        final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
+        HashSet<String> actionSet = new HashSet<>(Arrays.asList(actionUUIDs));
+        Intent intent = new Intent();
+        intent.setClass(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                        Object value = TypeUtils.getTypeConvertedValue(entryProperty.getBaseType(), action.getValue());
-                        entryProperty.createDatapoint(value, null, new Response
-                                        .Listener<AylaDatapoint<Integer>>() {
-                                    @Override
-                                    public void onResponse(final AylaDatapoint<Integer> response) {
-                                        String str = "Property Name:" + entryProperty.getName();
-                                        str += " value " + action.getValue();
-                                        Log.d(TAG, "OnEnteredExitedGeofences success: " + str);
-                                    }
-                                },
-                                new ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(AylaError error) {
-                                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                                                .LENGTH_LONG).show();
-                                    }
-                                });
-                    }
-                }
-            }
-        }, new ErrorListener() {
-            @Override
-            public void onErrorResponse(AylaError error) {
-                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                        .LENGTH_LONG).show();
-            }
-        });
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(MainActivity.ARG_ACTION_UUIDS, actionSet);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 
     private void onError(int i) {
         Log.e(TAG, "Geofencing Error: " + i);
     }
+
 }
 

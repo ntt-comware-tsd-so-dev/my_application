@@ -56,9 +56,15 @@ import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
+import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.aylasdk.AylaUser;
@@ -84,6 +90,7 @@ import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.util.TypeUtils;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -94,6 +101,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.crypto.Cipher;
@@ -102,7 +110,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
-
 /*
  * MainActivity.java
  * AgileLink Application Framework
@@ -137,6 +144,8 @@ public class MainActivity extends AppCompatActivity
     private KeyStore _keyStore;
     private Cipher _cipher;
     private static final String KEY_NAME = "finger-print-key-app";
+    public final static String ARG_ACTION_UUIDS = "action_uuids";
+
 
     /**
      * Returns the one and only instance of this activity
@@ -474,10 +483,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestStoragePermissions();
         }
-        if(getResources().getBoolean(R.bool.portrait_only)){
+        if (getResources().getBoolean(R.bool.portrait_only)) {
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         } else {
@@ -496,22 +505,21 @@ public class MainActivity extends AppCompatActivity
 
         if (!_loginScreenUp) {
             boolean allowOfflineUse = AylaNetworks.sharedInstance().getSystemSettings().allowOfflineUse;
-            if(allowOfflineUse) {
+            if (allowOfflineUse) {
                 //For off line mode don't disable existing cache
                 showLoginDialog(false);
             } else {
-                boolean expireAuthToken= AgileLinkApplication.getSharedPreferences()
+                boolean expireAuthToken = AgileLinkApplication.getSharedPreferences()
                         .getBoolean(getString(R.string.always_expire_auth_token), false);
                 showLoginDialog(expireAuthToken);
             }
         }
 
         // We want to know about application state changes
-        ((AgileLinkApplication)getApplication()).addListener(this);
-        if(checkFingerprintOption()) {
+        ((AgileLinkApplication) getApplication()).addListener(this);
+        if (checkFingerprintOption()) {
             createKey();
         }
-
     }
 
     @Override
@@ -1093,6 +1101,13 @@ public class MainActivity extends AppCompatActivity
         else {
             checkLoginAndConnectivity();
         }
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null){
+            HashSet<String> actionsList= ( HashSet<String>) bundle.getSerializable(ARG_ACTION_UUIDS);
+            if(actionsList != null) {
+                setGeofenceActions(actionsList);
+            }
+        }
     }
 
     @Override
@@ -1439,5 +1454,44 @@ public class MainActivity extends AppCompatActivity
         } else if (!_loginScreenUp) {
             showLoginDialog(false);
         }
+    }
+
+    private void setGeofenceActions(final HashSet<String> actionSet) {
+        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
+            @Override
+            public void onResponse(Action[] arrayAction) {
+                for (final Action action : arrayAction) {
+                    if (actionSet.contains((action.getId()))) {
+                        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                                .deviceWithDSN(action.getDSN());
+                        final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
+
+                        Object value = TypeUtils.getTypeConvertedValue(entryProperty.getBaseType(), action.getValue());
+                        entryProperty.createDatapoint(value, null, new Response
+                                        .Listener<AylaDatapoint<Integer>>() {
+                                    @Override
+                                    public void onResponse(final AylaDatapoint<Integer> response) {
+                                        String str = "Property Name:" + entryProperty.getName();
+                                        str += " value " + action.getValue();
+                                        Log.d("setGeofenceActions", "OnEnteredExitedGeofences success: " + str);
+                                    }
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                                                .LENGTH_LONG).show();
+                                    }
+                                });
+                    }
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                        .LENGTH_LONG).show();
+            }
+        });
     }
 }
