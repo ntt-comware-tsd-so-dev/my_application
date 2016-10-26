@@ -121,6 +121,13 @@ public class EditActionsFragment extends Fragment {
                 _actionValueEditText.setText(propertyValue);
             }
         }
+        Button _cancelButton = (Button) root.findViewById(R.id.button_action_cancel);
+        _cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
 
         Button _saveActionButton = (Button) root.findViewById(R.id.button_action_save);
         _saveActionButton.setOnClickListener(new View.OnClickListener() {
