@@ -93,6 +93,10 @@ cd Android_AylaSDK$AYLA_PUBLIC
 echo Get Android_AylaSDK from branch $AYLA_SDK_BRANCH
 git fetch $AYLA_REMOTE $AYLA_SDK_BRANCH
 git checkout $AYLA_SDK_BRANCH
+if [ $? -ne 0 ]; then
+    echo "Checkout ${AYLA_SDK_BRANCH} failure. Please check if the branch exists on your repo."
+    exit 1
+fi
 
 cd ../
 
@@ -100,6 +104,10 @@ cd AMAP_Android_Core_Framework$AYLA_PUBLIC
 echo Get AMAP_Android_Core_Framework from branch $AYLA_CORE_BRANCH
 git fetch $AYLA_REMOTE $AYLA_CORE_BRANCH
 git checkout $AYLA_CORE_BRANCH
+if [ $? -ne 0 ]; then
+    echo "Checkout ${AYLA_CORE_BRANCH} failure. Please check if the branch exists on your repo."
+    exit 1
+fi
 
 cd ../
 
