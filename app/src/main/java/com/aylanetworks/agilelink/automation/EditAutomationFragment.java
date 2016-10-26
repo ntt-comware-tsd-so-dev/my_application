@@ -44,13 +44,13 @@ public class EditAutomationFragment extends Fragment {
     private final static String LOG_TAG = "EditAutomationFragment";
     private final static String OBJ_KEY = "automation_obj";
 
-    private EditText _automatioNameEditText;
+    private EditText _automationNameEditText;
     private Switch _geofenceSwitch;
     private Spinner _locationNameSpinner;
     private Automation _automation;
     private String _locationName;
     private String _triggerID;
-    private Map<String,String> _triggerIDMap;
+    private Map<String, String> _triggerIDMap;
 
     public EditAutomationFragment() {
         // Required empty public constructor
@@ -85,7 +85,7 @@ public class EditAutomationFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.delete_automation:
-                if(_automation != null) {
+                if (_automation != null) {
                     confirmRemoveAutomation();
                 }
                 return true;
@@ -136,8 +136,16 @@ public class EditAutomationFragment extends Fragment {
         final View root = inflater.inflate(R.layout.edit_automation, container, false);
         _geofenceSwitch = (Switch) root.findViewById(R.id.toggle_switch);
         _geofenceSwitch.setChecked(true);
-        _locationNameSpinner = (Spinner)root.findViewById(R.id.geofence_location_names);
-        _automatioNameEditText = (EditText) root.findViewById(R.id.automation_name);
+        _locationNameSpinner = (Spinner) root.findViewById(R.id.geofence_location_names);
+        _automationNameEditText = (EditText) root.findViewById(R.id.automation_name);
+        Button _cancelButton = (Button) root.findViewById(R.id.button_action_cancel);
+        _cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
+
         Button saveActionButton = (Button) root.findViewById(R.id.button_action_save);
         if (getArguments() != null) {
             _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
@@ -145,7 +153,7 @@ public class EditAutomationFragment extends Fragment {
                 String automationName = _automation.getName();
                 String triggerType = _automation.getAutomationTriggerType().stringValue();
                 _triggerID = _automation.getTriggerUUID();
-                _automatioNameEditText.setText(automationName);
+                _automationNameEditText.setText(automationName);
                 saveActionButton.setText(R.string.update);
 
                 if (triggerType.equals(Automation.ALAutomationTriggerType
@@ -166,10 +174,8 @@ public class EditAutomationFragment extends Fragment {
                 _triggerIDMap = new HashMap<>();
                 for (GeofenceLocation alGeofenceLocation : arrayAlAction) {
                     locationNames[index] = alGeofenceLocation.getName();
-                    if (_triggerID != null && _triggerID.equals(alGeofenceLocation.getId()
-                    )) {
+                    if (_triggerID != null && _triggerID.equals(alGeofenceLocation.getId())) {
                         selectedLocation = alGeofenceLocation.getName();
-
                     }
                     _triggerIDMap.put(alGeofenceLocation.getName(), alGeofenceLocation.getId());
                     index++;
@@ -201,38 +207,41 @@ public class EditAutomationFragment extends Fragment {
         });
 
 
-
         saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String automationName = _automatioNameEditText.getText().toString();
-
-                if (TextUtils.isEmpty(automationName)){
-                    String msg = MainActivity.getInstance().getString(R.string
-                            .automation_name_empty);
-                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                   return;
-                }
-                String triggerId = _triggerIDMap.get(_locationName);
-                if (TextUtils.isEmpty(triggerId)){
-                    String msg = MainActivity.getInstance().getString(R.string
-                            .unknown_geo_fence);
-                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                Automation.ALAutomationTriggerType triggerType = Automation.
-                        ALAutomationTriggerType.TriggerTypeGeofenceEnter;
-                boolean bSwitchValue = _geofenceSwitch.isChecked();
-                if(!bSwitchValue){
-                    triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
-                }
-
-                AutomationActionsFragment frag = AutomationActionsFragment.newInstance
-                        (_automation,automationName,triggerId,triggerType);
-                MainActivity.getInstance().pushFragment(frag);
+                saveAutomation();
             }
         });
         return root;
+    }
+
+    private void saveAutomation() {
+        String automationName = _automationNameEditText.getText().toString();
+
+        if (TextUtils.isEmpty(automationName)) {
+            String msg = MainActivity.getInstance().getString(R.string
+                    .automation_name_empty);
+            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String triggerId = _triggerIDMap.get(_locationName);
+        if (TextUtils.isEmpty(triggerId)) {
+            String msg = MainActivity.getInstance().getString(R.string
+                    .unknown_geo_fence);
+            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Automation.ALAutomationTriggerType triggerType = Automation.
+                ALAutomationTriggerType.TriggerTypeGeofenceEnter;
+        boolean bSwitchValue = _geofenceSwitch.isChecked();
+        if (!bSwitchValue) {
+            triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+        }
+
+        AutomationActionsFragment frag = AutomationActionsFragment.newInstance
+                (_automation, automationName, triggerId, triggerType);
+        MainActivity.getInstance().pushFragment(frag);
     }
 }

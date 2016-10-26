@@ -18,6 +18,7 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -60,14 +61,27 @@ public class ActionsListFragment extends Fragment {
 
         _expandleListView = (ExpandableListView) view.findViewById(R.id.expListView);
 
-        final List<AylaDevice> deviceList = AMAPCore.sharedInstance().getDeviceManager()
+        final List<AylaDevice> alldeviceList = AMAPCore.sharedInstance().getDeviceManager()
                 .getDevices();
+        List<AylaDevice> deviceList = null;
+        if (alldeviceList != null) {
+            deviceList = new ArrayList<>();
+            for (AylaDevice device : alldeviceList) {
+                ViewModel model = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                        .viewModelForDevice(device);
+                //Add only those devices that have Notifiable properties
+                if (model.getNotifiablePropertyNames().length > 0) {
+                    deviceList.add(device);
+                    _deviceMap.put(device.getProductName(), device.getDsn());
+                    _deviceNames.add(device.getProductName());
+                }
+            }
+        }
+        final List<AylaDevice> dvcList = deviceList;
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
             public void onResponse(Action[] arrayAlAction) {
-                for (AylaDevice aylaDevice : deviceList) {
-                    _deviceMap.put(aylaDevice.getProductName(), aylaDevice.getDsn());
-                    _deviceNames.add(aylaDevice.getProductName());
+                for (AylaDevice aylaDevice : dvcList) {
                     ArrayList<Action> actions = new ArrayList<>();
                     for (Action alAction : arrayAlAction) {
                         if (alAction == null) {
@@ -180,7 +194,11 @@ public class ActionsListFragment extends Fragment {
 
         @Override
         public int getChildrenCount(int groupPosition) {
-            return ((ArrayList<String>) _actionListItems.get(groupPosition)).size();
+            if (_actionListItems == null || _actionListItems.isEmpty()) {
+                return 0;
+            } else {
+                return ((ArrayList<String>) _actionListItems.get(groupPosition)).size();
+            }
         }
 
         @Override

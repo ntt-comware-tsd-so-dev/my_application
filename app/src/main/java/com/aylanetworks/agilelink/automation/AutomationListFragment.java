@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.automation.Automation;
@@ -24,6 +25,7 @@ import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.ServerError;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +42,8 @@ public class AutomationListFragment extends Fragment {
     private ListView _listViewAutomations;
     private Automation[] _automations;
     private AutomationListAdapter _automationsAdapter;
+    private final static int ERROR_NOT_FOUND = 404;
+    private boolean _initialState = false;
 
     public static AutomationListFragment newInstance() {
         return new AutomationListFragment();
@@ -92,6 +96,16 @@ public class AutomationListFragment extends Fragment {
             @Override
             public void onErrorResponse(AylaError error) {
                 MainActivity.getInstance().dismissWaitDialog();
+                if (error instanceof ServerError) {
+                    //Check if there are no existing automations. This is not an actual error and we
+                    //don't want to show this error.
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if(code == ERROR_NOT_FOUND) {
+                        Log.d(LOG_TAG, "No Existing Automations");
+                        return;
+                    }
+                }
                 String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
                         error.toString();
                 Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
@@ -125,10 +139,13 @@ public class AutomationListFragment extends Fragment {
                return  convertView;
             }
             tv1.setText(automation.getName());
-            enabledSwitch.setChecked(automation.isEnabled());
+            _initialState = automation.isEnabled();
             enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
+                    if(_initialState == isChecked) {
+                        return;
+                    }
                     automation.setEnabled(isChecked);
                     AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
@@ -137,7 +154,7 @@ public class AutomationListFragment extends Fragment {
                             String msg = MainActivity.getInstance().getString(R
                                     .string.updated_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                            MainActivity.getInstance().popBackstackToRoot();
+                            _initialState = isChecked;
                         }
                     }, new ErrorListener() {
                         @Override
@@ -150,6 +167,7 @@ public class AutomationListFragment extends Fragment {
                     });
                 }
             });
+            enabledSwitch.setChecked(_initialState);
 
             convertView.setOnClickListener(new View.OnClickListener(){
                 @Override
