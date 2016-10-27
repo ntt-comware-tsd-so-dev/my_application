@@ -292,7 +292,10 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     }
 
     private void DrawMapCircle(double radius) {
-        _googleMap.clear();
+        if(_googleMap !=null) {
+            _googleMap.clear();
+
+        }
         new DraggableCircle(_latLng, radius);
     }
 
