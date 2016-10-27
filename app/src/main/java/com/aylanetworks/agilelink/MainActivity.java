@@ -61,6 +61,7 @@ import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaShare;
+import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
 import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
@@ -860,10 +861,12 @@ public class MainActivity extends AppCompatActivity
             // Development values
             parameters.appId = "AgileLinkProd-id";
             parameters.appSecret = "AgileLinkProd-8249425";
+            parameters.serviceType = AylaSystemSettings.ServiceType.Development;
         } else {
             // Production values
             parameters.appId = "AgileLinkProd-id";
             parameters.appSecret = "AgileLinkProd-1530606";
+            parameters.serviceType = AylaSystemSettings.ServiceType.Field;
         }
 
         parameters.viewModelProvider = new AMAPViewModelProvider();
