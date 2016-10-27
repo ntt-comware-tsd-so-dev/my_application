@@ -701,7 +701,7 @@
     <string name="automation_name_empty">Automation Name is empty</string>
     <string name="unknown_geo_fence"> Unknown Geofence Location</string>
 
-    <string name="actions">Geofence Actions</string>
+    <string name="actions">Device Actions</string>
     <string name="automations">Automations</string>
     <string name="saved_success">Saved Successfully</string>
     <string name="updated_success">Updated Successfully</string>

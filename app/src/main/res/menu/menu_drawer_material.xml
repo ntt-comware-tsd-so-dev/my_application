@@ -8,6 +8,19 @@
             android:title="@string/dashboard"/>
 
         <item
+            android:id="@+id/action_geofences"
+            android:icon="@drawable/ic_add_location"
+            android:title="@string/geofences"/>
+        <item
+            android:id="@+id/action_al_actions"
+            android:icon="@drawable/ic_add_action"
+            android:title="@string/actions"/>
+        <item
+            android:id="@+id/action_automations"
+            android:icon="@drawable/ic_add_automation"
+            android:title="@string/automations"/>
+
+        <item
             android:id="@+id/action_device_groups"
             android:icon="@drawable/ic_groups_icon_gray40"
             android:title="@string/groups"/>
@@ -36,20 +49,6 @@
             android:id="@+id/action_settings"
             android:icon="@android:drawable/ic_menu_preferences"
             android:title="@string/settings"/>
-
-        <item
-            android:id="@+id/action_geofences"
-            android:icon="@drawable/ic_add_location"
-            android:title="@string/geofences"/>
-        <item
-            android:id="@+id/action_al_actions"
-            android:icon="@drawable/ic_add_location"
-            android:title="@string/actions"/>
-        <item
-            android:id="@+id/action_automations"
-            android:icon="@drawable/ic_add_location"
-            android:title="@string/automations"/>
-
 
         <item
             android:id="@+id/action_help"
