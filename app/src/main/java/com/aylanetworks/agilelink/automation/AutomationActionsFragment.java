@@ -123,11 +123,11 @@ public class AutomationActionsFragment extends Fragment {
         automation.setName(_automationName);
         if (_automation != null) {
             automation.setId(_automation.getId());
+            automation.setEnabled(_automation.isEnabled());
         } else {
             automation.setId(UUID.randomUUID().toString());
         }
         automation.setTriggerUUID(_triggerUUID);
-        automation.setEnabled(_automation.isEnabled());
 
         automation.setAutomationTriggerType(Automation
                 .ALAutomationTriggerType.fromStringValue(_triggerType));

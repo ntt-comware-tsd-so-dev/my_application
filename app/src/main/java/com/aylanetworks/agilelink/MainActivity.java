@@ -91,6 +91,7 @@ import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.util.TypeUtils;
+import com.google.android.gms.location.Geofence;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -101,6 +102,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -144,7 +146,8 @@ public class MainActivity extends AppCompatActivity
     private KeyStore _keyStore;
     private Cipher _cipher;
     private static final String KEY_NAME = "finger-print-key-app";
-    public final static String ARG_ACTION_UUIDS = "action_uuids";
+    public final static String ARG_TRIGGER_TYPE = "trgigger_type";
+    public final static String GEO_FENCE_LIST = "geo_fence_list";
 
 
     /**
@@ -519,6 +522,22 @@ public class MainActivity extends AppCompatActivity
         ((AgileLinkApplication) getApplication()).addListener(this);
         if (checkFingerprintOption()) {
             createKey();
+        }
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null){
+           boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
+            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
+        }
+    }
+    @Override
+    public  void onNewIntent (Intent intent) {
+        super.onNewIntent(intent);
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null){
+            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
+            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
         }
     }
 
@@ -1101,13 +1120,6 @@ public class MainActivity extends AppCompatActivity
         else {
             checkLoginAndConnectivity();
         }
-        Bundle bundle = this.getIntent().getExtras();
-        if (bundle != null){
-            HashSet<String> actionsList= ( HashSet<String>) bundle.getSerializable(ARG_ACTION_UUIDS);
-            if(actionsList != null) {
-                setGeofenceActions(actionsList);
-            }
-        }
     }
 
     @Override
@@ -1456,42 +1468,5 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void setGeofenceActions(final HashSet<String> actionSet) {
-        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
-            @Override
-            public void onResponse(Action[] arrayAction) {
-                for (final Action action : arrayAction) {
-                    if (actionSet.contains((action.getId()))) {
-                        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
-                                .deviceWithDSN(action.getDSN());
-                        final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
 
-                        Object value = TypeUtils.getTypeConvertedValue(entryProperty.getBaseType(), action.getValue());
-                        entryProperty.createDatapoint(value, null, new Response
-                                        .Listener<AylaDatapoint<Integer>>() {
-                                    @Override
-                                    public void onResponse(final AylaDatapoint<Integer> response) {
-                                        String str = "Property Name:" + entryProperty.getName();
-                                        str += " value " + action.getValue();
-                                        Log.d("setGeofenceActions", "OnEnteredExitedGeofences success: " + str);
-                                    }
-                                },
-                                new ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(AylaError error) {
-                                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                                                .LENGTH_LONG).show();
-                                    }
-                                });
-                    }
-                }
-            }
-        }, new ErrorListener() {
-            @Override
-            public void onErrorResponse(AylaError error) {
-                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                        .LENGTH_LONG).show();
-            }
-        });
-    }
 }
