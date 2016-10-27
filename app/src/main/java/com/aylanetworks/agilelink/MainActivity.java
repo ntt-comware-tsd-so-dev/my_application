@@ -859,13 +859,13 @@ public class MainActivity extends AppCompatActivity
         boolean useDevService = true;
         if ( useDevService ) {
             // Development values
-            parameters.appId = "AgileLinkProd-id";
-            parameters.appSecret = "AgileLinkProd-8249425";
+            parameters.appId = "AMAP-Dev-0dfc7900-id";
+            parameters.appSecret = "AMAP-Dev-0dfc7900-sP7-7jkjjvSBrV5Pm3OFT0zpfM0";
             parameters.serviceType = AylaSystemSettings.ServiceType.Development;
         } else {
             // Production values
-            parameters.appId = "AgileLinkProd-id";
-            parameters.appSecret = "AgileLinkProd-1530606";
+            parameters.appId = "AMAP-Prod-0dfc7900-id";
+            parameters.appSecret = "AMAP-Prod-0dfc7900--svSZtnxon0EYPGDNqIFnfeT0F8";
             parameters.serviceType = AylaSystemSettings.ServiceType.Field;
         }
 
