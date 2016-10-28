@@ -1,4 +1,4 @@
-package com.aylanetworks.agilelink.geofence;
+package com.aylanetworks.agilelink.actions;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,7 +12,6 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;

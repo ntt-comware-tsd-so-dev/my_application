@@ -25,7 +25,7 @@ import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.geofence.ActionsListFragment;
+import com.aylanetworks.agilelink.actions.ActionsListFragment;
 import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
 import com.aylanetworks.agilelink.automation.AutomationListFragment;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
