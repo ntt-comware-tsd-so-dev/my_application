@@ -634,7 +634,56 @@
     <string name="location_permission_denied">Acceso a ubicación denegado</string>
 
     <!-- Developer Options -->
-    <string name="dev_options">Developer Options</string>
+    <string name="dev_options">Opciones del Desarrollador</string>
+    <!-- geofence related strings -->
+    <string name="geofences">Ubicaciones de Geocerca</string>
+    <string name="add_geofence">Agregar Geocerca</string>
+    <string name="delete_geofence">Borrar Geocerca</string>
+    <string name="geofence_validation">Por favor introduzca datos en todos los campos</string>
+    <string name="on_enter">Al Entrar</string>
+    <string name="on_exit">Al Salir</string>
+    <string name="geofence_radius">radio:</string>
+    <string name="radius_units">m</string>
+    <string name="delete_geofence_action">borrar acción</string>
+    <string name="delete_automation">borrar automatización</string>
+    <string name="device_dsn">DSN del dispositivo</string>
+    <string name="property_name">Nombre de Propiedad</string>
+    <string name="property_value">Valor de Propiedad</string>
+    <string name="add_action">Agregar Acción</string>
+    <string name="edit_location">Editar Ubicación</string>
+    <string name="geofence_name">Nombre de Geocerca</string>
+    <string name="automation_name">Nombre de Automatización</string>
+    <string name="fetching_automations_title">Cargando automatizaciones</string>
+    <string name="fetching_automations_body">Cargando automatizaciones. Espere por favor...</string>
+    <string name="upon">Al</string>
+    <string name="geofence_entering">Entrar</string>
+    <string name="geofence_leaving">Irse</string>
+    <string name="geofence_location">Ubicación de Geocerca</string>
+    <string name="add_automation">Agregar automatización</string>
+    <string name="btn_save">Guardar</string>
+    <string name="confirm_delete_geofence">¿Esta seguro de borrar la Geocerca de AMAP?</string>
+    <string name="automation_empty_text">No tiene automatizaciones asociadas con su cuenta. Seleccione agregar para crear una.</string>
+    <string name="confirm_remove_automation">¿Esta seguro de borrar la automatización?</string>
+    <string name="confirm_remove_action">¿Esta seguro de borrar la acción?</string>
+    <string name="automation_name_empty">El nombre de automatización está vacío</string>
+    <string name="unknown_geo_fence"> Ubicación de Geocerca desconocida</string>
+
+    <string name="actions">Acciones del dispositivo</string>
+    <string name="automations">Automatizaciones</string>
+    <string name="saved_success">Guardado Exitosamente</string>
+    <string name="updated_success">Actualizado Exitosamente</string>
+    <string name="deleted_success">Borrado Exitosamente</string>
+    <string name="confirm_delete_automation">¿Está seguro de borrar la automatización?</string>
+
+    <string name="Hint.Name">Nombre de la Geocerca</string>
+    <string name="Hint.Radius" formatted="false">Radio (0-300 metros)</string>
+
+    <string name="Label.AddGeofence">Agregar Geocerca</string>
+    <string name="Toast.Error">Hubo un error. Por favor reintente.</string>
+    <string name="location_permission_denied_geofence">Se negó acceso a ubicación. Se require el permiso para la Geocerca</string>
+    <string name="location_permission_required_toast">Se requiere acceso a ubicación para la Geocerca.</string>
+    <string name="gps_network_not_enabled">Red GPS deshabilitada</string>
+    <string name="open_location_settings">Abrir ajustes de Ubicación</string>
 
     <string-array name="location_options">
         <item>United States</item>
