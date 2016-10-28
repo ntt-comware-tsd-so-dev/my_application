@@ -72,6 +72,9 @@ public class AMAPGeofenceService extends IntentService {
     }
 
     public static void fetchAutomations(final boolean entered,final ArrayList<Geofence> geofenceList ){
+        if(geofenceList == null) {
+            return;
+        }
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
                 () {
             @Override
@@ -85,7 +88,6 @@ public class AMAPGeofenceService extends IntentService {
                     // firing the events
                     if (automation.getAutomationTriggerType().equals(triggerType) &&
                             automation.isEnabled()) {
-
                         //Now go through the geofence list and make sure the automation geofence ID
                         // is in this list
                         for(Geofence geofence:geofenceList) {
