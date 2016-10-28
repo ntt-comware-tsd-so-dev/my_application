@@ -296,7 +296,9 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             _googleMap.clear();
 
         }
-        new DraggableCircle(_latLng, radius);
+        if(_latLng != null) {
+            new DraggableCircle(_latLng, radius);
+        }
     }
 
     private class DraggableCircle {
