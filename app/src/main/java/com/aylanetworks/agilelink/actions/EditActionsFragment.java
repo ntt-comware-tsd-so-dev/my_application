@@ -29,6 +29,7 @@ import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.util.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -133,6 +134,19 @@ public class EditActionsFragment extends Fragment {
         _saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                AylaProperty property = _device.getProperty(_propertyName);
+                String propValue = _actionValueEditText.getText().toString();
+                if(!isValidValue(property,propValue)){
+                    String errorString = "Invalid Property Value";
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Object value = TypeUtils.getTypeConvertedValue(property.getBaseType(), propValue);
+                if(value == null) {
+                    String errorString = "Invalid Property Value";
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    return;
+                }
                 final Action action = new Action();
                 if (_isUpdateAction) {
                     action.setId(_actionID);
@@ -140,10 +154,10 @@ public class EditActionsFragment extends Fragment {
                     action.setId(UUID.randomUUID().toString());
                 }
                 action.setName(_actionNameEditText.getText().toString());
-                AylaProperty<Integer> property = _device.getProperty(_propertyName);
+
                 action.setPropertyName(property.getName());
                 action.setDSN(_device.getDsn());
-                action.setValue(_actionValueEditText.getText().toString());
+                action.setValue(propValue);
                 if (!_isUpdateAction) {//This is a new Action just call add action
                     AylaDeviceActions.addAction(action, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
@@ -185,7 +199,24 @@ public class EditActionsFragment extends Fragment {
         setPropertiesForSpinner();
         return root;
     }
-
+    private boolean isValidValue(AylaProperty property,String value) {
+        if(property == null || value == null) {
+            return false;
+        }
+        if(property.getBaseType().equals("boolean")){
+            try {
+                int val= Integer.parseInt(value);
+                if(val == 0 || val ==1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }catch(NumberFormatException ex){
+                return false;
+            }
+        }
+        return true;
+    }
     private void setPropertiesForSpinner() {
         List<String> list = new ArrayList<>();
         list.addAll(Arrays.asList(_deviceModel.getNotifiablePropertyNames()));
