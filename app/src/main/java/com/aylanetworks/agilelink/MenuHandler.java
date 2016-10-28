@@ -25,6 +25,9 @@ import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.actions.ActionsListFragment;
+import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
+import com.aylanetworks.agilelink.automation.AutomationListFragment;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaUser;
@@ -96,6 +99,19 @@ public class MenuHandler {
                 updateProfile();
                 break;
 
+            case R.id.action_geofences:
+                handleGeoFences();
+                break;
+
+            case R.id.action_al_actions:
+                handleActions();
+                break;
+
+            case R.id.action_automations:
+                handleAutomations();
+                break;
+
+
             case R.id.action_delete_account:
                 deleteAccount();
                 break;
@@ -139,6 +155,19 @@ public class MenuHandler {
 
     public static void handleDeviceGroups() {
         replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
+    }
+
+    public static void handleGeoFences() {
+        //replaceFragmentToRoot(GeoFencesFragment.newInstance());
+        MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+    }
+
+    public static void handleActions() {
+        MainActivity.getInstance().pushFragment(ActionsListFragment.newInstance());
+    }
+
+    public static void handleAutomations() {
+        MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
     }
 
     public static void handleAddDevice() {

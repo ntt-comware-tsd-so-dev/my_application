@@ -56,9 +56,15 @@ import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
+import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
@@ -85,6 +91,8 @@ import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.util.TypeUtils;
+import com.google.android.gms.location.Geofence;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -95,6 +103,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.crypto.Cipher;
@@ -103,7 +113,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
-
 /*
  * MainActivity.java
  * AgileLink Application Framework
@@ -128,6 +137,9 @@ public class MainActivity extends AppCompatActivity
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
     public static final int REQ_CHECK_FINGERPRINT = 3;
+    public static final int REQUEST_FINE_LOCATION = 4;
+    public static final int PLACE_PICKER_REQUEST = 5;
+
     public static AylaLog.LogLevel LOG_PERMIT = AylaLog.LogLevel.None;
 
     public static final String ARG_SHARE = "share";
@@ -135,6 +147,9 @@ public class MainActivity extends AppCompatActivity
     private KeyStore _keyStore;
     private Cipher _cipher;
     private static final String KEY_NAME = "finger-print-key-app";
+    public final static String ARG_TRIGGER_TYPE = "trgigger_type";
+    public final static String GEO_FENCE_LIST = "geo_fence_list";
+
 
     /**
      * Returns the one and only instance of this activity
@@ -393,6 +408,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
         final int rc = resultCode;
         final Intent finalData = data;
 
@@ -462,16 +478,19 @@ public class MainActivity extends AppCompatActivity
             }
         } else if(reqCode == REQ_CHECK_FINGERPRINT) {
             showLoginDialog(false);
+        } else if(reqCode == PLACE_PICKER_REQUEST){
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag("AddGeofenceFragment");
+            fragment.onActivityResult(reqCode, resultCode, data);
         }
-    }
+}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestStoragePermissions();
         }
-        if(getResources().getBoolean(R.bool.portrait_only)){
+        if (getResources().getBoolean(R.bool.portrait_only)) {
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         } else {
@@ -490,22 +509,37 @@ public class MainActivity extends AppCompatActivity
 
         if (!_loginScreenUp) {
             boolean allowOfflineUse = AylaNetworks.sharedInstance().getSystemSettings().allowOfflineUse;
-            if(allowOfflineUse) {
+            if (allowOfflineUse) {
                 //For off line mode don't disable existing cache
                 showLoginDialog(false);
             } else {
-                boolean expireAuthToken= AgileLinkApplication.getSharedPreferences()
+                boolean expireAuthToken = AgileLinkApplication.getSharedPreferences()
                         .getBoolean(getString(R.string.always_expire_auth_token), false);
                 showLoginDialog(expireAuthToken);
             }
         }
 
         // We want to know about application state changes
-        ((AgileLinkApplication)getApplication()).addListener(this);
-        if(checkFingerprintOption()) {
+        ((AgileLinkApplication) getApplication()).addListener(this);
+        if (checkFingerprintOption()) {
             createKey();
         }
-
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null){
+           boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
+            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
+        }
+    }
+    @Override
+    public  void onNewIntent (Intent intent) {
+        super.onNewIntent(intent);
+        Bundle bundle = intent.getExtras();
+        if (bundle != null){
+            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
+            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
+        }
     }
 
     @Override
@@ -1435,4 +1469,6 @@ public class MainActivity extends AppCompatActivity
             showLoginDialog(false);
         }
     }
+
+
 }
