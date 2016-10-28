@@ -163,7 +163,6 @@ public class AutomationActionsFragment extends Fragment {
                     String msg = MainActivity.getInstance().getString(R
                             .string.updated_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    MainActivity.getInstance().popBackstackToRoot();
                 }
             }, new ErrorListener() {
                 @Override
@@ -175,7 +174,6 @@ public class AutomationActionsFragment extends Fragment {
                 }
             });
         }
-        MainActivity.getInstance().popBackstackToRoot();
     }
 
     private void doFillData(final Action[] arrayAlAction) {

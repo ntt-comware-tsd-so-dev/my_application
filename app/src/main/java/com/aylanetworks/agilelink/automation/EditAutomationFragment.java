@@ -116,7 +116,7 @@ public class EditAutomationFragment extends Fragment {
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
                 String msg = MainActivity.getInstance().getString(R.string.deleted_success);
                 Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                MainActivity.getInstance().popBackstackToRoot();
+                MainActivity.getInstance().onBackPressed();
             }
         }, new ErrorListener() {
             @Override
