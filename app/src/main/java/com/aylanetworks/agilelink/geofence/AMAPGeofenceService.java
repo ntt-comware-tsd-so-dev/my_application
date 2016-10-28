@@ -112,7 +112,7 @@ public class AMAPGeofenceService extends IntentService {
             @Override
             public void onResponse(Action[] arrayAction) {
                 for (final Action action : arrayAction) {
-                    if (actionSet.contains((action.getId()))) {
+                    if (action != null && actionSet.contains((action.getId()))) {
                         AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
                                 .deviceWithDSN(action.getDSN());
                         final AylaProperty entryProperty = device.getProperty(action.getPropertyName());

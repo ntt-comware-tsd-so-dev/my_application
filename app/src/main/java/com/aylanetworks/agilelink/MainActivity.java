@@ -533,7 +533,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public  void onNewIntent (Intent intent) {
         super.onNewIntent(intent);
-        Bundle bundle = this.getIntent().getExtras();
+        Bundle bundle = intent.getExtras();
         if (bundle != null){
             boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
             final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);

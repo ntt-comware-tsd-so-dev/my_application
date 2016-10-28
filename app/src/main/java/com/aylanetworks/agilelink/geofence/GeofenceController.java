@@ -81,6 +81,7 @@ public class GeofenceController {
                 .setCircularRegion(geofenceLocation.getLatitude(), geofenceLocation
                         .getLongitude(), geofenceLocation.getRadius())
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setLoiteringDelay(30000)
                 .build();
     }
 
