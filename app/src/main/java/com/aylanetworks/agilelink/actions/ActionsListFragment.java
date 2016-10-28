@@ -129,7 +129,8 @@ public class ActionsListFragment extends Fragment {
         }
 
         @Override
-        public View getChildView(int groupPosition, final int childPosition, boolean isLastChild,
+        public View getChildView(final int groupPosition, final int childPosition, boolean
+                isLastChild,
                                  View convertView, ViewGroup parent) {
             String deviceName = _deviceListNames.get(groupPosition);
             final String dsn = _deviceMap.get(deviceName);
@@ -149,6 +150,7 @@ public class ActionsListFragment extends Fragment {
 
                 @Override
                 public void onClick(View view) {
+                    _actionsList = (ArrayList<Action>) _actionListItems.get(groupPosition);
                     Action action = _actionsList.get(childPosition);
                     EditActionsFragment frag = EditActionsFragment.newInstance(dsn, action);
                     MainActivity.getInstance().pushFragment(frag);
