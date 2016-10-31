@@ -5,6 +5,7 @@
     <string name="action_settings">Ajustes</string>
     <string name="username">Email</string>
     <string name="password">Password</string>
+    <string name="auth_error">Error de autenticación</string>
     <string name="login_failed">Iniciar sesión falla.</string>
     <string name="your_account_is_locked">Su cuenta esta bloqueada.</string>
     <string name="your_access_token_is_invalid">El token de acceso es inválido.</string>
@@ -183,6 +184,7 @@
     <string name="facebook">Facebook</string>
     <string name="google">Google</string>
     <string name="error_no_connectivity">Sin conexión WiFi. Verifique la conexión de su red.</string>
+    <string name="no_connectivity">Verifique la conexión de su red.</string>
     <string name="invalid_email_password">Email o password inválido</string>
     <string name="invalid_token">SSO Token inválido</string>
     <string name="unknown_error">Ocurrió un error desconocido</string>

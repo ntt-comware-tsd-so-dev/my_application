@@ -5,6 +5,7 @@
     <string name="action_settings">Settings</string>
     <string name="username">Email Address</string>
     <string name="password">Password</string>
+    <string name="auth_error">Authentication error</string>
     <string name="login_failed">Login Failed</string>
     <string name="your_account_is_locked">Your account is locked.</string>
     <string name="your_access_token_is_invalid">Your access token is invalid.</string>
@@ -197,6 +198,7 @@
     <string name="facebook">Facebook</string>
     <string name="google">Google</string>
     <string name="error_no_connectivity">No connectivity to WiFi or the cloud. Please check your network connection.</string>
+    <string name="no_connectivity">Please check your network connection.</string>
     <string name="invalid_email_password">Invalid email or password</string>
     <string name="invalid_email">Invalid email</string>
     <string name="invalid_token">Invalid SSO  token</string>
