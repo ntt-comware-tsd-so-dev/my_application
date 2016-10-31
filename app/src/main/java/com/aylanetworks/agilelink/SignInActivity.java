@@ -29,6 +29,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.NoConnectionError;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -193,8 +194,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                         @Override
                         public void onErrorResponse(AylaError error) {
                             dismissSigningInDialog();
-                            Log.e(LOG_TAG, "Sign In error "+ error.getMessage());
-                            Toast.makeText(SignInActivity.this, R.string.invalid_email_password,
+                            Log.e(LOG_TAG, "Sign In error "+error.getMessage());
+                            Toast.makeText(SignInActivity.this, ErrorUtils.getUserMessage
+                                            (error, getString(R.string.unknown_error)),
                                     Toast.LENGTH_LONG).show();
                         }
                     };
@@ -216,9 +218,9 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 dismissSigningInDialog();
                                 Log.e(LOG_TAG, "Sign In to identity provider failed "+ error
                                         .getMessage());
-                                Toast.makeText(SignInActivity.this, R.string.invalid_email_password,
-                                        Toast
-                                        .LENGTH_LONG).show();
+                                Toast.makeText(SignInActivity.this, ErrorUtils.getUserMessage
+                                                (error, getString(R.string.unknown_error)),
+                                        Toast.LENGTH_LONG).show();
                             }
                         });
                     } else{
