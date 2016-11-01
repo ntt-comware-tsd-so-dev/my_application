@@ -177,7 +177,7 @@
         </receiver>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCgcda1wGyYjz-kM-unX-aFfL32sewZ404"/>
+            android:value="AIzaSyD4WGvFAIbntJEpjlAIj0T-L68IvXVZ2Do"/>
 
     </application>
 
