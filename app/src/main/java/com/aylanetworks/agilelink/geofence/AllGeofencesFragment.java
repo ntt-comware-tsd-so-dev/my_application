@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
@@ -25,12 +27,16 @@ import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /*
  * AMAP_Android
@@ -43,7 +49,7 @@ public class AllGeofencesFragment extends Fragment {
     private ViewHolder _viewHolder;
     private AddGeofenceFragment _dialogFragment;
     private AllGeofencesAdapter _allGeofencesAdapter;
-    
+
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
     }
@@ -76,8 +82,14 @@ public class AllGeofencesFragment extends Fragment {
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
-                List<GeofenceLocation> geofenceLocations = new ArrayList<>();
-                geofenceLocations.addAll(Arrays.asList(arrayGeofences));
+                //arrayGeofences are all the Geofence locations stored in the Datum field
+                List<GeofenceLocation> geofenceLocations = new ArrayList<>(Arrays.asList(arrayGeofences));
+                //Now get the list of Geofences that are not added from this phone.
+                List <GeofenceLocation> listNotAdded = getGeofencesNotInPrefs(geofenceLocations);
+                if(listNotAdded !=null && !listNotAdded.isEmpty()){
+                    geofenceLocations.removeAll(listNotAdded);
+                }
+
                 GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
 
                 _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
@@ -105,6 +117,7 @@ public class AllGeofencesFragment extends Fragment {
                     }
                 });
             }
+
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
@@ -125,21 +138,35 @@ public class AllGeofencesFragment extends Fragment {
         });
     }
 
-    private ArrayList<GeofenceLocation> loadGeofences() {
-        final ArrayList<GeofenceLocation> locationArrayList = new ArrayList<>();
-        LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
-            @Override
-            public void onResponse(GeofenceLocation[] response) {
-                locationArrayList.addAll(Arrays.asList(response));
+    public static List<GeofenceLocation> getGeofencesNotInPrefs(final List<GeofenceLocation> locationsFromDatum) {
+        SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
+                Context.MODE_PRIVATE);
+        Map<String, ?> keys = prefs.getAll();
+        if(locationsFromDatum == null || locationsFromDatum.isEmpty()) {
+            return null;
+        }
+        Set<String> locationIDSet =  new HashSet<>();
+        for (Map.Entry<String, ?> entry : keys.entrySet()) {
+            locationIDSet.add(entry.getKey());
+        }
+        if(locationIDSet.isEmpty()) {
+            //This means all the Geofence entries are  added using some other Mobile Phone/Tablet
+            return locationsFromDatum;
+        }
+        List<GeofenceLocation> geofenceLocations = new ArrayList<>();
+        for (GeofenceLocation geofenceLocation:locationsFromDatum){
+            if(!locationIDSet.contains(geofenceLocation.getId())) {
+                geofenceLocations.add(geofenceLocation);
             }
-        }, new ErrorListener() {
-            @Override
-            public void onErrorResponse(AylaError error) {
-                Toast.makeText(MainActivity.getInstance(), "Failed to load geofences:" + error
-                        .toString(), Toast.LENGTH_LONG).show();
-            }
-        });
-        return locationArrayList;
+        }
+        return geofenceLocations;
+    }
+
+    private void addGeofences(List<GeofenceLocation> geofenceList) {
+        for(GeofenceLocation geofenceLocation:geofenceList){
+            addGeofence(geofenceLocation);
+        }
+        MainActivity.getInstance().dismissWaitDialog();
     }
 
     public void addGeofence(final GeofenceLocation geofence) {

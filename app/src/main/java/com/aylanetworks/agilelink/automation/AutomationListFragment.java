@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.automation;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -22,6 +23,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.geofence.GeofenceController;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -29,6 +31,9 @@ import com.aylanetworks.aylasdk.error.ServerError;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /*
  * AMAP_Android
@@ -40,7 +45,8 @@ public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
 
     private ListView _listViewAutomations;
-    private Automation[] _automations;
+    //private Automation[] _automations;
+    private ArrayList<Automation> _automationsList;
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
     private boolean _initialState = false;
@@ -79,14 +85,23 @@ public class AutomationListFragment extends Fragment {
             @Override
             public void onResponse(Automation[] response) {
                 MainActivity.getInstance().dismissWaitDialog();
-                _automations = response;
+                ArrayList<Automation> automationsAllList = new ArrayList<>(Arrays.asList(response));
+
+                Set<String> locationIDSet = getSavedLocations();
+                _automationsList = new ArrayList<>();
+                for (Automation automation : automationsAllList) {
+                    if (locationIDSet.contains(automation.getTriggerUUID())) {
+                        _automationsList.add(automation);
+                    }
+                }
+
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
-                        _automationsAdapter = new AutomationListAdapter(getContext(), new ArrayList<>(Arrays.asList(response)));
+                        _automationsAdapter = new AutomationListAdapter(getContext(), _automationsList);
                         _listViewAutomations.setAdapter(_automationsAdapter);
                     } else {
                         _automationsAdapter.clear();
-                        _automationsAdapter.addAll(_automations);
+                        _automationsAdapter.addAll(_automationsList);
                         _listViewAutomations.setAdapter(_automationsAdapter);
                         _automationsAdapter.notifyDataSetChanged();
                     }
@@ -112,7 +127,16 @@ public class AutomationListFragment extends Fragment {
             }
         });
     }
-
+    private Set<String> getSavedLocations() {
+        SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
+                Context.MODE_PRIVATE);
+        Map<String, ?> keys = prefs.getAll();
+        Set<String> locationIDSet =  new HashSet<>();
+        for (Map.Entry<String, ?> entry : keys.entrySet()) {
+            locationIDSet.add(entry.getKey());
+        }
+        return locationIDSet;
+    }
     private void addTapped() {
         Log.d(LOG_TAG, "Add button tapped");
         EditAutomationFragment frag = EditAutomationFragment.newInstance(null);

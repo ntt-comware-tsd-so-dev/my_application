@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -39,6 +40,8 @@ public class GeofenceController {
     private List<GeofenceLocation> _GeofenceLocations;
     private Geofence _geofenceToAdd;
     private GeofenceLocation _GeofenceLocationToAdd;
+    private SharedPreferences _prefs;
+    public static String SHARED_PERFS_GEOFENCE = "SHARED_PREFS_GEOFENCES";
 
     public static GeofenceController _instance;
 
@@ -59,6 +62,7 @@ public class GeofenceController {
     public void init(Context context) {
         _context = context.getApplicationContext();
         GeofenceLocationsToRemove = new ArrayList<>();
+        _prefs = context.getSharedPreferences(SHARED_PERFS_GEOFENCE, Context.MODE_PRIVATE);
     }
 
     public void setALGeofenceLocations(List<GeofenceLocation> geofenceLocationList) {
@@ -125,12 +129,18 @@ public class GeofenceController {
         if (_listener != null) {
             _listener.onGeofencesUpdated();
         }
+        SharedPreferences.Editor editor = _prefs.edit();
+        editor.putString(_GeofenceLocationToAdd.getId(), "true");
+        editor.apply();
     }
 
     private void removeSavedGeofences() {
-        for (GeofenceLocation GeofenceLocation : GeofenceLocationsToRemove) {
-            int index = _GeofenceLocations.indexOf(GeofenceLocation);
+        SharedPreferences.Editor editor = _prefs.edit();
+        for (GeofenceLocation geofenceLocation : GeofenceLocationsToRemove) {
+            int index = _GeofenceLocations.indexOf(geofenceLocation);
             _GeofenceLocations.remove(index);
+            editor.remove(geofenceLocation.getId());
+            editor.apply();
         }
 
         if (_listener != null) {
