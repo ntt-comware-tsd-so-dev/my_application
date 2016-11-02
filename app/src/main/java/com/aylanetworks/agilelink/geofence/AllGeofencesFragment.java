@@ -83,7 +83,9 @@ public class AllGeofencesFragment extends Fragment {
                 //arrayGeofences are all the Geofence locations stored in the Datum field
                 List<GeofenceLocation> geofenceLocations = new ArrayList<>(Arrays.asList(arrayGeofences));
                 //Now get the list of Geofences that are not added from this phone.
-                List <GeofenceLocation> listNotAdded = getGeofencesNotInPrefs(geofenceLocations);
+                SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
+                        Context.MODE_PRIVATE);
+                List <GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs,geofenceLocations);
                 if(listNotAdded !=null && !listNotAdded.isEmpty()){
                     geofenceLocations.removeAll(listNotAdded);
                 }
@@ -134,37 +136,6 @@ public class AllGeofencesFragment extends Fragment {
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
             }
         });
-    }
-
-    public static List<GeofenceLocation> getGeofencesNotInPrefs(final List<GeofenceLocation> locationsFromDatum) {
-        SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
-                Context.MODE_PRIVATE);
-        Map<String, ?> keys = prefs.getAll();
-        if(locationsFromDatum == null || locationsFromDatum.isEmpty()) {
-            return null;
-        }
-        Set<String> locationIDSet =  new HashSet<>();
-        for (Map.Entry<String, ?> entry : keys.entrySet()) {
-            locationIDSet.add(entry.getKey());
-        }
-        if(locationIDSet.isEmpty()) {
-            //This means all the Geofence entries are  added using some other Mobile Phone/Tablet
-            return locationsFromDatum;
-        }
-        List<GeofenceLocation> geofenceLocations = new ArrayList<>();
-        for (GeofenceLocation geofenceLocation:locationsFromDatum){
-            if(!locationIDSet.contains(geofenceLocation.getId())) {
-                geofenceLocations.add(geofenceLocation);
-            }
-        }
-        return geofenceLocations;
-    }
-
-    private void addGeofences(List<GeofenceLocation> geofenceList) {
-        for(GeofenceLocation geofenceLocation:geofenceList){
-            addGeofence(geofenceLocation);
-        }
-        MainActivity.getInstance().dismissWaitDialog();
     }
 
     public void addGeofence(final GeofenceLocation geofence) {

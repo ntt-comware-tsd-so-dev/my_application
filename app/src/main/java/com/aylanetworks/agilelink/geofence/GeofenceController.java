@@ -37,16 +37,16 @@ public class GeofenceController {
     private Context _context;
     private GoogleApiClient _googleApiClient;
     private GeofenceControllerListener _listener;
-    private List<GeofenceLocation> _GeofenceLocations;
+    private List<GeofenceLocation> _geofenceLocations;
     private Geofence _geofenceToAdd;
-    private GeofenceLocation _GeofenceLocationToAdd;
+    private GeofenceLocation _geofenceLocationToAdd;
     private SharedPreferences _prefs;
     public static final String SHARED_PERFS_GEOFENCE = "SHARED_PREFS_GEOFENCES";
 
     public static GeofenceController _instance;
 
     public List<GeofenceLocation> getALGeofenceLocations() {
-        return _GeofenceLocations;
+        return _geofenceLocations;
     }
 
     private List<GeofenceLocation> GeofenceLocationsToRemove;
@@ -66,12 +66,12 @@ public class GeofenceController {
     }
 
     public void setALGeofenceLocations(List<GeofenceLocation> geofenceLocationList) {
-        _GeofenceLocations = geofenceLocationList;
+        _geofenceLocations = geofenceLocationList;
     }
 
     public void addGeofence(GeofenceLocation geofenceLocation, GeofenceControllerListener
             _listener) {
-        this._GeofenceLocationToAdd = geofenceLocation;
+        this._geofenceLocationToAdd = geofenceLocation;
         this._geofenceToAdd = geofence(geofenceLocation);
         this._listener = _listener;
 
@@ -98,7 +98,7 @@ public class GeofenceController {
 
     public void removeAllGeofences(GeofenceControllerListener _listener) {
         GeofenceLocationsToRemove = new ArrayList<>();
-        for (GeofenceLocation GeofenceLocation : _GeofenceLocations) {
+        for (GeofenceLocation GeofenceLocation : _geofenceLocations) {
             GeofenceLocationsToRemove.add(GeofenceLocation);
         }
         this._listener = _listener;
@@ -125,20 +125,20 @@ public class GeofenceController {
     }
 
     private void saveGeofence() {
-        _GeofenceLocations.add(_GeofenceLocationToAdd);
+        _geofenceLocations.add(_geofenceLocationToAdd);
         if (_listener != null) {
             _listener.onGeofencesUpdated();
         }
         SharedPreferences.Editor editor = _prefs.edit();
-        editor.putString(_GeofenceLocationToAdd.getId(), "true");
+        editor.putString(_geofenceLocationToAdd.getId(), "true");
         editor.apply();
     }
 
     private void removeSavedGeofences() {
         SharedPreferences.Editor editor = _prefs.edit();
         for (GeofenceLocation geofenceLocation : GeofenceLocationsToRemove) {
-            int index = _GeofenceLocations.indexOf(geofenceLocation);
-            _GeofenceLocations.remove(index);
+            int index = _geofenceLocations.indexOf(geofenceLocation);
+            _geofenceLocations.remove(index);
             editor.remove(geofenceLocation.getId());
             editor.apply();
         }
