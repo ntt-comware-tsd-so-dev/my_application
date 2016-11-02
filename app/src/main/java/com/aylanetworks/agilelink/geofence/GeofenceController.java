@@ -41,7 +41,7 @@ public class GeofenceController {
     private Geofence _geofenceToAdd;
     private GeofenceLocation _GeofenceLocationToAdd;
     private SharedPreferences _prefs;
-    public static String SHARED_PERFS_GEOFENCE = "SHARED_PREFS_GEOFENCES";
+    public static final String SHARED_PERFS_GEOFENCE = "SHARED_PREFS_GEOFENCES";
 
     public static GeofenceController _instance;
 

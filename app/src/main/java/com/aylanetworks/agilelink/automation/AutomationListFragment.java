@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.automation.Automation;
@@ -45,7 +44,6 @@ public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
 
     private ListView _listViewAutomations;
-    //private Automation[] _automations;
     private ArrayList<Automation> _automationsList;
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
