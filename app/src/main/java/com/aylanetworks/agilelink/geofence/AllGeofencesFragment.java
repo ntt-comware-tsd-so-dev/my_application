@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
@@ -30,7 +31,10 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /*
  * AMAP_Android
@@ -43,7 +47,7 @@ public class AllGeofencesFragment extends Fragment {
     private ViewHolder _viewHolder;
     private AddGeofenceFragment _dialogFragment;
     private AllGeofencesAdapter _allGeofencesAdapter;
-    
+
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
     }
@@ -76,8 +80,16 @@ public class AllGeofencesFragment extends Fragment {
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
-                List<GeofenceLocation> geofenceLocations = new ArrayList<>();
-                geofenceLocations.addAll(Arrays.asList(arrayGeofences));
+                //arrayGeofences are all the Geofence locations stored in the Datum field
+                List<GeofenceLocation> geofenceLocations = new ArrayList<>(Arrays.asList(arrayGeofences));
+                //Now get the list of Geofences that are not added from this phone.
+                SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
+                        Context.MODE_PRIVATE);
+                List <GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs,geofenceLocations);
+                if(listNotAdded !=null && !listNotAdded.isEmpty()){
+                    geofenceLocations.removeAll(listNotAdded);
+                }
+
                 GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
 
                 _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
@@ -105,6 +117,7 @@ public class AllGeofencesFragment extends Fragment {
                     }
                 });
             }
+
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
@@ -123,23 +136,6 @@ public class AllGeofencesFragment extends Fragment {
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
             }
         });
-    }
-
-    private ArrayList<GeofenceLocation> loadGeofences() {
-        final ArrayList<GeofenceLocation> locationArrayList = new ArrayList<>();
-        LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
-            @Override
-            public void onResponse(GeofenceLocation[] response) {
-                locationArrayList.addAll(Arrays.asList(response));
-            }
-        }, new ErrorListener() {
-            @Override
-            public void onErrorResponse(AylaError error) {
-                Toast.makeText(MainActivity.getInstance(), "Failed to load geofences:" + error
-                        .toString(), Toast.LENGTH_LONG).show();
-            }
-        });
-        return locationArrayList;
     }
 
     public void addGeofence(final GeofenceLocation geofence) {

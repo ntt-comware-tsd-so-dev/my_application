@@ -11,5 +11,11 @@
         android:persistent="true"
         android:defaultValue="false"
         android:summary="@string/require_login_summary"/>
+    <CheckBoxPreference
+        android:key="@string/enable_geofence_feature"
+        android:title="@string/enable_geofence_feature"
+        android:persistent="true"
+        android:defaultValue="true"
+        android:summary="@string/enable_geofence_summary"/>
     />
 </PreferenceScreen>

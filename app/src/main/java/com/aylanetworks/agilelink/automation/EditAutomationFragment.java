@@ -1,7 +1,9 @@
 package com.aylanetworks.agilelink.automation;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
@@ -27,11 +29,16 @@ import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
+import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
+import com.aylanetworks.agilelink.geofence.GeofenceController;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -167,12 +174,24 @@ public class EditAutomationFragment extends Fragment {
 
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
-            public void onResponse(GeofenceLocation[] arrayAlAction) {
-                String locationNames[] = new String[arrayAlAction.length];
+            public void onResponse(GeofenceLocation[] arrayGeofences) {
+                List<GeofenceLocation> geofenceLocations = new ArrayList<>(Arrays.asList(arrayGeofences));
+
+                //Now get the list of Geofences that are not added from this phone.
+                SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE, Context.MODE_PRIVATE);
+                List <GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs,geofenceLocations);
+                if(listNotAdded !=null && !listNotAdded.isEmpty()){
+                    geofenceLocations.removeAll(listNotAdded);
+                }
+                if(geofenceLocations.isEmpty()) {
+                    return;
+                }
+
+                String locationNames[] = new String[geofenceLocations.size()];
                 String selectedLocation = null;
                 int index = 0;
                 _triggerIDMap = new HashMap<>();
-                for (GeofenceLocation alGeofenceLocation : arrayAlAction) {
+                for (GeofenceLocation alGeofenceLocation : geofenceLocations) {
                     locationNames[index] = alGeofenceLocation.getName();
                     if (_triggerID != null && _triggerID.equals(alGeofenceLocation.getId())) {
                         selectedLocation = alGeofenceLocation.getName();

@@ -698,6 +698,23 @@ public class MainActivity extends AppCompatActivity
             _userView = (TextView)header.findViewById(R.id.username);
             _emailView = (TextView)header.findViewById(R.id.email);
             onDrawerItemClicked(_drawerMenu.getItem(0));
+
+            boolean isGeofenceEnabled = AgileLinkApplication.getSharedPreferences().getBoolean
+                    (getString(R.string.enable_geofence_feature), true);
+            if(!isGeofenceEnabled) {
+                MenuItem itemGeofence = _drawerMenu.findItem(R.id.action_geofences);
+                MenuItem itemActions = _drawerMenu.findItem(R.id.action_al_actions);
+                MenuItem itemAutomations = _drawerMenu.findItem(R.id.action_automations);
+                if(itemGeofence != null) {
+                    itemGeofence.setVisible(false);
+                }
+                if(itemActions != null) {
+                    itemActions.setVisible(false);
+                }
+                if(itemAutomations != null) {
+                    itemAutomations.setVisible(false);
+                }
+            }
         }
     }
 
@@ -1037,6 +1054,24 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return false;
+    }
+
+    public void handleGeofenceSettingsChange(boolean enabled) {
+        if(_drawerMenu == null) {
+            return;
+        }
+        MenuItem itemGeofence = _drawerMenu.findItem(R.id.action_geofences);
+        MenuItem itemActions = _drawerMenu.findItem(R.id.action_al_actions);
+        MenuItem itemAutomations = _drawerMenu.findItem(R.id.action_automations);
+        if(itemGeofence != null) {
+            itemGeofence.setVisible(enabled);
+        }
+        if(itemActions != null) {
+            itemActions.setVisible(enabled);
+        }
+        if(itemAutomations != null) {
+            itemAutomations.setVisible(enabled);
+        }
     }
     public void showLoginDialog(boolean disableCachedSignin) {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
