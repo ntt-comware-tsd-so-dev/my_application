@@ -117,7 +117,7 @@ public class EditActionsFragment extends Fragment {
                 _actionID = _action.getId();
                 String actionName = _action.getName();
                 _propertyName = _action.getPropertyName();
-                String propertyValue = _action.getValue();
+                String propertyValue = _action.getValue().toString();
                 _actionNameEditText.setText(actionName);
                 _actionValueEditText.setText(propertyValue);
             }
@@ -157,7 +157,7 @@ public class EditActionsFragment extends Fragment {
 
                 action.setPropertyName(property.getName());
                 action.setDSN(_device.getDsn());
-                action.setValue(propValue);
+                action.setValue(value);
                 if (!_isUpdateAction) {//This is a new Action just call add action
                     AylaDeviceActions.addAction(action, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
