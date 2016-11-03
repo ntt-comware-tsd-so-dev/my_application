@@ -207,6 +207,14 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         } else {
             requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
         }
+        //Initial progress set to 50 m
+        _progress=50;
+        StringBuilder result = new StringBuilder();
+        result.append(getString(R.string.geofence_radius));
+        result.append(" ");
+        result.append(_progress);
+        result.append(getString(R.string.radius_units));
+        textView.setText(result.toString());
 
         return dialog;
     }
