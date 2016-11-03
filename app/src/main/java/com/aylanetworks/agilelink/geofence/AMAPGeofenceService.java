@@ -118,8 +118,7 @@ public class AMAPGeofenceService extends IntentService {
                         AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
                                 .deviceWithDSN(action.getDSN());
                         final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
-
-                        Object value = TypeUtils.getTypeConvertedValue(entryProperty.getBaseType(), action.getValue());
+                        Object value= action.getValue();
                         entryProperty.createDatapoint(value, null, new Response
                                         .Listener<AylaDatapoint<Integer>>() {
                                     @Override
