@@ -31,10 +31,7 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /*
  * AMAP_Android
@@ -88,6 +85,12 @@ public class AllGeofencesFragment extends Fragment {
                 List <GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs,geofenceLocations);
                 if(listNotAdded !=null && !listNotAdded.isEmpty()){
                     geofenceLocations.removeAll(listNotAdded);
+                    StringBuilder message = new StringBuilder(getString(R.string.geofences_added_other_phone));
+                    for(GeofenceLocation geofenceLocation:listNotAdded) {
+                        message.append(" ");
+                        message.append(geofenceLocation.getName());
+                    }
+                    Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
                 }
 
                 GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
