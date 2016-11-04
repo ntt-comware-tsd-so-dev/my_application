@@ -244,6 +244,12 @@ public class EditAutomationFragment extends Fragment {
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
             return;
         }
+        if(_locationName == null) {
+            String msg = MainActivity.getInstance().getString(R.string
+                    .unknown_geo_fence);
+            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+            return;
+        }
         String triggerId = _triggerIDMap.get(_locationName);
         if (TextUtils.isEmpty(triggerId)) {
             String msg = MainActivity.getInstance().getString(R.string
