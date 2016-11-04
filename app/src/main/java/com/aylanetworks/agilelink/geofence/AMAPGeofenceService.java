@@ -18,6 +18,7 @@ import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.ServerError;
 import com.aylanetworks.aylasdk.util.TypeUtils;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import fi.iki.elonen.NanoHTTPD;
+
 /*
  * AMAP_Android
  *
@@ -33,7 +36,7 @@ import java.util.HashSet;
  */
 
 public class AMAPGeofenceService extends IntentService {
-    private final String TAG = AMAPGeofenceService.class.getName();
+    private final static String TAG = AMAPGeofenceService.class.getName();
 
     public AMAPGeofenceService() {
         super("AMAPGeofenceService");
@@ -103,8 +106,16 @@ public class AMAPGeofenceService extends IntentService {
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
-                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                        .LENGTH_LONG).show();
+                //Check if there are no existing automations. This is not an actual error and we
+                //don't want to show this error. Just log it in case of no Existing automations
+                ServerError serverError = ((ServerError) error);
+                int code = serverError.getServerResponseCode();
+                if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                    Log.d(TAG,"No Existing Automation");
+                } else {
+                    Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                            .LENGTH_LONG).show();
+                }
             }
         });
     }
