@@ -638,6 +638,9 @@
     <!-- Developer Options -->
     <string name="dev_options">Opciones del Desarrollador</string>
     <!-- geofence related strings -->
+    <string name="enable_geofence_feature">Habilitar Geocerca</string>
+    <string name="enable_geofence_summary">Al habilitar la geocerca le permite configurar y operar una geocerca. Al Desabilitarlo se quedará guardada cualquier configuración existente, pero la geocerca no funcionará</string>
+    <string name="geofences_added_other_phone">Estas geocercas no serán agregadas a este dispositivo móvil y serán ignoradas.</string>
     <string name="geofences">Ubicaciones de Geocerca</string>
     <string name="add_geofence">Agregar Geocerca</string>
     <string name="delete_geofence">Borrar Geocerca</string>
