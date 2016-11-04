@@ -21,6 +21,8 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.automation.Automation;
+import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -143,6 +145,7 @@ public class AllGeofencesFragment extends Fragment {
                         List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
                         GeofenceLocations.add(alGeofenceLocation);
                         GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
+                        deleteAutomationLocation(alGeofenceLocation.getId());
                     }
                 }, new ErrorListener() {
                     @Override
@@ -152,6 +155,43 @@ public class AllGeofencesFragment extends Fragment {
                         Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
+        });
+    }
+
+    /**
+     * This method deletes Automation(If any) for the deleted Location. Without this Location the
+     * Automation is invalid
+     * @param locationUUID this is the uuid of the GeofenceLocation that was deleted
+     */
+    private void deleteAutomationLocation(final String locationUUID) {
+       if(locationUUID == null) {
+           return;
+       }
+        AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
+            @Override
+            public void onResponse(Automation[] response) {
+                for (Automation automation : response) {
+                    if (locationUUID.equalsIgnoreCase(automation.getTriggerUUID())) {
+                        AutomationManager.deleteAutomation(automation, new Response.Listener<AylaAPIRequest
+                                .EmptyResponse>() {
+                            @Override
+                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                Log.d(LOG_TAG, "Deleted Automation for Location UUID " +locationUUID);
+                            }
+                        }, new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                Log.e(LOG_TAG, error.getMessage());
+                            }
+                        });
+                    }
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.e(LOG_TAG, error.getMessage());
             }
         });
     }
