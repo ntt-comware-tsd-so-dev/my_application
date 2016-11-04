@@ -26,6 +26,7 @@ import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.ServerError;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
@@ -93,38 +94,21 @@ public class AllGeofencesFragment extends Fragment {
                     Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
                 }
 
-                GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
-
-                _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
-                _viewHolder.geofenceRecyclerView.setAdapter(_allGeofencesAdapter);
-                refresh();
-                _allGeofencesAdapter.setListener(new AllGeofencesAdapter.AllGeofencesAdapterListener() {
-                    @Override
-                    public void onDeleteTapped(final GeofenceLocation alGeofenceLocation) {
-
-                        LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                            @Override
-                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
-                                GeofenceLocations.add(alGeofenceLocation);
-                                GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
-                            }
-                        }, new ErrorListener() {
-                            @Override
-                            public void onErrorResponse(AylaError error) {
-                                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                                        error.toString();
-                                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                });
+                initAdapter(geofenceLocations);
             }
 
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
-                Log.d(LOG_TAG, error.getMessage());
+                if (error instanceof ServerError) {
+                    //Check if there are no existing automations. This is not an actual error and we
+                    //don't want to show this error.
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if(code == 404) {
+                        initAdapter(new ArrayList<GeofenceLocation>());
+                    }
+                }
             }
         });
 
@@ -137,6 +121,34 @@ public class AllGeofencesFragment extends Fragment {
                 _dialogFragment = new AddGeofenceFragment();
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
+            }
+        });
+    }
+    private void initAdapter(List<GeofenceLocation> geofenceLocations) {
+        GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
+
+        _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
+        _viewHolder.geofenceRecyclerView.setAdapter(_allGeofencesAdapter);
+        refresh();
+        _allGeofencesAdapter.setListener(new AllGeofencesAdapter.AllGeofencesAdapterListener() {
+            @Override
+            public void onDeleteTapped(final GeofenceLocation alGeofenceLocation) {
+
+                LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                    @Override
+                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
+                        GeofenceLocations.add(alGeofenceLocation);
+                        GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
+                    }
+                }, new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                                error.toString();
+                        Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
