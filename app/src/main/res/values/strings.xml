@@ -660,7 +660,7 @@
     <string name="require_login_summary">When enabled, the application will always request credentials when the application is launched." If disabled, your credentials will be securely saved and automatically applied on product launch.</string>
     <string name="enable_geofence_feature">enable geofence feature</string>
     <string name="enable_geofence_summary">Enabling geofencing allows geofencing to be configured an operate as expected. Disabling geofencing will leave any existing configuration in place, but the geofencing feature will not work.</string>
-    <string name="geofences_added_other_phone">These geofences are not added from this mobile device and will be Ignored</string>
+    <string name="geofences_added_other_phone">Adding geofences that were registered from other Mobile devices. Please wait...</string>
     <!--  Permissions  -->
     <string name="contacts_permission_granted">Contacts access permission granted. You can now add contacts</string>
     <string name="contacts_permission_denied">Contacts access permission denied. You cannot add contacts</string>

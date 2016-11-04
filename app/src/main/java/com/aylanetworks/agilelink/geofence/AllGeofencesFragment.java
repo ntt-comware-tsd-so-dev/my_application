@@ -83,18 +83,14 @@ public class AllGeofencesFragment extends Fragment {
                 //Now get the list of Geofences that are not added from this phone.
                 SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
                         Context.MODE_PRIVATE);
-                List <GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs,geofenceLocations);
-                if(listNotAdded !=null && !listNotAdded.isEmpty()){
-                    geofenceLocations.removeAll(listNotAdded);
-                    StringBuilder message = new StringBuilder(getString(R.string.geofences_added_other_phone));
-                    for(GeofenceLocation geofenceLocation:listNotAdded) {
-                        message.append(" ");
-                        message.append(geofenceLocation.getName());
-                    }
-                    Toast.makeText(MainActivity.getInstance(), message, Toast.LENGTH_SHORT).show();
+                List <GeofenceLocation> geofencesNotAdded = LocationManager.getGeofencesNotInPrefs
+                        (prefs,geofenceLocations);
+                if(geofencesNotAdded !=null && !geofencesNotAdded.isEmpty()){
+                        addMissingGeofences(geofencesNotAdded, geofenceLocations);
                 }
-
-                initAdapter(geofenceLocations);
+                else {
+                    initAdapter(geofenceLocations);
+                }
             }
 
         }, new ErrorListener() {
@@ -124,6 +120,11 @@ public class AllGeofencesFragment extends Fragment {
             }
         });
     }
+
+    /**
+     * This method initializes adapters and also sets the listeners
+     * @param geofenceLocations list of geofenceLocations
+     */
     private void initAdapter(List<GeofenceLocation> geofenceLocations) {
         GeofenceController.getInstance().setALGeofenceLocations(geofenceLocations);
 
@@ -151,6 +152,25 @@ public class AllGeofencesFragment extends Fragment {
                 });
             }
         });
+    }
+
+    /**
+     * This method will add all the geofence locations that are added in some other Phone with
+     * the same User credentials
+     * @param toAddGeofenceList This is the list that need to be added
+     * @param allGeofenceLocations These locations are already added on this Phone
+     */
+    private void addMissingGeofences(List<GeofenceLocation> toAddGeofenceList,
+                                    List<GeofenceLocation> allGeofenceLocations) {
+        MainActivity.getInstance().showWaitDialog(R.string.add_geofence, R.string.geofences_added_other_phone);
+        for(GeofenceLocation geofence:toAddGeofenceList) {
+            GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
+        }
+        //Noe remove the ones we added above
+        if(allGeofenceLocations.removeAll(toAddGeofenceList)) {
+            initAdapter(allGeofenceLocations);
+        }
+        MainActivity.getInstance().dismissWaitDialog();
     }
 
     public void addGeofence(final GeofenceLocation geofence) {
