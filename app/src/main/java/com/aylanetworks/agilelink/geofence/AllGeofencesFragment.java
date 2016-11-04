@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fi.iki.elonen.NanoHTTPD;
+
 /*
  * AMAP_Android
  *
@@ -101,7 +103,7 @@ public class AllGeofencesFragment extends Fragment {
                     //don't want to show this error.
                     ServerError serverError = ((ServerError) error);
                     int code = serverError.getServerResponseCode();
-                    if(code == 404) {
+                    if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                         initAdapter(new ArrayList<GeofenceLocation>());
                     }
                 }
