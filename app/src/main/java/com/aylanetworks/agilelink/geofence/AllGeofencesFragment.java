@@ -83,11 +83,11 @@ public class AllGeofencesFragment extends Fragment {
                 //arrayGeofences are all the Geofence locations stored in the Datum field
                 List<GeofenceLocation> geofenceLocations = new ArrayList<>(Arrays.asList(arrayGeofences));
                 //Now get the list of Geofences that are not added from this phone.
-                SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
+                SharedPreferences prefs = MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
                         Context.MODE_PRIVATE);
                 List <GeofenceLocation> geofencesNotAdded = LocationManager.getGeofencesNotInPrefs
                         (prefs,geofenceLocations);
-                if(geofencesNotAdded !=null && !geofencesNotAdded.isEmpty()){
+                if(geofencesNotAdded != null && !geofencesNotAdded.isEmpty()){
                         addMissingGeofences(geofencesNotAdded, geofenceLocations);
                 }
                 else {
