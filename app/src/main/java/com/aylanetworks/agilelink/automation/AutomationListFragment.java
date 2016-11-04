@@ -88,7 +88,7 @@ public class AutomationListFragment extends Fragment {
                 Set<String> locationIDSet = getSavedLocations();
                 _automationsList = new ArrayList<>();
                 for (Automation automation : automationsAllList) {
-                    if (locationIDSet.contains(automation.getTriggerUUID())) {
+                    if (locationIDSet.contains(automation.getTriggerUUID().toUpperCase())) {
                         _automationsList.add(automation);
                     }
                 }
@@ -131,7 +131,7 @@ public class AutomationListFragment extends Fragment {
         Map<String, ?> keys = prefs.getAll();
         Set<String> locationIDSet =  new HashSet<>();
         for (Map.Entry<String, ?> entry : keys.entrySet()) {
-            locationIDSet.add(entry.getKey());
+            locationIDSet.add(entry.getKey().toUpperCase());
         }
         return locationIDSet;
     }
