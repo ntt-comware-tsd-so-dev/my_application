@@ -49,6 +49,7 @@ public class AllGeofencesFragment extends Fragment {
     private ViewHolder _viewHolder;
     private AddGeofenceFragment _dialogFragment;
     private AllGeofencesAdapter _allGeofencesAdapter;
+    private static final int MAX_GEOFENCES_ALLOWED = 5;
 
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
@@ -246,9 +247,16 @@ public class AllGeofencesFragment extends Fragment {
 
     private void refresh() {
         _allGeofencesAdapter.notifyDataSetChanged();
+        int countGeofenceLocations = _allGeofencesAdapter.getItemCount();
 
-        if (_allGeofencesAdapter.getItemCount() > 0) {
+        if (countGeofenceLocations > 0) {
             getViewHolder().emptyState.setVisibility(View.INVISIBLE);
+            if(countGeofenceLocations >= MAX_GEOFENCES_ALLOWED) {
+                _viewHolder.actionButton.setVisibility(View.GONE);
+            } else{
+                _viewHolder.actionButton.setVisibility(View.VISIBLE);
+            }
+
         } else {
             getViewHolder().emptyState.setVisibility(View.VISIBLE);
 
