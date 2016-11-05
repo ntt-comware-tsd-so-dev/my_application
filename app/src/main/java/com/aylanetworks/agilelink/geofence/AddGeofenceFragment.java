@@ -111,8 +111,8 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
-                //The total progress is 500 ft.
-                float pvalue = new Double(progressValue * 4.5).floatValue();
+                //The total progress is 5000 ft.
+                float pvalue = new Double(progressValue * 49.5).floatValue();
                 _progress = MINIMAL_RADIUS + pvalue;
             }
 
@@ -281,7 +281,7 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     public void onMapReady(GoogleMap map) {
         _googleMap = map;
         _latLng = new LatLng(Double.parseDouble(_latitude), Double.parseDouble(_longitude));
-        _googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLng, 15.0f));
+        _googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLng, 12.0f));
         new DraggableCircle(_latLng, _progress);
         _mapLayout.setVisibility(View.VISIBLE);
     }
