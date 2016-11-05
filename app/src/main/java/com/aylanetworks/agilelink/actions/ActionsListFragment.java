@@ -41,6 +41,7 @@ public class ActionsListFragment extends Fragment {
     private final ArrayList<String> _deviceNames = new ArrayList<>();
     private final Map<String, String> _deviceMap = new HashMap<>();
     private final ArrayList<Object> _actionItems = new ArrayList<>();
+    private static final int MAX_ACTIONS_PER_DEVICE = 5;
 
     public static ActionsListFragment newInstance() {
         return new ActionsListFragment();
@@ -178,7 +179,7 @@ public class ActionsListFragment extends Fragment {
                     MainActivity.getInstance().pushFragment(frag);
                 }
             });
-            if(getChildrenCount(groupPosition) >= 5){
+            if(getChildrenCount(groupPosition) >= MAX_ACTIONS_PER_DEVICE){
                 actionAddButton.setVisibility(View.GONE);
             }
             ExpandableListView expandView = (ExpandableListView) parent;
