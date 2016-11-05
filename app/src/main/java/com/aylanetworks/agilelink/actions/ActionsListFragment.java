@@ -178,6 +178,9 @@ public class ActionsListFragment extends Fragment {
                     MainActivity.getInstance().pushFragment(frag);
                 }
             });
+            if(getChildrenCount(groupPosition) >= 5){
+                actionAddButton.setVisibility(View.GONE);
+            }
             ExpandableListView expandView = (ExpandableListView) parent;
             expandView.expandGroup(groupPosition);
             return convertView;
