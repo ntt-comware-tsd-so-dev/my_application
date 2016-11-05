@@ -709,6 +709,10 @@
     <string name="automations">Automations</string>
     <string name="saved_success">Saved Successfully</string>
     <string name="updated_success">Updated Successfully</string>
+    <string name="saved_automation_success">Saved Automation Successfully. Please select Actions
+        for this newly created Automation.</string>
+    <string name="updated_automation_success">Updated Automation Successfully. You can change the
+        existing actions for this Automation.</string>
     <string name="deleted_success">Deleted successfully</string>
     <string name="confirm_delete_automation">Are you sure to delete this Automation?</string>
 

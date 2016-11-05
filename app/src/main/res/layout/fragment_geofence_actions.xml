@@ -10,6 +10,16 @@
         android:layout_height="310dp"
         android:layout_weight="0.14" >
     </ExpandableListView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <Button
+        android:id="@+id/button_action_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:layout_weight="1"
+        android:text="@android:string/cancel"/>
     <Button
         android:id="@+id/button_save_automation"
         style="@style/AgileLinkButton"
@@ -19,5 +29,6 @@
         android:layout_margin="10dp"
         android:visibility="gone"
         android:text="@string/btn_save"/>
+        </LinearLayout>>
 
 </LinearLayout>

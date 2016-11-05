@@ -48,6 +48,8 @@ public class AutomationListFragment extends Fragment {
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
     private boolean _initialState = false;
+    private static final int MAX_AUTOMATIONS = 5;
+
 
     public static AutomationListFragment newInstance() {
         return new AutomationListFragment();
@@ -74,6 +76,9 @@ public class AutomationListFragment extends Fragment {
             }
         });
         fetchAutomations();
+        if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
+            addButton.setVisibility(View.GONE);
+        }
         return root;
     }
 
