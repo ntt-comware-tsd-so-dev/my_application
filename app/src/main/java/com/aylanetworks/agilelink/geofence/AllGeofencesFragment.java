@@ -37,6 +37,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import fi.iki.elonen.NanoHTTPD;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.places.Places;
+
 
 /*
  * AMAP_Android
@@ -50,6 +53,7 @@ public class AllGeofencesFragment extends Fragment {
     private AddGeofenceFragment _dialogFragment;
     private AllGeofencesAdapter _allGeofencesAdapter;
     private static final int MAX_GEOFENCES_ALLOWED = 5;
+    private GoogleApiClient _apiClient;
 
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
@@ -62,7 +66,24 @@ public class AllGeofencesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        _apiClient = new GoogleApiClient
+                .Builder(getActivity())
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        _apiClient.connect();
         GeofenceController.getInstance().init(MainActivity.getInstance());
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        _apiClient.connect();
+    }
+
+    @Override
+    public void onStop() {
+         _apiClient.disconnect();
+        super.onStop();
     }
 
     @Override
@@ -92,6 +113,11 @@ public class AllGeofencesFragment extends Fragment {
                         (prefs,geofenceLocations);
                 if(geofencesNotAdded != null && !geofencesNotAdded.isEmpty()){
                         addMissingGeofences(geofencesNotAdded, geofenceLocations);
+                    SharedPreferences.Editor editor =prefs.edit();
+                    for(GeofenceLocation geofenceLocation:geofencesNotAdded) {
+                            editor.putString(geofenceLocation.getId(), "true");
+                            editor.apply();
+                        }
                 }
                 else {
                     initAdapter(geofenceLocations);

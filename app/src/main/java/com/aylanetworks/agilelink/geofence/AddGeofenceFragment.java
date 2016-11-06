@@ -32,9 +32,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -57,7 +55,6 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class AddGeofenceFragment extends DialogFragment implements ActivityCompat
         .OnRequestPermissionsResultCallback, OnMapReadyCallback {
-    private GoogleApiClient _apiClient;
     private EditText _locationAddress;
     private EditText _geofenceName;
     private String _latitude;
@@ -80,12 +77,6 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.add_geofence, null);
         GeofenceController.getInstance().init(this.getActivity());
-
-        _apiClient = new GoogleApiClient
-                .Builder(getActivity())
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
 
         ImageButton geofenceButton = (ImageButton) view.findViewById(R.id.button_add_geofence);
         geofenceButton.setOnClickListener(new View.OnClickListener() {
@@ -268,13 +259,6 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             int height = ViewGroup.LayoutParams.MATCH_PARENT;
             dialog.getWindow().setLayout(width, height);
         }
-        _apiClient.connect();
-    }
-
-    @Override
-    public void onStop() {
-        _apiClient.disconnect();
-        super.onStop();
     }
 
     @Override
