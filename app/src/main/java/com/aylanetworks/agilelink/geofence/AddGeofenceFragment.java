@@ -32,9 +32,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -57,7 +55,6 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class AddGeofenceFragment extends DialogFragment implements ActivityCompat
         .OnRequestPermissionsResultCallback, OnMapReadyCallback {
-    private GoogleApiClient _apiClient;
     private EditText _locationAddress;
     private EditText _geofenceName;
     private String _latitude;
@@ -80,12 +77,6 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.add_geofence, null);
         GeofenceController.getInstance().init(this.getActivity());
-
-        _apiClient = new GoogleApiClient
-                .Builder(getActivity())
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
 
         ImageButton geofenceButton = (ImageButton) view.findViewById(R.id.button_add_geofence);
         geofenceButton.setOnClickListener(new View.OnClickListener() {
@@ -111,8 +102,8 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
-                //The total progress is 500 ft.
-                float pvalue = new Double(progressValue * 4.5).floatValue();
+                //The total progress is 5000 ft.
+                float pvalue = new Double(progressValue * 49.5).floatValue();
                 _progress = MINIMAL_RADIUS + pvalue;
             }
 
@@ -268,20 +259,13 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             int height = ViewGroup.LayoutParams.MATCH_PARENT;
             dialog.getWindow().setLayout(width, height);
         }
-        _apiClient.connect();
-    }
-
-    @Override
-    public void onStop() {
-        _apiClient.disconnect();
-        super.onStop();
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
         _googleMap = map;
         _latLng = new LatLng(Double.parseDouble(_latitude), Double.parseDouble(_longitude));
-        _googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLng, 15.0f));
+        _googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLng, 12.0f));
         new DraggableCircle(_latLng, _progress);
         _mapLayout.setVisibility(View.VISIBLE);
     }

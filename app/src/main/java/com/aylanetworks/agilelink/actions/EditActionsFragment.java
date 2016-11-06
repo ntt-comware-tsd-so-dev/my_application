@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -134,6 +135,12 @@ public class EditActionsFragment extends Fragment {
         _saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(TextUtils.isEmpty(_actionNameEditText.getText())){
+                    String errorString = "Invalid Name";
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 AylaProperty property = _device.getProperty(_propertyName);
                 String propValue = _actionValueEditText.getText().toString();
                 if(!isValidValue(property,propValue)){
@@ -165,6 +172,7 @@ public class EditActionsFragment extends Fragment {
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
                             String msg = MainActivity.getInstance().getString(R.string.saved_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                            MainActivity.getInstance().onBackPressed();
                         }
                     }, new ErrorListener() {
                         @Override

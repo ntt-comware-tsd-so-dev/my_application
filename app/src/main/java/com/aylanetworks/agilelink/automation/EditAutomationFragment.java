@@ -29,7 +29,6 @@ import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
-import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
 import com.aylanetworks.agilelink.geofence.GeofenceController;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -40,6 +39,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /*
  * AMAP_Android
@@ -178,12 +178,12 @@ public class EditAutomationFragment extends Fragment {
                 List<GeofenceLocation> geofenceLocations = new ArrayList<>(Arrays.asList(arrayGeofences));
 
                 //Now get the list of Geofences that are not added from this phone.
-                SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE, Context.MODE_PRIVATE);
-                List <GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs,geofenceLocations);
-                if(listNotAdded !=null && !listNotAdded.isEmpty()){
+                SharedPreferences prefs = MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE, Context.MODE_PRIVATE);
+                List<GeofenceLocation> listNotAdded = LocationManager.getGeofencesNotInPrefs(prefs, geofenceLocations);
+                if (listNotAdded != null && !listNotAdded.isEmpty()) {
                     geofenceLocations.removeAll(listNotAdded);
                 }
-                if(geofenceLocations.isEmpty()) {
+                if (geofenceLocations.isEmpty()) {
                     return;
                 }
 
@@ -244,14 +244,14 @@ public class EditAutomationFragment extends Fragment {
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
             return;
         }
-        if(_locationName == null) {
+        if (_locationName == null) {
             String msg = MainActivity.getInstance().getString(R.string
                     .unknown_geo_fence);
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
             return;
         }
-        String triggerId = _triggerIDMap.get(_locationName);
-        if (TextUtils.isEmpty(triggerId)) {
+        String triggerUUID = _triggerIDMap.get(_locationName);
+        if (TextUtils.isEmpty(triggerUUID)) {
             String msg = MainActivity.getInstance().getString(R.string
                     .unknown_geo_fence);
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
@@ -265,8 +265,60 @@ public class EditAutomationFragment extends Fragment {
             triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
         }
 
-        AutomationActionsFragment frag = AutomationActionsFragment.newInstance
-                (_automation, automationName, triggerId, triggerType);
-        MainActivity.getInstance().pushFragment(frag);
+        Log.d(LOG_TAG, "Clicked saveAutomation");
+
+        if (_automation == null) {//This is a new Automation
+            final Automation automation = new Automation();
+            automation.setName(automationName);
+            automation.setEnabled(true); //For new one always enable it
+            automation.setId(UUID.randomUUID().toString());
+            automation.setTriggerUUID(triggerUUID);
+            automation.setAutomationTriggerType(triggerType);
+
+            AutomationManager.addAutomation(automation, new Response
+                    .Listener<AylaAPIRequest
+                    .EmptyResponse>() {
+                @Override
+                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                    String msg = MainActivity.getInstance().getString(R
+                            .string.saved_automation_success);
+                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                    AutomationActionsFragment frag = AutomationActionsFragment.newInstance(automation);
+                    MainActivity.getInstance().pushFragment(frag);
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                            error.toString();
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
+            });
+        } else {
+            _automation.setName(automationName);
+            _automation.setTriggerUUID(triggerUUID);
+            _automation.setAutomationTriggerType(triggerType);
+
+            AutomationManager.updateAutomation(_automation, new Response.Listener<AylaAPIRequest
+                    .EmptyResponse>() {
+                @Override
+                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                    String msg = MainActivity.getInstance().getString(R
+                            .string.updated_automation_success);
+                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                    AutomationActionsFragment frag = AutomationActionsFragment.newInstance(_automation);
+                    MainActivity.getInstance().pushFragment(frag);
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                            error.toString();
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
+            });
+        }
     }
 }
