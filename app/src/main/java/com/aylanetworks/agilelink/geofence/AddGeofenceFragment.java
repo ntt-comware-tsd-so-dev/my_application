@@ -129,7 +129,7 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             public void onClick(View v) {
                 if (dataIsValid()) {
                     GeofenceLocation geofence = new GeofenceLocation();
-                    String uuid = UUID.randomUUID().toString();
+                    String uuid = UUID.randomUUID().toString().toUpperCase();
                     geofence.setId(uuid);
                     geofence.setName(_geofenceName.getText().toString());
                     geofence.setLatitude(Double.parseDouble(_latitude));

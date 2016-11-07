@@ -158,7 +158,7 @@ public class EditActionsFragment extends Fragment {
                 if (_isUpdateAction) {
                     action.setId(_actionID);
                 } else {
-                    action.setId(UUID.randomUUID().toString());
+                    action.setId(UUID.randomUUID().toString().toUpperCase());
                 }
                 action.setName(_actionNameEditText.getText().toString());
 
