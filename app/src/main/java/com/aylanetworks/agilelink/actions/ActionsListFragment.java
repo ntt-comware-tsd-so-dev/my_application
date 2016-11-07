@@ -1,7 +1,9 @@
 package com.aylanetworks.agilelink.actions;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -12,6 +14,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
@@ -20,6 +23,7 @@ import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -148,7 +152,6 @@ public class ActionsListFragment extends Fragment {
             textBoxView.setText(_actionsList.get(childPosition).getName());
 
             convertView.setOnClickListener(new View.OnClickListener() {
-
                 @Override
                 public void onClick(View view) {
                     _actionsList = (ArrayList<Action>) _actionListItems.get(groupPosition);
@@ -157,8 +160,54 @@ public class ActionsListFragment extends Fragment {
                     MainActivity.getInstance().pushFragment(frag);
                 }
             });
+            final DeviceActionAdapter deviceActionAdapter = this;
+            convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    _actionsList = (ArrayList<Action>) _actionListItems.get(groupPosition);
+                    Action action = _actionsList.get(childPosition);
+                    confirmRemoveAction(action, deviceActionAdapter);
+                    return true;
+                }
+            });
+
             return convertView;
         }
+        private void confirmRemoveAction(final Action action,final DeviceActionAdapter deviceActionAdapter) {
+            new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setMessage(MainActivity.getInstance().getString(R.string
+                            .confirm_remove_action))
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteAction(action,deviceActionAdapter);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .show();
+        }
+        private void deleteAction(final Action action, final DeviceActionAdapter actionAdapter) {
+            AylaDeviceActions.deleteAction(action, new Response.Listener<AylaAPIRequest
+                    .EmptyResponse>() {
+                @Override
+                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                    String msg = MainActivity.getInstance().getString(R.string.deleted_success);
+                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                    _actionsList.remove(action);
+                    actionAdapter.notifyDataSetChanged();
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                            error.toString();
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
+            });
+        }
+
 
         @Override
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {

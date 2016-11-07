@@ -205,6 +205,11 @@ public class EditActionsFragment extends Fragment {
         });
         _propertyActionSpinner = (Spinner) root.findViewById(R.id.location_spinner);
         setPropertiesForSpinner();
+        if(_action == null) {
+            String name= (String) _propertyActionSpinner.getItemAtPosition(0);
+            _actionNameEditText.setText(name);
+
+        }
         return root;
     }
     private boolean isValidValue(AylaProperty property,String value) {

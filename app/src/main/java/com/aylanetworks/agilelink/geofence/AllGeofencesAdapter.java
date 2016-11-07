@@ -23,15 +23,10 @@ import java.util.List;
 
 public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapter.ViewHolder> {
 
-    private final List<GeofenceLocation> _GeofenceLocations;
-    private AllGeofencesAdapterListener _listener;
-
-    public void setListener(AllGeofencesAdapterListener _listener) {
-        this._listener = _listener;
-    }
+    private final List<GeofenceLocation> _geofenceLocations;
 
     public AllGeofencesAdapter(List<GeofenceLocation> _GeofenceLocations) {
-        this._GeofenceLocations = _GeofenceLocations;
+        this._geofenceLocations = _GeofenceLocations;
     }
 
     @Override
@@ -40,12 +35,15 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
         return new ViewHolder(v);
     }
 
+    public List<GeofenceLocation> getGeofenceLocations() {
+        return _geofenceLocations;
+    }
+
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        final GeofenceLocation geofence = _GeofenceLocations.get(position);
+        final GeofenceLocation geofence = _geofenceLocations.get(position);
         holder.name.setText(geofence.getName());
-
-        holder.deleteButton.setOnClickListener(new View.OnClickListener() {
+        /*holder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new AlertDialog.Builder(MainActivity.getInstance())
@@ -60,36 +58,30 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, null)
-                        .create().show();
+                        .create().show();*
             }
-        });
+        });*/
     }
 
     @Override
     public int getItemCount() {
-        if (_GeofenceLocations == null) {
+        if (_geofenceLocations == null) {
             return 0;
         }
-        return _GeofenceLocations.size();
+        return _geofenceLocations.size();
     }
 
     protected class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final TextView name;
-        final Button deleteButton;
 
         public ViewHolder(ViewGroup v) {
             super(v);
             name = (TextView) v.findViewById(R.id.listitem_geofenceName);
-            deleteButton = (Button) v.findViewById(R.id.listitem_deleteButton);
         }
 
         @Override
         public void onClick(View v) {
         }
-    }
-
-    public interface AllGeofencesAdapterListener {
-        void onDeleteTapped(GeofenceLocation GeofenceLocation);
     }
 }
 
