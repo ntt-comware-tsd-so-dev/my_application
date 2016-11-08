@@ -34,7 +34,6 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.util.TypeUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -46,6 +45,7 @@ import java.util.List;
 public class EditActionsFragment extends Fragment {
     private final static String OBJ_KEY = "action_obj";
     private final static String ARG_DSN = "dsn";
+    private final static String INPUT ="input";
 
     private String _actionID;
     private EditText _actionNameEditText;
@@ -230,9 +230,20 @@ public class EditActionsFragment extends Fragment {
         }
         return true;
     }
+
     private void setPropertiesForSpinner() {
         List<String> list = new ArrayList<>();
-        list.addAll(Arrays.asList(_deviceModel.getSchedulablePropertyNames()));
+        String[] notifiablePropertyNames = _deviceModel.getNotifiablePropertyNames();
+        AylaDevice device = _deviceModel.getDevice();
+
+        if (device != null) {
+            for (String propName : notifiablePropertyNames) {
+                AylaProperty aylaProperty = device.getProperty(propName);
+                if (aylaProperty != null && INPUT.equals(aylaProperty.getDirection())) {
+                    list.add(propName);
+                }
+            }
+        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout
                 .simple_spinner_dropdown_item, list);
