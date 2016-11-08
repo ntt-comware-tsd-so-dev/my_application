@@ -370,7 +370,7 @@ public class EditAutomationFragment extends Fragment {
                     String msg = MainActivity.getInstance().getString(R
                             .string.saved_automation_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
+                   MainActivity.getInstance().popBackstackToRoot();
                 }
             }, new ErrorListener() {
                 @Override
@@ -389,7 +389,7 @@ public class EditAutomationFragment extends Fragment {
                     String msg = MainActivity.getInstance().getString(R
                             .string.saved_automation_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
+                    MainActivity.getInstance().popBackstackToRoot();
                 }
             }, new ErrorListener() {
                 @Override
