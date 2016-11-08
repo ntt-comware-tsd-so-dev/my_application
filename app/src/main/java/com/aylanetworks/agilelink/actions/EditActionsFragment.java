@@ -232,7 +232,8 @@ public class EditActionsFragment extends Fragment {
     }
     private void setPropertiesForSpinner() {
         List<String> list = new ArrayList<>();
-        list.addAll(Arrays.asList(_deviceModel.getNotifiablePropertyNames()));
+        list.addAll(Arrays.asList(_deviceModel.getSchedulablePropertyNames()));
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout
                 .simple_spinner_dropdown_item, list);
         _propertyActionSpinner.setAdapter(adapter);
