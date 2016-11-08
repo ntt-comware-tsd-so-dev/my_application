@@ -67,6 +67,9 @@ public class AllGeofencesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        if (!isLocationEnabled(MainActivity.getInstance())) {
+            return;
+        }
         _apiClient = new GoogleApiClient
                 .Builder(getActivity())
                 .addApi(Places.GEO_DATA_API)
@@ -79,12 +82,16 @@ public class AllGeofencesFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        _apiClient.connect();
+        if(_apiClient != null) {
+            _apiClient.connect();
+        }
     }
 
     @Override
     public void onStop() {
-        _apiClient.disconnect();
+        if(_apiClient != null) {
+            _apiClient.disconnect();
+        }
         super.onStop();
     }
 
@@ -103,6 +110,9 @@ public class AllGeofencesFragment extends Fragment {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         _viewHolder.geofenceRecyclerView.setLayoutManager(layoutManager);
+        if (!isLocationEnabled(MainActivity.getInstance())) {
+            return;
+        }
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
