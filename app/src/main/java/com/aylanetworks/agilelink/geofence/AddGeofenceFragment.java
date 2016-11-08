@@ -214,6 +214,9 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         boolean validData = true;
 
         String name = _geofenceName.getText().toString();
+        if(name != null) {
+            name = name.trim(); //Just in case user enters just empty space as name
+        }
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(_latitude)
                 || TextUtils.isEmpty(_longitude)) {
             validData = false;
