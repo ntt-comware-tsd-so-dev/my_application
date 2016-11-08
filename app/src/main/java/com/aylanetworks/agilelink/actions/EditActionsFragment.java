@@ -23,6 +23,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -35,7 +36,6 @@ import com.aylanetworks.aylasdk.util.TypeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /*
  * AMAP_Android
@@ -158,7 +158,7 @@ public class EditActionsFragment extends Fragment {
                 if (_isUpdateAction) {
                     action.setId(_actionID);
                 } else {
-                    action.setId(UUID.randomUUID().toString().toUpperCase());
+                    action.setId(Automation.randomUUID());
                 }
                 action.setName(_actionNameEditText.getText().toString());
 

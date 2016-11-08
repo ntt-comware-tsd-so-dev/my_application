@@ -12,9 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -27,6 +25,7 @@ import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
+import com.aylanetworks.agilelink.util.RecyclerTouchListener;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -167,7 +166,7 @@ public class AllGeofencesFragment extends Fragment {
         refresh();
 
         _viewHolder.geofenceRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(this.getActivity(),
-                _viewHolder.geofenceRecyclerView, new ClickListener() {
+                _viewHolder.geofenceRecyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, final int position) {
 
@@ -183,7 +182,7 @@ public class AllGeofencesFragment extends Fragment {
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                            deleteGeofence(alGeofenceLocation);
+                                deleteGeofence(alGeofenceLocation);
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, null)
@@ -398,51 +397,5 @@ public class AllGeofencesFragment extends Fragment {
             geofenceRecyclerView = (RecyclerView) v.findViewById(R.id.recycler_view);
             actionButton = (ImageButton) v.findViewById(R.id.fragment_all_geofences_actionButton);
         }
-    }
-
-
-    class RecyclerTouchListener implements RecyclerView.OnItemTouchListener {
-        private final ClickListener clicklistener;
-        private final GestureDetector gestureDetector;
-
-        public RecyclerTouchListener(Context context, final RecyclerView recycleView, final ClickListener clicklistener) {
-
-            this.clicklistener = clicklistener;
-            gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onSingleTapUp(MotionEvent e) {
-                    return true;
-                }
-
-                @Override
-                public void onLongPress(MotionEvent e) {
-                    View child = recycleView.findChildViewUnder(e.getX(), e.getY());
-                    if (child != null && clicklistener != null) {
-                        clicklistener.onLongClick(child, recycleView.getChildAdapterPosition(child));
-                    }
-                }
-            });
-        }
-
-        @Override
-        public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
-            View child = rv.findChildViewUnder(e.getX(), e.getY());
-            if (child != null && clicklistener != null && gestureDetector.onTouchEvent(e)) {
-                clicklistener.onClick(child, rv.getChildAdapterPosition(child));
-            }
-            return false;
-        }
-        @Override
-        public void onTouchEvent(RecyclerView rv, MotionEvent e) {
-        }
-
-        @Override
-        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-        }
-    }
-
-    interface ClickListener {
-        void onClick(View view, int position);
-        void onLongClick(View view, int position);
     }
 }

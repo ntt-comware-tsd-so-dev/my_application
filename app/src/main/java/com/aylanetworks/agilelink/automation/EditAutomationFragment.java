@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /*
  * AMAP_Android
@@ -187,6 +186,7 @@ public class EditAutomationFragment extends Fragment {
                     _automation =createNewAutomation();
                 }
                 if(_automation != null) {
+                    //Call AutomationFragment for user to add the Actions for this fragment
                     AutomationActionsFragment frag = AutomationActionsFragment.newInstance(_automation);
                     MainActivity.getInstance().pushFragment(frag);
                 }
@@ -253,10 +253,12 @@ public class EditAutomationFragment extends Fragment {
                             actionNames.add(action.getName());
                         }
                     }
-                    String[] arrayNames = actionNames.toArray(new String[actionNames.size()]);
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_activated_1, arrayNames);
-                    listView.setAdapter(adapter);
-                    emptyActionsView.setVisibility(View.GONE);
+                    if(actionNames.size() >0) {
+                        String[] arrayNames = actionNames.toArray(new String[actionNames.size()]);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_activated_1, arrayNames);
+                        listView.setAdapter(adapter);
+                        emptyActionsView.setVisibility(View.GONE);
+                    }
                 }
             }, new ErrorListener() {
                 @Override
@@ -359,7 +361,7 @@ public class EditAutomationFragment extends Fragment {
         _automation.setAutomationTriggerType(triggerType);
 
         if (_automation.getId() == null) {//This is a new Automation
-            _automation.setId(UUID.randomUUID().toString().toUpperCase());
+            _automation.setId(Automation.randomUUID());
             AutomationManager.addAutomation(_automation, new Response
                     .Listener<AylaAPIRequest
                     .EmptyResponse>() {

@@ -43,24 +43,6 @@ public class AllGeofencesAdapter extends RecyclerView.Adapter<AllGeofencesAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
         final GeofenceLocation geofence = _geofenceLocations.get(position);
         holder.name.setText(geofence.getName());
-        /*holder.deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(MainActivity.getInstance())
-                        .setIcon(R.drawable.ic_launcher)
-                        .setTitle(R.string.confirm_delete_geofence)
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (_listener != null) {
-                                    _listener.onDeleteTapped(geofence);
-                                }
-                            }
-                        })
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .create().show();*
-            }
-        });*/
     }
 
     @Override
