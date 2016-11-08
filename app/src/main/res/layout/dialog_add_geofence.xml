@@ -9,7 +9,7 @@
       android:layout_margin="16dp"
       android:layout_gravity="center"
       style="@style/PageHeader"
-      android:text="@string/add_geofence"/>
+      android:text="@string/btn_save"/>
 
   <EditText
       android:id="@+id/fragment_add_geofence_name"

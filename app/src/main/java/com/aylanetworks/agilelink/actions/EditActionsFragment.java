@@ -23,6 +23,7 @@ import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -35,7 +36,6 @@ import com.aylanetworks.aylasdk.util.TypeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /*
  * AMAP_Android
@@ -158,7 +158,7 @@ public class EditActionsFragment extends Fragment {
                 if (_isUpdateAction) {
                     action.setId(_actionID);
                 } else {
-                    action.setId(UUID.randomUUID().toString());
+                    action.setId(Automation.randomUUID());
                 }
                 action.setName(_actionNameEditText.getText().toString());
 
@@ -205,6 +205,11 @@ public class EditActionsFragment extends Fragment {
         });
         _propertyActionSpinner = (Spinner) root.findViewById(R.id.location_spinner);
         setPropertiesForSpinner();
+        if(_action == null) {
+            String name= (String) _propertyActionSpinner.getItemAtPosition(0);
+            _actionNameEditText.setText(name);
+
+        }
         return root;
     }
     private boolean isValidValue(AylaProperty property,String value) {
@@ -227,7 +232,8 @@ public class EditActionsFragment extends Fragment {
     }
     private void setPropertiesForSpinner() {
         List<String> list = new ArrayList<>();
-        list.addAll(Arrays.asList(_deviceModel.getNotifiablePropertyNames()));
+        list.addAll(Arrays.asList(_deviceModel.getSchedulablePropertyNames()));
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout
                 .simple_spinner_dropdown_item, list);
         _propertyActionSpinner.setAdapter(adapter);

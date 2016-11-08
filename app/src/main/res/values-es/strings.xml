@@ -664,7 +664,6 @@
     <string name="geofence_entering">Entrar</string>
     <string name="geofence_leaving">Irse</string>
     <string name="geofence_location">Ubicación de Geocerca</string>
-    <string name="add_automation">Agregar automatización</string>
     <string name="btn_save">Guardar</string>
     <string name="confirm_delete_geofence">¿Esta seguro de borrar la Geocerca de AMAP?</string>
     <string name="automation_empty_text">No tiene automatizaciones asociadas con su cuenta. Seleccione agregar para crear una.</string>

@@ -25,6 +25,7 @@ import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
+import com.aylanetworks.agilelink.util.RecyclerTouchListener;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -74,6 +75,7 @@ public class AllGeofencesFragment extends Fragment {
         _apiClient.connect();
         GeofenceController.getInstance().init(MainActivity.getInstance());
     }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -82,7 +84,7 @@ public class AllGeofencesFragment extends Fragment {
 
     @Override
     public void onStop() {
-         _apiClient.disconnect();
+        _apiClient.disconnect();
         super.onStop();
     }
 
@@ -109,17 +111,16 @@ public class AllGeofencesFragment extends Fragment {
                 //Now get the list of Geofences that are not added from this phone.
                 SharedPreferences prefs = MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
                         Context.MODE_PRIVATE);
-                List <GeofenceLocation> geofencesNotAdded = LocationManager.getGeofencesNotInPrefs
-                        (prefs,geofenceLocations);
-                if(geofencesNotAdded != null && !geofencesNotAdded.isEmpty()){
-                        addMissingGeofences(geofencesNotAdded, geofenceLocations);
-                    SharedPreferences.Editor editor =prefs.edit();
-                    for(GeofenceLocation geofenceLocation:geofencesNotAdded) {
-                            editor.putString(geofenceLocation.getId(), "true");
-                            editor.apply();
-                        }
-                }
-                else {
+                List<GeofenceLocation> geofencesNotAdded = LocationManager.getGeofencesNotInPrefs
+                        (prefs, geofenceLocations);
+                if (geofencesNotAdded != null && !geofencesNotAdded.isEmpty()) {
+                    addMissingGeofences(geofencesNotAdded, geofenceLocations);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    for (GeofenceLocation geofenceLocation : geofencesNotAdded) {
+                        editor.putString(geofenceLocation.getId(), "true");
+                        editor.apply();
+                    }
+                } else {
                     initAdapter(geofenceLocations);
                 }
             }
@@ -132,7 +133,7 @@ public class AllGeofencesFragment extends Fragment {
                     //don't want to show this error.
                     ServerError serverError = ((ServerError) error);
                     int code = serverError.getServerResponseCode();
-                    if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                         initAdapter(new ArrayList<GeofenceLocation>());
                     }
                 }
@@ -142,7 +143,7 @@ public class AllGeofencesFragment extends Fragment {
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!isLocationEnabled(MainActivity.getInstance())) {
+                if (!isLocationEnabled(MainActivity.getInstance())) {
                     return;
                 }
                 _dialogFragment = new AddGeofenceFragment();
@@ -154,6 +155,7 @@ public class AllGeofencesFragment extends Fragment {
 
     /**
      * This method initializes adapters and also sets the listeners
+     *
      * @param geofenceLocations list of geofenceLocations
      */
     private void initAdapter(List<GeofenceLocation> geofenceLocations) {
@@ -162,26 +164,48 @@ public class AllGeofencesFragment extends Fragment {
         _allGeofencesAdapter = new AllGeofencesAdapter(GeofenceController.getInstance().getALGeofenceLocations());
         _viewHolder.geofenceRecyclerView.setAdapter(_allGeofencesAdapter);
         refresh();
-        _allGeofencesAdapter.setListener(new AllGeofencesAdapter.AllGeofencesAdapterListener() {
-            @Override
-            public void onDeleteTapped(final GeofenceLocation alGeofenceLocation) {
 
-                LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                    @Override
-                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                        List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
-                        GeofenceLocations.add(alGeofenceLocation);
-                        GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
-                        deleteAutomationLocation(alGeofenceLocation.getId());
-                    }
-                }, new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                                error.toString();
-                        Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
-                    }
-                });
+        _viewHolder.geofenceRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(this.getActivity(),
+                _viewHolder.geofenceRecyclerView, new RecyclerTouchListener.ClickListener() {
+            @Override
+            public void onClick(View view, final int position) {
+
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                final GeofenceLocation alGeofenceLocation = _allGeofencesAdapter
+                        .getGeofenceLocations().get(position);
+                new AlertDialog.Builder(MainActivity.getInstance())
+                        .setIcon(R.drawable.ic_launcher)
+                        .setTitle(R.string.confirm_delete_geofence)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                deleteGeofence(alGeofenceLocation);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .create().show();
+            }
+        }));
+    }
+
+    private void deleteGeofence(final GeofenceLocation alGeofenceLocation) {
+        LocationManager.deleteGeofenceLocation(alGeofenceLocation, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
+                GeofenceLocations.add(alGeofenceLocation);
+                GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
+                deleteAutomationLocation(alGeofenceLocation.getId());
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -189,12 +213,13 @@ public class AllGeofencesFragment extends Fragment {
     /**
      * This method deletes Automation(If any) for the deleted Location. Without this Location the
      * Automation is invalid
+     *
      * @param locationUUID this is the uuid of the GeofenceLocation that was deleted
      */
     private void deleteAutomationLocation(final String locationUUID) {
-       if(locationUUID == null) {
-           return;
-       }
+        if (locationUUID == null) {
+            return;
+        }
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
@@ -204,7 +229,7 @@ public class AllGeofencesFragment extends Fragment {
                                 .EmptyResponse>() {
                             @Override
                             public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                Log.d(LOG_TAG, "Deleted Automation for Location UUID " +locationUUID);
+                                Log.d(LOG_TAG, "Deleted Automation for Location UUID " + locationUUID);
                             }
                         }, new ErrorListener() {
                             @Override
@@ -226,17 +251,18 @@ public class AllGeofencesFragment extends Fragment {
     /**
      * This method will add all the geofence locations that are added in some other Phone with
      * the same User credentials
-     * @param toAddGeofenceList This is the list that need to be added
+     *
+     * @param toAddGeofenceList    This is the list that need to be added
      * @param allGeofenceLocations These locations are already added on this Phone
      */
     private void addMissingGeofences(List<GeofenceLocation> toAddGeofenceList,
-                                    List<GeofenceLocation> allGeofenceLocations) {
+                                     List<GeofenceLocation> allGeofenceLocations) {
         MainActivity.getInstance().showWaitDialog(R.string.add_geofence, R.string.geofences_added_other_phone);
-        for(GeofenceLocation geofence:toAddGeofenceList) {
+        for (GeofenceLocation geofence : toAddGeofenceList) {
             GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
         }
         //Noe remove the ones we added above
-        if(allGeofenceLocations.removeAll(toAddGeofenceList)) {
+        if (allGeofenceLocations.removeAll(toAddGeofenceList)) {
             initAdapter(allGeofenceLocations);
         }
         MainActivity.getInstance().dismissWaitDialog();
@@ -277,9 +303,9 @@ public class AllGeofencesFragment extends Fragment {
 
         if (countGeofenceLocations > 0) {
             getViewHolder().emptyState.setVisibility(View.INVISIBLE);
-            if(countGeofenceLocations >= MAX_GEOFENCES_ALLOWED) {
+            if (countGeofenceLocations >= MAX_GEOFENCES_ALLOWED) {
                 _viewHolder.actionButton.setVisibility(View.GONE);
-            } else{
+            } else {
                 _viewHolder.actionButton.setVisibility(View.VISIBLE);
             }
 
@@ -296,30 +322,30 @@ public class AllGeofencesFragment extends Fragment {
     }
 
     public static boolean isLocationEnabled(final Context context) {
-        android.location.LocationManager lm = (android.location.LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
         boolean network_enabled = false;
 
         try {
             gps_enabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             Log.d(LOG_TAG, ex.getMessage());
         }
 
         try {
             network_enabled = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             Log.d(LOG_TAG, ex.getMessage());
         }
 
-        if(!gps_enabled && !network_enabled) {
+        if (!gps_enabled && !network_enabled) {
             // notify user
             AlertDialog.Builder dialog = new AlertDialog.Builder(context);
             dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
             dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     context.startActivity(myIntent);
                 }
             });
@@ -331,8 +357,7 @@ public class AllGeofencesFragment extends Fragment {
                 }
             });
             dialog.show();
-        }
-        else{
+        } else {
             return true;
         }
         return false;
@@ -355,11 +380,11 @@ public class AllGeofencesFragment extends Fragment {
             }
         }
     }
-    
+
     private ViewHolder getViewHolder() {
         return _viewHolder;
     }
-    
+
     class ViewHolder {
         ViewGroup container;
         ViewGroup emptyState;

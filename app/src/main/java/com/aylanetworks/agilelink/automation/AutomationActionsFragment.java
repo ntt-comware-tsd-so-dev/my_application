@@ -15,7 +15,6 @@ import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
@@ -23,9 +22,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.automation.Automation;
-import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
-import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -63,7 +60,7 @@ public class AutomationActionsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater _inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = _inflater.inflate(R.layout.fragment_geofence_actions, container, false);
-        _saveButton = (Button) rootView.findViewById(R.id.button_save_automation);
+        _saveButton = (Button) rootView.findViewById(R.id.button_done_selection);
         Button _cancelButton = (Button) rootView.findViewById(R.id.button_action_cancel);
         _cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +82,6 @@ public class AutomationActionsFragment extends Fragment {
             _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
         }
 
-
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
             public void onResponse(Action[] arrayAlAction) {
@@ -104,7 +100,6 @@ public class AutomationActionsFragment extends Fragment {
                 doSaveActions();
             }
         });
-
     }
 
     private void doSaveActions() {
@@ -113,23 +108,8 @@ public class AutomationActionsFragment extends Fragment {
         Action[] actionsArray = new Action[_adapter.getCheckedItems().size()];
         actionsArray = _adapter.getCheckedItems().toArray(actionsArray);
         _automation.setActions(actionsArray);
-
-        AutomationManager.updateAutomation(_automation, new Response.Listener<AylaAPIRequest
-                .EmptyResponse>() {
-            @Override
-            public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
-            }
-        }, new ErrorListener() {
-            @Override
-            public void onErrorResponse(AylaError error) {
-                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
-                        error.toString();
-                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
-                MainActivity.getInstance().popBackstackToRoot();
-            }
-        });
-
+        EditAutomationFragment frag = EditAutomationFragment.newInstance(_automation);
+        MainActivity.getInstance().pushFragment(frag);
     }
 
     private void doFillData(final Action[] arrayAlAction) {
