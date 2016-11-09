@@ -59,6 +59,7 @@ public class AllGeofencesFragment extends Fragment {
     private static final int MAX_GEOFENCES_ALLOWED = 5;
     private GoogleApiClient _apiClient;
     private AlertDialog _alertDialog;
+    private List<GeofenceLocation> _toAddGeofenceList;
 
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
@@ -282,7 +283,9 @@ public class AllGeofencesFragment extends Fragment {
     private void addMissingGeofences(List<GeofenceLocation> toAddGeofenceList,
                                      List<GeofenceLocation> allGeofenceLocations) {
         MainActivity.getInstance().showWaitDialog(R.string.add_geofence, R.string.geofences_added_other_phone);
-        for (GeofenceLocation geofence : toAddGeofenceList) {
+        _toAddGeofenceList =  new ArrayList<GeofenceLocation>(toAddGeofenceList);
+        if(_toAddGeofenceList.size() >0) {
+            GeofenceLocation geofence = _toAddGeofenceList.remove(0);
             GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
         }
         //Noe remove the ones we added above
@@ -313,6 +316,11 @@ public class AllGeofencesFragment extends Fragment {
                 @Override
                 public void onGeofencesUpdated() {
                     refresh();
+                    //Now check if there are any more geofence locations to be added
+                    if(_toAddGeofenceList.size() >0) {
+                        GeofenceLocation geofence = _toAddGeofenceList.remove(0);
+                        GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
+                    }
                 }
 
                 @Override

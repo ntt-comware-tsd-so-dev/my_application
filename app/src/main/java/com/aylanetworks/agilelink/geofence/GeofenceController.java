@@ -107,14 +107,12 @@ public class GeofenceController {
     }
 
     private void connectWithCallbacks(GoogleApiClient.ConnectionCallbacks callbacks) {
-        if(_googleApiClient == null) {
             _googleApiClient = new GoogleApiClient.Builder(_context)
                     .addApi(LocationServices.API)
                     .addConnectionCallbacks(callbacks)
                     .addOnConnectionFailedListener(connectionFailedListener)
                     .build();
             _googleApiClient.connect();
-        }
     }
 
     private GeofencingRequest getAddGeofencingRequest() {
