@@ -58,6 +58,7 @@ public class AllGeofencesFragment extends Fragment {
     private AllGeofencesAdapter _allGeofencesAdapter;
     private static final int MAX_GEOFENCES_ALLOWED = 5;
     private GoogleApiClient _apiClient;
+    private AlertDialog _alertDialog;
 
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
@@ -344,7 +345,7 @@ public class AllGeofencesFragment extends Fragment {
         Toast.makeText(getActivity(), getActivity().getString(R.string.Toast_Error), Toast.LENGTH_SHORT).show();
     }
 
-    public static boolean isLocationEnabled(final Context context) {
+    public boolean isLocationEnabled(final Context context) {
         android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
         boolean network_enabled = false;
@@ -363,34 +364,44 @@ public class AllGeofencesFragment extends Fragment {
 
         if (!gps_enabled && !network_enabled) {
             // notify user
-            AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-            dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
-            dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    context.startActivity(myIntent);
-                }
-            });
-            dialog.setNegativeButton(context.getString(android.R.string.cancel), new DialogInterface
-                    .OnClickListener() {
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Toast.makeText(context, context.getString(R.string.location_permission_required_toast), Toast.LENGTH_SHORT).show();
-                }
-            });
-            dialog.show();
+            if(_alertDialog == null) {
+                _alertDialog = getAlertBuilder(context);
+            }
+            if(!_alertDialog.isShowing()) {
+                _alertDialog.show();
+            }
         } else {
             if (ActivityCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.getInstance(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
+                MainActivity.getInstance().popBackstackToRoot();
             }
             else {
                 return true;
             }
         }
         return false;
+    }
+
+    private AlertDialog getAlertBuilder(final Context context) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
+        dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                context.startActivity(myIntent);
+            }
+        });
+        dialog.setNegativeButton(context.getString(android.R.string.cancel), new DialogInterface
+                .OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Toast.makeText(context, context.getString(R.string.location_permission_required_toast), Toast.LENGTH_SHORT).show();
+            }
+        });
+        return dialog.create();
     }
 
     @Override
