@@ -71,7 +71,7 @@ public class AllGeofencesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        if (isLocationEnabled(MainActivity.getInstance())) {
+        if (checkLocationServices(MainActivity.getInstance())) {
             initClient();
         }
     }
@@ -108,7 +108,7 @@ public class AllGeofencesFragment extends Fragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         _viewHolder.geofenceRecyclerView.setLayoutManager(layoutManager);
         _viewHolder.actionButton.setVisibility(View.GONE);
-        if (isLocationEnabled(MainActivity.getInstance())) {
+        if (checkLocationServices(MainActivity.getInstance())) {
             _viewHolder.actionButton.setVisibility(View.VISIBLE);
             fetchAndDisplayLocations();
         }
@@ -116,7 +116,7 @@ public class AllGeofencesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        isLocationEnabled(MainActivity.getInstance());
+        checkLocationServices(MainActivity.getInstance());
     }
 
     private void initClient() {
@@ -345,7 +345,7 @@ public class AllGeofencesFragment extends Fragment {
         Toast.makeText(getActivity(), getActivity().getString(R.string.Toast_Error), Toast.LENGTH_SHORT).show();
     }
 
-    public boolean isLocationEnabled(final Context context) {
+    public boolean checkLocationServices(final Context context) {
         android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
         boolean network_enabled = false;
@@ -365,7 +365,7 @@ public class AllGeofencesFragment extends Fragment {
         if (!gps_enabled && !network_enabled) {
             // notify user
             if(_alertDialog == null) {
-                _alertDialog = getAlertBuilder(context);
+                _alertDialog = getAlertDialog(context);
             }
             if(!_alertDialog.isShowing()) {
                 _alertDialog.show();
@@ -384,7 +384,7 @@ public class AllGeofencesFragment extends Fragment {
         return false;
     }
 
-    private AlertDialog getAlertBuilder(final Context context) {
+    private AlertDialog getAlertDialog(final Context context) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
         dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
