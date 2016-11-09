@@ -383,7 +383,9 @@ public class AllGeofencesFragment extends Fragment {
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.getInstance(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
-                MainActivity.getInstance().popBackstackToRoot();
+                if (  MainActivity.getInstance().getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
             }
             else {
                 return true;
