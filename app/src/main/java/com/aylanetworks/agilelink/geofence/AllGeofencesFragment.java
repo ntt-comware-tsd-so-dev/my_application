@@ -1,13 +1,16 @@
 package com.aylanetworks.agilelink.geofence;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -67,16 +70,9 @@ public class AllGeofencesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        if (!isLocationEnabled(MainActivity.getInstance())) {
-            return;
+        if (isLocationEnabled(MainActivity.getInstance())) {
+            initClient();
         }
-        _apiClient = new GoogleApiClient
-                .Builder(getActivity())
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
-        _apiClient.connect();
-        GeofenceController.getInstance().init(MainActivity.getInstance());
     }
 
     @Override
@@ -110,9 +106,28 @@ public class AllGeofencesFragment extends Fragment {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         _viewHolder.geofenceRecyclerView.setLayoutManager(layoutManager);
-        if (!isLocationEnabled(MainActivity.getInstance())) {
-            return;
+        _viewHolder.actionButton.setVisibility(View.GONE);
+        if (isLocationEnabled(MainActivity.getInstance())) {
+            _viewHolder.actionButton.setVisibility(View.VISIBLE);
+            fetchAndDisplayLocations();
         }
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        isLocationEnabled(MainActivity.getInstance());
+    }
+
+    private void initClient() {
+        _apiClient = new GoogleApiClient
+                .Builder(getActivity())
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        _apiClient.connect();
+        GeofenceController.getInstance().init(MainActivity.getInstance());
+    }
+    private void fetchAndDisplayLocations() {
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
@@ -153,14 +168,12 @@ public class AllGeofencesFragment extends Fragment {
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isLocationEnabled(MainActivity.getInstance())) {
-                    return;
-                }
                 _dialogFragment = new AddGeofenceFragment();
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
             }
         });
+
     }
 
     /**
@@ -368,7 +381,14 @@ public class AllGeofencesFragment extends Fragment {
             });
             dialog.show();
         } else {
-            return true;
+            if (ActivityCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.getInstance(),
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
+            }
+            else {
+                return true;
+            }
         }
         return false;
     }
