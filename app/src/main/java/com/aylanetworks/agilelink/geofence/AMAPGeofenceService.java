@@ -108,14 +108,18 @@ public class AMAPGeofenceService extends IntentService {
             public void onErrorResponse(AylaError error) {
                 //Check if there are no existing automations. This is not an actual error and we
                 //don't want to show this error. Just log it in case of no Existing automations
-                ServerError serverError = ((ServerError) error);
-                int code = serverError.getServerResponseCode();
-                if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
-                    Log.d(TAG,"No Existing Automation");
-                } else {
-                    Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
-                            .LENGTH_LONG).show();
+                if(error instanceof ServerError){
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(TAG,"No Existing Automation");
+                    } else {
+                        Log.e(TAG,"Error in fetch automations "+error.getMessage());
+                    }
+                } else{
+                    Log.e(TAG,"Error in fetch automations "+error.getMessage());
                 }
+
             }
         });
     }
