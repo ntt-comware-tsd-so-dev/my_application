@@ -1,13 +1,16 @@
 package com.aylanetworks.agilelink.geofence;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -55,6 +58,7 @@ public class AllGeofencesFragment extends Fragment {
     private AllGeofencesAdapter _allGeofencesAdapter;
     private static final int MAX_GEOFENCES_ALLOWED = 5;
     private GoogleApiClient _apiClient;
+    private AlertDialog _alertDialog;
 
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
@@ -67,16 +71,9 @@ public class AllGeofencesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        if (!isLocationEnabled(MainActivity.getInstance())) {
-            return;
+        if (checkLocationServices(MainActivity.getInstance())) {
+            initClient();
         }
-        _apiClient = new GoogleApiClient
-                .Builder(getActivity())
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
-        _apiClient.connect();
-        GeofenceController.getInstance().init(MainActivity.getInstance());
     }
 
     @Override
@@ -110,9 +107,28 @@ public class AllGeofencesFragment extends Fragment {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         _viewHolder.geofenceRecyclerView.setLayoutManager(layoutManager);
-        if (!isLocationEnabled(MainActivity.getInstance())) {
-            return;
+        _viewHolder.actionButton.setVisibility(View.GONE);
+        if (checkLocationServices(MainActivity.getInstance())) {
+            _viewHolder.actionButton.setVisibility(View.VISIBLE);
+            fetchAndDisplayLocations();
         }
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkLocationServices(MainActivity.getInstance());
+    }
+
+    private void initClient() {
+        _apiClient = new GoogleApiClient
+                .Builder(getActivity())
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        _apiClient.connect();
+        GeofenceController.getInstance().init(MainActivity.getInstance());
+    }
+    private void fetchAndDisplayLocations() {
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
@@ -153,14 +169,12 @@ public class AllGeofencesFragment extends Fragment {
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isLocationEnabled(MainActivity.getInstance())) {
-                    return;
-                }
                 _dialogFragment = new AddGeofenceFragment();
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
             }
         });
+
     }
 
     /**
@@ -331,7 +345,7 @@ public class AllGeofencesFragment extends Fragment {
         Toast.makeText(getActivity(), getActivity().getString(R.string.Toast_Error), Toast.LENGTH_SHORT).show();
     }
 
-    public static boolean isLocationEnabled(final Context context) {
+    public boolean checkLocationServices(final Context context) {
         android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
         boolean network_enabled = false;
@@ -350,27 +364,44 @@ public class AllGeofencesFragment extends Fragment {
 
         if (!gps_enabled && !network_enabled) {
             // notify user
-            AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-            dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
-            dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    context.startActivity(myIntent);
-                }
-            });
-            dialog.setNegativeButton(context.getString(android.R.string.cancel), new DialogInterface
-                    .OnClickListener() {
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Toast.makeText(context, context.getString(R.string.location_permission_required_toast), Toast.LENGTH_SHORT).show();
-                }
-            });
-            dialog.show();
+            if(_alertDialog == null) {
+                _alertDialog = getAlertDialog(context);
+            }
+            if(!_alertDialog.isShowing()) {
+                _alertDialog.show();
+            }
         } else {
-            return true;
+            if (ActivityCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.getInstance(),
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
+                MainActivity.getInstance().popBackstackToRoot();
+            }
+            else {
+                return true;
+            }
         }
         return false;
+    }
+
+    private AlertDialog getAlertDialog(final Context context) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
+        dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                context.startActivity(myIntent);
+            }
+        });
+        dialog.setNegativeButton(context.getString(android.R.string.cancel), new DialogInterface
+                .OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Toast.makeText(context, context.getString(R.string.location_permission_required_toast), Toast.LENGTH_SHORT).show();
+            }
+        });
+        return dialog.create();
     }
 
     @Override
