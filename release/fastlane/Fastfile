@@ -168,7 +168,6 @@ platform :android do
     public_repo="#{internal_repo}_Public"
     release_number = get_version_string
     check_required_argument(release_number, "release_number:x.y.z")
-    puts "Have you run set_api_release_key lane?"
     puts "Your release version is: " + release_number + ", is this correct(y/n)?"
     answer = $stdin.getch
     exit! unless answer.eql?("y")
