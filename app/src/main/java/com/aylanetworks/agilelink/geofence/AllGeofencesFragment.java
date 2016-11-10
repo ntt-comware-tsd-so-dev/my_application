@@ -385,22 +385,15 @@ public class AllGeofencesFragment extends Fragment {
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.getInstance(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
-                if (  MainActivity.getInstance().getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
-                    MainActivity.getInstance().popBackstackToRoot();
-                }
 
-                try {
-                    Runnable r = new Runnable() {
-                        @Override
-                        public void run() {
-                            MainActivity.getInstance().popBackstackToRoot();
-                        }
-                    };
-                    Handler h = new Handler();
-                    h.postDelayed(r,POST_DELAYED_TIME_MS);
-                } catch (Exception ex) {
-                    Log.e(LOG_TAG, ex.getMessage());
-                }
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.getInstance().popBackstackToRoot();
+                    }
+                };
+                Handler h = new Handler();
+                h.postDelayed(r, POST_DELAYED_TIME_MS);
             }
             else {
                 return true;
