@@ -92,6 +92,8 @@ import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.util.TypeUtils;
+import com.baidu.android.pushservice.PushConstants;
+import com.baidu.android.pushservice.PushManager;
 import com.google.android.gms.location.Geofence;
 
 import java.io.IOException;
@@ -279,7 +281,7 @@ public class MainActivity extends AppCompatActivity
             return context.getString(R.string.unknown_app_version);
         }
 
-        return info.versionName + "." + info.versionCode;
+        return info.versionName + "" + info.versionCode;
     }
 
     public String getAppVersion() {
@@ -530,6 +532,10 @@ public class MainActivity extends AppCompatActivity
             final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
             AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
         }
+
+        // Setup Baidu push
+        Context context = getApplicationContext();
+        PushManager.startWork(context, PushConstants.LOGIN_TYPE_API_KEY, PushUtils.getMetaValue(context, "api_key"));
     }
     @Override
     public  void onNewIntent (Intent intent) {

@@ -26,6 +26,19 @@ android {
         }
     }
 
+    productFlavors {
+        google {
+        }
+        baiduPush {
+        }
+    }
+
+    sourceSets{
+        baiduPush {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -48,7 +61,7 @@ task initialize {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    baiduPushCompile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':websocketLibrary')
     compile project(':Android_AylaSDK')
     androidTestCompile 'com.android.support:support-annotations:23.4.0'
