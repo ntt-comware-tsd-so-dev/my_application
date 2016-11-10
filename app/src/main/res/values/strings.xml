@@ -696,25 +696,24 @@
     <string name="geofence_entering">Entering</string>
     <string name="geofence_leaving">Leaving</string>
     <string name="geofence_location">Geofence Location</string>
-    <string name="add_automation">Add Automation</string>
     <string name="btn_save">Save</string>
     <string name="confirm_delete_geofence">Are you sure to delete this AMAP Geofence?</string>
     <string name="automation_empty_text">You have no automations associated with your account. Tap on the add button to create one.</string>
     <string name="confirm_remove_automation">Are you sure you want to remove this Automation?</string>
     <string name="confirm_remove_action">Are you sure you want to remove this Action?</string>
     <string name="automation_name_empty">Automation Name is empty</string>
-    <string name="unknown_geo_fence"> Unknown Geofence Location</string>
-
+    <string name="unknown_geo_fence">Unknown Geofence Location</string>
+    <string name="perform_these_actions">Perform these actions</string>
+    <string name="done">Done</string>
+    <string name="automation_no_actions">This automation has no actions. Tap on the add button to associate one.</string>
     <string name="actions">Device Actions</string>
     <string name="automations">Automations</string>
     <string name="saved_success">Saved Successfully</string>
     <string name="updated_success">Updated Successfully</string>
-    <string name="saved_automation_success">Saved Automation Successfully. Please select Actions
-        for this newly created Automation.</string>
-    <string name="updated_automation_success">Updated Automation Successfully. You can change the
-        existing actions for this Automation.</string>
+    <string name="saved_automation_success">Saved Automation Successfully.</string>
     <string name="deleted_success">Deleted successfully</string>
     <string name="confirm_delete_automation">Are you sure to delete this Automation?</string>
+    <string name="action_name">Action Name</string>
 
     <string name="Hint.Name">Name for the geofence</string>
     <string name="Hint.Radius" formatted="false">Radius (0-300 meters)</string>

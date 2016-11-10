@@ -15,6 +15,8 @@ fastlane_version "1.81.0"
 
 default_platform :android
 VERSION_FILE="build.gradle"
+MAP_API_RELEASE_KEY="AIzaSyCgcda1wGyYjz-kM-unX-aFfL32sewZ404"
+MAP_API_DEBUG_KEY="AIzaSyD4WGvFAIbntJEpjlAIj0T-L68IvXVZ2Do"
 
 def check_env_var(var_arr)
     var_arr.each { |v|
@@ -82,9 +84,33 @@ def set_build_tool_version
     File.write(readmeFile, file_contents)
 end
 
+def set_geofence_key(options)
+    manifestFile = "../app/src/main/AndroidManifest.xml"
+    if options[:type].eql? "release"
+      key = MAP_API_RELEASE_KEY
+    else
+      key = MAP_API_DEBUG_KEY
+    end
+
+    puts "Your Google MAP API #{options[:type]} key is: #{key}"
+    file_contents = File.read(manifestFile)
+    file_contents.gsub!(/(.*android:name="com.google.android.geo.API_KEY"\n.*android:value=\")(.*)(\".*)/, "\\1#{key}\\3")
+    File.write(manifestFile, file_contents)
+end
+
 platform :android do
   before_all do
     # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+  end
+
+  desc "Set Geofence API release key"
+  lane :set_api_release_key do
+    set_geofence_key({type:"release"})
+  end
+
+  desc "Set Geofence API release key"
+  lane :set_api_debug_key do
+    set_geofence_key({type:"debug"})
   end
 
   desc "Runs all the tests"
@@ -142,6 +168,7 @@ platform :android do
     public_repo="#{internal_repo}_Public"
     release_number = get_version_string
     check_required_argument(release_number, "release_number:x.y.z")
+    puts "Have you run set_api_release_key lane?"
     puts "Your release version is: " + release_number + ", is this correct(y/n)?"
     answer = $stdin.getch
     exit! unless answer.eql?("y")
@@ -157,16 +184,16 @@ platform :android do
 
     # this will trigger massive release emails immediately so be careful
     # publish a release which will create the tag on public. this requires you to set your own environment variable GITHUB_API_TOKEN
-    set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: public_repo, tag_name: v, name: v+" Release", description: "see README.md for details")
+    #set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: public_repo, tag_name: v, name: v+" Release", description: "see README.md for details")
     # pull tag to local
-    git_command(full_command: "git pull public master --tags");
+    #git_command(full_command: "git pull public master --tags");
     # push tag to internal repo
-    git_command(full_command: "git push origin #{v}");
+    #git_command(full_command: "git push origin #{v}");
 
     #when the above auto-publish is not used, create and push tags here.
-    #git_command(full_command: "git tag -a #{v} -m \"#{v} tag\"");
-    #git_command(full_command: "git push origin #{v}");
-    #git_command(full_command: "git push public #{v}");
+    git_command(full_command: "git tag -a #{v} -m \"#{v} tag\"");
+    git_command(full_command: "git push origin #{v}");
+    git_command(full_command: "git push public #{v}");
 
     # push a release branch
     git_command(full_command: "git checkout release/#{release_number}")

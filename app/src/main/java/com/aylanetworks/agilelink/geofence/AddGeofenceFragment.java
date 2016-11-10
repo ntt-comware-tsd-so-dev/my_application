@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -43,7 +44,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
-import java.util.UUID;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -129,7 +129,7 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             public void onClick(View v) {
                 if (dataIsValid()) {
                     GeofenceLocation geofence = new GeofenceLocation();
-                    String uuid = UUID.randomUUID().toString();
+                    String uuid = Automation.randomUUID();
                     geofence.setId(uuid);
                     geofence.setName(_geofenceName.getText().toString());
                     geofence.setLatitude(Double.parseDouble(_latitude));
@@ -214,6 +214,9 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         boolean validData = true;
 
         String name = _geofenceName.getText().toString();
+        if(name != null) {
+            name = name.trim(); //Just in case user enters just empty space as name
+        }
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(_latitude)
                 || TextUtils.isEmpty(_longitude)) {
             validData = false;

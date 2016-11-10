@@ -1,6 +1,8 @@
 package com.aylanetworks.agilelink.automation;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -203,7 +205,50 @@ public class AutomationListFragment extends Fragment {
                     MainActivity.getInstance().pushFragment(frag);
                 }
             });
+            convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    confirmRemoveAutomation(automation);
+                    return true;
+                }
+            });
             return convertView;
+        }
+        private void confirmRemoveAutomation(final Automation automation) {
+            new AlertDialog.Builder(getActivity())
+                    .setIcon(R.drawable.ic_launcher)
+                    .setMessage(MainActivity.getInstance().getString(R.string
+                            .confirm_remove_automation))
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteAutomation(automation);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .show();
+        }
+
+        private void deleteAutomation(final Automation automation) {
+            //confirm_delete_automation
+            AutomationManager.deleteAutomation(automation, new Response.Listener<AylaAPIRequest
+                    .EmptyResponse>() {
+                @Override
+                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                    String msg = MainActivity.getInstance().getString(R.string.deleted_success);
+                    Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                    _automationsList.remove(automation);
+                    _automationsAdapter.notifyDataSetChanged();
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                            error.toString();
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
+            });
         }
     }
 }

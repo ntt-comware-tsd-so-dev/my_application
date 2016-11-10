@@ -59,6 +59,7 @@ import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
+import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
@@ -1388,6 +1389,14 @@ public class MainActivity extends AppCompatActivity
         if(requestCode == REQUEST_LOCATION){
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(this, getResources().getText(R.string.location_permission_granted), Toast.LENGTH_SHORT).show();
+            }  else{
+                Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        if(requestCode == REQUEST_FINE_LOCATION){
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
             }  else{
                 Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
             }

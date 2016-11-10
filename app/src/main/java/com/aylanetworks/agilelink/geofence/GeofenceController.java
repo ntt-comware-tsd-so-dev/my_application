@@ -43,7 +43,7 @@ public class GeofenceController {
     private SharedPreferences _prefs;
     public static final String SHARED_PERFS_GEOFENCE = "SHARED_PREFS_GEOFENCES";
 
-    public static GeofenceController _instance;
+    private static GeofenceController __instance;
 
     public List<GeofenceLocation> getALGeofenceLocations() {
         return _geofenceLocations;
@@ -53,10 +53,10 @@ public class GeofenceController {
 
 
     public static GeofenceController getInstance() {
-        if (_instance == null) {
-            _instance = new GeofenceController();
+        if (__instance == null) {
+            __instance = new GeofenceController();
         }
-        return _instance;
+        return __instance;
     }
 
     public void init(Context context) {
@@ -107,12 +107,12 @@ public class GeofenceController {
     }
 
     private void connectWithCallbacks(GoogleApiClient.ConnectionCallbacks callbacks) {
-        _googleApiClient = new GoogleApiClient.Builder(_context)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(callbacks)
-                .addOnConnectionFailedListener(connectionFailedListener)
-                .build();
-        _googleApiClient.connect();
+            _googleApiClient = new GoogleApiClient.Builder(_context)
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(callbacks)
+                    .addOnConnectionFailedListener(connectionFailedListener)
+                    .build();
+            _googleApiClient.connect();
     }
 
     private GeofencingRequest getAddGeofencingRequest() {
@@ -166,6 +166,9 @@ public class GeofenceController {
             }
             Intent intent = new Intent(_context, AMAPGeofenceService.class);
             PendingIntent pendingIntent = PendingIntent.getService(_context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            if(_googleApiClient.isConnected() == false) {
+                return;
+            }
 
             PendingResult<Status> result = LocationServices.GeofencingApi.addGeofences(_googleApiClient, getAddGeofencingRequest(), pendingIntent);
             result.setResultCallback(new ResultCallback<Status>() {
