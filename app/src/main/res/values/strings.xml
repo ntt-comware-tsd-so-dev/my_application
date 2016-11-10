@@ -713,6 +713,7 @@
     <string name="saved_automation_success">Saved Automation Successfully.</string>
     <string name="deleted_success">Deleted successfully</string>
     <string name="confirm_delete_automation">Are you sure to delete this Automation?</string>
+    <string name="action_name">Action Name</string>
 
     <string name="Hint.Name">Name for the geofence</string>
     <string name="Hint.Radius" formatted="false">Radius (0-300 meters)</string>

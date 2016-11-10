@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -60,6 +61,7 @@ public class AllGeofencesFragment extends Fragment {
     private GoogleApiClient _apiClient;
     private AlertDialog _alertDialog;
     private List<GeofenceLocation> _toAddGeofenceList;
+    private final int POST_DELAYED_TIME_MS =30;
 
     public static AllGeofencesFragment newInstance() {
         return new AllGeofencesFragment();
@@ -383,7 +385,22 @@ public class AllGeofencesFragment extends Fragment {
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.getInstance(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
-                MainActivity.getInstance().popBackstackToRoot();
+                if (  MainActivity.getInstance().getSupportFragmentManager().getBackStackEntryCount() > 0 ) {
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
+
+                try {
+                    Runnable r = new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.getInstance().popBackstackToRoot();
+                        }
+                    };
+                    Handler h = new Handler();
+                    h.postDelayed(r,POST_DELAYED_TIME_MS);
+                } catch (Exception ex) {
+                    Log.e(LOG_TAG, ex.getMessage());
+                }
             }
             else {
                 return true;
