@@ -15,6 +15,8 @@ fastlane_version "1.81.0"
 
 default_platform :android
 VERSION_FILE="build.gradle"
+MAP_API_RELEASE_KEY="AIzaSyCgcda1wGyYjz-kM-unX-aFfL32sewZ404"
+MAP_API_DEBUG_KEY="AIzaSyD4WGvFAIbntJEpjlAIj0T-L68IvXVZ2Do"
 
 def check_env_var(var_arr)
     var_arr.each { |v|
@@ -82,9 +84,33 @@ def set_build_tool_version
     File.write(readmeFile, file_contents)
 end
 
+def set_geofence_key(options)
+    manifestFile = "../app/src/main/AndroidManifest.xml"
+    if options[:type].eql? "release"
+      key = MAP_API_RELEASE_KEY
+    else
+      key = MAP_API_DEBUG_KEY
+    end
+
+    puts "Your Google MAP API #{options[:type]} key is: #{key}"
+    file_contents = File.read(manifestFile)
+    file_contents.gsub!(/(.*android:name="com.google.android.geo.API_KEY"\n.*android:value=\")(.*)(\".*)/, "\\1#{key}\\3")
+    File.write(manifestFile, file_contents)
+end
+
 platform :android do
   before_all do
     # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+  end
+
+  desc "Set Geofence API release key"
+  lane :set_api_release_key do
+    set_geofence_key({type:"release"})
+  end
+
+  desc "Set Geofence API release key"
+  lane :set_api_debug_key do
+    set_geofence_key({type:"debug"})
   end
 
   desc "Runs all the tests"
