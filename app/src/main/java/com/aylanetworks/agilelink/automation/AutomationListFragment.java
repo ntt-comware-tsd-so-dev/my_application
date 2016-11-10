@@ -49,7 +49,6 @@ public class AutomationListFragment extends Fragment {
     private ArrayList<Automation> _automationsList;
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
-    private boolean _initialState = false;
     private static final int MAX_AUTOMATIONS = 5;
 
 
@@ -168,11 +167,10 @@ public class AutomationListFragment extends Fragment {
                return  convertView;
             }
             tv1.setText(automation.getName());
-            _initialState = automation.isEnabled();
             enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
-                    if(_initialState == isChecked) {
+                    if(automation.isEnabled() == isChecked) {
                         return;
                     }
                     automation.setEnabled(isChecked);
@@ -183,7 +181,6 @@ public class AutomationListFragment extends Fragment {
                             String msg = MainActivity.getInstance().getString(R
                                     .string.updated_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                            _initialState = isChecked;
                         }
                     }, new ErrorListener() {
                         @Override
@@ -196,7 +193,7 @@ public class AutomationListFragment extends Fragment {
                     });
                 }
             });
-            enabledSwitch.setChecked(_initialState);
+            enabledSwitch.setChecked(automation.isEnabled());
 
             convertView.setOnClickListener(new View.OnClickListener(){
                 @Override
