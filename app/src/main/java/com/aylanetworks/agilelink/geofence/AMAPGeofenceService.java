@@ -19,7 +19,6 @@ import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.error.ServerError;
-import com.aylanetworks.aylasdk.util.TypeUtils;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
@@ -132,7 +131,13 @@ public class AMAPGeofenceService extends IntentService {
                     if (action != null && actionSet.contains((action.getId()))) {
                         AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
                                 .deviceWithDSN(action.getDSN());
+                        if(device == null) {
+                            continue;
+                        }
                         final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
+                        if(entryProperty == null) {
+                            continue;
+                        }
                         Object value= action.getValue();
                         entryProperty.createDatapoint(value, null, new Response
                                         .Listener<AylaDatapoint<Integer>>() {
