@@ -166,42 +166,23 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         MainActivity.getInstance().showWaitDialog(getString(R.string.updating_profile_title), getString(R.string.updating_profile_body));
         AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
         final AylaUser updatedUser = userFromFields();
-        if (params.ssoLogin) {
-            params.ssoManager.updateUserInfo(updatedUser, new Response.Listener<AylaUser>() {
-                        @Override
-                        public void onResponse(AylaUser response) {
-                            AylaLog.i(LOG_TAG, "SSO user updated successfully");
-                            updateOwnerContact(updatedUser);
-                            MainActivity.getInstance().dismissWaitDialog();
-                        }
-                    },
-                    new ErrorListener() {
-                        @Override
-                        public void onErrorResponse(AylaError error) {
-                            Toast.makeText(getActivity(),
-                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
-            AMAPCore.sharedInstance().getSessionManager().updateUserProfile(updatedUser,
-                    new Response.Listener<AylaUser>() {
-                        @Override
-                        public void onResponse(AylaUser response) {
-                            AylaLog.i(LOG_TAG, "User profile updated successfully");
-                            updateOwnerContact(updatedUser);
-                            MainActivity.getInstance().dismissWaitDialog();
-                        }
-                    },
-                    new ErrorListener() {
-                        @Override
-                        public void onErrorResponse(AylaError error) {
-                            Toast.makeText(getActivity(),
-                                    ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        }
+        AMAPCore.sharedInstance().getSessionManager().updateUserProfile(updatedUser,
+                new Response.Listener<AylaUser>() {
+                    @Override
+                    public void onResponse(AylaUser response) {
+                        AylaLog.i(LOG_TAG, "User profile updated successfully");
+                        updateOwnerContact(updatedUser);
+                        MainActivity.getInstance().dismissWaitDialog();
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Toast.makeText(getActivity(),
+                                ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     void updateOwnerContact(AylaUser user) {

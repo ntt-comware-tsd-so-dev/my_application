@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -12,9 +13,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
+import android.hardware.fingerprint.FingerprintManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
+import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -42,36 +48,72 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
+import com.aylanetworks.agilelink.fragments.FingerPrintDialogFragment;
+import com.aylanetworks.agilelink.fragments.FingerprintUiHelper;
+import com.aylanetworks.agilelink.fragments.NotificationListFragment;
 import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
+import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
+import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaShare;
+import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
+import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
+import com.aylanetworks.aylasdk.AylaDeviceManager;
+import com.aylanetworks.aylasdk.AylaLog;
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
+import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.util.TypeUtils;
+import com.google.android.gms.location.Geofence;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
-import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
+import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
 /*
  * MainActivity.java
  * AgileLink Application Framework
@@ -95,10 +137,20 @@ public class MainActivity extends AppCompatActivity
     // request IDs for intents we want results from
     public static final int REQ_PICK_CONTACT = 1;
     public static final int REQ_SIGN_IN = 2;
+    public static final int REQ_CHECK_FINGERPRINT = 3;
+    public static final int REQUEST_FINE_LOCATION = 4;
+    public static final int PLACE_PICKER_REQUEST = 5;
+
     public static AylaLog.LogLevel LOG_PERMIT = AylaLog.LogLevel.None;
 
     public static final String ARG_SHARE = "share";
     private static MainActivity _theInstance;
+    private KeyStore _keyStore;
+    private Cipher _cipher;
+    private static final String KEY_NAME = "finger-print-key-app";
+    public final static String ARG_TRIGGER_TYPE = "trgigger_type";
+    public final static String GEO_FENCE_LIST = "geo_fence_list";
+
 
     /**
      * Returns the one and only instance of this activity
@@ -298,12 +350,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
-        // User logged out.
-        setNoDevicesMode(false);
-        if (!_loginScreenUp) {
-            showLoginDialog(true);
-        } else {
-            Log.e(LOG_TAG, "nod: Login screen is already up:");
+        //Make sure the user did not sign out normally (i.e error=null)
+        if(error !=null && checkFingerprintOption()){
+            showFingerPrint();
+        }
+        else {
+            // User logged out.
+            setNoDevicesMode(false);
+            if (!_loginScreenUp) {
+                showLoginDialog(true);
+            } else {
+                Log.e(LOG_TAG, "nod: Login screen is already up:");
+            }
         }
     }
 
@@ -351,6 +409,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
         final int rc = resultCode;
         final Intent finalData = data;
 
@@ -418,16 +477,21 @@ public class MainActivity extends AppCompatActivity
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
             }
+        } else if(reqCode == REQ_CHECK_FINGERPRINT) {
+            showLoginDialog(false);
+        } else if(reqCode == PLACE_PICKER_REQUEST){
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag("AddGeofenceFragment");
+            fragment.onActivityResult(reqCode, resultCode, data);
         }
-    }
+}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Phones are portrait-only. Tablets support orientation changes.
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestStoragePermissions();
         }
-        if(getResources().getBoolean(R.bool.portrait_only)){
+        if (getResources().getBoolean(R.bool.portrait_only)) {
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         } else {
@@ -445,16 +509,49 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (!_loginScreenUp) {
-            showLoginDialog(false);
+            boolean allowOfflineUse = AylaNetworks.sharedInstance().getSystemSettings().allowOfflineUse;
+            if (allowOfflineUse) {
+                //For off line mode don't disable existing cache
+                showLoginDialog(false);
+            } else {
+                boolean expireAuthToken = AgileLinkApplication.getSharedPreferences()
+                        .getBoolean(getString(R.string.always_expire_auth_token), false);
+                showLoginDialog(expireAuthToken);
+            }
         }
 
         // We want to know about application state changes
-        ((AgileLinkApplication)getApplication()).addListener(this);
+        ((AgileLinkApplication) getApplication()).addListener(this);
+        if (checkFingerprintOption()) {
+            createKey();
+        }
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null){
+           boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
+            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
+        }
+    }
+    @Override
+    public  void onNewIntent (Intent intent) {
+        super.onNewIntent(intent);
+        Bundle bundle = intent.getExtras();
+        if (bundle != null){
+            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
+            if(geofenceList !=null) {
+                //Now check if the app is running in the background
+                if(!AgileLinkApplication.getsInstance().isActivityVisible()) {
+                    moveTaskToBack(true);
+                }
+
+                AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+            }
+        }
     }
 
     @Override
     public void onDestroy() {
-        _theInstance = null;
         AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
         if (sm != null) {
             sm.removeListener(this);
@@ -609,6 +706,23 @@ public class MainActivity extends AppCompatActivity
             _userView = (TextView)header.findViewById(R.id.username);
             _emailView = (TextView)header.findViewById(R.id.email);
             onDrawerItemClicked(_drawerMenu.getItem(0));
+
+            boolean isGeofenceEnabled = AgileLinkApplication.getSharedPreferences().getBoolean
+                    (getString(R.string.enable_geofence_feature), true);
+            if(!isGeofenceEnabled) {
+                MenuItem itemGeofence = _drawerMenu.findItem(R.id.action_geofences);
+                MenuItem itemActions = _drawerMenu.findItem(R.id.action_al_actions);
+                MenuItem itemAutomations = _drawerMenu.findItem(R.id.action_automations);
+                if(itemGeofence != null) {
+                    itemGeofence.setVisible(false);
+                }
+                if(itemActions != null) {
+                    itemActions.setVisible(false);
+                }
+                if(itemAutomations != null) {
+                    itemAutomations.setVisible(false);
+                }
+            }
         }
     }
 
@@ -804,12 +918,14 @@ public class MainActivity extends AppCompatActivity
         boolean useDevService = true;
         if ( useDevService ) {
             // Development values
-            parameters.appId = "AgileLinkProd-id";
-            parameters.appSecret = "AgileLinkProd-8249425";
+            parameters.appId = "AMAP-Dev-0dfc7900-id";
+            parameters.appSecret = "AMAP-Dev-0dfc7900-sP7-7jkjjvSBrV5Pm3OFT0zpfM0";
+            parameters.serviceType = AylaSystemSettings.ServiceType.Development;
         } else {
             // Production values
-            parameters.appId = "AgileLinkProd-id";
-            parameters.appSecret = "AgileLinkProd-1530606";
+            parameters.appId = "AMAP-Prod-0dfc7900-id";
+            parameters.appSecret = "AMAP-Prod-0dfc7900--svSZtnxon0EYPGDNqIFnfeT0F8";
+            parameters.serviceType = AylaSystemSettings.ServiceType.Field;
         }
 
         parameters.viewModelProvider = new AMAPViewModelProvider();
@@ -828,6 +944,12 @@ public class MainActivity extends AppCompatActivity
         parameters.allowDSS = false;
 
         parameters.loggingLevel = LOG_PERMIT;
+
+        parameters.ssoLogin = false;
+        if(parameters.ssoLogin){
+            parameters.appId = "client-id";
+            parameters.appSecret = "client-2839357";
+        }
 
         parameters.registrationEmailSubject = context.getResources().getString(R.string.registraion_email_subject);
 
@@ -908,7 +1030,57 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean _loginScreenUp;
+    private boolean _fingerPrintScreenUp;
 
+    public void showFingerPrint(){
+        Log.d(LOG_TAG, "nod: _fingerPrintScreenUp:");
+        if ( _fingerPrintScreenUp ) {
+            Log.i(LOG_TAG, "nod: _fingerPrintScreenUp: Already shown");
+            return;
+        }
+        if (initCipher()) {
+
+            // Show the fingerprint dialog. The user has the option to use the fingerprint with
+            // crypto, or you can fall back to using a server-side verified password.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                FingerPrintDialogFragment mFragment = new FingerPrintDialogFragment();
+                mFragment.setCancelable(false);
+                mFragment.setCryptoObject(new FingerprintManager.CryptoObject(_cipher));
+                _fingerPrintScreenUp=true;
+                mFragment.show(getFragmentManager(), "DIALOG_FRAGMENT_TAG");
+            }
+        }
+    }
+
+    public boolean checkFingerprintOption() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            //Fingerprint API only available on from Android 6.0 (M)
+            boolean fingerPrintOption= AgileLinkApplication.getSharedPreferences()
+                    .getBoolean(getString(R.string.use_fingerprint_to_authenticate), false);
+            if(fingerPrintOption) {
+                return FingerprintUiHelper.isFingerprintAuthAvailable();
+            }
+        }
+        return false;
+    }
+
+    public void handleGeofenceSettingsChange(boolean enabled) {
+        if(_drawerMenu == null) {
+            return;
+        }
+        MenuItem itemGeofence = _drawerMenu.findItem(R.id.action_geofences);
+        MenuItem itemActions = _drawerMenu.findItem(R.id.action_al_actions);
+        MenuItem itemAutomations = _drawerMenu.findItem(R.id.action_automations);
+        if(itemGeofence != null) {
+            itemGeofence.setVisible(enabled);
+        }
+        if(itemActions != null) {
+            itemActions.setVisible(enabled);
+        }
+        if(itemAutomations != null) {
+            itemAutomations.setVisible(enabled);
+        }
+    }
     public void showLoginDialog(boolean disableCachedSignin) {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
@@ -990,13 +1162,8 @@ public class MainActivity extends AppCompatActivity
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
         }
-
-        AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
-        if (sm != null) {
-            // TODO: Check cloud connectivity
-            setCloudConnectivityIndicator(true);
-        } else if ( !_loginScreenUp ) {
-            showLoginDialog(false);
+        else {
+            checkLoginAndConnectivity();
         }
     }
 
@@ -1050,7 +1217,8 @@ public class MainActivity extends AppCompatActivity
 
     public void signIn(String username, String password) {
         showWaitDialog(R.string.signingIn, R.string.signingIn);
-        AMAPCore.sharedInstance().startSession(username, password,
+
+        final Response.Listener<AylaAuthorization> successListener =
                 new Response.Listener<AylaAuthorization>() {
                     @Override
                     public void onResponse(AylaAuthorization response) {
@@ -1067,17 +1235,47 @@ public class MainActivity extends AppCompatActivity
                         setCloudConnectivityIndicator(true);
                         handleSignedIn();
                     }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        dismissWaitDialog();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.this);
-                        Toast.makeText(MainActivity.this,
-                                ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                };
+
+        final ErrorListener errorListener = new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                dismissWaitDialog();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.this);
+                Toast.makeText(MainActivity.this,
+                        ErrorUtils.getUserMessage(MainActivity.this, error, R.string.unknown_error),
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        if(getAppParameters(this).ssoLogin){
+            AylaLog.d(LOG_TAG, " Login to Identity provider");
+            // Login to Identity Provider first and get the access token for Ayla service
+            final SSOAuthProvider ssoProvider = new SSOAuthProvider();
+            ssoProvider.ssoLogin(username, password,
+                    new Response.Listener<SSOAuthProvider.IdentityProviderAuth>() {
+                @Override
+                public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
+                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
+                    AMAPCore.sharedInstance().startSession(ssoProvider,
+                          successListener, errorListener);
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider failed "+
+                            error.getLocalizedMessage());
+                }
+            });
+
+
+        } else{
+            AylaLog.d(LOG_TAG, "Login to Ayla user service");
+            UsernameAuthProvider authProvider = new UsernameAuthProvider(username, password);
+            AMAPCore.sharedInstance().startSession(authProvider,
+                    successListener, errorListener);
+        }
+
     }
 
     /**
@@ -1202,6 +1400,14 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
+
+        if(requestCode == REQUEST_FINE_LOCATION){
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+            }  else{
+                Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     /*
@@ -1219,4 +1425,101 @@ public class MainActivity extends AppCompatActivity
         ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_CONTACTS"}, REQUEST_CONTACT);
 
     }
+
+    private void createKey() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return;
+        }
+        // The enrolling flow for fingerprint. This is where you ask the user to set up fingerprint
+        // for your flow. Use of keys is necessary if you need to know if the set of
+        // enrolled fingerprints has changed.
+        try {
+            _keyStore = KeyStore.getInstance("AndroidKeyStore");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        KeyGenerator keyGenerator;
+        try {
+            keyGenerator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES,
+                    "AndroidKeyStore");
+        } catch (NoSuchAlgorithmException |
+                NoSuchProviderException e) {
+            String errMsg = "Failed to get KeyGenerator instance " + e.getMessage();
+            Logger.logError(LOG_TAG, "Failed to create key " + e.getMessage());
+            Toast.makeText(this, errMsg, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        try {
+            _keyStore.load(null);
+            // Set the alias of the entry in Android KeyStore where the key will appear
+            // and the constrains (purposes) in the constructor of the Builder
+            keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
+                    KeyProperties.PURPOSE_ENCRYPT |
+                            KeyProperties.PURPOSE_DECRYPT)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                    // Require the user to authenticate with a fingerprint to authorize every use
+                    // of the key
+                    .setUserAuthenticationRequired(true)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                    .build());
+            keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException
+                | CertificateException | IOException e) {
+            String errMsg = "Failed to create key " + e.getMessage();
+            Logger.logError(LOG_TAG, "Failed to create key " + e.getMessage());
+            Toast.makeText(this, errMsg, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Initialize the {@link Cipher} instance with the created key in the {@link #createKey()}
+     * method.
+     *
+     * @return {@code true} if initialization is successful, {@code false} if the lock screen has
+     * been disabled or reset after the key was generated, or if a fingerprint got enrolled after
+     * the key was generated.
+     */
+    private boolean initCipher() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+
+                _cipher = Cipher.getInstance(
+                        KeyProperties.KEY_ALGORITHM_AES + "/"
+                                + KeyProperties.BLOCK_MODE_CBC + "/"
+                                + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+            } catch (NoSuchAlgorithmException |
+                    NoSuchPaddingException e) {
+                throw new RuntimeException("Failed to get Cipher", e);
+            }
+
+            try {
+                if (_keyStore == null) {
+                    createKey();
+                }
+                _keyStore.load(null);
+                SecretKey key = (SecretKey) _keyStore.getKey(KEY_NAME, null);
+                _cipher.init(Cipher.ENCRYPT_MODE, key);
+                return true;
+            } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | IOException
+                    | NoSuchAlgorithmException | InvalidKeyException e) {
+                throw new RuntimeException("Failed to init Cipher", e);
+            }
+        }
+        return false;
+    }
+
+    public void checkLoginAndConnectivity() {
+        _fingerPrintScreenUp = false;
+        AylaSessionManager sm = AMAPCore.sharedInstance().getSessionManager();
+        if (sm != null) {
+            setCloudConnectivityIndicator(true);
+        } else if (!_loginScreenUp) {
+            showLoginDialog(false);
+        }
+    }
+
+
 }

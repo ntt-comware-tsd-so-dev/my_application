@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_margin="16dp"
+      android:layout_gravity="center"
+      style="@style/PageHeader"
+      android:text="@string/btn_save"/>
+
+  <EditText
+      android:id="@+id/fragment_add_geofence_name"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="@string/Hint.Name"/>
+
+  <EditText
+      android:id="@+id/fragment_add_geofence_radius"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:inputType="number"
+      android:digits="0123456789."
+      android:hint="@string/Hint.Radius"/>
+</LinearLayout>

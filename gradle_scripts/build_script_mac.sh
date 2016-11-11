@@ -14,9 +14,9 @@
 #
 
 # You can change the following variables to configure your build
-AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/5.2.01} # Internal use during porting only
-AYLA_SDK_BRANCH=${AYLA_SDK_BRANCH:-release/5.2.00} # Internal use during porting only
-AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/5.2.00} # Internal use during porting only
+AYLA_BUILD_BRANCH=${AYLA_BUILD_BRANCH:-release/5.3.00} # Internal use during porting only
+AYLA_SDK_BRANCH=${AYLA_SDK_BRANCH:-release/5.3.01} # Internal use during porting only
+AYLA_CORE_BRANCH=${AYLA_CORE_BRANCH:-release/5.3.00} # Internal use during porting only
 AYLA_REMOTE=${AYLA_REMOTE:-origin}
 AYLA_SDK_REPO=${AYLA_SDK_REPO:-}
 AYLA_CORE_REPO=${AYLA_CORE_REPO:-}
@@ -93,6 +93,10 @@ cd Android_AylaSDK$AYLA_PUBLIC
 echo Get Android_AylaSDK from branch $AYLA_SDK_BRANCH
 git fetch $AYLA_REMOTE $AYLA_SDK_BRANCH
 git checkout $AYLA_SDK_BRANCH
+if [ $? -ne 0 ]; then
+    echo "Checkout ${AYLA_SDK_BRANCH} failure. Please check if the branch exists on your repo."
+    exit 1
+fi
 
 cd ../
 
@@ -100,6 +104,10 @@ cd AMAP_Android_Core_Framework$AYLA_PUBLIC
 echo Get AMAP_Android_Core_Framework from branch $AYLA_CORE_BRANCH
 git fetch $AYLA_REMOTE $AYLA_CORE_BRANCH
 git checkout $AYLA_CORE_BRANCH
+if [ $? -ne 0 ]; then
+    echo "Checkout ${AYLA_CORE_BRANCH} failure. Please check if the branch exists on your repo."
+    exit 1
+fi
 
 cd ../
 

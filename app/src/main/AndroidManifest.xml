@@ -54,6 +54,8 @@
     <!-- Required to start WearableUpdateService on device restart -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
@@ -119,6 +121,9 @@
             android:name=".DeveloperOptions"
             android:label="AgileLink"
             android:launchMode="singleInstance" />
+        <activity
+            android:name=".FingerPrintSettingsActivity"
+            android:label="@string/action_settings" />
 
         <!-- service android:name="com.aylanetworks.aaml.AylaExecuteRequest" / -->
 
@@ -151,6 +156,9 @@
             android:value="@integer/google_play_services_version" />
 
         <service android:name=".WearUpdateService" />
+        <service android:name=".geofence.AMAPGeofenceService"
+                 android:exported="true" ></service>
+
 
         <receiver android:name=".BootReceiver">
             <intent-filter>
@@ -167,6 +175,10 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/ayla_widget_info" />
         </receiver>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD4WGvFAIbntJEpjlAIj0T-L68IvXVZ2Do"/>
+
     </application>
 
 </manifest>

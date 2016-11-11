@@ -5,6 +5,7 @@
     <string name="action_settings">Ajustes</string>
     <string name="username">Email</string>
     <string name="password">Password</string>
+    <string name="auth_error">Error de autenticación</string>
     <string name="login_failed">Iniciar sesión falla.</string>
     <string name="your_account_is_locked">Su cuenta esta bloqueada.</string>
     <string name="your_access_token_is_invalid">El token de acceso es inválido.</string>
@@ -58,9 +59,9 @@
     <string name="trigger">Disparador</string>
     <string name="identify">Identificar</string>
     <string name="device_properties">Propiedades</string>
-    <string name="up"><u>Inscribirme</u></string>
-    <string name="forgot"><u>Olvidé Password</u></string>
-    <string name="resend_confirmation"><u>Reenviar Confirmación</u></string>
+    <string name="up">Inscribirme</string>
+    <string name="forgot">Olvidé Password</string>
+    <string name="resend_confirmation">Reenviar Confirmación</string>
     <string name="signIn">Entrar</string>
     <string name="userInformation">Información de Usuario</string>
     <string name="emailAddress">Email</string>
@@ -183,7 +184,9 @@
     <string name="facebook">Facebook</string>
     <string name="google">Google</string>
     <string name="error_no_connectivity">Sin conexión WiFi. Verifique la conexión de su red.</string>
+    <string name="no_connectivity">Verifique la conexión de su red.</string>
     <string name="invalid_email_password">Email o password inválido</string>
+    <string name="invalid_token">SSO Token inválido</string>
     <string name="unknown_error">Ocurrió un error desconocido</string>
     <string name="update_profile">Actualizar perfil</string>
     <string name="fetching_user_info_title">Obteniendo Perfil</string>
@@ -625,7 +628,15 @@
     <string name="setup_connect_gateway_amap">El LED de la nube debe estar parpadeando más rápido.</string>
     <string name="push_registration_button">Pulse el botón "Reg" en el dispositivo y, a continuación, pulse "OK".</string>
     <!-- -->
+    <string name="use_fingerprint_to_authenticate">Use su huella para autenticarse</string>
+    <string name="fingerprint_description">Confirme su huella para continuar</string>
+    <string name="fingerprint_hint">Sensor de tacto</string>
+    <string name="fingerprint_not_recognized">Huella no reconocida</string>
+    <string name="fingerprint_failed_authentication">Autenticación con huella falló demasiadas veces. Por favor reintroduzca sus credenciales.</string>
 
+    <string name="fingerprint_not_available">:No existe una huella en este dispositivo. Por favor vaya a los ajustes de Android y agregue una.</string>
+    <string name="always_expire_auth_token">Requerir Autenticación</string>
+    <string name="require_login_summary">Cuando se habilite, la aplicación solicitará siempre sus credenciales cuando se abra. Si se deshabita, sus credenciales se guardarán de manera segura y se aplicarán al abrir la aplicación.</string>
     <!--  Permissions  -->
     <string name="contacts_permission_granted">Se ha otorgado acceso a los contactos. Ahora puede agregar contactos</string>
     <string name="contacts_permission_denied">Acceso a los contactos denegado. No puede agregar contactos</string>
@@ -633,7 +644,63 @@
     <string name="location_permission_denied">Acceso a ubicación denegado</string>
 
     <!-- Developer Options -->
-    <string name="dev_options">Developer Options</string>
+    <string name="dev_options">Opciones del Desarrollador</string>
+    <!-- geofence related strings -->
+    <string name="enable_geofence_feature">Habilitar Geocerca</string>
+    <string name="enable_geofence_summary">Al habilitar la geocerca le permite configurar y operar una geocerca. Al Desabilitarlo se quedará guardada cualquier configuración existente, pero la geocerca no funcionará</string>
+    <string name="geofences_added_other_phone">Estas geocercas no serán agregadas a este dispositivo móvil y serán ignoradas.</string>
+    <string name="geofences">Ubicaciones de Geocerca</string>
+    <string name="add_geofence">Agregar Geocerca</string>
+    <string name="delete_geofence">Borrar Geocerca</string>
+    <string name="geofence_validation">Por favor introduzca datos en todos los campos</string>
+    <string name="on_enter">Al Entrar</string>
+    <string name="on_exit">Al Salir</string>
+    <string name="geofence_radius">radio:</string>
+    <string name="radius_units">m</string>
+    <string name="delete_geofence_action">borrar acción</string>
+    <string name="delete_automation">borrar automatización</string>
+    <string name="device_dsn">DSN del dispositivo</string>
+    <string name="property_name">Nombre de Propiedad</string>
+    <string name="property_value">Valor de Propiedad</string>
+    <string name="add_action">Agregar Acción</string>
+    <string name="edit_location">Editar Ubicación</string>
+    <string name="geofence_name">Nombre de Geocerca</string>
+    <string name="automation_name">Nombre de Automatización</string>
+    <string name="fetching_automations_title">Cargando automatizaciones</string>
+    <string name="fetching_automations_body">Cargando automatizaciones. Espere por favor...</string>
+    <string name="upon">Al</string>
+    <string name="geofence_entering">Entrar</string>
+    <string name="geofence_leaving">Irse</string>
+    <string name="geofence_location">Ubicación de Geocerca</string>
+    <string name="btn_save">Guardar</string>
+    <string name="confirm_delete_geofence">¿Esta seguro de borrar la Geocerca de AMAP?</string>
+    <string name="automation_empty_text">No tiene automatizaciones asociadas con su cuenta. Seleccione agregar para crear una.</string>
+    <string name="confirm_remove_automation">¿Esta seguro de borrar la automatización?</string>
+    <string name="confirm_remove_action">¿Esta seguro de borrar la acción?</string>
+    <string name="automation_name_empty">El nombre de automatización está vacío</string>
+    <string name="unknown_geo_fence"> Ubicación de Geocerca desconocida</string>
+    <string name="perform_these_actions">Realizar estas acciones.</string>
+    <string name="done">Terminado</string>
+    <string name="automation_no_actions">Esta automatización no tiene acciones. Presiona el botón agregar para asociar una.</string>
+    <string name="actions">Acciones del dispositivo</string>
+    <string name="automations">Automatizaciones</string>
+    <string name="saved_success">Guardado Exitosamente</string>
+    <string name="updated_success">Actualizado Exitosamente</string>
+    <string name="saved_automation_success">Se guardó la automatización.</string>
+    <string name="deleted_success">Borrado Exitosamente</string>
+    <string name="confirm_delete_automation">¿Está seguro de borrar la automatización?</string>
+    <string name="action_name">Nombre de Acción</string>
+
+
+    <string name="Hint.Name">Nombre de la Geocerca</string>
+    <string name="Hint.Radius" formatted="false">Radio (0-300 metros)</string>
+
+    <string name="Label.AddGeofence">Agregar Geocerca</string>
+    <string name="Toast.Error">Hubo un error. Por favor reintente.</string>
+    <string name="location_permission_denied_geofence">Se negó acceso a ubicación. Se require el permiso para la Geocerca</string>
+    <string name="location_permission_required_toast">Se requiere acceso a ubicación para la Geocerca.</string>
+    <string name="gps_network_not_enabled">Red GPS deshabilitada</string>
+    <string name="open_location_settings">Abrir ajustes de Ubicación</string>
 
     <string-array name="location_options">
         <item>United States</item>

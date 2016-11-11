@@ -8,8 +8,8 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 41
-        versionName "5.2.01"
+        versionCode 47
+        versionName "5.3.00"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -63,6 +63,9 @@ dependencies {
     compile 'com.google.android.gms:play-services-auth:9.2.1'
     compile 'com.google.android.gms:play-services-gcm:9.2.1'
     compile 'com.google.android.gms:play-services-wearable:9.2.1'
+    compile 'com.google.android.gms:play-services-location:9.2.1'
+    compile 'com.google.android.gms:play-services-places:9.2.1'
+    compile 'com.google.android.gms:play-services-maps:9.2.1'
     compile 'com.android.support:multidex:1.0.1'
 }
 

@@ -15,6 +15,8 @@ fastlane_version "1.81.0"
 
 default_platform :android
 VERSION_FILE="build.gradle"
+MAP_API_RELEASE_KEY="AIzaSyCgcda1wGyYjz-kM-unX-aFfL32sewZ404"
+MAP_API_DEBUG_KEY="AIzaSyD4WGvFAIbntJEpjlAIj0T-L68IvXVZ2Do"
 
 def check_env_var(var_arr)
     var_arr.each { |v|
@@ -56,9 +58,59 @@ def set_version_string(version)
     File.write(vFile, file_contents)
 end
 
+def get_android_studio_version
+    vFile="/Applications/\"Android Studio.app\"/Contents/Info.plist"
+    version_sentence = `cat #{vFile} | grep -A1 "<key>CFBundleShortVersionString</key>"`
+    version_string = version_sentence.split("\n").last.gsub!(/.*<string>(.*)<\/string>.*/, "\\1")
+    version_string + "\n"
+end
+
+def get_gradle_version
+    vFile="../gradle/wrapper/gradle-wrapper.properties"
+    version_string = `cat #{vFile} | grep distributionUrl | cut -d'/' -f 5 | cut -d'-' -f 2`
+    version_string
+end
+
+def set_build_tool_version
+    vAndroidStudio = get_android_studio_version
+    vGradle = get_gradle_version
+    readmeFile = "../README.md"
+
+    puts "Your Android Studio version is: #{vAndroidStudio.chomp}"
+    puts "Your Gradle version is: #{vGradle}"
+    file_contents = File.read(readmeFile)
+    file_contents.gsub!(/(.*Android Studio: )(.*[\s])(.*)/, "\\1#{vAndroidStudio}\\3")
+    file_contents.gsub!(/(.*Gradle: )(.*[\s])(.*)/, "\\1#{vGradle}\\3")
+    File.write(readmeFile, file_contents)
+end
+
+def set_geofence_key(options)
+    manifestFile = "../app/src/main/AndroidManifest.xml"
+    if options[:type].eql? "release"
+      key = MAP_API_RELEASE_KEY
+    else
+      key = MAP_API_DEBUG_KEY
+    end
+
+    puts "Your Google MAP API #{options[:type]} key is: #{key}"
+    file_contents = File.read(manifestFile)
+    file_contents.gsub!(/(.*android:name="com.google.android.geo.API_KEY"\n.*android:value=\")(.*)(\".*)/, "\\1#{key}\\3")
+    File.write(manifestFile, file_contents)
+end
+
 platform :android do
   before_all do
     # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+  end
+
+  desc "Set Geofence API release key"
+  lane :set_api_release_key do
+    set_geofence_key({type:"release"})
+  end
+
+  desc "Set Geofence API release key"
+  lane :set_api_debug_key do
+    set_geofence_key({type:"debug"})
   end
 
   desc "Runs all the tests"
@@ -101,6 +153,11 @@ platform :android do
     set_version_string(options[:version])
   end
 
+  lane :set_build_tool_version do
+    # automatically set build too version in README.md file
+    set_build_tool_version
+  end
+
   desc "make a release. This lane requires: 1) \"public\" and \"origin\" remote have been configured; 2) developers should have already added release notes in README.md"
   desc "and modified version number strings in various files; 3) there is already a release/x.y.z branch existing. Developers make a PR from release branch to master"
   desc "branch, release engineer merges PR, than run command like"
@@ -126,16 +183,16 @@ platform :android do
 
     # this will trigger massive release emails immediately so be careful
     # publish a release which will create the tag on public. this requires you to set your own environment variable GITHUB_API_TOKEN
-    set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: public_repo, tag_name: v, name: v+" Release", description: "see README.md for details")
+    #set_github_release(api_token: ENV["GITHUB_API_TOKEN"], repository_name: public_repo, tag_name: v, name: v+" Release", description: "see README.md for details")
     # pull tag to local
-    git_command(full_command: "git pull public master --tags");
+    #git_command(full_command: "git pull public master --tags");
     # push tag to internal repo
-    git_command(full_command: "git push origin #{v}");
+    #git_command(full_command: "git push origin #{v}");
 
     #when the above auto-publish is not used, create and push tags here.
-    #git_command(full_command: "git tag -a #{v} -m \"#{v} tag\"");
-    #git_command(full_command: "git push origin #{v}");
-    #git_command(full_command: "git push public #{v}");
+    git_command(full_command: "git tag -a #{v} -m \"#{v} tag\"");
+    git_command(full_command: "git push origin #{v}");
+    git_command(full_command: "git push public #{v}");
 
     # push a release branch
     git_command(full_command: "git checkout release/#{release_number}")

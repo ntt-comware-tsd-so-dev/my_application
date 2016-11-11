@@ -30,6 +30,8 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -44,6 +46,7 @@ import com.aylanetworks.aylasdk.AylaTimeZone;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.util.EmptyListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -425,12 +428,7 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     public void onResponse(AylaAPIRequest.EmptyResponse response) {
                         Log.i(LOG_TAG, "Device unregistered: " + device);
                         Toast.makeText(getActivity(), R.string.unregister_success, Toast.LENGTH_SHORT).show();
-
-                        // Pop ourselves off of the back stack and force a refresh of the device list
-                        AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
-                        MainActivity.getInstance().dismissWaitDialog();
-
-                        getFragmentManager().popBackStack();
+                        deleteActionsForDevice(device);
                     }
                 },
                 new ErrorListener() {
@@ -442,6 +440,37 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                                 Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void deleteActionsForDevice(final AylaDevice device) {
+        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
+            @Override
+            public void onResponse(Action[] arrayAction) {
+                for (final Action action : arrayAction) {
+                    AylaDeviceActions.deleteAction(action, new EmptyListener<AylaAPIRequest.EmptyResponse>(),
+                            new ErrorListener() {
+                                @Override
+                                public void onErrorResponse(AylaError error) {
+                                    Log.i(LOG_TAG, "deleteAction: " + error);
+                                }
+                            });
+                }
+                refreshDevices();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.i(LOG_TAG, "fetchActions: " + error);
+                refreshDevices();
+            }
+        });
+
+    }
+    private void refreshDevices() {
+        // Pop ourselves off of the back stack and force a refresh of the device list
+        AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+        MainActivity.getInstance().dismissWaitDialog();
+        getFragmentManager().popBackStack();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

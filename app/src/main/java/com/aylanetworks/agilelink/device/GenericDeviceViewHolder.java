@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -24,7 +25,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
 
     public ViewModel _currentDeviceModel;
     public TextView _deviceNameTextView;
-    public TextView _deviceStatusTextView;
+    public ImageView _deviceStatusImageView;
     public ProgressBar _spinner;
     public ViewGroup _expandedLayout;
     public Button _scheduleButton;
@@ -38,7 +39,7 @@ public class GenericDeviceViewHolder extends RecyclerView.ViewHolder {
 
         _currentDeviceModel = null;
         _deviceNameTextView = (TextView)itemView.findViewById(R.id.device_name);
-        _deviceStatusTextView = (TextView)itemView.findViewById(R.id.device_state);
+        _deviceStatusImageView = (ImageView)itemView.findViewById(R.id.device_state);
         _spinner = (ProgressBar)itemView.findViewById(R.id.spinner);
         _expandedLayout = (ViewGroup)itemView.findViewById(R.id.expanded_layout);
         if ( _expandedLayout != null ) {

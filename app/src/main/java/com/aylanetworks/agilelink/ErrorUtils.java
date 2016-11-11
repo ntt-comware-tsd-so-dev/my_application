@@ -1,10 +1,11 @@
 package com.aylanetworks.agilelink;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.util.Log;
 
+import com.aylanetworks.aylasdk.AylaNetworks;
+import com.aylanetworks.aylasdk.error.AuthError;
 import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.NetworkError;
 import com.aylanetworks.aylasdk.error.ServerError;
 
 /**
@@ -24,8 +25,6 @@ public class ErrorUtils {
         if (error == null) {
             return messageUnknownError;
         }
-
-        Log.e("AMAP5-ERR", "Unhandled AylaError: ", error);
 
         if (error instanceof ServerError) {
             ServerError serverError = ((ServerError) error);
@@ -51,6 +50,15 @@ public class ErrorUtils {
             }
         }
 
+        if(error instanceof AuthError){
+           return AylaNetworks.sharedInstance().getContext().getResources().getString(R.string
+                   .auth_error);
+        }
+
+        if(error instanceof NetworkError){
+            return AylaNetworks.sharedInstance().getContext().getResources().getString(
+                    R.string.no_connectivity);
+        }
         if (error.getLocalizedMessage() != null && !error.getLocalizedMessage().equals("")) {
             return error.getLocalizedMessage() + ";\n" + messageUnknownError;
         }

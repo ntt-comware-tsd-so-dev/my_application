@@ -3,6 +3,7 @@ package com.aylanetworks.agilelink;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -11,11 +12,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.aylasdk.AylaAPIRequest;
-import com.aylanetworks.aylasdk.AylaSessionManager;
-import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -23,10 +19,18 @@ import com.aylanetworks.agilelink.fragments.ContactListFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.DeviceNotificationsFragment;
 import com.aylanetworks.agilelink.fragments.EditProfileFragment;
+import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.HelpFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
-import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.Logger;
+import com.aylanetworks.agilelink.actions.ActionsListFragment;
+import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
+import com.aylanetworks.agilelink.automation.AutomationListFragment;
+import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.AylaSessionManager;
+import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -83,7 +87,9 @@ public class MenuHandler {
             case R.id.action_contact_list:
                 handleContacts();
                 break;
-
+            case R.id.action_settings:
+                handleSettings();
+                break;
             case R.id.action_notifications:
                 handleNotifications();
                 break;
@@ -92,6 +98,19 @@ public class MenuHandler {
             case R.id.action_edit_profile:
                 updateProfile();
                 break;
+
+            case R.id.action_geofences:
+                handleGeoFences();
+                break;
+
+            case R.id.action_al_actions:
+                handleActions();
+                break;
+
+            case R.id.action_automations:
+                handleAutomations();
+                break;
+
 
             case R.id.action_delete_account:
                 deleteAccount();
@@ -138,6 +157,19 @@ public class MenuHandler {
         replaceFragmentToRoot(DeviceGroupsFragment.newInstance());
     }
 
+    public static void handleGeoFences() {
+        //replaceFragmentToRoot(GeoFencesFragment.newInstance());
+        MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+    }
+
+    public static void handleActions() {
+        MainActivity.getInstance().pushFragment(ActionsListFragment.newInstance());
+    }
+
+    public static void handleAutomations() {
+        MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
+    }
+
     public static void handleAddDevice() {
         if(MainActivity.getInstance() != null){
             MainActivity.getInstance().pushFragment(AddDeviceFragment.newInstance());
@@ -160,6 +192,11 @@ public class MenuHandler {
         MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
     }
 
+    public static void handleSettings() {
+        Intent intent = new Intent(MainActivity.getInstance(), FingerPrintSettingsActivity.class);
+        MainActivity.getInstance().startActivity(intent);
+    }
+
     public static AlertDialog _confirmDeleteDialog;
 
     public static void deleteAccount() {
@@ -180,48 +217,24 @@ public class MenuHandler {
                         MainActivity.getInstance().showWaitDialog(R.string.deleting_account_title, R.string.deleting_account_message);
                         // Actually delete the account
                         Logger.logDebug(LOG_TAG, "user: AylaUser.delete");
-
-                        AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
-                        if(params.ssoLogin){
-                            params.ssoManager.deleteUser(
-                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                                        @Override
-                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            MainActivity.getInstance().dismissWaitDialog();
-                                            shutdownSession();
-                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-                                        }
-                                    },
-                                    new ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(AylaError error) {
-                                            MainActivity.getInstance().dismissWaitDialog();
-                                            Toast.makeText(MainActivity.getInstance(),
-                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                                    Toast.LENGTH_LONG).show();
-                                        }
+                        AMAPCore.sharedInstance().getSessionManager().deleteAccount(
+                                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+                                    @Override
+                                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                                        // Log out and show a toast
+                                        shutdownSession();
+                                        Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
                                     }
-                            );
-                        } else{
-                            AMAPCore.sharedInstance().getSessionManager().deleteAccount(
-                                    new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                                        @Override
-                                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                            // Log out and show a toast
-                                            shutdownSession();
-                                            Toast.makeText(MainActivity.getInstance(), R.string.account_deleted, Toast.LENGTH_LONG).show();
-                                        }
-                                    },
-                                    new ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(AylaError error) {
-                                            Toast.makeText(MainActivity.getInstance(),
-                                                    ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                                    Toast.LENGTH_LONG).show();
-                                        }
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(MainActivity.getInstance(),
+                                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                                                Toast.LENGTH_LONG).show();
                                     }
-                            );
-                        }
+                                }
+                        );
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -278,27 +291,26 @@ public class MenuHandler {
         }
         MainActivity.getInstance().showWaitDialog(MainActivity.getInstance().getString(
                 R.string.signing_out), null);
-        sessionManager.shutDown(
-                new Response.Listener<AylaAPIRequest.EmptyResponse>() {
-                    @Override
-                    public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
-                        MainActivity.getInstance().showLoginDialog(true);
-                    }
-                },
-                new ErrorListener() {
-                    @Override
-                    public void onErrorResponse(AylaError error) {
-                        MainActivity.getInstance().dismissWaitDialog();
-                        CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
-                        Toast.makeText(MainActivity.getInstance(),
-                                ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
-                                Toast.LENGTH_LONG).show();
-                        MainActivity.getInstance().showLoginDialog(true);
-                    }
-                });
+        sessionManager.shutDown(new Response
+                .Listener<AylaAPIRequest.EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                MainActivity.getInstance().dismissWaitDialog();
+                Toast.makeText(MainActivity.getInstance(), "Successfully exited session", Toast.LENGTH_SHORT).show();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
+                MainActivity.getInstance().showLoginDialog(true);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                CachedAuthProvider.clearCachedAuthorization(MainActivity.getInstance());
+                Toast.makeText(MainActivity.getInstance(),
+                        ErrorUtils.getUserMessage(MainActivity.getInstance(), error, R.string.unknown_error),
+                        Toast.LENGTH_LONG).show();
+                MainActivity.getInstance().showLoginDialog(true);
+            }
+        });
     }
 
     public static void about() {

@@ -28,6 +28,7 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.DeviceListAdapter;
 import com.aylanetworks.agilelink.MenuHandler;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
+import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.change.ListChange;
 import com.aylanetworks.aylasdk.error.AylaError;
@@ -82,11 +83,6 @@ public class AllDevicesFragment extends Fragment implements
 
         _expandedDevices = new ArrayList<>();
 
-        // Listen for login events. Our fragment exists before the user has logged in, so we need
-        // to know when that happens so we can start listening to the device manager notifications.
-        if(AMAPCore.sharedInstance().getSessionManager() != null) {
-            AMAPCore.sharedInstance().getSessionManager().addListener(this);
-        }
     }
 
     @Override
@@ -240,6 +236,11 @@ public class AllDevicesFragment extends Fragment implements
             startListening();
             updateDeviceList();
         }
+        // Listen for login events. Our fragment exists before the user has logged in, so we need
+        // to know when that happens so we can start listening to the device manager notifications.
+        if(AMAPCore.sharedInstance().getSessionManager() != null) {
+            AMAPCore.sharedInstance().getSessionManager().addListener(this);
+        }
     }
 
     @Override
@@ -350,11 +351,15 @@ public class AllDevicesFragment extends Fragment implements
 
     @Override
     public void sessionClosed(String sessionName, AylaError error) {
-
+        MainActivity instance = MainActivity.getInstance();
+        //Make sure the user did not sign out normally (i.e error=null)
+        if (error != null && instance != null && instance.checkFingerprintOption()) {
+            MainActivity.getInstance().showFingerPrint();
+        }
     }
 
     @Override
     public void authorizationRefreshed(String sessionName, AylaAuthorization authorization) {
-
+        CachedAuthProvider.cacheAuthorization(MainActivity.getInstance(), authorization);
     }
 }
