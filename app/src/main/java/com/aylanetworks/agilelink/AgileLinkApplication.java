@@ -78,6 +78,7 @@ public class AgileLinkApplication extends Application implements ComponentCallba
     LifeCycleState _lifeCycleState;
     ActivityLifeCycleState _activityLifeCycleState;
     private Set<String> _aylaNetworksRefCounter = new HashSet<>();
+    private  boolean _activityVisible;
 
     public void onCreate() {
         sInstance = this;
@@ -241,11 +242,13 @@ public class AgileLinkApplication extends Application implements ComponentCallba
     public void onActivityResumed(Activity activity) {
         checkForeground();
         _activityLifeCycleState = ActivityLifeCycleState.Resume;
+        _activityVisible = true;
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
         _activityLifeCycleState = ActivityLifeCycleState.Pause;
+        _activityVisible = false;
     }
 
     @Override
@@ -271,5 +274,8 @@ public class AgileLinkApplication extends Application implements ComponentCallba
             notifyLifeCycleStateChange(_lifeCycleState);
         }
         super.onTrimMemory(level);
+    }
+    public boolean isActivityVisible() {
+        return _activityVisible;
     }
 }
