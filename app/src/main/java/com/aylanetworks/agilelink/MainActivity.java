@@ -539,7 +539,14 @@ public class MainActivity extends AppCompatActivity
         if (bundle != null){
             boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
             final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
-            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
+            if(geofenceList !=null) {
+                //Now check if the app is running in the background
+                if(!AgileLinkApplication.getsInstance().isActivityVisible()) {
+                    moveTaskToBack(true);
+                }
+
+                AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+            }
         }
     }
 
