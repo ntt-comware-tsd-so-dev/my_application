@@ -23,6 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.PushProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.PushNotification;
 import com.aylanetworks.agilelink.framework.ViewModel;
@@ -32,7 +34,6 @@ import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaPropertyTrigger;
-import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.adapters.ContactListAdapter;
 import com.aylanetworks.agilelink.framework.AccountSettings;
@@ -305,8 +306,7 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                                     (notificationType) || AylaServiceApp.NotificationType
                                     .BaiduPush.equals(notificationType)) {
                                 //Now check if the registration id matches
-                                if (TextUtils.equals(PushNotification.registrationId,
-                                        propertyTriggerApp.getRegistrationId())) {
+                                if (PushProvider.checkDeviceMatchWithTriggerApp(propertyTriggerApp)) {
                                     _sendPushCheckbox.setChecked(true);
                                 }
                             }

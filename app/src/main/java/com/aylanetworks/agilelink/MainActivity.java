@@ -59,6 +59,7 @@ import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
+import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
@@ -92,8 +93,6 @@ import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.util.TypeUtils;
-import com.baidu.android.pushservice.PushConstants;
-import com.baidu.android.pushservice.PushManager;
 import com.google.android.gms.location.Geofence;
 
 import java.io.IOException;
@@ -533,9 +532,7 @@ public class MainActivity extends AppCompatActivity
             AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
         }
 
-        // Setup Baidu push
-        Context context = getApplicationContext();
-        PushManager.startWork(context, PushConstants.LOGIN_TYPE_API_KEY, PushUtils.getMetaValue(context, "api_key"));
+        PushProvider.start(getApplicationContext());
     }
     @Override
     public  void onNewIntent (Intent intent) {
@@ -1394,6 +1391,14 @@ public class MainActivity extends AppCompatActivity
         if(requestCode == REQUEST_LOCATION){
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(this, getResources().getText(R.string.location_permission_granted), Toast.LENGTH_SHORT).show();
+            }  else{
+                Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        if(requestCode == REQUEST_FINE_LOCATION){
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
             }  else{
                 Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
             }
