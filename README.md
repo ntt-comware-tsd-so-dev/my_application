@@ -60,7 +60,7 @@ Robolectric 		https://github.com/robolectric/robolectric/blob/master/LICENSE.txt
 Version of major build tools used
 =================================
 Android Studio: 2.2.2
-Gradle: 2.10
+Gradle: 2.14.1
 
 Release Notes
 ===========================
