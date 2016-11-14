@@ -319,7 +319,7 @@ public class AllGeofencesFragment extends Fragment {
                 public void onGeofencesUpdated() {
                     refresh();
                     //Now check if there are any more geofence locations to be added
-                    if(_toAddGeofenceList.size() >0) {
+                    if(_toAddGeofenceList != null && _toAddGeofenceList.size() >0) {
                         GeofenceLocation geofence = _toAddGeofenceList.remove(0);
                         GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
                     }
