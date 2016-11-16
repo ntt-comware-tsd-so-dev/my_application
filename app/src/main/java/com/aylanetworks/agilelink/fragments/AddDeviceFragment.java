@@ -1080,7 +1080,8 @@ public class AddDeviceFragment extends Fragment
     @Override
     public void wifiStateChanged(String currentState) {
         if(currentState != null){
-            MainActivity.getInstance().updateDialogText(currentState);
+            MainActivity.getInstance().updateDialogText(String.format("%s: %s", getString(R.string.device_wifi_state),
+                    currentState));
         }
     }
 }

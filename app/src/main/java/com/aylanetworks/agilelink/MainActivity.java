@@ -211,8 +211,7 @@ public class MainActivity extends AppCompatActivity
 
     public void updateDialogText(String message){
         if(_progressDialog != null){
-            _progressDialog.setMessage(String.format("%s: %s", getString(R.string.device_wifi_state),
-                    message));
+            _progressDialog.setMessage(message);
         }
     }
 
