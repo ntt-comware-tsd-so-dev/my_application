@@ -78,7 +78,8 @@ public class AddDeviceFragment extends Fragment
         View.OnClickListener,
         ChooseAPDialog.ChooseAPResults,
         DialogInterface.OnCancelListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        AylaSetup.DeviceWifiStateChangeListener{
 
     private static final String LOG_TAG = "AddDeviceFragment";
     private static final String ZIGBEE_PRODUCT_CLASS = "zigbee";
@@ -458,6 +459,7 @@ public class AddDeviceFragment extends Fragment
             try {
                 _aylaSetup = new AylaSetup(AMAPCore.sharedInstance().getContext(),
                         AMAPCore.sharedInstance().getSessionManager());
+                _aylaSetup.addListener(this);
             } catch (AylaError aylaError) {
                 AylaLog.e(LOG_TAG, "Failed to create AylaSetup object: " + aylaError);
                 Toast.makeText(AMAPCore.sharedInstance().getContext(), aylaError.toString(),
@@ -509,6 +511,7 @@ public class AddDeviceFragment extends Fragment
         dismissWaitDialog();
 
         if (_aylaSetup != null) {
+            _aylaSetup.removeListener(this);
             _aylaSetup.exitSetup(new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                 @Override
                 public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -1072,5 +1075,12 @@ public class AddDeviceFragment extends Fragment
      */
     private void requestScanPermissions(){
         ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
+    }
+
+    @Override
+    public void wifiStateChanged(String currentState) {
+        if(currentState != null){
+            MainActivity.getInstance().updateDialogText(currentState);
+        }
     }
 }
