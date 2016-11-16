@@ -532,7 +532,7 @@ public class MainActivity extends AppCompatActivity
             AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
         }
 
-        PushProvider.start(getApplicationContext());
+        PushProvider.start();
     }
     @Override
     public  void onNewIntent (Intent intent) {

@@ -7,8 +7,6 @@ import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.PushNotification;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaPropertyTriggerApp;
-import com.baidu.android.pushservice.PushConstants;
-import com.baidu.android.pushservice.PushManager;
 
 /**
  * AgileLink Application Framework
@@ -20,7 +18,11 @@ public class PushProvider {
 
     static final String LOG_TAG = "PushProvider";
 
-    public static void start(Context context) {
+    public static boolean isUsingBaiduPush() {
+        return false;
+    }
+
+    public static void start() {
         // Set up push notifications
         PushNotification pushNotification = new PushNotification();
         AMAPCore.SessionParameters parameters = AMAPCore.sharedInstance().getSessionParameters();
@@ -32,7 +34,6 @@ public class PushProvider {
      * check if the registration id matches
      */
     public static boolean checkDeviceMatchWithTriggerApp(AylaPropertyTriggerApp triggerApp) {
-        return (TextUtils.equals(PushNotification.registrationId,
-                triggerApp.getRegistrationId());
+        return TextUtils.equals(PushNotification.registrationId, triggerApp.getRegistrationId());
     }
 }

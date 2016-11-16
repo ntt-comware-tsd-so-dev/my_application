@@ -26,7 +26,6 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.PushProvider;
 import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.PushNotification;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaContact;
@@ -302,9 +301,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
                             AylaServiceApp.NotificationType notificationType= propertyTriggerApp
                                     .getNotificationType();
 
-                            if(AylaServiceApp.NotificationType.GooglePush.equals
-                                    (notificationType) || AylaServiceApp.NotificationType
-                                    .BaiduPush.equals(notificationType)) {
+                            if(AylaServiceApp.NotificationType.GooglePush.equals(notificationType)
+                                    || AylaServiceApp.NotificationType.BaiduPush.equals(notificationType)) {
                                 //Now check if the registration id matches
                                 if (PushProvider.checkDeviceMatchWithTriggerApp(propertyTriggerApp)) {
                                     _sendPushCheckbox.setChecked(true);
@@ -394,7 +392,6 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
         if ( _smsContacts.contains(contact) || _emailContacts.contains(contact) || _pushContacts.contains(contact) ) {
             _smsContacts.remove(contact);
             _emailContacts.remove(contact);
-            _pushContacts.remove(contact);
         } else {
             AccountSettings accountSettings = AMAPCore.sharedInstance().getAccountSettings();
             if (accountSettings != null) {
@@ -544,7 +541,8 @@ public class PropertyNotificationFragment extends Fragment implements ContactLis
 
         _propertyNotificationHelper.setNotifications(prop,
                 trigger,
-                _pushContacts,
+                PushProvider.isUsingBaiduPush() ? new ArrayList<AylaContact>() : _pushContacts, // GCM
+                PushProvider.isUsingBaiduPush() ? _pushContacts : new ArrayList<AylaContact>(), // Baidu Push
                 _emailContacts,
                 _smsContacts,
                 new PropertyNotificationHelper.SetNotificationListener() {
