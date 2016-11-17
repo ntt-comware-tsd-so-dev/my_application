@@ -125,7 +125,9 @@ public class GeofenceController {
     }
 
     private void saveGeofence() {
-        _geofenceLocations.add(_geofenceLocationToAdd);
+        if(_geofenceLocations !=null) {
+            _geofenceLocations.add(_geofenceLocationToAdd);
+        }
         if (_listener != null) {
             _listener.onGeofencesUpdated();
         }
