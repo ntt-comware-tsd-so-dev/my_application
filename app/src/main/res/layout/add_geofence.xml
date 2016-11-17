@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|bottom"
             android:layout_margin="10dp"
-            android:text="@string/Label.AddGeofence"/>
+            android:text="@string/btn_save"/>
     </LinearLayout>
 
 </LinearLayout>

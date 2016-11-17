@@ -196,7 +196,12 @@ public class AllGeofencesFragment extends Fragment {
                 _viewHolder.geofenceRecyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, final int position) {
+                final GeofenceLocation alGeofenceLocation = _allGeofencesAdapter
+                        .getGeofenceLocations().get(position);
 
+                _dialogFragment = AddGeofenceFragment.newInstance(alGeofenceLocation);
+                _dialogFragment.setListener(AllGeofencesFragment.this);
+                _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
             }
 
             @Override
@@ -302,6 +307,32 @@ public class AllGeofencesFragment extends Fragment {
             @Override
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
                 GeofenceController.getInstance().addGeofence(geofence, geofenceControllerListener);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * This method deletes an existing geofence and adds the new geofence. As there is no direct
+     * update method provided by GeofencingApi we have to first delete and then add it
+     * method on the geofence
+     * @param existingGeofence existing geofence
+     * @param geofence new geofencelocation
+     */
+    public void updateGeofence(final GeofenceLocation existingGeofence, final GeofenceLocation geofence) {
+        LocationManager.deleteGeofenceLocation(existingGeofence, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
+                GeofenceLocations.add(existingGeofence);
+                GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
+                addGeofence(geofence);
             }
         }, new ErrorListener() {
             @Override
