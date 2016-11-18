@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity
             return context.getString(R.string.unknown_app_version);
         }
 
-        return info.versionName + "." + info.versionCode;
+        return info.versionName + "" + info.versionCode;
     }
 
     public String getAppVersion() {
@@ -519,6 +519,8 @@ public class MainActivity extends AppCompatActivity
             final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
             AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
         }
+
+        PushProvider.start();
     }
     @Override
     public  void onNewIntent (Intent intent) {
