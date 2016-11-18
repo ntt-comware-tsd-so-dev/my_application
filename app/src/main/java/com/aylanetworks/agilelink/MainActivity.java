@@ -197,6 +197,12 @@ public class MainActivity extends AppCompatActivity
         _progressDialogStart = System.currentTimeMillis();
     }
 
+    public void updateDialogText(String message){
+        if(_progressDialog != null){
+            _progressDialog.setMessage(message);
+        }
+    }
+
     /**
      * Shows a system-modal dialog with a spinning progress bar, the specified title and message.
      * The caller should call dismissWaitDialog() when finished.  This dialog is also cancelable
