@@ -1,7 +1,6 @@
 package com.aylanetworks.agilelink;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -19,7 +18,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -49,54 +47,38 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.Response;
-import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
 import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.fragments.FingerPrintDialogFragment;
 import com.aylanetworks.agilelink.fragments.FingerprintUiHelper;
-import com.aylanetworks.agilelink.fragments.NotificationListFragment;
-import com.aylanetworks.agilelink.fragments.ShareUpdateFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
-import com.aylanetworks.agilelink.framework.geofence.Action;
-import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
 import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
 import com.aylanetworks.agilelink.geofence.GeofenceController;
-import com.aylanetworks.aylasdk.AylaDatapoint;
-import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.AylaDeviceManager;
 import com.aylanetworks.aylasdk.AylaLog;
 import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.AylaSessionManager;
-import com.aylanetworks.aylasdk.AylaShare;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
 import com.aylanetworks.agilelink.controls.AylaPagerTabStrip;
-import com.aylanetworks.agilelink.device.AMAPViewModelProvider;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
 import com.aylanetworks.agilelink.fragments.DeviceGroupsFragment;
 import com.aylanetworks.agilelink.fragments.GatewayDevicesFragment;
 import com.aylanetworks.agilelink.fragments.SettingsFragment;
 import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.adapters.NestedMenuAdapter;
-import com.aylanetworks.agilelink.framework.AMAPCore;
-import com.aylanetworks.agilelink.framework.AccountSettings;
 import com.aylanetworks.agilelink.framework.Logger;
 import com.aylanetworks.agilelink.framework.UIConfig;
-import com.aylanetworks.aylasdk.AylaDeviceManager;
-import com.aylanetworks.aylasdk.AylaLog;
-import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.aylasdk.AylaSessionManager;
-import com.aylanetworks.aylasdk.AylaUser;
+
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
 import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
-import com.aylanetworks.aylasdk.util.TypeUtils;
+
 import com.google.android.gms.location.Geofence;
 
 import java.io.IOException;
@@ -110,7 +92,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.crypto.Cipher;
@@ -119,6 +100,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
+import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
+
 /*
  * MainActivity.java
  * AgileLink Application Framework
@@ -146,7 +129,6 @@ public class MainActivity extends AppCompatActivity
     public static final int REQUEST_FINE_LOCATION = 4;
     public static final int PLACE_PICKER_REQUEST = 5;
     public static final int REQUEST_LOCATION_AND_ADD_GEOFENCE = 6;
-
 
     public static AylaLog.LogLevel LOG_PERMIT = AylaLog.LogLevel.None;
 
@@ -289,7 +271,7 @@ public class MainActivity extends AppCompatActivity
             return context.getString(R.string.unknown_app_version);
         }
 
-        return info.versionName + "." + info.versionCode;
+        return info.versionName + "" + info.versionCode;
     }
 
     public String getAppVersion() {
@@ -484,7 +466,6 @@ public class MainActivity extends AppCompatActivity
                 }
                 Intent AMAPBeaconService = new Intent(this, AMAPBeaconService.class);
                 startService(AMAPBeaconService);
-
             } else if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
@@ -495,7 +476,7 @@ public class MainActivity extends AppCompatActivity
             Fragment fragment = getSupportFragmentManager().findFragmentByTag("AddGeofenceFragment");
             fragment.onActivityResult(reqCode, resultCode, data);
         }
-}
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -539,14 +520,16 @@ public class MainActivity extends AppCompatActivity
         }
         Bundle bundle = this.getIntent().getExtras();
         if (bundle != null){
-           boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
             //Check if it is a Beacon
             String beaconRegionID = bundle.getString(REGION_ID);
-            if(beaconRegionID == null) {
-                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
-                AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+            if (beaconRegionID != null) {
+                AMAPBeaconService.FireActions(beaconRegionID, bValue);
             } else {
-                AMAPBeaconService.FireActions(beaconRegionID,bValue);
+                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
+                if (geofenceList != null) {
+                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                }
             }
         }
     }
@@ -556,18 +539,20 @@ public class MainActivity extends AppCompatActivity
         Bundle bundle = intent.getExtras();
         if (bundle != null){
             boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
-            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
-            if(geofenceList !=null) {
-                //Now check if the app is running in the background
-                if(!AgileLinkApplication.getsInstance().isActivityVisible()) {
-                    moveTaskToBack(true);
-                }
-
-                AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
-            }
+            //Check if it is a Beacon
             String beaconRegionID = bundle.getString(REGION_ID);
-            if(beaconRegionID != null) {
-                AMAPBeaconService.FireActions(beaconRegionID,bValue);
+            if (beaconRegionID != null) {
+                AMAPBeaconService.FireActions(beaconRegionID, bValue);
+            } else {
+                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
+                if (geofenceList != null) {
+                    //Now check if the app is running in the background
+                    if (!AgileLinkApplication.getsInstance().isActivityVisible()) {
+                        moveTaskToBack(true);
+                    }
+
+                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                }
             }
         }
     }
@@ -641,7 +626,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initPager() {
-         setContentView(R.layout.activity_main_pager);
+        setContentView(R.layout.activity_main_pager);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -854,15 +839,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-    public void openDrawer() {
-        if ( _drawerLayout != null ) {
-            if (_drawerList != null) {
-                _drawerLayout.openDrawer(_drawerList);
-            } else {
-                _drawerLayout.openDrawer(GravityCompat.START);
-            }
-        }
-    }
+     public void openDrawer() {
+     if ( _drawerLayout != null ) {
+     if (_drawerList != null) {
+     _drawerLayout.openDrawer(_drawerList);
+     } else {
+     _drawerLayout.openDrawer(GravityCompat.START);
+     }
+     }
+     }
      */
 
     public void closeDrawer() {
@@ -1069,7 +1054,6 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
-
     public void showLoginDialog(boolean disableCachedSignin) {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
@@ -1243,19 +1227,19 @@ public class MainActivity extends AppCompatActivity
             final SSOAuthProvider ssoProvider = new SSOAuthProvider();
             ssoProvider.ssoLogin(username, password,
                     new Response.Listener<SSOAuthProvider.IdentityProviderAuth>() {
-                @Override
-                public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
-                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
-                    AMAPCore.sharedInstance().startSession(ssoProvider,
-                          successListener, errorListener);
-                }
-            }, new ErrorListener() {
-                @Override
-                public void onErrorResponse(AylaError error) {
-                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider failed "+
-                            error.getLocalizedMessage());
-                }
-            });
+                        @Override
+                        public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
+                            AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
+                            AMAPCore.sharedInstance().startSession(ssoProvider,
+                                    successListener, errorListener);
+                        }
+                    }, new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            AylaLog.d(LOG_TAG, " SSO login to Identitiy provider failed "+
+                                    error.getLocalizedMessage());
+                        }
+                    });
 
 
         } else{
@@ -1294,8 +1278,6 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             });
-            // check if the user has logged in first time and prompt if existing automation's
-            // should be enabled
             AMAPBeaconService.fetchAndMonitorBeacons();
         }
         // update drawer header
@@ -1328,7 +1310,6 @@ public class MainActivity extends AppCompatActivity
             _geofencesNotAdded.clear();
         }
     }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -1409,7 +1390,7 @@ public class MainActivity extends AppCompatActivity
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 LOG_PERMIT = AylaLog.LogLevel.Info;
             } else{
-               //ToDo Add fallback case when write is denied and LogManager cannot work
+                //ToDo Add fallback case when write is denied and LogManager cannot work
                 LOG_PERMIT = AylaLog.LogLevel.None;
             }
         }
@@ -1438,7 +1419,6 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
-
         if(requestCode == REQUEST_LOCATION_AND_ADD_GEOFENCE){
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 addMissingLocations();
