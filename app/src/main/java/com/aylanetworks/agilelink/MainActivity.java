@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity
             return context.getString(R.string.unknown_app_version);
         }
 
-        return info.versionName + "" + info.versionCode;
+        return info.versionName + "." + info.versionCode;
     }
 
     public String getAppVersion() {
