@@ -725,6 +725,24 @@
     <string name="gps_network_not_enabled">GPS Network not enabled</string>
     <string name="open_location_settings">Open Location Settings</string>
 
+    <!-- beacon related strings -->
+    <string name="beacons">Beacons</string>
+    <string name="fetching_beacons_title">Fetching Beacons</string>
+    <string name="fetching_beacons_body">Fetching Beacons. Please wait...</string>
+    <string name="confirm_add_beacon">Please enter Beacon Name for the selected Beacon.</string>
+    <string name="choose_beacon">Select a Beacon</string>
+    <string name="unknown_beacon">Invalid Beacon</string>
+    <string name="confirm_delete_beacon">Are you sure to delete this Beacon?</string>
+    <string name="bluetooth_title">Bluetooth not enabled</string>
+    <string name="bluetooth_dialog_summary">Please enable bluetooth in settings and try again.</string>
+    <string name="bluetooth_not_available_title">Bluetooth LE not available</string>
+    <string name="bluetooth_not_available_summary">Sorry, this device does not support Bluetooth
+        LE</string>
+
+    <string name="no_beacons_found">No new Beacons found. Would you like to scan for Beacons again?</string>
+    <string name="invalid_beacon_name">Invalid Beacon name.</string>
+    <string name="confirm_update_beacon">Please enter new Beacon Name for the selected Beacon.</string>
+
     <string-array name="location_options">
         <item>United States</item>
         <item>China</item>

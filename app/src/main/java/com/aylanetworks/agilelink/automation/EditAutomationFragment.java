@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -28,8 +31,11 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeaconManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
@@ -46,6 +52,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
+
 /*
  * AMAP_Android
  *
@@ -58,12 +66,15 @@ public class EditAutomationFragment extends Fragment {
 
 
     private EditText _automationNameEditText;
-    private Switch _geofenceSwitch;
+    private Switch _triggerTypeSwitch;
     private Spinner _locationNameSpinner;
+    private Spinner _beaconNameSpinner;
     private Automation _automation;
     private String _locationName;
+    private String _beaconName;
     private String _triggerID;
     private Map<String, String> _triggerIDMap;
+    private View _root;
 
     public EditAutomationFragment() {
         // Required empty public constructor
@@ -145,12 +156,13 @@ public class EditAutomationFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        final View root = inflater.inflate(R.layout.edit_automation, container, false);
-        _geofenceSwitch = (Switch) root.findViewById(R.id.toggle_switch);
-        _geofenceSwitch.setChecked(false);
-        _locationNameSpinner = (Spinner) root.findViewById(R.id.geofence_location_names);
-        _automationNameEditText = (EditText) root.findViewById(R.id.automation_name);
-        Button _cancelButton = (Button) root.findViewById(R.id.button_action_cancel);
+        _root = inflater.inflate(R.layout.edit_automation, container, false);
+        _triggerTypeSwitch = (Switch) _root.findViewById(R.id.toggle_switch);
+        _triggerTypeSwitch.setChecked(false);
+        _locationNameSpinner = (Spinner) _root.findViewById(R.id.geofence_location_names);
+        _beaconNameSpinner = (Spinner) _root.findViewById(R.id.beacon_names);
+        _automationNameEditText = (EditText) _root.findViewById(R.id.automation_name);
+        Button _cancelButton = (Button) _root.findViewById(R.id.button_action_cancel);
         _cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -158,8 +170,52 @@ public class EditAutomationFragment extends Fragment {
             }
         });
 
-        Button saveActionButton = (Button) root.findViewById(R.id.button_action_save);
-        final TextView emptyActionsView = (TextView) root.findViewById(R.id.empty_actions);
+        final CheckBox cbGeofence = (CheckBox)_root.findViewById(R.id.checkbox_geofences);
+        final CheckBox cbBeacons = (CheckBox)_root.findViewById(R.id.checkbox_beacons);
+        final View viewGeofences = _root.findViewById(R.id.property_selection_spinner_layout);
+        final View viewBeacons = _root.findViewById(R.id.beacon_actions_layout);
+
+        if(cbGeofence.isChecked()) {
+            fetchLocations();
+            viewBeacons.setVisibility(View.GONE);
+        } else {
+            fetchBeacons();
+        }
+
+        cbGeofence.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    cbBeacons.setChecked(false);
+                    viewGeofences.setVisibility(View.VISIBLE);
+                    viewBeacons.setVisibility(View.GONE);
+                    fetchLocations();
+                } else {
+                    cbBeacons.setChecked(true);
+                    viewGeofences.setVisibility(View.GONE);
+                    viewBeacons.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        cbBeacons.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    cbGeofence.setChecked(false);
+                    viewGeofences.setVisibility(View.GONE);
+                    viewBeacons.setVisibility(View.VISIBLE);
+                    fetchBeacons();
+                } else {
+                    cbGeofence.setChecked(true);
+                    viewGeofences.setVisibility(View.VISIBLE);
+                    viewBeacons.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        Button saveActionButton = (Button) _root.findViewById(R.id.button_action_save);
+        final TextView emptyActionsView = (TextView) _root.findViewById(R.id.empty_actions);
         if (getArguments() != null) {
             _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
             if (_automation != null) {
@@ -168,17 +224,37 @@ public class EditAutomationFragment extends Fragment {
                 _triggerID = _automation.getTriggerUUID();
                 _automationNameEditText.setText(automationName);
 
-                if (triggerType.equals(Automation.ALAutomationTriggerType
-                        .TriggerTypeGeofenceEnter.stringValue())) {
-                    _geofenceSwitch.setChecked(false);
-                } else {
-                    _geofenceSwitch.setChecked(true);
+                switch(_automation.getAutomationTriggerType()) {
+                    case TriggerTypeGeofenceEnter:
+                        cbGeofence.setChecked(true);
+                        _triggerTypeSwitch.setChecked(false);
+                        break;
+                    case TriggerTypeGeofenceExit:
+                        cbGeofence.setChecked(true);
+                        _triggerTypeSwitch.setChecked(true);
+                        break;
+                    case TriggerTypeBeaconEnter:
+                        cbBeacons.setChecked(true);
+                        _triggerTypeSwitch.setChecked(false);
+                        break;
+                    case TriggerTypeBeaconExit:
+                        cbBeacons.setChecked(true);
+                        _triggerTypeSwitch.setChecked(true);
+                        break;
+                    default:
+                        break;
+                }
+                if(cbGeofence.isChecked()) {
+                    fetchLocations();
+                }
+                if(cbBeacons.isChecked()) {
+                    fetchBeacons();
                 }
             }
-            final ListView listView = (ListView) root.findViewById(R.id.actions_list);
+            final ListView listView = (ListView) _root.findViewById(R.id.actions_list);
             fillActions(listView, emptyActionsView);
         }
-        ImageView actionAddButton = (ImageView) root.findViewById(R.id.btn_add_action);
+        ImageView actionAddButton = (ImageView) _root.findViewById(R.id.btn_add_action);
         actionAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -193,14 +269,32 @@ public class EditAutomationFragment extends Fragment {
             }
         });
 
-        fetchLocations();
         saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 saveAutomation();
             }
         });
-        return root;
+        _beaconNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                _beaconName = (String) _beaconNameSpinner.getItemAtPosition
+                        (position);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        _locationNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                _locationName = (String) _locationNameSpinner.getItemAtPosition
+                        (position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        return _root;
     }
     private Automation createNewAutomation() {
         String automationName = _automationNameEditText.getText().toString();
@@ -211,29 +305,55 @@ public class EditAutomationFragment extends Fragment {
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
             return null;
         }
-        if (_locationName == null) {
-            String msg = MainActivity.getInstance().getString(R.string
-                    .unknown_geo_fence);
-            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        String triggerUUID = _triggerIDMap.get(_locationName);
-        if (TextUtils.isEmpty(triggerUUID)) {
-            String msg = MainActivity.getInstance().getString(R.string
-                    .unknown_geo_fence);
-            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-            return null;
+        final CheckBox cbGeofence = (CheckBox)_root.findViewById(R.id.checkbox_geofences);
+
+        String triggerUUID;
+        Automation.ALAutomationTriggerType triggerType = TriggerTypeGeofenceEnter;
+
+        //Check if Geolocation check box is checked
+        if(cbGeofence.isChecked()) {
+            if (_locationName == null) {
+                String msg = MainActivity.getInstance().getString(R.string
+                        .unknown_geo_fence);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return null;
+            }
+            triggerUUID = _triggerIDMap.get(_locationName);
+            if (TextUtils.isEmpty(triggerUUID)) {
+                String msg = MainActivity.getInstance().getString(R.string
+                        .unknown_geo_fence);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return null;
+            }
+            boolean bSwitchValue = _triggerTypeSwitch.isChecked();
+            if (bSwitchValue) {
+                triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+            }
+        } else {
+            if (_beaconName == null) {
+                String msg = MainActivity.getInstance().getString(R.string
+                        .unknown_beacon);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return null;
+            }
+            triggerUUID = _triggerIDMap.get(_beaconName);
+            if (TextUtils.isEmpty(triggerUUID)) {
+                String msg = MainActivity.getInstance().getString(R.string
+                        .unknown_geo_fence);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return null;
+            }
+
+            boolean bSwitchValue = _triggerTypeSwitch.isChecked();
+            if (bSwitchValue) {
+                triggerType = Automation.ALAutomationTriggerType.TriggerTypeBeaconExit;
+            } else {
+                triggerType = Automation.ALAutomationTriggerType.TriggerTypeBeaconEnter;
+            }
         }
 
-        Automation.ALAutomationTriggerType triggerType = Automation.
-                ALAutomationTriggerType.TriggerTypeGeofenceEnter;
-        boolean bSwitchValue = _geofenceSwitch.isChecked();
-        if (bSwitchValue) {
-            triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
-        }
         final Automation automation = new Automation();
         automation.setName(automationName);
-        automation.setEnabled(true); //For new one always enable it
         automation.setTriggerUUID(triggerUUID);
         automation.setAutomationTriggerType(triggerType);
         return automation;
@@ -305,16 +425,6 @@ public class EditAutomationFragment extends Fragment {
                     int spinnerPosition = locationAdapter.getPosition(selectedLocation);
                     _locationNameSpinner.setSelection(spinnerPosition);
                 }
-                _locationNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        _locationName = (String) _locationNameSpinner.getItemAtPosition
-                                (position);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                    }
-                });
             }
         }, new ErrorListener() {
             @Override
@@ -325,6 +435,38 @@ public class EditAutomationFragment extends Fragment {
 
     }
 
+    private void fetchBeacons() {
+        AMAPBeaconManager.fetchBeacons(new Response.Listener<AMAPBeacon[]>() {
+            @Override
+            public void onResponse(AMAPBeacon[] arrayBeacons) {
+                String beaconNames[] = new String[arrayBeacons.length];
+                _triggerIDMap = new HashMap<>();
+                String selectedBeacon = null;
+                for (int idx=0; idx< arrayBeacons.length;idx++) {
+                    AMAPBeacon beacon = arrayBeacons[idx];
+                    beaconNames[idx] = beacon.getName();
+                    if (_triggerID != null && _triggerID.equals(beacon.getId())) {
+                        selectedBeacon = beacon.getName();
+                    }
+                    _triggerIDMap.put(beacon.getName(), beacon.getId());
+                }
+                ArrayAdapter beaconAdapter = new ArrayAdapter<>(getActivity(),
+                        android.R.layout.simple_list_item_1, beaconNames);
+                _beaconNameSpinner.setAdapter(beaconAdapter);
+
+                if (selectedBeacon != null) {
+                    int spinnerPosition = beaconAdapter.getPosition(selectedBeacon);
+                    _beaconNameSpinner.setSelection(spinnerPosition);
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.d(LOG_TAG, error.getMessage());
+            }
+        });
+
+    }
     private void saveAutomation() {
         String automationName = _automationNameEditText.getText().toString();
 
@@ -334,25 +476,45 @@ public class EditAutomationFragment extends Fragment {
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
             return;
         }
-        if (_locationName == null) {
-            String msg = MainActivity.getInstance().getString(R.string
-                    .unknown_geo_fence);
-            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String triggerUUID = _triggerIDMap.get(_locationName);
-        if (TextUtils.isEmpty(triggerUUID)) {
-            String msg = MainActivity.getInstance().getString(R.string
-                    .unknown_geo_fence);
-            Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        Automation.ALAutomationTriggerType triggerType = Automation.
-                ALAutomationTriggerType.TriggerTypeGeofenceEnter;
-        boolean bSwitchValue = _geofenceSwitch.isChecked();
-        if (bSwitchValue) {
-            triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+        Automation.ALAutomationTriggerType triggerType = TriggerTypeGeofenceEnter;
+        final CheckBox cbGeofence = (CheckBox)_root.findViewById(R.id.checkbox_geofences);
+        boolean bSwitchValue = _triggerTypeSwitch.isChecked();
+        String triggerUUID;
+        if(cbGeofence.isChecked()) {
+            if (bSwitchValue) {
+                triggerType = Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+            }
+            if (_locationName == null) {
+                String msg = MainActivity.getInstance().getString(R.string
+                        .unknown_geo_fence);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            triggerUUID = _triggerIDMap.get(_locationName);
+            if (TextUtils.isEmpty(triggerUUID)) {
+                String msg = MainActivity.getInstance().getString(R.string
+                        .unknown_geo_fence);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } else {
+            if (bSwitchValue) {
+                triggerType = Automation.ALAutomationTriggerType.TriggerTypeBeaconExit;
+            } else {
+                triggerType = Automation.ALAutomationTriggerType.TriggerTypeBeaconEnter;
+            }
+            if (_beaconName == null) {
+                String msg = MainActivity.getInstance().getString(R.string.unknown_beacon);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            triggerUUID = _triggerIDMap.get(_beaconName);
+            if (TextUtils.isEmpty(triggerUUID)) {
+                String msg = MainActivity.getInstance().getString(R.string.unknown_beacon);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
         }
 
         Log.d(LOG_TAG, "Clicked saveAutomation");
@@ -362,6 +524,7 @@ public class EditAutomationFragment extends Fragment {
 
         if (_automation.getId() == null) {//This is a new Automation
             _automation.setId(Automation.randomUUID());
+            _automation.setEnabled(true,MainActivity.getInstance()); //For new one always enable it
             AutomationManager.addAutomation(_automation, new Response
                     .Listener<AylaAPIRequest
                     .EmptyResponse>() {
@@ -370,6 +533,13 @@ public class EditAutomationFragment extends Fragment {
                     String msg = MainActivity.getInstance().getString(R
                             .string.saved_automation_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+
+                    //In case of Beacons update the map so that we track this beacon enter/exit a
+                    // region
+                    if(!cbGeofence.isChecked()) {
+                        //Thie method will start monitoring the region for this Beacon
+                        AMAPBeaconService.fetchAndMonitorBeacons();
+                    }
                    MainActivity.getInstance().popBackstackToRoot();
                 }
             }, new ErrorListener() {

@@ -1,0 +1,342 @@
+
+
+package com.aylanetworks.agilelink.beacon;
+
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.android.volley.Response;
+import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.automation.Automation;
+import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.geofence.Action;
+import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
+import com.aylanetworks.aylasdk.AylaDatapoint;
+import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
+import com.aylanetworks.aylasdk.error.AylaError;
+import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.ServerError;
+
+import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
+import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.startup.BootstrapNotifier;
+import org.altbeacon.beacon.startup.RegionBootstrap;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+import fi.iki.elonen.NanoHTTPD;
+
+/*
+ * AMAP_Android
+ *
+ * Copyright 2016 Ayla Networks, all rights reserved
+ */
+/**
+ * AMAPBeaconService class is to set scan Regions (both Enter and Exit). This has helper methods
+ * to fire actions associated with the Automations. Currently we are just scanning Eddystone
+ * Beacons.
+ */
+public class AMAPBeaconService extends Service implements BootstrapNotifier {
+    private static final String TAG = "AMAPBeaconService";
+    public static final String EDDYSTONE_BEACON_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
+    private  static BeaconManager _beaconManager;
+    private static AMAPBeaconService _amapBeaconService;
+    private static final HashSet<String> _mapBeaconID = new HashSet<>();
+
+    private static final Automation.ALAutomationTriggerType triggerTypeBeaconEnter = Automation
+            .ALAutomationTriggerType.TriggerTypeBeaconEnter;
+    private static final Automation.ALAutomationTriggerType triggerTypeBeaconExit = Automation
+            .ALAutomationTriggerType.TriggerTypeBeaconExit;
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        _beaconManager = BeaconManager.getInstanceForApplication(this);
+        _beaconManager.getBeaconParsers().clear();
+
+        List<BeaconParser> parserList = _beaconManager.getBeaconParsers();
+        parserList.add(new BeaconParser().setBeaconLayout(AMAPBeaconService.EDDYSTONE_BEACON_LAYOUT));
+
+        //Scan lasts for SCAN_PERIOD time
+        long SCAN_DURATION = 5000;
+        _beaconManager.setBackgroundScanPeriod(SCAN_DURATION);
+
+        //Wait every SCAN_PERIOD_IN_BETWEEN time
+        long SCAN_BETWEEN_DURATION = 1000 * 30;
+        _beaconManager.setBackgroundBetweenScanPeriod(SCAN_BETWEEN_DURATION);
+        _beaconManager.setForegroundBetweenScanPeriod(SCAN_BETWEEN_DURATION);
+        _amapBeaconService = this;
+        fetchAndMonitorBeacons();
+        _mapBeaconID.clear();
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void didDetermineStateForRegion(int state, Region region) {
+    }
+
+    @Override
+    public void didEnterRegion(Region region) {
+        Log.d("didEnterRegion", "Got a didEnterRegion call");
+        String msgString = "entered region";
+        AMAPCore instance = AMAPCore.sharedInstance();
+        //Get the Unique id for this region, This is same as the beacon id
+        final String id = region.getUniqueId();
+        if (instance == null || instance.getSessionManager() == null) {
+            addNotification(msgString, id, true);
+        } else {
+            FireActions(id, true);
+        }
+    }
+
+    @Override
+    public void didExitRegion(Region region) {
+        Log.d("didExitRegion", "Got a didExitRegion call");
+        String msgString = "exited region";
+        AMAPCore instance = AMAPCore.sharedInstance();
+        //Get the Unique id for this region, This is same as the beacon id
+        final String id = region.getUniqueId();
+        if (instance == null || instance.getSessionManager() == null) {
+            addNotification(msgString, id, false);
+        } else {
+            FireActions(id, false);
+        }
+    }
+
+    /**
+     * Checks if this Beacon ID matches Trigger UUID and fires the Actions that were set
+     * @param id Unique Region identifier. This is same as the beacon id
+     * @param hasEntered has Beacon enetered
+     */
+    public static void FireActions(final String id, final boolean hasEntered) {
+        AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
+                () {
+            @Override
+            public void onResponse(Automation[] response) {
+                for (Automation automation : response) {
+                    Automation.ALAutomationTriggerType automationTriggerType = automation
+                            .getAutomationTriggerType();
+                    Automation.ALAutomationTriggerType triggerType = triggerTypeBeaconExit;
+                    if (hasEntered) {
+                        triggerType = triggerTypeBeaconEnter;
+                    }
+                    if (automation.isEnabled(MainActivity.getInstance()) && id.equals(automation.getTriggerUUID()) &&
+                            triggerType.equals(automationTriggerType)) {
+                        HashSet<String> actionSet = new HashSet<>(Arrays.asList(automation
+                                .getActions()));
+                        setBeaconActions(actionSet);
+                        break;
+                    }
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                //Check if there are no existing automations. This is not an actual error and we
+                //don't want to show this error. Just log it in case of no Existing automations
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(TAG, "No Existing Automation");
+                    } else {
+                        Log.e(TAG, "Error in fetch automations " + error.getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "Error in fetch automations " + error.getMessage());
+                }
+            }
+        });
+    }
+
+    private void addNotification(String msg, String regionId, boolean entered) {
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.address_book_icon)
+                        .setContentTitle("Notifications")
+                        .setContentText(msg);
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(contentIntent);
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(MainActivity.ARG_TRIGGER_TYPE, entered);
+        bundle.putString(MainActivity.REGION_ID, regionId);
+        notificationIntent.putExtras(bundle);
+
+        // Add as notification
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(0, builder.build());
+    }
+    /**
+     * Fetches all the Beacons that are set for Automations for this User. It then sets Beacon
+     * Monitoring for these Beacons
+     */
+    public static void fetchAndMonitorBeacons() {
+        AMAPCore instance = AMAPCore.sharedInstance();
+        if (instance == null || instance.getSessionManager() == null) {
+            return;
+        }
+
+        AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
+                () {
+            @Override
+            public void onResponse(Automation[] response) {
+                for (Automation automation : response) {
+                    Automation.ALAutomationTriggerType automationTriggerType = automation
+                            .getAutomationTriggerType();
+
+                    if (automation.isEnabled(MainActivity.getInstance()) &&
+                            (triggerTypeBeaconEnter.equals(automationTriggerType) ||
+                                    triggerTypeBeaconExit.equals(automationTriggerType))) {
+                        String beaconId = automation.getTriggerUUID();
+                        if (!_mapBeaconID.contains(beaconId)) {
+                            _mapBeaconID.add(beaconId);
+                            List<Identifier> listIdentifier = getIdentifiersFromString(beaconId);
+                            Region singleBeaconRegion = new Region(beaconId, listIdentifier);
+                            new RegionBootstrap(_amapBeaconService, singleBeaconRegion);
+                        }
+                    }
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                //Check if there are no existing automations. This is not an actual error and we
+                //don't want to show this error. Just log it in case of no Existing automations
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(TAG, "No Existing Automation");
+                    } else {
+                        Log.e(TAG, "Error in fetch automations " + error.getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "Error in fetch automations " + error.getMessage());
+                }
+            }
+        });
+    }
+
+    private static void setBeaconActions(final HashSet<String> actionSet) {
+        AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
+            @Override
+            public void onResponse(Action[] arrayAction) {
+                for (final Action action : arrayAction) {
+                    if (action != null && actionSet.contains((action.getId()))) {
+                        AylaDevice device = AMAPCore.sharedInstance().getDeviceManager()
+                                .deviceWithDSN(action.getDSN());
+                        if (device == null) {
+                            continue;
+                        }
+                        final AylaProperty entryProperty = device.getProperty(action.getPropertyName());
+                        if (entryProperty == null) {
+                            continue;
+                        }
+                        Object value = action.getValue();
+                        entryProperty.createDatapoint(value, null, new Response
+                                        .Listener<AylaDatapoint<Integer>>() {
+                                    @Override
+                                    public void onResponse(final AylaDatapoint<Integer> response) {
+                                        String str = "Property Name:" + entryProperty.getName();
+                                        str += " value " + action.getValue();
+                                        Log.d("setGeofenceActions", "OnEnteredExitedGeofences success: " + str);
+                                    }
+                                },
+                                new ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(AylaError error) {
+                                        Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                                                .LENGTH_LONG).show();
+                                    }
+                                });
+                    }
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Toast.makeText(MainActivity.getInstance(), error.getMessage(), Toast
+                        .LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private static List<Identifier> getIdentifiersFromString(String idString) {
+        if (idString == null) {
+            return null;
+        }
+        List<Identifier> identifierList = new ArrayList<>();
+        String ID1 = "id1: ";
+        String ID2 = "id2: ";
+        String ID3 = "id3: ";
+        int index1 = idString.indexOf(ID2);
+        if (index1 > 0) {
+            String id = idString.substring(ID1.length(), index1);
+            id = id.trim();
+            Identifier identifier1 = Identifier.parse(id);
+            identifierList.add(identifier1);
+        } else {
+            return identifierList;
+        }
+        int index2 = idString.indexOf(ID3);
+        if (index2 > 0) {
+            String id = idString.substring(index1 + ID2.length(), index2);
+            id = id.trim();
+            Identifier identifier1 = Identifier.parse(id);
+            identifierList.add(identifier1);
+
+        } else {
+            String id = idString.substring(index1 + ID2.length());
+            id = id.trim();
+            Identifier identifier1 = Identifier.parse(id);
+            identifierList.add(identifier1);
+            return identifierList;
+        }
+
+        String id = idString.substring(index2 + ID3.length());
+        id = id.trim();
+        Identifier identifier1 = Identifier.parse(id);
+        identifierList.add(identifier1);
+        return identifierList;
+    }
+
+    /**
+     * Stops Monitoring for a Beacon. When a Beacon is deleted this method is called.
+     */
+    public static void stopMonitoringRegion(String beaconId) {
+        if (_mapBeaconID.contains(beaconId)) {
+            List<Identifier> listIdentifier = getIdentifiersFromString(beaconId);
+            Region singleBeaconRegion = new Region(beaconId, listIdentifier);
+            try {
+                _beaconManager.stopRangingBeaconsInRegion(singleBeaconRegion);
+            } catch (RemoteException ex) {
+                Log.e(TAG, "stopMonitoringRegion " + ex.getMessage());
+            }
+        }
+    }
+}
