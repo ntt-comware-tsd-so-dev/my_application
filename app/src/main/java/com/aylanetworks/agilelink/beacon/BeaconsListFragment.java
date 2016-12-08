@@ -100,8 +100,10 @@ public class BeaconsListFragment extends Fragment implements
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (_listViewBeacons.getAdapter() != null) {
-                    final String beaconId = (String) _listViewBeacons.getAdapter().getItem(position);
-                    updateBeaconName(beaconId);
+                    AMAPBeacon amapBeacon=(AMAPBeacon)_listViewBeacons.getItemAtPosition(position);
+                    if(amapBeacon != null) {
+                        updateBeaconName(amapBeacon.getId());
+                    }
                 }
             }
         });
@@ -374,7 +376,7 @@ public class BeaconsListFragment extends Fragment implements
             public void onResponse(AylaAPIRequest.EmptyResponse response) {
                 String msg = MainActivity.getInstance().getString(R.string.saved_success);
                 Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                MainActivity.getInstance().onBackPressed();
+                MainActivity.getInstance().popBackstackToRoot();
             }
         }, new ErrorListener() {
             @Override
