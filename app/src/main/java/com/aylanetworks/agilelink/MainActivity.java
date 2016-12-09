@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity
             return context.getString(R.string.unknown_app_version);
         }
 
-        return info.versionName + "." + info.versionCode;
+        return info.versionName + "" + info.versionCode;
     }
 
     public String getAppVersion() {
@@ -843,18 +843,6 @@ public class MainActivity extends AppCompatActivity
 
         onDrawerItemClicked(_drawerMenu.getItem(0));
     }
-
-    /**
-     public void openDrawer() {
-     if ( _drawerLayout != null ) {
-     if (_drawerList != null) {
-     _drawerLayout.openDrawer(_drawerList);
-     } else {
-     _drawerLayout.openDrawer(GravityCompat.START);
-     }
-     }
-     }
-     */
 
     public void closeDrawer() {
         if ( _drawerLayout != null ) {

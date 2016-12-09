@@ -55,6 +55,41 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class AMAPBeaconService extends Service implements BootstrapNotifier {
     private static final String TAG = "AMAPBeaconService";
+    /**
+     * The Eddystone-UID frame broadcasts an opaque, unique 16-byte Beacon ID composed of a
+     * 10-byte namespace and a 6-byte instance. The Beacon ID may be useful in mapping a device to
+     * a record in external storage. The namespace portion of the ID may be used to group a
+     * particular set of beacons, while the instance portion of the ID identifies individual devices
+     * in the group. The division of the ID into namespace and instance components may also be used
+     * to optimize BLE scanning strategies, e.g. by filtering only on the namespace.
+
+     Frame Specification
+     The UID frame is encoded in the advertisement as a Service Data block associated with the
+     Eddystone service UUID. The layout is:
+
+     Byte offset	Field	Description
+     0	Frame Type	Value = 0x00
+     1	Ranging Data	Calibrated Tx power at 0 m
+     2	NID[0]	10-byte Namespace
+     3	NID[1]
+     4	NID[2]
+     5	NID[3]
+     6	NID[4]
+     7	NID[5]
+     8	NID[6]
+     9	NID[7]
+     10	NID[8]
+     11	NID[9]
+     12	BID[0]	6-byte Instance
+     13	BID[1]
+     14	BID[2]
+     15	BID[3]
+     16	BID[4]
+     17	BID[5]
+     18	RFU	Reserved for future use, must be0x00
+     19	RFU	Reserved for future use, must be0x00
+     All multi-byte values are big-endian.
+     */
     public static final String EDDYSTONE_BEACON_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
     private  static BeaconManager _beaconManager;
     private static AMAPBeaconService _amapBeaconService;
@@ -107,7 +142,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
         if (instance == null || instance.getSessionManager() == null) {
             addNotification(msgString, id, true);
         } else {
-            FireActions(id, true);
+            fireActions(id, true);
         }
     }
 
@@ -121,7 +156,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
         if (instance == null || instance.getSessionManager() == null) {
             addNotification(msgString, id, false);
         } else {
-            FireActions(id, false);
+            fireActions(id, false);
         }
     }
 
@@ -130,7 +165,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
      * @param id Unique Region identifier. This is same as the beacon id
      * @param hasEntered has Beacon enetered
      */
-    public static void FireActions(final String id, final boolean hasEntered) {
+    public static void fireActions(final String id, final boolean hasEntered) {
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
                 () {
             @Override
