@@ -724,6 +724,7 @@
     <string name="location_permission_required_toast">Location permission is required for Geofence.</string>
     <string name="gps_network_not_enabled">GPS Network not enabled</string>
     <string name="open_location_settings">Open Location Settings</string>
+    <string name="device_wifi_state">Device Wifi connection state</string>
 
     <!-- beacon related strings -->
     <string name="beacons">Beacons</string>

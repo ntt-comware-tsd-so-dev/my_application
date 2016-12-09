@@ -9,7 +9,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 47
-        versionName "5.3.00"
+        versionName "5.4.00-rc1"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -23,6 +23,19 @@ android {
             storePassword System.getenv("KEYSTORE_PASSWORD")
             keyAlias System.getenv("KEY_ALIAS")
             keyPassword System.getenv("KEY_PASSWORD")
+        }
+    }
+
+    productFlavors {
+        google {
+        }
+        baiduPush {
+        }
+    }
+
+    sourceSets{
+        baiduPush {
+            jniLibs.srcDirs = ['libs']
         }
     }
 
@@ -48,7 +61,7 @@ task initialize {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    baiduPushCompile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':websocketLibrary')
     compile project(':Android_AylaSDK')
     androidTestCompile 'com.android.support:support-annotations:23.4.0'
