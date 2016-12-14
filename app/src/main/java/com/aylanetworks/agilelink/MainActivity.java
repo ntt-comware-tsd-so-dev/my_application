@@ -100,6 +100,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
+import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
+
 /*
  * MainActivity.java
  * AgileLink Application Framework
@@ -137,6 +139,7 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_NAME = "finger-print-key-app";
     public final static String ARG_TRIGGER_TYPE = "trgigger_type";
     public final static String GEO_FENCE_LIST = "geo_fence_list";
+    public final static String REGION_ID = "beacon_region_id";
 
 
     /**
@@ -467,6 +470,8 @@ public class MainActivity extends AppCompatActivity
                     Intent wearService = new Intent(this, WearUpdateService.class);
                     startService(wearService);
                 }
+                Intent AMAPBeaconService = new Intent(this, AMAPBeaconService.class);
+                startService(AMAPBeaconService);
             } else if ( resultCode == RESULT_FIRST_USER ) {
                 Log.d(LOG_TAG, "nod: Back pressed from login. Finishing.");
                 finish();
@@ -477,7 +482,7 @@ public class MainActivity extends AppCompatActivity
             Fragment fragment = getSupportFragmentManager().findFragmentByTag("AddGeofenceFragment");
             fragment.onActivityResult(reqCode, resultCode, data);
         }
-}
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -521,12 +526,18 @@ public class MainActivity extends AppCompatActivity
         }
         Bundle bundle = this.getIntent().getExtras();
         if (bundle != null){
-           boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
-            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
-            AMAPGeofenceService.fetchAutomations(bValue,geofenceList);
+            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            //Check if it is a Beacon
+            String beaconRegionID = bundle.getString(REGION_ID);
+            if (beaconRegionID != null) {
+                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+            } else {
+                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
+                if (geofenceList != null) {
+                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                }
+            }
         }
-
-        PushProvider.start();
     }
     @Override
     public  void onNewIntent (Intent intent) {
@@ -534,14 +545,20 @@ public class MainActivity extends AppCompatActivity
         Bundle bundle = intent.getExtras();
         if (bundle != null){
             boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
-            final ArrayList<Geofence> geofenceList =(ArrayList<Geofence>)bundle.getSerializable(GEO_FENCE_LIST);
-            if(geofenceList !=null) {
-                //Now check if the app is running in the background
-                if(!AgileLinkApplication.getsInstance().isActivityVisible()) {
-                    moveTaskToBack(true);
-                }
+            //Check if it is a Beacon
+            String beaconRegionID = bundle.getString(REGION_ID);
+            if (beaconRegionID != null) {
+                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+            } else {
+                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
+                if (geofenceList != null) {
+                    //Now check if the app is running in the background
+                    if (!AgileLinkApplication.getsInstance().isActivityVisible()) {
+                        moveTaskToBack(true);
+                    }
 
-                AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                }
             }
         }
     }
@@ -615,7 +632,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initPager() {
-         setContentView(R.layout.activity_main_pager);
+        setContentView(R.layout.activity_main_pager);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -702,23 +719,6 @@ public class MainActivity extends AppCompatActivity
             _userView = (TextView)header.findViewById(R.id.username);
             _emailView = (TextView)header.findViewById(R.id.email);
             onDrawerItemClicked(_drawerMenu.getItem(0));
-
-            boolean isGeofenceEnabled = AgileLinkApplication.getSharedPreferences().getBoolean
-                    (getString(R.string.enable_geofence_feature), true);
-            if(!isGeofenceEnabled) {
-                MenuItem itemGeofence = _drawerMenu.findItem(R.id.action_geofences);
-                MenuItem itemActions = _drawerMenu.findItem(R.id.action_al_actions);
-                MenuItem itemAutomations = _drawerMenu.findItem(R.id.action_automations);
-                if(itemGeofence != null) {
-                    itemGeofence.setVisible(false);
-                }
-                if(itemActions != null) {
-                    itemActions.setVisible(false);
-                }
-                if(itemAutomations != null) {
-                    itemAutomations.setVisible(false);
-                }
-            }
         }
     }
 
@@ -843,18 +843,6 @@ public class MainActivity extends AppCompatActivity
 
         onDrawerItemClicked(_drawerMenu.getItem(0));
     }
-
-    /**
-    public void openDrawer() {
-        if ( _drawerLayout != null ) {
-            if (_drawerList != null) {
-                _drawerLayout.openDrawer(_drawerList);
-            } else {
-                _drawerLayout.openDrawer(GravityCompat.START);
-            }
-        }
-    }
-     */
 
     public void closeDrawer() {
         if ( _drawerLayout != null ) {
@@ -1060,23 +1048,6 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
-    public void handleGeofenceSettingsChange(boolean enabled) {
-        if(_drawerMenu == null) {
-            return;
-        }
-        MenuItem itemGeofence = _drawerMenu.findItem(R.id.action_geofences);
-        MenuItem itemActions = _drawerMenu.findItem(R.id.action_al_actions);
-        MenuItem itemAutomations = _drawerMenu.findItem(R.id.action_automations);
-        if(itemGeofence != null) {
-            itemGeofence.setVisible(enabled);
-        }
-        if(itemActions != null) {
-            itemActions.setVisible(enabled);
-        }
-        if(itemAutomations != null) {
-            itemAutomations.setVisible(enabled);
-        }
-    }
     public void showLoginDialog(boolean disableCachedSignin) {
         Log.d(LOG_TAG, "nod: showLoginDialog:");
         if ( _loginScreenUp ) {
@@ -1250,19 +1221,19 @@ public class MainActivity extends AppCompatActivity
             final SSOAuthProvider ssoProvider = new SSOAuthProvider();
             ssoProvider.ssoLogin(username, password,
                     new Response.Listener<SSOAuthProvider.IdentityProviderAuth>() {
-                @Override
-                public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
-                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
-                    AMAPCore.sharedInstance().startSession(ssoProvider,
-                          successListener, errorListener);
-                }
-            }, new ErrorListener() {
-                @Override
-                public void onErrorResponse(AylaError error) {
-                    AylaLog.d(LOG_TAG, " SSO login to Identitiy provider failed "+
-                            error.getLocalizedMessage());
-                }
-            });
+                        @Override
+                        public void onResponse(SSOAuthProvider.IdentityProviderAuth response) {
+                            AylaLog.d(LOG_TAG, " SSO login to Identitiy provider success");
+                            AMAPCore.sharedInstance().startSession(ssoProvider,
+                                    successListener, errorListener);
+                        }
+                    }, new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            AylaLog.d(LOG_TAG, " SSO login to Identitiy provider failed "+
+                                    error.getLocalizedMessage());
+                        }
+                    });
 
 
         } else{
@@ -1301,6 +1272,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             });
+            AMAPBeaconService.fetchAndMonitorBeacons();
         }
         // update drawer header
         updateDrawerHeader();
@@ -1412,7 +1384,7 @@ public class MainActivity extends AppCompatActivity
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 LOG_PERMIT = AylaLog.LogLevel.Info;
             } else{
-               //ToDo Add fallback case when write is denied and LogManager cannot work
+                //ToDo Add fallback case when write is denied and LogManager cannot work
                 LOG_PERMIT = AylaLog.LogLevel.None;
             }
         }

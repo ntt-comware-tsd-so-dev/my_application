@@ -89,7 +89,7 @@ public class AMAPGeofenceService extends IntentService {
                     //Make sure Trigger Type matches and the automation is also enabled before
                     // firing the events
                     if (automation.getAutomationTriggerType().equals(triggerType) &&
-                            automation.isEnabled()) {
+                            automation.isEnabled(MainActivity.getInstance())) {
                         //Now go through the geofence list and make sure the automation geofence ID
                         // is in this list
                         for(Geofence geofence:geofenceList) {

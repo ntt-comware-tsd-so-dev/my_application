@@ -36,6 +36,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
+
 /*
  * AMAP_Android
  *
@@ -94,7 +97,13 @@ public class AutomationListFragment extends Fragment {
                 Set<String> locationIDSet = getSavedLocations();
                 _automationsList = new ArrayList<>();
                 for (Automation automation : automationsAllList) {
-                    if (locationIDSet.contains(automation.getTriggerUUID().toUpperCase())) {
+                    Automation.ALAutomationTriggerType triggerType = automation.getAutomationTriggerType();
+                    if(triggerType.equals(TriggerTypeGeofenceEnter) || triggerType.equals(TriggerTypeGeofenceExit)) {
+                        if (locationIDSet.contains(automation.getTriggerUUID().toUpperCase())) {
+                            _automationsList.add(automation);
+                        }
+                    }
+                    else {
                         _automationsList.add(automation);
                     }
                 }
@@ -170,10 +179,10 @@ public class AutomationListFragment extends Fragment {
             enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
-                    if(automation.isEnabled() == isChecked) {
+                    if(automation.isEnabled(MainActivity.getInstance()) == isChecked) {
                         return;
                     }
-                    automation.setEnabled(isChecked);
+                    automation.setEnabled(isChecked,MainActivity.getInstance());
                     AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
                             .EmptyResponse>() {
                         @Override
@@ -193,7 +202,7 @@ public class AutomationListFragment extends Fragment {
                     });
                 }
             });
-            enabledSwitch.setChecked(automation.isEnabled());
+            enabledSwitch.setChecked(automation.isEnabled(MainActivity.getInstance()));
 
             convertView.setOnClickListener(new View.OnClickListener(){
                 @Override
@@ -236,6 +245,8 @@ public class AutomationListFragment extends Fragment {
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                     _automationsList.remove(automation);
                     _automationsAdapter.notifyDataSetChanged();
+                    _listViewAutomations.invalidateViews();
+                    _listViewAutomations.refreshDrawableState();
                 }
             }, new ErrorListener() {
                 @Override
