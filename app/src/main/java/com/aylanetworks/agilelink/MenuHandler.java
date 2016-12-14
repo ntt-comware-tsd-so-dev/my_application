@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
 import com.aylanetworks.agilelink.beacon.BeaconsListFragment;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
@@ -256,7 +257,7 @@ public class MenuHandler {
     }
 
     public static void signOut() {
-        Activity activity = MainActivity.getInstance();
+        final Activity activity = MainActivity.getInstance();
         if (activity != null) {
             // Confirm
             Resources res = activity.getResources();
@@ -276,6 +277,7 @@ public class MenuHandler {
                         public void onClick(DialogInterface dialog, int which) {
                             Logger.logInfo(LOG_TAG, "signOut: stop session.");
                             shutdownSession();
+                            stopBeaconService(activity);
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)
@@ -319,6 +321,10 @@ public class MenuHandler {
                 MainActivity.getInstance().showLoginDialog(true);
             }
         });
+    }
+
+    private static void stopBeaconService(Activity activity) {
+        activity.stopService(new Intent(activity, AMAPBeaconService.class));
     }
 
     public static void about() {
