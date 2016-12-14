@@ -369,7 +369,7 @@ public class BeaconsListFragment extends Fragment implements
         AMAPBeacon amapBeacon = new AMAPBeacon();
         amapBeacon.setId(beaconId);
         amapBeacon.setName(beaconName);
-        amapBeacon.setBeaconType(AMAPBeacon.BeaconType.TypeEddyStone);
+        amapBeacon.setBeaconType(AMAPBeacon.BeaconType.EddyStone);
         AMAPBeaconManager.updateBeacon(amapBeacon, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override
