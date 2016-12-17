@@ -59,11 +59,14 @@ Robolectric 		https://github.com/robolectric/robolectric/blob/master/LICENSE.txt
 
 Version of major build tools used
 =================================
-Android Studio: 2.2.2
+Android Studio: 2.2.3
 Gradle: 2.14.1
 
 Release Notes
 ===========================
+
+AMAP v5.3.01 : AYLA_SDK_BRANCH=release/5.3.01, AYLA_CORE_BRANCH=release/5.3.01 (12/16/2016)
+- account settings bug fix
 
 AMAP v5.3.00 : AYLA_SDK_BRANCH=release/5.3.01, AYLA_CORE_BRANCH=release/5.3.00 (11/09/2016)
 - Geo-fencing support: automatically control a device based on your location and direction
