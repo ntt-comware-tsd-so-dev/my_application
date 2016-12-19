@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.beacon.BeaconsListFragment;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -102,6 +103,9 @@ public class MenuHandler {
             case R.id.action_geofences:
                 handleGeoFences();
                 break;
+            case R.id.action_beacons:
+                handleBeacons();
+                break;
 
             case R.id.action_al_actions:
                 handleActions();
@@ -160,6 +164,10 @@ public class MenuHandler {
     public static void handleGeoFences() {
         //replaceFragmentToRoot(GeoFencesFragment.newInstance());
         MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+    }
+
+    public static void handleBeacons() {
+        MainActivity.getInstance().pushFragment(BeaconsListFragment.newInstance());
     }
 
     public static void handleActions() {

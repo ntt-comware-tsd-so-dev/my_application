@@ -17,6 +17,7 @@ default_platform :android
 VERSION_FILE="build.gradle"
 MAP_API_RELEASE_KEY="AIzaSyCgcda1wGyYjz-kM-unX-aFfL32sewZ404"
 MAP_API_DEBUG_KEY="AIzaSyD4WGvFAIbntJEpjlAIj0T-L68IvXVZ2Do"
+BUILD_SCRIPT_F = "../gradle_scripts/build_script_mac.sh"
 
 def check_env_var(var_arr)
     var_arr.each { |v|
@@ -98,6 +99,26 @@ def set_geofence_key(options)
     File.write(manifestFile, file_contents)
 end
 
+def post_release_version
+    cur_release = get_version_string
+
+    # increment version number
+    vStrings = cur_release.split('.')
+    minor = vStrings[1].to_i
+    minor += 1
+    cur_release.gsub!(/([\d]*\.)([\d]*\.)([\d]*)(.*)/, "\\1#{minor.to_s}.00\\4")
+
+    # add "-rc1" to construct a new version string
+    cur_release + "-rc1"
+end
+
+def modify_component_pointer
+    script_contents = File.read(BUILD_SCRIPT_F)
+    # replace release/1.2.3.00 with develop
+    script_contents.gsub!(/(.*)(-release\/[\d]*\.[\d]*\.[\d]*)(.*)/, "\\1-develop\\3")
+    File.write(BUILD_SCRIPT_F, script_contents)
+end
+
 platform :android do
   before_all do
     # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
@@ -156,6 +177,38 @@ platform :android do
   lane :set_build_tool_version do
     # automatically set build too version in README.md file
     set_build_tool_version
+  end
+
+  lane :post_release do
+     # get latest develop branch
+     ensure_git_branch(branch: "develop")
+     git_pull
+     ensure_git_status_clean
+
+    # set post_release version
+    new_version = post_release_version
+    set_version_string(new_version);
+    puts "new version is: " + new_version
+
+    # modify component pointer to develop
+    modify_component_pointer
+
+    # show the changes
+    git_command(full_command: "git status")
+    git_command(full_command: "git diff")
+
+    puts "Are the above changes correct(y/n)?"
+    answer = $stdin.getch
+    exit! unless answer.eql?("y")
+
+    # push the commit
+    git_command(full_command: "git add .")
+    git_command(full_command: "git commit -m'make post release changes'")
+
+    puts "Are you sure to push to develop now(y/n)?"
+    answer = $stdin.getch
+    exit! unless answer.eql?("y")
+    git_command(full_command: "git push origin develop")
   end
 
   desc "make a release. This lane requires: 1) \"public\" and \"origin\" remote have been configured; 2) developers should have already added release notes in README.md"

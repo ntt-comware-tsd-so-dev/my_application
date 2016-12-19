@@ -156,8 +156,8 @@
             android:value="@integer/google_play_services_version" />
 
         <service android:name=".WearUpdateService" />
-        <service android:name=".geofence.AMAPGeofenceService"
-                 android:exported="true" ></service>
+        <service android:name=".geofence.AMAPGeofenceService" android:exported="true" ></service>
+        <service android:name=".beacon.AMAPBeaconService" android:exported="true" ></service>
 
 
         <receiver android:name=".BootReceiver">
