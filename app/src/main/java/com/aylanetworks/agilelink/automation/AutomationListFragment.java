@@ -53,6 +53,7 @@ public class AutomationListFragment extends Fragment {
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
     private static final int MAX_AUTOMATIONS = 5;
+    private ImageButton _addButton;
 
 
     public static AutomationListFragment newInstance() {
@@ -70,10 +71,8 @@ public class AutomationListFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_all_automations, container, false);
         _listViewAutomations = (ListView) root.findViewById(R.id.listViewAutomations);
         _listViewAutomations.setEmptyView(root.findViewById(R.id.automations_empty));
-
-
-        ImageButton addButton = (ImageButton) root.findViewById(R.id.add_button);
-        addButton.setOnClickListener(new View.OnClickListener() {
+        _addButton = (ImageButton) root.findViewById(R.id.add_button);
+        _addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 addTapped();
@@ -81,7 +80,7 @@ public class AutomationListFragment extends Fragment {
         });
         fetchAutomations();
         if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
-            addButton.setVisibility(View.GONE);
+            _addButton.setVisibility(View.GONE);
         }
         return root;
     }
@@ -105,6 +104,11 @@ public class AutomationListFragment extends Fragment {
                     }
                     else {
                         _automationsList.add(automation);
+                    }
+                }
+                if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
+                    if(_addButton != null ) {
+                        _addButton.setVisibility(View.GONE);
                     }
                 }
 
