@@ -81,6 +81,8 @@ public class AutomationListFragment extends Fragment {
         fetchAutomations();
         if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
             _addButton.setVisibility(View.GONE);
+        } else {
+            _addButton.setVisibility(View.VISIBLE);
         }
         return root;
     }
@@ -109,6 +111,10 @@ public class AutomationListFragment extends Fragment {
                 if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
                     if(_addButton != null ) {
                         _addButton.setVisibility(View.GONE);
+                    }
+                } else {
+                    if(_addButton != null ) {
+                        _addButton.setVisibility(View.VISIBLE);
                     }
                 }
 
