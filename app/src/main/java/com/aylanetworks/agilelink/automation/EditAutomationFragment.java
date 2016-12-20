@@ -445,10 +445,26 @@ public class EditAutomationFragment extends Fragment {
                 for (int idx=0; idx< arrayBeacons.length;idx++) {
                     AMAPBeacon beacon = arrayBeacons[idx];
                     beaconNames[idx] = beacon.getName();
-                    if (_triggerID != null && _triggerID.equals(beacon.getId())) {
-                        selectedBeacon = beacon.getName();
+                    if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone)) {
+                        if (_triggerID != null && _triggerID.equals(beacon.getId())) {
+                            selectedBeacon = beacon.getName();
+                        }
+                    } else if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)){
+                        String id= getBeaconString(beacon);
+                        if (_triggerID != null && _triggerID.equals(id)) {
+                            selectedBeacon = beacon.getName();
+                        }
+                    } else {
+                        Log.e(LOG_TAG, "Unknown Beacon Type" + beacon.getBeaconType());
+                        return;
                     }
-                    _triggerIDMap.put(beacon.getName(), beacon.getId());
+                    //For Eddystone put beacon id. For iBeacon add Major and Minor version to
+                    // beacon id
+                    if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone)) {
+                        _triggerIDMap.put(beacon.getName(), beacon.getId());
+                    } else{
+                        _triggerIDMap.put(beacon.getName(), getBeaconString(beacon));
+                    }
                 }
                 ArrayAdapter beaconAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_list_item_1, beaconNames);
@@ -465,7 +481,23 @@ public class EditAutomationFragment extends Fragment {
                 Log.d(LOG_TAG, error.getMessage());
             }
         });
+    }
 
+    /**
+     * Returns a iBeacon Identifier String that has id1 from Beacon Id, id2 from Beacon Major
+     * Version and Id3 from Beacon Minor version
+     * @param beacon AMAPBeacon object
+     * @return iBeacon string of type id1 id2 and id3
+     */
+
+    private String getBeaconString(AMAPBeacon beacon) {
+        StringBuilder beaconString = new StringBuilder("id1: ");
+        beaconString.append(beacon.getId());
+        beaconString.append(" id2: ");
+        beaconString.append(beacon.getMajorValue());
+        beaconString.append(" id3: ");
+        beaconString.append(beacon.getMinorValue());
+        return  beaconString.toString();
     }
     private void saveAutomation() {
         String automationName = _automationNameEditText.getText().toString();
