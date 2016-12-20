@@ -160,6 +160,11 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        _beaconManager.removeAllMonitorNotifiers();
+    }
+
     /**
      * Checks if this Beacon ID matches Trigger UUID and fires the Actions that were set
      * @param id Unique Region identifier. This is same as the beacon id

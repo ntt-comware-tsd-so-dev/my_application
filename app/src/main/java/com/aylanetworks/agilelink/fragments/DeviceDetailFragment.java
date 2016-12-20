@@ -30,6 +30,8 @@ import com.android.volley.Response;
 import com.aylanetworks.agilelink.ErrorUtils;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
+import com.aylanetworks.agilelink.framework.automation.Automation;
+import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -50,8 +52,11 @@ import com.aylanetworks.aylasdk.util.EmptyListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -442,30 +447,107 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                 });
     }
 
+    /**
+     * Delete all the actions for this Device. As this device is unregistered in the above method
+     * need to make sure actions(if any) for this device saved in user datum are cleaned up.
+     * @param device device whose actions need to be deleted
+     */
     private void deleteActionsForDevice(final AylaDevice device) {
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
+           final HashSet<String> actionIDSet = new HashSet<>();
+
             @Override
             public void onResponse(Action[] arrayAction) {
                 for (final Action action : arrayAction) {
-                    AylaDeviceActions.deleteAction(action, new EmptyListener<AylaAPIRequest.EmptyResponse>(),
-                            new ErrorListener() {
-                                @Override
-                                public void onErrorResponse(AylaError error) {
-                                    Log.i(LOG_TAG, "deleteAction: " + error);
-                                }
-                            });
+                    if (device.getDsn().equalsIgnoreCase(action.getDSN())) {
+                        actionIDSet.add(action.getId());
+                    }
+                }
+                if (!actionIDSet.isEmpty()) {
+                    deleteActionList(actionIDSet);
                 }
                 refreshDevices();
             }
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
-                Log.i(LOG_TAG, "fetchActions: " + error);
+                Log.e(LOG_TAG, "fetchActions: " + error);
                 refreshDevices();
             }
         });
-
     }
+
+    /**
+     * Delete all actions from User datum for the set of Action Id's.
+     * @param actionIDSet set of actionId's to delete from user datum
+     */
+    private void deleteActionList(final HashSet<String> actionIDSet) {
+        AylaDeviceActions.deleteActions(actionIDSet, new Response.Listener<HashSet<String>>() {
+                    @Override
+                    public void onResponse(HashSet<String> deletedSet) {
+                        removeAutomatedActions(deletedSet);
+                    }
+                },
+                new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Log.e(LOG_TAG, "deleteAction: " + error);
+                    }
+                });
+    }
+
+    /**
+     * Check if the deleted actions are in automation and remove these actions from the automation
+     *
+     * @param actionIDsToRemove actionId set that are removed
+     */
+    private void removeAutomatedActions(final HashSet<String> actionIDsToRemove) {
+        final ArrayList<Automation> automationList = new ArrayList<>();
+        AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
+            @Override
+            public void onResponse(Automation[] response) {
+                for (Automation automation : response) {
+                    String[] actionsArray = automation.getActions();
+                    if (actionsArray != null) {
+                        List<String> list = new ArrayList<>(Arrays.asList(actionsArray));
+                        //Remove all the actionID collection from this automation list
+                        if (list.removeAll(actionIDsToRemove)) {
+                            String[] updatedActionList = list.toArray(new String[list.size()]);
+                            automation.setActions(updatedActionList);
+                            automationList.add(automation);
+                        }
+                    }
+                }
+                if (!automationList.isEmpty()) {
+                    updateAutomations(automationList);
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.e(LOG_TAG, error.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Updated Automations from User datum for the list of automations.
+     * @param automationList automation list that need to be updated
+     */
+    private void updateAutomations(final ArrayList<Automation> automationList) {
+        AutomationManager.updateAutomations(automationList, new Response.Listener<ArrayList<Automation>>() {
+                    @Override
+                    public void onResponse(ArrayList<Automation> automationArrayList) {
+                        Log.i(LOG_TAG, "updateAutomations success");
+                    }
+                }, new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Log.e(LOG_TAG, "updateAutomations: " + error.getMessage());
+                    }
+                });
+    }
+
     private void refreshDevices() {
         // Pop ourselves off of the back stack and force a refresh of the device list
         AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
