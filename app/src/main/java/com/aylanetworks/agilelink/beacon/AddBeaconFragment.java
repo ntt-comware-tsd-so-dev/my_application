@@ -319,14 +319,27 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
             // This is Eddystone, which uses a service Uuid of 0xfeaa
             amapBeacon.setBeaconType(AMAPBeacon.BeaconType.EddyStone);
         } else {
-            // This is iBeacon that has Major and Minor Values
+            // This might be iBeacon that has Major and Minor Values
             String uuid = beacon.getId1().toString();
             String major = beacon.getId2().toString();
             String minor = beacon.getId3().toString();
+            if(uuid ==null || major == null|| minor == null) {
+                Log.e(TAG, "Unknown Beacon type for Id " + beaconId);
+                return;
+            }
+            int majorValue =0;
+            int minorValue =0;
+            try {
+                majorValue=Integer.parseInt(major);
+                minorValue= Integer.parseInt(minor);
+            } catch(NumberFormatException e) {
+                Log.e(TAG, "Unknown Beacon type for Id " + beaconId);
+                return;
+            }
             amapBeacon.setBeaconType(AMAPBeacon.BeaconType.IBeacon);
             amapBeacon.setId(uuid);
-            amapBeacon.setMajorValue(Integer.parseInt(major));
-            amapBeacon.setMinorValue(Integer.parseInt(minor));
+            amapBeacon.setMajorValue(majorValue);
+            amapBeacon.setMinorValue(minorValue);
         }
 
         AMAPBeaconManager.addBeacon(amapBeacon, new Response.Listener<AylaAPIRequest

@@ -50,8 +50,8 @@ import fi.iki.elonen.NanoHTTPD;
  */
 /**
  * AMAPBeaconService class is to set scan Regions (both Enter and Exit). This has helper methods
- * to fire actions associated with the Automations. Currently we are just scanning Eddystone
- * Beacons.
+ * to fire actions associated with the Automations. Currently we are scanning Eddystone Beacons
+ * and iBeacons.
  */
 public class AMAPBeaconService extends Service implements BootstrapNotifier {
     private static final String TAG = "AMAPBeaconService";

@@ -449,11 +449,14 @@ public class EditAutomationFragment extends Fragment {
                         if (_triggerID != null && _triggerID.equals(beacon.getId())) {
                             selectedBeacon = beacon.getName();
                         }
-                    } else {
+                    } else if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)){
                         String id= getBeaconString(beacon);
                         if (_triggerID != null && _triggerID.equals(id)) {
                             selectedBeacon = beacon.getName();
                         }
+                    } else {
+                        Log.e(LOG_TAG, "Unknown Beacon Type" + beacon.getBeaconType());
+                        return;
                     }
                     //For Eddystone put beacon id. For iBeacon add Major and Minor version to
                     // beacon id
