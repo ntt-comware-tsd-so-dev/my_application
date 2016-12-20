@@ -304,30 +304,54 @@ public class BeaconsListFragment extends Fragment implements
     }
 
     private class BeaconListAdapter extends ArrayAdapter<AMAPBeacon> {
+        private  class ViewHolder {
+            private TextView beaconNameView;
+            private TextView beaconIdView;
+            private TextView majorVersionView;
+            private TextView minorVersionView;
+        }
         final ArrayList<AMAPBeacon> _beaconArrayList;
 
         public BeaconListAdapter(Context c, ArrayList<AMAPBeacon> beaconArrayList) {
-            super(c, android.R.layout.simple_list_item_2, android.R.id.text1, beaconArrayList);
+            super(c, R.layout.beacon_list, beaconArrayList);
             _beaconArrayList =beaconArrayList;
         }
 
         @NonNull
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            View v = super.getView(position, convertView, parent);
-            TextView tv1 = (TextView) v.findViewById(android.R.id.text1);
-            TextView tv2 = (TextView) v.findViewById(android.R.id.text2);
+            ViewHolder viewHolder;
+            if (convertView == null) {
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                convertView = inflater.inflate(R.layout.beacon_list, parent, false);
+                viewHolder = new ViewHolder();
+                viewHolder.beaconNameView = (TextView) convertView.findViewById(R.id.beacon_name);
+                viewHolder.beaconIdView = (TextView) convertView.findViewById(R.id.beacon_id);
+                viewHolder.majorVersionView = (TextView) convertView.findViewById(R.id.major_version);
+                viewHolder.minorVersionView = (TextView) convertView.findViewById(R.id.minor_version);
+                convertView.setTag(viewHolder);
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
 
             AMAPBeacon amapBeacon = getItem(position);
             if(amapBeacon != null) {
                 if (amapBeacon.getName() != null) {
-                    tv1.setText(amapBeacon.getName());
+                    viewHolder.beaconNameView.setText(amapBeacon.getName());
                 }
                 if (amapBeacon.getId() != null) {
-                    tv2.setText(amapBeacon.getId());
+                    viewHolder.beaconIdView.setText(amapBeacon.getId());
+                }
+                if(amapBeacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)) {
+                    String majorValue = getString(R.string.major_version) +
+                            Integer.toString(amapBeacon.getMajorValue());
+                    String minorValue = getString(R.string.minor_version) +
+                            Integer.toString(amapBeacon.getMinorValue());
+                    viewHolder.majorVersionView.setText(majorValue);
+                    viewHolder.minorVersionView.setText(minorValue);
                 }
             }
-            return v;
+            return convertView;
         }
 
         public List<AMAPBeacon> getBeacons() {

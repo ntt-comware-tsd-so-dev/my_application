@@ -739,7 +739,8 @@
     <string name="bluetooth_not_available_title">Bluetooth LE not available</string>
     <string name="bluetooth_not_available_summary">Sorry, this device does not support Bluetooth
         LE</string>
-
+    <string name="major_version">Major Version:</string>
+    <string name="minor_version">Minor Version:</string>
     <string name="no_beacons_found">No new Beacons found. Would you like to scan for Beacons again?</string>
     <string name="invalid_beacon_name">Invalid Beacon name.</string>
     <string name="confirm_update_beacon">Please enter new Beacon Name for the selected Beacon.</string>

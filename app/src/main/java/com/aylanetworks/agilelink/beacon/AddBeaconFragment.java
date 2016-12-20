@@ -29,13 +29,16 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import android.support.v4.app.Fragment;
 import android.widget.AdapterView;
@@ -62,6 +65,8 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
     private ListView _listView;
     private ArrayList<AMAPBeacon> _beaconArrayList;
     private boolean _foundBeacons = false;
+    private Map<String,Beacon> _beaconMap;
+    private final static int EDDYSTONE_SERVICEUUID= 0xfeaa;
 
     public AddBeaconFragment() {
         // Required empty public constructor
@@ -85,6 +90,8 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
         List<BeaconParser> parserList = _beaconManager.getBeaconParsers();
         parserList.add(new BeaconParser().setBeaconLayout(AMAPBeaconService
                 .EDDYSTONE_BEACON_LAYOUT));
+        parserList.add(new BeaconParser().setBeaconLayout(AMAPBeaconService
+                .IBEACON_LAYOUT));
     }
 
     @Override
@@ -189,8 +196,25 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
                         while (beaconIterator.hasNext()) {
                             Beacon beacon = beaconIterator.next();
                             for (AMAPBeacon amapBeacon : _beaconArrayList) {
-                                if (beacon.toString().equals(amapBeacon.getId())) {
-                                    beaconIterator.remove();
+                                //Check if it is Eddystone Beacon
+                                if(beacon.getServiceUuid() == EDDYSTONE_SERVICEUUID) {
+                                    if (beacon.toString().equals(amapBeacon.getId())) {
+                                        beaconIterator.remove();
+                                    }
+                                } else {
+                                    // This might be iBeacon. Now compare id along with major
+                                    // version and minor version
+                                    Identifier id1 = beacon.getId1();
+                                    Identifier id2 = beacon.getId2();
+                                    Identifier id3 = beacon.getId3();
+                                    if(id2 == null || id3 == null) {
+                                        continue;
+                                    }
+                                    if (id1.toString().equals(amapBeacon.getId()) &&
+                                            id2.toString().equals(Integer.toString(amapBeacon.getMajorValue())) &&
+                                    id3.toString().equals(Integer.toString(amapBeacon.getMinorValue()))){
+                                        beaconIterator.remove();
+                                    }
                                 }
                             }
                         }
@@ -199,9 +223,16 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
                     if (beacons.size() > 0) {
                         final ArrayList<Beacon> beaconsList = new ArrayList<>(beacons);
                         _foundBeacons = true;
+                        if(_beaconMap == null) {
+                            _beaconMap = new HashMap<>();
+                        } else {
+                            _beaconMap.clear();
+                        }
                         String beaconNames[] = new String[beaconsList.size()];
                         for (int idx = 0; idx < beaconsList.size(); idx++) {
-                            beaconNames[idx] = beaconsList.get(idx).toString();
+                            Beacon beacon = beaconsList.get(idx);
+                            beaconNames[idx] = beacon.toString();
+                            _beaconMap.put(beaconNames[idx],beacon);
                         }
                         try {
                             _beaconManager.stopRangingBeaconsInRegion(region);
@@ -282,7 +313,22 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
         AMAPBeacon amapBeacon = new AMAPBeacon();
         amapBeacon.setId(beaconId);
         amapBeacon.setName(beaconName);
-        amapBeacon.setBeaconType(AMAPBeacon.BeaconType.EddyStone);
+        //check if the beacon is EddyStone or iBeacon
+        Beacon beacon = _beaconMap.get(beaconId);
+        if(beacon.getServiceUuid() == EDDYSTONE_SERVICEUUID) {
+            // This is Eddystone, which uses a service Uuid of 0xfeaa
+            amapBeacon.setBeaconType(AMAPBeacon.BeaconType.EddyStone);
+        } else {
+            // This is iBeacon that has Major and Minor Values
+            String uuid = beacon.getId1().toString();
+            String major = beacon.getId2().toString();
+            String minor = beacon.getId3().toString();
+            amapBeacon.setBeaconType(AMAPBeacon.BeaconType.IBeacon);
+            amapBeacon.setId(uuid);
+            amapBeacon.setMajorValue(Integer.parseInt(major));
+            amapBeacon.setMinorValue(Integer.parseInt(minor));
+        }
+
         AMAPBeaconManager.addBeacon(amapBeacon, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override

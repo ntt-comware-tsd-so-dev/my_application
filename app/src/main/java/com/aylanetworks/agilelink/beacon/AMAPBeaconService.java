@@ -91,6 +91,55 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
      All multi-byte values are big-endian.
      */
     public static final String EDDYSTONE_BEACON_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
+
+    /**
+     * iBeacon packet structure
+
+     After 9 bytes of constant preamble, the Proximity UUID, Major and Minor values are transmitted.
+
+     UUID is 16 bytes long, Major and Minor are 2 bytes long. Together they form an ID for your
+     iBeacon. Mobile devices recognize which Beacon they approach on the basis of these values.
+
+     The final byte is the packet is used to calculate distance from the iBeacon.
+     It represents RSSI value (Received Signal Strength Indication) measured at 1 meter
+     from the iBeacon. The value of this byte changes automatically if the user changes the
+     transmission power for the iBeacon.
+
+     Kontakt.io iBeacon - Advertising packet structure
+     Byte offset	Default value	Description	Properties
+     0	0x02	Data length – 2 bytes	constant preamble
+     1	0x01	Data type – flags	constant preamble
+     2	0x06	LE and BR/EDR flag	constant preamble
+     3	0x1a	Data length – 26 bytes	constant preamble
+     4	0xff	Data type - manufacturer specific data	constant preamble
+     5	0x4c	Manufacturer data	constant preamble
+     6	0x00	Manufacturer data	constant preamble
+     7	0x02	Manufacturer data	constant preamble
+     8	0x15	Manufacturer data	constant preamble
+     9	0xf7	Proximity UUID 1st byte	set user UUID
+     10	0x82	Proximity UUID 2nd byte	set user UUID
+     11	0x6d	Proximity UUID 3rd byte	set user UUID
+     12	0xa6	Proximity UUID 4th byte	set user UUID
+     13	0x4f	Proximity UUID 5th byte	set user UUID
+     14	0xa2	Proximity UUID 6th byte	set user UUID
+     15	0x4e	Proximity UUID 7th byte	set user UUID
+     16	0x98	Proximity UUID 8th byte	set user UUID
+     17	0x80	Proximity UUID 9th byte	set user UUID
+     18	0x24	Proximity UUID 10th byte	set user UUID
+     19	0xbc	Proximity UUID 11th byte	set user UUID
+     20	0x5b	Proximity UUID 12th byte	set user UUID
+     21	0x71	Proximity UUID 13th byte	set user UUID
+     22	0xe0	Proximity UUID 14th byte	set user UUID
+     23	0x89	Proximity UUID 15th byte	set user UUID
+     24	0x3e	Proximity UUID 16th byte	set user UUID
+     25	xx*	Major 1st byte	set major value
+     26	xx*	Major 2nd byte	set major value
+     27	xx*	Minor 1st byte	set minor value
+     28	xx*	Minor 2nd byte	set minor value
+     29	0xb3	Signal power (calibrated RSSI@1m)	signal power value
+     */
+    public static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+
     private  static BeaconManager _beaconManager;
     private static AMAPBeaconService _amapBeaconService;
     private static final HashSet<String> _mapBeaconID = new HashSet<>();
@@ -112,6 +161,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
 
         List<BeaconParser> parserList = _beaconManager.getBeaconParsers();
         parserList.add(new BeaconParser().setBeaconLayout(AMAPBeaconService.EDDYSTONE_BEACON_LAYOUT));
+        parserList.add(new BeaconParser().setBeaconLayout(AMAPBeaconService.IBEACON_LAYOUT));
 
         //Scan lasts for SCAN_PERIOD time
         long SCAN_DURATION = 5000;
