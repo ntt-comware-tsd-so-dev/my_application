@@ -79,11 +79,7 @@ public class AutomationListFragment extends Fragment {
             }
         });
         fetchAutomations();
-        if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
-            _addButton.setVisibility(View.GONE);
-        } else {
-            _addButton.setVisibility(View.VISIBLE);
-        }
+        showOrHideAddButton();
         return root;
     }
 
@@ -108,16 +104,7 @@ public class AutomationListFragment extends Fragment {
                         _automationsList.add(automation);
                     }
                 }
-                if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
-                    if(_addButton != null ) {
-                        _addButton.setVisibility(View.GONE);
-                    }
-                } else {
-                    if(_addButton != null ) {
-                        _addButton.setVisibility(View.VISIBLE);
-                    }
-                }
-
+                showOrHideAddButton();
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
                         _automationsAdapter = new AutomationListAdapter(getContext(), _automationsList);
@@ -257,6 +244,7 @@ public class AutomationListFragment extends Fragment {
                     _automationsAdapter.notifyDataSetChanged();
                     _listViewAutomations.invalidateViews();
                     _listViewAutomations.refreshDrawableState();
+                    showOrHideAddButton();
                 }
             }, new ErrorListener() {
                 @Override
@@ -267,6 +255,17 @@ public class AutomationListFragment extends Fragment {
                     MainActivity.getInstance().popBackstackToRoot();
                 }
             });
+        }
+    }
+
+    /**
+     * Hide Add Button if we reach MAX_AUTOMATIONS. Show it if it is less than MAX_AUTOMATIONS
+     */
+    private void showOrHideAddButton() {
+        if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
+            _addButton.setVisibility(View.GONE);
+        } else {
+            _addButton.setVisibility(View.VISIBLE);
         }
     }
 }
