@@ -37,6 +37,7 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.error.ServerError;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BleNotAvailableException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -299,16 +300,15 @@ public class AutomationListFragment extends Fragment {
                     Automation.ALAutomationTriggerType triggerType = automation
                             .getAutomationTriggerType();
                     if(typeBeaconEnter.equals(triggerType) || typeBeaconExit.equals(triggerType)) {
-                        isBluetoothEnabled();
+                        checkBluetoothEnabled();
                         break;
                     }
                 }
 
             }
-            isBluetoothEnabled();
         }
     }
-    private void isBluetoothEnabled() {
+    private void checkBluetoothEnabled() {
         try {
             if (!BeaconManager.getInstanceForApplication(MainActivity.getInstance()).checkAvailability()) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
@@ -324,7 +324,7 @@ public class AutomationListFragment extends Fragment {
                 builder.show();
             }
         }
-        catch (RuntimeException e) {
+        catch (BleNotAvailableException e) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
             builder.setTitle(getString(R.string.bluetooth_not_available_title));
             builder.setMessage(getString(R.string.bluetooth_not_available_summary));
@@ -343,20 +343,11 @@ public class AutomationListFragment extends Fragment {
     }
     private boolean checkLocationServices(final Context context) {
         android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        boolean gps_enabled = false;
-        boolean network_enabled = false;
+        boolean gps_enabled;
+        boolean network_enabled;
 
-        try {
-            gps_enabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-            Log.d(LOG_TAG, ex.getMessage());
-        }
-
-        try {
-            network_enabled = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-            Log.d(LOG_TAG, ex.getMessage());
-        }
+        gps_enabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+        network_enabled = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
 
         if (!gps_enabled && !network_enabled) {
             // notify user
