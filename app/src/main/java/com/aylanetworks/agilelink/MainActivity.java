@@ -1306,6 +1306,7 @@ public class MainActivity extends AppCompatActivity
              }, new ErrorListener() {
                  @Override
                  public void onErrorResponse(AylaError error) {
+                     Log.d(LOG_TAG, "initializeAutomations " + error.getMessage());
                  }
              });
          }
