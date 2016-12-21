@@ -53,6 +53,7 @@ public class AutomationListFragment extends Fragment {
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
     private static final int MAX_AUTOMATIONS = 5;
+    private ImageButton _addButton;
 
 
     public static AutomationListFragment newInstance() {
@@ -70,19 +71,15 @@ public class AutomationListFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_all_automations, container, false);
         _listViewAutomations = (ListView) root.findViewById(R.id.listViewAutomations);
         _listViewAutomations.setEmptyView(root.findViewById(R.id.automations_empty));
-
-
-        ImageButton addButton = (ImageButton) root.findViewById(R.id.add_button);
-        addButton.setOnClickListener(new View.OnClickListener() {
+        _addButton = (ImageButton) root.findViewById(R.id.add_button);
+        _addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 addTapped();
             }
         });
         fetchAutomations();
-        if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
-            addButton.setVisibility(View.GONE);
-        }
+        showOrHideAddButton();
         return root;
     }
 
@@ -107,7 +104,7 @@ public class AutomationListFragment extends Fragment {
                         _automationsList.add(automation);
                     }
                 }
-
+                showOrHideAddButton();
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
                         _automationsAdapter = new AutomationListAdapter(getContext(), _automationsList);
@@ -247,6 +244,7 @@ public class AutomationListFragment extends Fragment {
                     _automationsAdapter.notifyDataSetChanged();
                     _listViewAutomations.invalidateViews();
                     _listViewAutomations.refreshDrawableState();
+                    showOrHideAddButton();
                 }
             }, new ErrorListener() {
                 @Override
@@ -257,6 +255,17 @@ public class AutomationListFragment extends Fragment {
                     MainActivity.getInstance().popBackstackToRoot();
                 }
             });
+        }
+    }
+
+    /**
+     * Hide Add Button if we reach MAX_AUTOMATIONS. Show it if it is less than MAX_AUTOMATIONS
+     */
+    private void showOrHideAddButton() {
+        if(_automationsList !=null && _automationsList.size() >= MAX_AUTOMATIONS){
+            _addButton.setVisibility(View.GONE);
+        } else {
+            _addButton.setVisibility(View.VISIBLE);
         }
     }
 }
