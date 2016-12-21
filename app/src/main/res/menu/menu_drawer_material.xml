@@ -13,7 +13,7 @@
             android:title="@string/geofences"/>
         <item
             android:id="@+id/action_beacons"
-            android:icon="@drawable/ic_add_location"
+            android:icon="@drawable/ic_beacon"
             android:title="@string/beacons"/>
         <item
             android:id="@+id/action_al_actions"
