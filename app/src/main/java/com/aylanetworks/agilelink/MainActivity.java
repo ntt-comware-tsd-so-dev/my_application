@@ -37,14 +37,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -85,7 +83,6 @@ import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
-import com.aylanetworks.aylasdk.error.ServerError;
 import com.google.android.gms.location.Geofence;
 
 import java.io.IOException;
@@ -108,12 +105,6 @@ import javax.crypto.SecretKey;
 
 import static com.aylanetworks.agilelink.framework.AMAPCore.SessionParameters;
 import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
-
-import org.altbeacon.beacon.Identifier;
-import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.startup.RegionBootstrap;
-
-import fi.iki.elonen.NanoHTTPD;
 
 /*
  * MainActivity.java
