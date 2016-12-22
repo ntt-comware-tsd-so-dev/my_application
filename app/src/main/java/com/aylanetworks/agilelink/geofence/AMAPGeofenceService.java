@@ -84,11 +84,9 @@ public class AMAPGeofenceService extends IntentService {
      * @param geofenceList list of triggering geofences
      */
     private void sendNotification(final boolean entered,final ArrayList<Geofence> geofenceList) {
-        String contentText= getString(R.string.geofence_leaving) +" " +getString(R.string
-                .geofence_location);
+        String contentText= getString(R.string.notif_geofence_leaving);
         if(entered) {
-            contentText= getString(R.string.geofence_entering) +" " +getString(R.string
-                    .geofence_location);
+            contentText= getString(R.string.notif_geofence_entering);
         }
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
