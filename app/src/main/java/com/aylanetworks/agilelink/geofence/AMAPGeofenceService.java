@@ -1,13 +1,19 @@
 package com.aylanetworks.agilelink.geofence;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
@@ -63,15 +69,52 @@ public class AMAPGeofenceService extends IntentService {
     }
 
     private void onEnteredExitedGeofences(final boolean entered,final ArrayList<Geofence> geofenceList) {
+        //Check if we have session manager
+        AMAPCore coreInstance= AMAPCore.sharedInstance();
+        if(coreInstance != null && coreInstance.getSessionManager() != null) {
+            fetchAutomations(entered,geofenceList);
+        } else {
+            sendNotification(entered,geofenceList);
+        }
+    }
+
+    /**
+     * Send a Notification to Android Phone
+     * @param entered true if entered a geofence, false otherwise
+     * @param geofenceList list of triggering geofences
+     */
+    private void sendNotification(final boolean entered,final ArrayList<Geofence> geofenceList) {
+        String contentText= getString(R.string.notif_geofence_leaving);
+        if(entered) {
+            contentText= getString(R.string.notif_geofence_entering);
+        }
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setContentTitle(getString(R.string.geofence_event))
+                        .setContentText(contentText)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setAutoCancel(true);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         Bundle bundle = new Bundle();
         bundle.putBoolean(MainActivity.ARG_TRIGGER_TYPE, entered);
-        bundle.putSerializable(MainActivity.GEO_FENCE_LIST,geofenceList);
+        bundle.putSerializable(MainActivity.GEO_FENCE_LIST, geofenceList);
         intent.putExtras(bundle);
-        startActivity(intent);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        builder.setContentIntent(resultPendingIntent);
+        NotificationManager notificationManager =
+                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, builder.build());
     }
+
 
     public static void fetchAutomations(final boolean entered,final ArrayList<Geofence> geofenceList ){
         if(geofenceList == null) {

@@ -529,20 +529,6 @@ public class MainActivity extends AppCompatActivity
         if (checkFingerprintOption()) {
             createKey();
         }
-        Bundle bundle = this.getIntent().getExtras();
-        if (bundle != null){
-            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
-            //Check if it is a Beacon
-            String beaconRegionID = bundle.getString(REGION_ID);
-            if (beaconRegionID != null) {
-                AMAPBeaconService.fireActions(beaconRegionID, bValue);
-            } else {
-                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
-                if (geofenceList != null) {
-                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
-                }
-            }
-        }
     }
     @Override
     public  void onNewIntent (Intent intent) {
@@ -557,11 +543,6 @@ public class MainActivity extends AppCompatActivity
             } else {
                 final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
                 if (geofenceList != null) {
-                    //Now check if the app is running in the background
-                    if (!AgileLinkApplication.getsInstance().isActivityVisible()) {
-                        moveTaskToBack(true);
-                    }
-
                     AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
                 }
             }
@@ -1282,6 +1263,24 @@ public class MainActivity extends AppCompatActivity
         }
         // update drawer header
         updateDrawerHeader();
+        firePendingAutomationEvents();
+    }
+
+    private void firePendingAutomationEvents() {
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null){
+            boolean bValue = bundle.getBoolean(ARG_TRIGGER_TYPE);
+            //Check if it is a Beacon
+            String beaconRegionID = bundle.getString(REGION_ID);
+            if (beaconRegionID != null) {
+                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+            } else {
+                final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
+                if (geofenceList != null) {
+                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                }
+            }
+        }
     }
 
     /**
