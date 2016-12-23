@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +17,7 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
@@ -52,6 +54,8 @@ import com.aylanetworks.agilelink.fragments.FingerPrintDialogFragment;
 import com.aylanetworks.agilelink.fragments.FingerprintUiHelper;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.AccountSettings;
+import com.aylanetworks.agilelink.framework.automation.Automation;
+import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
 import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.agilelink.geofence.AMAPGeofenceService;
@@ -140,6 +144,7 @@ public class MainActivity extends AppCompatActivity
     public final static String ARG_TRIGGER_TYPE = "trgigger_type";
     public final static String GEO_FENCE_LIST = "geo_fence_list";
     public final static String REGION_ID = "beacon_region_id";
+    private final static String FIRST_SIGN_IN = "first_sign_in";
 
 
     /**
@@ -1273,10 +1278,64 @@ public class MainActivity extends AppCompatActivity
                 }
             });
             AMAPBeaconService.fetchAndMonitorBeacons();
+            initializeAutomations();
         }
         // update drawer header
         updateDrawerHeader();
     }
+
+    /**
+     * If this is the first user has logged in and has existing automations added to this
+     * account from other phone we need to prompt user if they want to enable all their existing
+     * automations.
+     */
+    private void initializeAutomations() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+         boolean isFirstTimeSign= pref.getBoolean(FIRST_SIGN_IN,true);
+         if(isFirstTimeSign) {
+             SharedPreferences.Editor editor = pref.edit();
+             editor.putBoolean(FIRST_SIGN_IN, false);
+             editor.apply();
+
+             AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
+                     () {
+                 @Override
+                 public void onResponse(Automation[] response) {
+                     promptEnableAutomations(response);
+                 }
+             }, new ErrorListener() {
+                 @Override
+                 public void onErrorResponse(AylaError error) {
+                     Log.d(LOG_TAG, "initializeAutomations " + error.getMessage());
+                 }
+             });
+         }
+    }
+
+    private void promptEnableAutomations(final Automation[] automations) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
+        builder.setTitle(R.string.automations);
+        builder.setMessage(getString(R.string.enable_existing_automations));
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                      for(Automation automation:automations) {
+                          automation.setEnabled(true,MainActivity.getInstance());
+                      }
+                        AMAPBeaconService.fetchAndMonitorBeacons();
+                    }
+                }
+        );
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                }
+        );
+        builder.show();
+    }
+
 
     private void checkMissingLocations(GeofenceLocation[] geofenceLocations) {
         List<GeofenceLocation> geofenceLocationList = new ArrayList<>(Arrays.asList(geofenceLocations));

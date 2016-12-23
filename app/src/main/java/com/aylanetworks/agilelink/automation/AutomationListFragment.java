@@ -1,11 +1,17 @@
 package com.aylanetworks.agilelink.automation;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,6 +35,9 @@ import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.error.ServerError;
+
+import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BleNotAvailableException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +63,7 @@ public class AutomationListFragment extends Fragment {
     private final static int ERROR_NOT_FOUND = 404;
     private static final int MAX_AUTOMATIONS = 5;
     private ImageButton _addButton;
+    private AlertDialog _alertDialog;
 
 
     public static AutomationListFragment newInstance() {
@@ -105,6 +115,7 @@ public class AutomationListFragment extends Fragment {
                     }
                 }
                 showOrHideAddButton();
+                checkPermissions();
                 if (isAdded()) {
                     if (_automationsAdapter == null) {
                         _automationsAdapter = new AutomationListAdapter(getContext(), _automationsList);
@@ -268,6 +279,127 @@ public class AutomationListFragment extends Fragment {
             _addButton.setVisibility(View.VISIBLE);
         }
     }
+
+    /**
+     * Check for Location service permission and in case the user has beacons then check for BLE
+     * Permissions
+     */
+    private void checkPermissions() {
+        //First check if we have Location service permissions. Needed for both geofences and beacons
+        if(checkLocationServices(MainActivity.getInstance())) {
+            // Now check if the automation list has beacon trigger enter or exit in it. We don't
+            // need to check for BLE Permissions if user has only geofences in their automations
+            if(_automationsList != null && !_automationsList.isEmpty()) {
+
+                Automation.ALAutomationTriggerType typeBeaconEnter =Automation.ALAutomationTriggerType
+                        .TriggerTypeBeaconEnter;
+                Automation.ALAutomationTriggerType typeBeaconExit =Automation.ALAutomationTriggerType
+                        .TriggerTypeBeaconExit;
+
+                for(Automation automation:_automationsList){
+                    Automation.ALAutomationTriggerType triggerType = automation
+                            .getAutomationTriggerType();
+                    if(typeBeaconEnter.equals(triggerType) || typeBeaconExit.equals(triggerType)) {
+                        checkBluetoothEnabled();
+                        break;
+                    }
+                }
+
+            }
+        }
+    }
+    private void checkBluetoothEnabled() {
+        try {
+            if (!BeaconManager.getInstanceForApplication(MainActivity.getInstance()).checkAvailability()) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
+                builder.setTitle(getString(R.string.bluetooth_title));
+                builder.setMessage(getString(R.string.bluetooth_dialog_summary));
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        MainActivity.getInstance().popBackstackToRoot();
+                    }
+                });
+                builder.show();
+            }
+        }
+        catch (BleNotAvailableException e) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
+            builder.setTitle(getString(R.string.bluetooth_not_available_title));
+            builder.setMessage(getString(R.string.bluetooth_not_available_summary));
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    MainActivity.getInstance().popBackstackToRoot();
+                }
+
+            });
+            builder.show();
+
+        }
+    }
+    private boolean checkLocationServices(final Context context) {
+        android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled;
+        boolean network_enabled;
+
+        gps_enabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+        network_enabled = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
+
+        if (!gps_enabled && !network_enabled) {
+            // notify user
+            if(_alertDialog == null) {
+                _alertDialog = getAlertDialog(context);
+            }
+            if(!_alertDialog.isShowing()) {
+                _alertDialog.show();
+            }
+        } else {
+            if (ActivityCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.getInstance(),
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.REQUEST_FINE_LOCATION);
+
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.getInstance().popBackstackToRoot();
+                    }
+                };
+                Handler h = new Handler();
+                int POST_DELAYED_TIME_MS = 30;
+                h.postDelayed(r, POST_DELAYED_TIME_MS);
+            }
+            else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private AlertDialog getAlertDialog(final Context context) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
+        dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                context.startActivity(myIntent);
+            }
+        });
+        dialog.setNegativeButton(context.getString(android.R.string.cancel), new DialogInterface
+                .OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Toast.makeText(context, context.getString(R.string.location_permission_required_toast), Toast.LENGTH_SHORT).show();
+            }
+        });
+        return dialog.create();
+    }
+
 }
 
 
