@@ -88,6 +88,8 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.add_geofence, null);
         GeofenceController.getInstance().init(this.getActivity());
