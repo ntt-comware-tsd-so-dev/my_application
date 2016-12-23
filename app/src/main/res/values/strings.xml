@@ -728,6 +728,7 @@
     <string name="geofence_event">AMAP Geofencing event</string>
     <string name="notif_geofence_leaving">Leaving Geofence Location</string>
     <string name="notif_geofence_entering">Entering Geofence Location</string>
+    <string name="enable_existing_automations">Do you wish to enable all existing automations in this phone?</string>
 
     <!-- beacon related strings -->
     <string name="beacons">Beacons</string>
