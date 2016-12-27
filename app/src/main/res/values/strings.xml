@@ -726,7 +726,6 @@
     <string name="open_location_settings">Open Location Settings</string>
     <string name="device_wifi_state">Device Wifi connection state</string>
     <string name="geofence_event">AMAP Geofencing event</string>
-    <string name="enable_existing_automations">Do you wish to enable all existing automations in this phone?</string>
     <string name="notif_geofence_leaving">Leaving Geofence Location</string>
     <string name="notif_geofence_entering">Entering Geofence Location</string>
     <string name="enable_existing_automations">Do you wish to enable all existing automations in this phone?</string>
