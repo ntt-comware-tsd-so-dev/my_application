@@ -16,6 +16,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -69,6 +71,8 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     private static final float MAX_RADIUS =5000;
     private final static String EXISTING_GEOFENCE = "existing_geofence";
     private GeofenceLocation _geofenceLocation;
+    private static final String TAG = "AddGeofenceFragment";
+
 
     public static AddGeofenceFragment newInstance(GeofenceLocation geofenceLocation) {
         AddGeofenceFragment frag = new AddGeofenceFragment();
@@ -88,10 +92,14 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.add_geofence, null);
+        View view;
+        try{
+        view = inflater.inflate(R.layout.add_geofence, null);
+        } catch(InflateException ex) {
+            Log.e(TAG, ex.getMessage());
+            return null;
+        }
         GeofenceController.getInstance().init(this.getActivity());
 
         ImageButton geofenceButton = (ImageButton) view.findViewById(R.id.button_add_geofence);

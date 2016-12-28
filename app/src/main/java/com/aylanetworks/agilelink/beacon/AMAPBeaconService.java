@@ -306,8 +306,10 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
                         if (!_mapBeaconID.contains(beaconId)) {
                             _mapBeaconID.add(beaconId);
                             List<Identifier> listIdentifier = getIdentifiersFromString(beaconId);
-                            Region singleBeaconRegion = new Region(beaconId, listIdentifier);
-                            new RegionBootstrap(_amapBeaconService, singleBeaconRegion);
+                            if(listIdentifier != null) {
+                                Region singleBeaconRegion = new Region(beaconId, listIdentifier);
+                                new RegionBootstrap(_amapBeaconService, singleBeaconRegion);
+                            }
                         }
                     }
                 }
