@@ -88,6 +88,9 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (getDialog() == null ) {
+            super.setShowsDialog(false);
+        }
         super.onActivityCreated(savedInstanceState);
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
