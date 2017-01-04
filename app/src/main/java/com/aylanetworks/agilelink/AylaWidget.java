@@ -303,7 +303,6 @@ public class AylaWidget extends AppWidgetProvider
                 getDeviceInfo(context);
             }
         }
-
         else
         {
             remoteViews.setTextViewText(R.id.appwidget_text, "Device Not Found");
@@ -313,9 +312,8 @@ public class AylaWidget extends AppWidgetProvider
             remoteViews.setViewVisibility(R.id.device_down, View.GONE);
             remoteViews.setViewVisibility(R.id.device_up, View.GONE);
 
+            appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
         }
-
-        appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
     }
 
     public void getDeviceInfo(Context context) {
@@ -325,7 +323,7 @@ public class AylaWidget extends AppWidgetProvider
             List<AylaDevice> deviceList = deviceManager.getDevices();
             if ( deviceList != null && !deviceList.isEmpty()) {
                 Log.d(LOG_TAG, "wig: getDeviceInfo deviceNum=" + deviceNum);
-                AylaDevice device = deviceList.get(deviceNum);
+                final AylaDevice device = deviceList.get(deviceNum);
                 if (device != null) {
                     if (deviceNum < deviceList.size() - 1) {
                         remoteViews.setViewVisibility(R.id.device_up, View.VISIBLE);
@@ -341,11 +339,13 @@ public class AylaWidget extends AppWidgetProvider
 
                     String[] propertyNames;
                     if (device.getOemModel() != null && device.getOemModel()
-                            .toLowerCase().contains("plug"))
+                            .toLowerCase().contains("plug")) {
                         propertyNames = new String[]{"outlet1", "oem_host_version"};
-                    else
-                        propertyNames = new String[] {"Green_LED", "Blue_LED", "Blue_button",
+                    }
+                    else {
+                        propertyNames = new String[]{"Green_LED", "Blue_LED", "Blue_button",
                                 "oem_host_version"};
+                    }
 
                     remoteViews.setViewVisibility(R.id.progress, View.VISIBLE);
                     remoteViews.setViewVisibility(R.id.linearlayout_evb, View.GONE);
@@ -353,15 +353,12 @@ public class AylaWidget extends AppWidgetProvider
                     device.fetchProperties(propertyNames, new Response.Listener<AylaProperty[]>() {
                                 @Override
                                 public void onResponse(AylaProperty[] response) {
+                                    Log.d(LOG_TAG, "wig: fetchProperties success! properties size:" + response.length);
+
                                     AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(contextStatic);
-
-                                    RemoteViews remoteViews;
-                                    ComponentName aylaWidget;
-
-                                    remoteViews = new RemoteViews(contextStatic.getPackageName(), R.layout.ayla_widget);
-                                    aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
-                                        //Creation of items for the manipulation of views in the widget
+                                    ComponentName aylaWidget = new ComponentName(contextStatic, AylaWidget.class);
                                     remoteViews.setViewVisibility(R.id.progress, View.GONE);
+                                    updateViews(device);
                                     //Updates the widget UI
                                     appWidgetManager.updateAppWidget(aylaWidget, remoteViews);
                                 }
@@ -369,7 +366,7 @@ public class AylaWidget extends AppWidgetProvider
                             new ErrorListener() {
                                 @Override
                                 public void onErrorResponse(AylaError error) {
-
+                                    Log.d(LOG_TAG, "wig: fetchProperties error:" + error.getLocalizedMessage());
                                 }
                             });
 
