@@ -191,10 +191,10 @@ public class BeaconsListFragment extends Fragment implements
     }
 
     /**
-     * This method deletes Automation(If any) for the deleted Beacon. Without this Location the
-     * Automation is invalid
+     * This method Updates Automation(If any) for the deleted Beacon. The user can still reuse
+     * this automation to associate with some other location or beacon
      *
-     * @param beaconID this is the uuid of the GeofenceLocation that was deleted
+     * @param beaconID this is the ID of beacon
      */
     private void deleteBeaconFromAutomation(final String beaconID) {
         if (beaconID == null) {
@@ -203,25 +203,28 @@ public class BeaconsListFragment extends Fragment implements
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
-                for (Automation automation : response) {
+                ArrayList<Automation> automationList= new ArrayList<>(Arrays.asList(response));
+                for (Automation automation : automationList) {
                     if (beaconID.equalsIgnoreCase(automation.getTriggerUUID())) {
-                        AutomationManager.deleteAutomation(automation, new Response.Listener<AylaAPIRequest
-                                .EmptyResponse>() {
-                            @Override
-                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                Log.d(LOG_TAG, "Deleted Beacon ID " + beaconID);
-                                //Make sure we stop Monitoring the region for this Beacon
-                                AMAPBeaconService.  stopMonitoringRegion(beaconID);
-                            }
-                        }, new ErrorListener() {
-                            @Override
-                            public void onErrorResponse(AylaError error) {
-                                Log.e(LOG_TAG, error.getMessage());
-                            }
-                        });
+                        automation.setTriggerUUID("");
                     }
                 }
+                AutomationManager.updateAutomations(automationList, new Response
+                        .Listener<ArrayList<Automation>>() {
+                    @Override
+                    public void onResponse(ArrayList<Automation> response) {
+                        Log.d(LOG_TAG, "Removed Beacon ID " + beaconID);
+                        //Make sure we stop Monitoring the region for this Beacon
+                        AMAPBeaconService.stopMonitoringRegion(beaconID);
+                    }
+                }, new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Log.e(LOG_TAG, error.getMessage());
+                    }
+                });
             }
+
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {

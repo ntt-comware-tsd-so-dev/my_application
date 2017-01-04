@@ -176,10 +176,10 @@ public class EditAutomationFragment extends Fragment {
         final View viewBeacons = _root.findViewById(R.id.beacon_actions_layout);
 
         if(cbGeofence.isChecked()) {
-            fetchLocations();
+            fetchLocations(false);
             viewBeacons.setVisibility(View.GONE);
         } else {
-            fetchBeacons();
+            fetchBeacons(false);
         }
 
         cbGeofence.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -189,7 +189,7 @@ public class EditAutomationFragment extends Fragment {
                     cbBeacons.setChecked(false);
                     viewGeofences.setVisibility(View.VISIBLE);
                     viewBeacons.setVisibility(View.GONE);
-                    fetchLocations();
+                    fetchLocations(false);
                 } else {
                     cbBeacons.setChecked(true);
                     viewGeofences.setVisibility(View.GONE);
@@ -205,7 +205,7 @@ public class EditAutomationFragment extends Fragment {
                     cbGeofence.setChecked(false);
                     viewGeofences.setVisibility(View.GONE);
                     viewBeacons.setVisibility(View.VISIBLE);
-                    fetchBeacons();
+                    fetchBeacons(false);
                 } else {
                     cbGeofence.setChecked(true);
                     viewGeofences.setVisibility(View.VISIBLE);
@@ -245,10 +245,10 @@ public class EditAutomationFragment extends Fragment {
                         break;
                 }
                 if(cbGeofence.isChecked()) {
-                    fetchLocations();
+                    fetchLocations(true);
                 }
                 if(cbBeacons.isChecked()) {
-                    fetchBeacons();
+                    fetchBeacons(true);
                 }
             }
             final ListView listView = (ListView) _root.findViewById(R.id.actions_list);
@@ -389,7 +389,7 @@ public class EditAutomationFragment extends Fragment {
         }
     }
 
-    private void fetchLocations() {
+    private void fetchLocations(final boolean isExistingAutomation) {
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
@@ -417,7 +417,15 @@ public class EditAutomationFragment extends Fragment {
                     _triggerIDMap.put(alGeofenceLocation.getName(), alGeofenceLocation.getId());
                     index++;
                 }
-
+                //check if existing automation and the location is removed
+                if(isExistingAutomation && selectedLocation ==null) {
+                    selectedLocation= MainActivity.getInstance().getString(R.string
+                            .no_original_geofence);
+                    String[] newLocationNames = new String[locationNames.length + 1];
+                    newLocationNames[0]=selectedLocation;
+                    System.arraycopy(locationNames, 0, newLocationNames, 1, locationNames.length);
+                    locationNames= newLocationNames;
+                }
                 ArrayAdapter locationAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_list_item_1, locationNames);
                 _locationNameSpinner.setAdapter(locationAdapter);
@@ -435,7 +443,7 @@ public class EditAutomationFragment extends Fragment {
 
     }
 
-    private void fetchBeacons() {
+    private void fetchBeacons(final boolean isExistingAutomation) {
         AMAPBeaconManager.fetchBeacons(new Response.Listener<AMAPBeacon[]>() {
             @Override
             public void onResponse(AMAPBeacon[] arrayBeacons) {
@@ -465,6 +473,15 @@ public class EditAutomationFragment extends Fragment {
                     } else{
                         _triggerIDMap.put(beacon.getName(), getBeaconString(beacon));
                     }
+                }
+                //check if existing automation and the beacon is removed
+                if(isExistingAutomation && selectedBeacon ==null) {
+                    selectedBeacon= MainActivity.getInstance().getString(R.string
+                            .no_original_beacon);
+                    String[] newBeaconNames = new String[arrayBeacons.length + 1];
+                    newBeaconNames[0]=selectedBeacon;
+                    System.arraycopy(beaconNames, 0, newBeaconNames, 1, beaconNames.length);
+                    beaconNames= newBeaconNames;
                 }
                 ArrayAdapter beaconAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_list_item_1, beaconNames);
