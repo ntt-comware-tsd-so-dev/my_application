@@ -1111,6 +1111,11 @@ public class MainActivity extends AppCompatActivity
         if (AMAPCore.sharedInstance() == null) {
             AMAPCore.initialize(getAppParameters(this), this);
         }
+        //Ask for Finger Print every time we come from background if the user has checked for
+        // this option in the settings
+        if (_theInstance.checkFingerprintOption()) {
+            MainActivity.getInstance().showFingerPrint();
+        }
         // Only resume Ayla services if the wearable service hasn't already started it
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
