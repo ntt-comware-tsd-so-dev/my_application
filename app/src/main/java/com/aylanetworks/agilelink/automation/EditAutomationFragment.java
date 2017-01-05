@@ -175,13 +175,6 @@ public class EditAutomationFragment extends Fragment {
         final View viewGeofences = _root.findViewById(R.id.property_selection_spinner_layout);
         final View viewBeacons = _root.findViewById(R.id.beacon_actions_layout);
 
-        if(cbGeofence.isChecked()) {
-            fetchLocations(false);
-            viewBeacons.setVisibility(View.GONE);
-        } else {
-            fetchBeacons(false);
-        }
-
         cbGeofence.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -189,7 +182,7 @@ public class EditAutomationFragment extends Fragment {
                     cbBeacons.setChecked(false);
                     viewGeofences.setVisibility(View.VISIBLE);
                     viewBeacons.setVisibility(View.GONE);
-                    fetchLocations(false);
+                    fetchLocations();
                 } else {
                     cbBeacons.setChecked(true);
                     viewGeofences.setVisibility(View.GONE);
@@ -205,7 +198,7 @@ public class EditAutomationFragment extends Fragment {
                     cbGeofence.setChecked(false);
                     viewGeofences.setVisibility(View.GONE);
                     viewBeacons.setVisibility(View.VISIBLE);
-                    fetchBeacons(false);
+                    fetchBeacons();
                 } else {
                     cbGeofence.setChecked(true);
                     viewGeofences.setVisibility(View.VISIBLE);
@@ -244,16 +237,18 @@ public class EditAutomationFragment extends Fragment {
                     default:
                         break;
                 }
-                if(cbGeofence.isChecked()) {
-                    fetchLocations(true);
-                }
-                if(cbBeacons.isChecked()) {
-                    fetchBeacons(true);
-                }
             }
             final ListView listView = (ListView) _root.findViewById(R.id.actions_list);
             fillActions(listView, emptyActionsView);
         }
+        if(cbGeofence.isChecked()) {
+            fetchLocations();
+            viewBeacons.setVisibility(View.GONE);
+        } else {
+            fetchBeacons();
+            viewGeofences.setVisibility(View.GONE);
+        }
+
         ImageView actionAddButton = (ImageView) _root.findViewById(R.id.btn_add_action);
         actionAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -389,7 +384,7 @@ public class EditAutomationFragment extends Fragment {
         }
     }
 
-    private void fetchLocations(final boolean isExistingAutomation) {
+    private void fetchLocations() {
         LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
             @Override
             public void onResponse(GeofenceLocation[] arrayGeofences) {
@@ -417,8 +412,8 @@ public class EditAutomationFragment extends Fragment {
                     _triggerIDMap.put(alGeofenceLocation.getName(), alGeofenceLocation.getId());
                     index++;
                 }
-                //check if existing automation and the location is removed
-                if(isExistingAutomation && selectedLocation ==null) {
+                //check if selected location is null
+                if(selectedLocation ==null) {
                     selectedLocation= MainActivity.getInstance().getString(R.string
                             .no_original_geofence);
                     String[] newLocationNames = new String[locationNames.length + 1];
@@ -443,7 +438,7 @@ public class EditAutomationFragment extends Fragment {
 
     }
 
-    private void fetchBeacons(final boolean isExistingAutomation) {
+    private void fetchBeacons() {
         AMAPBeaconManager.fetchBeacons(new Response.Listener<AMAPBeacon[]>() {
             @Override
             public void onResponse(AMAPBeacon[] arrayBeacons) {
@@ -474,8 +469,8 @@ public class EditAutomationFragment extends Fragment {
                         _triggerIDMap.put(beacon.getName(), getBeaconString(beacon));
                     }
                 }
-                //check if existing automation and the beacon is removed
-                if(isExistingAutomation && selectedBeacon ==null) {
+                //check if selectedBeacon
+                if(selectedBeacon ==null) {
                     selectedBeacon= MainActivity.getInstance().getString(R.string
                             .no_original_beacon);
                     String[] newBeaconNames = new String[arrayBeacons.length + 1];
