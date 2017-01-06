@@ -415,7 +415,7 @@ public class EditAutomationFragment extends Fragment {
                 //check if selected location is null
                 if(selectedLocation ==null) {
                     selectedLocation= MainActivity.getInstance().getString(R.string
-                            .no_original_geofence);
+                            .choose_geofence);
                     String[] newLocationNames = new String[locationNames.length + 1];
                     newLocationNames[0]=selectedLocation;
                     System.arraycopy(locationNames, 0, newLocationNames, 1, locationNames.length);
@@ -475,7 +475,7 @@ public class EditAutomationFragment extends Fragment {
                 //check if selectedBeacon
                 if(selectedBeacon ==null) {
                     selectedBeacon= MainActivity.getInstance().getString(R.string
-                            .no_original_beacon);
+                            .choose_beacon);
                     String[] newBeaconNames = new String[arrayBeacons.length + 1];
                     newBeaconNames[0]=selectedBeacon;
                     System.arraycopy(beaconNames, 0, newBeaconNames, 1, beaconNames.length);
