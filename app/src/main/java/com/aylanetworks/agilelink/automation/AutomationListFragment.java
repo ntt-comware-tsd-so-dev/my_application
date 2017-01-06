@@ -99,21 +99,8 @@ public class AutomationListFragment extends Fragment {
             @Override
             public void onResponse(Automation[] response) {
                 MainActivity.getInstance().dismissWaitDialog();
-                ArrayList<Automation> automationsAllList = new ArrayList<>(Arrays.asList(response));
+                _automationsList = new ArrayList<>(Arrays.asList(response));
 
-                Set<String> locationIDSet = getSavedLocations();
-                _automationsList = new ArrayList<>();
-                for (Automation automation : automationsAllList) {
-                    Automation.ALAutomationTriggerType triggerType = automation.getAutomationTriggerType();
-                    if(triggerType.equals(TriggerTypeGeofenceEnter) || triggerType.equals(TriggerTypeGeofenceExit)) {
-                        if (locationIDSet.contains(automation.getTriggerUUID().toUpperCase())) {
-                            _automationsList.add(automation);
-                        }
-                    }
-                    else {
-                        _automationsList.add(automation);
-                    }
-                }
                 showOrHideAddButton();
                 checkPermissions();
                 if (isAdded()) {
@@ -148,16 +135,7 @@ public class AutomationListFragment extends Fragment {
             }
         });
     }
-    private Set<String> getSavedLocations() {
-        SharedPreferences prefs =MainActivity.getInstance().getSharedPreferences(GeofenceController.SHARED_PERFS_GEOFENCE,
-                Context.MODE_PRIVATE);
-        Map<String, ?> keys = prefs.getAll();
-        Set<String> locationIDSet =  new HashSet<>();
-        for (Map.Entry<String, ?> entry : keys.entrySet()) {
-            locationIDSet.add(entry.getKey().toUpperCase());
-        }
-        return locationIDSet;
-    }
+
     private void addTapped() {
         Log.d(LOG_TAG, "Add button tapped");
         EditAutomationFragment frag = EditAutomationFragment.newInstance(null);

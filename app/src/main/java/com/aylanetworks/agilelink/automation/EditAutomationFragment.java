@@ -469,6 +469,9 @@ public class EditAutomationFragment extends Fragment {
                         _triggerIDMap.put(beacon.getName(), getBeaconString(beacon));
                     }
                 }
+                if(arrayBeacons.length ==0) {
+                    return;
+                }
                 //check if selectedBeacon
                 if(selectedBeacon ==null) {
                     selectedBeacon= MainActivity.getInstance().getString(R.string
