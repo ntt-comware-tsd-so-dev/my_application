@@ -730,5 +730,26 @@
     <string name="update_email_confirm_msg">Once your email changed, you have to sigin with the new email.</string>
  <string name="error_updating_email">Ocurrió un error al actualizar el Email. Reintente más tarde.</string>
 
+<string name="device_wifi_state">Estado de la conexión WiFi del dispositivo</string>
+<string name="geofence_event">Evento de Geocerca de AMAP</string>
+<string name="notif_geofence_leaving">Saliendo de Ubicación de Geocerca</string>
+<string name="notif_geofence_entering">Entrando a Ubicación de Geocerca</string>
+<string name="enable_existing_automations">¿Desea habilitar todas las automatizaciones existentes en este celular?</string>
+<string name="beacons">Beacons</string>
+<string name="fetching_beacons_title">Cargando Beacons</string>
+<string name="fetching_beacons_body">Cargando Beacons. Espere por favor...</string>
+<string name="confirm_add_beacon">Por favor introduzca el nombre para el Beacon seleccionado.</string>
+<string name="choose_beacon">Seleccione un Beacon</string>
+<string name="unknown_beacon">Beacon Inválido</string>
+<string name="confirm_delete_beacon">¿Seguro que desea borrar este Beacon?</string>
+<string name="bluetooth_title">Bluetooth deshabilitado</string>
+<string name="bluetooth_dialog_summary">Por favor habilite el Bluetooth en los ajustes y reintente.</string>
+<string name="bluetooth_not_available_title">Bluetooth LE no disponible</string>
+<string name="bluetooth_not_available_summary">Disculpe, Este dispositivo no soporta Bluetooth</string>
+<string name="major_version">Versión Mayor:</string>
+<string name="minor_version">Versión Menor:</string>
+<string name="no_beacons_found">No se encontraron nuevos Beacons. ¿Desea buscar de nuevo?</string>
+<string name="invalid_beacon_name">Nombre de Beacon inválido.</string>
+<string name="confirm_update_beacon">Por favor introduzca el nuevo nombre para el Beacon seleccionado.</string>
 
 </resources>
