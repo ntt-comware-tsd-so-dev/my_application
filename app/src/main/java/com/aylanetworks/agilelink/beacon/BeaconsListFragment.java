@@ -17,8 +17,12 @@ import android.support.v4.app.ActivityCompat;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -67,6 +71,7 @@ public class BeaconsListFragment extends Fragment implements
     private BeaconListAdapter _beaconListAdapter;
     private ListView _listViewBeacons;
     private AlertDialog _alertDialog;
+    private WebView _webView;
     private static final int REQUEST_COARSE_LOCATION = 2;
 
 
@@ -82,12 +87,36 @@ public class BeaconsListFragment extends Fragment implements
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_help_automation, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help_automation:
+                showHelpDialog();
+                return true;
+        }
+        return false;
+    }
+
+    private void showHelpDialog() {
+        _webView.setVisibility(View.VISIBLE);
+        _viewHolder.actionButton.setVisibility(View.GONE);
+        _webView.loadUrl("file:///android_res/raw/automation_help.htm");
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_beacons, container, false);
         _viewHolder = new BeaconsListFragment.ViewHolder();
         _listViewBeacons = (ListView)view.findViewById(R.id.listview_beacons);
+        _webView = (WebView) view.findViewById(R.id.webview);
         _listViewBeacons.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 
             public boolean onItemLongClick(AdapterView<?> arg0, View v, int index, long arg3) {

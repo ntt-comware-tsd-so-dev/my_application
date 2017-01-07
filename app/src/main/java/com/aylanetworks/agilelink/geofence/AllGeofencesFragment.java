@@ -17,8 +17,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -61,6 +65,7 @@ public class AllGeofencesFragment extends Fragment {
     private GoogleApiClient _apiClient;
     private AlertDialog _alertDialog;
     private List<GeofenceLocation> _toAddGeofenceList;
+    private WebView _webView;
     private final int POST_DELAYED_TIME_MS =30;
 
     public static AllGeofencesFragment newInstance() {
@@ -98,6 +103,7 @@ public class AllGeofencesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_geofences, container, false);
+        _webView = (WebView) view.findViewById(R.id.webview);
         _viewHolder = new ViewHolder();
         return view;
     }
@@ -121,6 +127,30 @@ public class AllGeofencesFragment extends Fragment {
         super.onResume();
         checkLocationServices(MainActivity.getInstance());
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_help_automation, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help_automation:
+                showHelpDialog();
+                return true;
+        }
+        return false;
+    }
+
+    private void showHelpDialog() {
+        _webView.setVisibility(View.VISIBLE);
+        _viewHolder.actionButton.setVisibility(View.GONE);
+        _webView.loadUrl("file:///android_res/raw/automation_help.htm");
+    }
+
 
     private void initClient() {
         _apiClient = new GoogleApiClient

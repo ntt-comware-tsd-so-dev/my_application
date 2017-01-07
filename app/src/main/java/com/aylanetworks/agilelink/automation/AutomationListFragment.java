@@ -15,8 +15,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -32,6 +37,7 @@ import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.geofence.GeofenceController;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
+import com.aylanetworks.aylasdk.auth.AylaOAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 import com.aylanetworks.aylasdk.error.ServerError;
@@ -64,6 +70,7 @@ public class AutomationListFragment extends Fragment {
     private static final int MAX_AUTOMATIONS = 5;
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
+    private  WebView _webView;
 
 
     public static AutomationListFragment newInstance() {
@@ -72,6 +79,35 @@ public class AutomationListFragment extends Fragment {
 
     public AutomationListFragment() {
         // Required empty public constructor
+    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_help_automation, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help_automation:
+                showHelpDialog();
+                return true;
+        }
+        return false;
+    }
+
+    private void showHelpDialog() {
+        _webView.setVisibility(View.VISIBLE);
+        _addButton.setVisibility(View.GONE);
+        _webView.loadUrl("file:///android_res/raw/automation_help.htm");
     }
 
     @Override
@@ -88,6 +124,8 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
+        _webView = (WebView) root.findViewById(R.id.webview);
+
         fetchAutomations();
         showOrHideAddButton();
         return root;

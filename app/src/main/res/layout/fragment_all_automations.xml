@@ -58,4 +58,11 @@
         android:src="@android:drawable/ic_input_add"
         android:tint="@android:color/white"/>
 
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
 </FrameLayout>
