@@ -1111,6 +1111,18 @@ public class MainActivity extends AppCompatActivity
         if (AMAPCore.sharedInstance() == null) {
             AMAPCore.initialize(getAppParameters(this), this);
         }
+        //Make sure we are not coming from settings activity
+        if(!_fromSettingsActivity) {
+            //Ask for Finger Print every time we come from background if the user has checked for
+            // both the options in settings
+            boolean expireAuthToken = AgileLinkApplication.getSharedPreferences()
+                    .getBoolean(getString(R.string.always_expire_auth_token), false);
+            if (_theInstance.checkFingerprintOption() && expireAuthToken) {
+                MainActivity.getInstance().showFingerPrint();
+            }
+        } else{
+            _fromSettingsActivity = false;
+        }
         // Only resume Ayla services if the wearable service hasn't already started it
         if (AgileLinkApplication.getsInstance().shouldResumeAylaNetworks(getClass().getName())) {
             AylaNetworks.sharedInstance().onResume();
@@ -1590,6 +1602,9 @@ public class MainActivity extends AppCompatActivity
             showLoginDialog(false);
         }
     }
+    private boolean _fromSettingsActivity = false;
 
-
+    public void setFromSettingsActivity() {
+        _fromSettingsActivity = true;
+    }
 }

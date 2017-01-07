@@ -175,13 +175,6 @@ public class EditAutomationFragment extends Fragment {
         final View viewGeofences = _root.findViewById(R.id.property_selection_spinner_layout);
         final View viewBeacons = _root.findViewById(R.id.beacon_actions_layout);
 
-        if(cbGeofence.isChecked()) {
-            fetchLocations();
-            viewBeacons.setVisibility(View.GONE);
-        } else {
-            fetchBeacons();
-        }
-
         cbGeofence.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -244,16 +237,18 @@ public class EditAutomationFragment extends Fragment {
                     default:
                         break;
                 }
-                if(cbGeofence.isChecked()) {
-                    fetchLocations();
-                }
-                if(cbBeacons.isChecked()) {
-                    fetchBeacons();
-                }
             }
             final ListView listView = (ListView) _root.findViewById(R.id.actions_list);
             fillActions(listView, emptyActionsView);
         }
+        if(cbGeofence.isChecked()) {
+            fetchLocations();
+            viewBeacons.setVisibility(View.GONE);
+        } else {
+            fetchBeacons();
+            viewGeofences.setVisibility(View.GONE);
+        }
+
         ImageView actionAddButton = (ImageView) _root.findViewById(R.id.btn_add_action);
         actionAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -417,7 +412,15 @@ public class EditAutomationFragment extends Fragment {
                     _triggerIDMap.put(alGeofenceLocation.getName(), alGeofenceLocation.getId());
                     index++;
                 }
-
+                //check if selected location is null
+                if(selectedLocation ==null) {
+                    selectedLocation= MainActivity.getInstance().getString(R.string
+                            .choose_geofence);
+                    String[] newLocationNames = new String[locationNames.length + 1];
+                    newLocationNames[0]=selectedLocation;
+                    System.arraycopy(locationNames, 0, newLocationNames, 1, locationNames.length);
+                    locationNames= newLocationNames;
+                }
                 ArrayAdapter locationAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_list_item_1, locationNames);
                 _locationNameSpinner.setAdapter(locationAdapter);
@@ -465,6 +468,18 @@ public class EditAutomationFragment extends Fragment {
                     } else{
                         _triggerIDMap.put(beacon.getName(), getBeaconString(beacon));
                     }
+                }
+                if(arrayBeacons.length ==0) {
+                    return;
+                }
+                //check if selectedBeacon
+                if(selectedBeacon ==null) {
+                    selectedBeacon= MainActivity.getInstance().getString(R.string
+                            .choose_beacon);
+                    String[] newBeaconNames = new String[arrayBeacons.length + 1];
+                    newBeaconNames[0]=selectedBeacon;
+                    System.arraycopy(beaconNames, 0, newBeaconNames, 1, beaconNames.length);
+                    beaconNames= newBeaconNames;
                 }
                 ArrayAdapter beaconAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_list_item_1, beaconNames);

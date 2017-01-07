@@ -729,6 +729,8 @@
     <string name="notif_geofence_leaving">Leaving Geofence Location</string>
     <string name="notif_geofence_entering">Entering Geofence Location</string>
     <string name="enable_existing_automations">Do you wish to enable all existing automations in this phone?</string>
+    <string name="choose_geofence">Select a Geofence</string>
+
     <!-- beacon related strings -->
     <string name="beacons">Beacons</string>
     <string name="fetching_beacons_title">Fetching Beacons</string>
