@@ -20,7 +20,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -32,6 +31,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.AutomationHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -62,8 +62,6 @@ public class AutomationListFragment extends Fragment {
     private static final int MAX_AUTOMATIONS = 5;
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
-    private  WebView _webView;
-
 
     public static AutomationListFragment newInstance() {
         return new AutomationListFragment();
@@ -90,16 +88,14 @@ public class AutomationListFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.help_automation:
-                showHelpDialog();
+                showHelpFragment();
                 return true;
         }
         return false;
     }
 
-    private void showHelpDialog() {
-        _webView.setVisibility(View.VISIBLE);
-        _addButton.setVisibility(View.GONE);
-        _webView.loadUrl("file:///android_res/raw/automation_help.htm");
+    private void showHelpFragment() {
+        MainActivity.getInstance().pushFragment(AutomationHelpFragment.newInstance());
     }
 
     @Override
@@ -116,8 +112,6 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
-        _webView = (WebView) root.findViewById(R.id.webview);
-
         fetchAutomations();
         showOrHideAddButton();
         return root;

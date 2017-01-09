@@ -22,13 +22,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.AutomationHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
@@ -65,7 +65,6 @@ public class AllGeofencesFragment extends Fragment {
     private GoogleApiClient _apiClient;
     private AlertDialog _alertDialog;
     private List<GeofenceLocation> _toAddGeofenceList;
-    private WebView _webView;
     private final int POST_DELAYED_TIME_MS =30;
 
     public static AllGeofencesFragment newInstance() {
@@ -103,7 +102,6 @@ public class AllGeofencesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_geofences, container, false);
-        _webView = (WebView) view.findViewById(R.id.webview);
         _viewHolder = new ViewHolder();
         return view;
     }
@@ -139,18 +137,14 @@ public class AllGeofencesFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.help_automation:
-                showHelpDialog();
+                showHelpFragment();
                 return true;
         }
         return false;
     }
-
-    private void showHelpDialog() {
-        _webView.setVisibility(View.VISIBLE);
-        _viewHolder.actionButton.setVisibility(View.GONE);
-        _webView.loadUrl("file:///android_res/raw/automation_help.htm");
+    private void showHelpFragment() {
+        MainActivity.getInstance().pushFragment(AutomationHelpFragment.newInstance());
     }
-
 
     private void initClient() {
         _apiClient = new GoogleApiClient

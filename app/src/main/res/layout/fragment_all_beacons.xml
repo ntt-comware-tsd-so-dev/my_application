@@ -56,11 +56,5 @@
         android:text="@string/group_empty_text"
         android:textColor="@color/empty_list_text"
         android:visibility="gone"/>
-    <WebView
-        android:id="@+id/webview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:visibility="gone"/>
 </FrameLayout>
 

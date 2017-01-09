@@ -34,6 +34,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.AutomationHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
@@ -71,7 +72,6 @@ public class BeaconsListFragment extends Fragment implements
     private BeaconListAdapter _beaconListAdapter;
     private ListView _listViewBeacons;
     private AlertDialog _alertDialog;
-    private WebView _webView;
     private static final int REQUEST_COARSE_LOCATION = 2;
 
 
@@ -99,16 +99,14 @@ public class BeaconsListFragment extends Fragment implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.help_automation:
-                showHelpDialog();
+                showHelpFragment();
                 return true;
         }
         return false;
     }
 
-    private void showHelpDialog() {
-        _webView.setVisibility(View.VISIBLE);
-        _viewHolder.actionButton.setVisibility(View.GONE);
-        _webView.loadUrl("file:///android_res/raw/automation_help.htm");
+    private void showHelpFragment() {
+        MainActivity.getInstance().pushFragment(AutomationHelpFragment.newInstance());
     }
 
     @Override
@@ -116,7 +114,6 @@ public class BeaconsListFragment extends Fragment implements
         View view = inflater.inflate(R.layout.fragment_all_beacons, container, false);
         _viewHolder = new BeaconsListFragment.ViewHolder();
         _listViewBeacons = (ListView)view.findViewById(R.id.listview_beacons);
-        _webView = (WebView) view.findViewById(R.id.webview);
         _listViewBeacons.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 
             public boolean onItemLongClick(AdapterView<?> arg0, View v, int index, long arg3) {
