@@ -2,6 +2,7 @@ package com.aylanetworks.agilelink.fragments;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -327,6 +328,22 @@ public class AllDevicesFragment extends Fragment implements
     public void deviceManagerInitFailure(AylaError error,
                                          AylaDeviceManager.DeviceManagerState failureState) {
         AylaLog.e(LOG_TAG, "Device manager init failure: " + error + " in state " + failureState);
+        View view = getView();
+        if (view != null) {
+            String message = getActivity().getString(R.string.device_manager_init_failure,
+                    error.getMessage());
+            final Snackbar sb = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE);
+            sb.setAction(R.string.retry, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    sb.dismiss();
+                    AylaDeviceManager dm = AMAPCore.sharedInstance().getDeviceManager();
+                    // Try again to initialize the device manager
+                    dm.fetchDevices();
+                }
+            });
+            sb.show();
+        }
     }
 
     @Override
