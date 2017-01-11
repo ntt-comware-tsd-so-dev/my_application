@@ -25,6 +25,7 @@ import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
@@ -46,6 +47,7 @@ public class ActionsListFragment extends Fragment {
     private final Map<String, String> _deviceMap = new HashMap<>();
     private final ArrayList<Object> _actionItems = new ArrayList<>();
     private static final int MAX_ACTIONS_PER_DEVICE = 5;
+    private final static String INPUT ="input";
 
     public static ActionsListFragment newInstance() {
         return new ActionsListFragment();
@@ -231,6 +233,25 @@ public class ActionsListFragment extends Fragment {
             if(getChildrenCount(groupPosition) >= MAX_ACTIONS_PER_DEVICE){
                 actionAddButton.setVisibility(View.GONE);
             }
+            AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
+            ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(device);
+            //Check if the device has Input properties. In case it does not have input properties
+            // disable the action add button
+            boolean hasInputProperties = false;
+            if (device != null && deviceModel !=null) {
+                for (String propName : deviceModel.getNotifiablePropertyNames()) {
+                    AylaProperty aylaProperty = device.getProperty(propName);
+                    if (aylaProperty != null && INPUT.equals(aylaProperty.getDirection())) {
+                        hasInputProperties = true;
+                        break;
+                    }
+                }
+            }
+            if(!hasInputProperties) {
+                actionAddButton.setVisibility(View.GONE);
+            }
+
             ExpandableListView expandView = (ExpandableListView) parent;
             expandView.expandGroup(groupPosition);
             return convertView;
