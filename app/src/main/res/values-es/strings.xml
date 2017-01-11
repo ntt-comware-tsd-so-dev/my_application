@@ -627,6 +627,7 @@
     <string name="setup_connect_gateway_text">Presione el botón "Reg" en la parte posterior del gateway.</string>
     <string name="setup_connect_gateway_amap">El LED de la nube debe estar parpadeando más rápido.</string>
     <string name="push_registration_button">Pulse el botón "Reg" en el dispositivo y, a continuación, pulse "OK".</string>
+    <string name="retry_setup">Por favor salga de la configuración y reintente.</string>
     <!-- -->
     <string name="use_fingerprint_to_authenticate">Use su huella para autenticarse</string>
     <string name="fingerprint_description">Confirme su huella para continuar</string>
