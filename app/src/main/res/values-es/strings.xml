@@ -752,5 +752,7 @@
 <string name="no_beacons_found">No se encontraron nuevos Beacons. ¿Desea buscar de nuevo?</string>
 <string name="invalid_beacon_name">Nombre de Beacon inválido.</string>
 <string name="confirm_update_beacon">Por favor introduzca el nuevo nombre para el Beacon seleccionado.</string>
+<string name="retry">Reintentar</string>
+<string name="device_manager_init_failure">El Administrador de Despotivos no se pudo inicializar: %1$s</string>
 
 </resources>
