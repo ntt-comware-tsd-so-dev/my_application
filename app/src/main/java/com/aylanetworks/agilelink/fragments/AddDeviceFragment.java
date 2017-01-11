@@ -808,7 +808,7 @@ public class AddDeviceFragment extends Fragment
                     @Override
                     public void onErrorResponse(AylaError error) {
                         Toast.makeText(getActivity(),
-                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_connect),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.retry_setup),
                                 Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
