@@ -22,7 +22,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.fragments.AutomationHelpFragment;
+import com.aylanetworks.agilelink.fragments.GenericHelpFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.framework.geofence.Action;
@@ -35,6 +35,7 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /*
@@ -79,7 +80,11 @@ public class ActionsListFragment extends Fragment {
     }
 
     private void showHelpFragment() {
-        MainActivity.getInstance().pushFragment(AutomationHelpFragment.newInstance());
+        String fileURL="file:///android_res/raw/automation_help.htm";
+        if("es".equals(Locale.getDefault().getLanguage())){
+            fileURL  ="file:///android_res/raw/automation_help_es.htm";
+        }
+        MainActivity.getInstance().pushFragment(GenericHelpFragment.newInstance(fileURL));
     }
 
     @Override

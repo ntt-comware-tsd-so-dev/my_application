@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,7 +30,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.fragments.AutomationHelpFragment;
+import com.aylanetworks.agilelink.fragments.GenericHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -44,6 +43,7 @@ import org.altbeacon.beacon.BleNotAvailableException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 
 
 /*
@@ -95,7 +95,11 @@ public class AutomationListFragment extends Fragment {
     }
 
     private void showHelpFragment() {
-        MainActivity.getInstance().pushFragment(AutomationHelpFragment.newInstance());
+        String fileURL="file:///android_res/raw/automation_help.htm";
+        if("es".equals(Locale.getDefault().getLanguage())){
+            fileURL  ="file:///android_res/raw/automation_help_es.htm";
+        }
+        MainActivity.getInstance().pushFragment(GenericHelpFragment.newInstance(fileURL));
     }
 
     @Override

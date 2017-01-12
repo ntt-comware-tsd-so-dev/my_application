@@ -10,29 +10,31 @@ import android.webkit.WebView;
 
 import com.aylanetworks.agilelink.R;
 
-import java.util.Locale;
-
 /*
  * AMAP_Android
  *
  * Copyright 2016 Ayla Networks, all rights reserved
  */
-public class AutomationHelpFragment extends Fragment {
-    private final String LANG_ES ="es";
+public class GenericHelpFragment extends Fragment {
+    private final static String ARG_FILE_URL = "file_url";
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.automation_help, container, false);
-        WebView webView = (WebView) root.findViewById(R.id.webview);
-        String fileURL="file:///android_res/raw/automation_help.htm";
-
-        if(LANG_ES.equals(Locale.getDefault().getLanguage())){
-            fileURL  ="file:///android_res/raw/automation_help_es.htm";
+        if (getArguments() != null) {
+            String fileURL = getArguments().getString(ARG_FILE_URL);
+            WebView webView = (WebView) root.findViewById(R.id.webview);
+            webView.loadUrl(fileURL);
         }
-
-        webView.loadUrl(fileURL);
         return root;
     }
-    public static AutomationHelpFragment newInstance() {
-        return new AutomationHelpFragment();
+    public static GenericHelpFragment newInstance(String fileURL) {
+        GenericHelpFragment fragment = new GenericHelpFragment();
+        if(fileURL != null) {
+            Bundle args = new Bundle();
+            args.putString(ARG_FILE_URL, fileURL);
+            fragment.setArguments(args);
+        }
+        return fragment;
     }
 }
