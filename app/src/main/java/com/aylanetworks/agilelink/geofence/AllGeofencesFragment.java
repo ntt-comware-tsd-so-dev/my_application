@@ -144,10 +144,7 @@ public class AllGeofencesFragment extends Fragment {
         return false;
     }
     private void showHelpFragment() {
-        String fileURL="file:///android_res/raw/automation_help.htm";
-        if("es".equals(Locale.getDefault().getLanguage())){
-            fileURL  ="file:///android_res/raw/automation_help_es.htm";
-        }
+        String fileURL = MainActivity.getInstance().getString(R.string.automation_help_url);
         MainActivity.getInstance().pushFragment(GenericHelpFragment.newInstance(fileURL));
     }
 
