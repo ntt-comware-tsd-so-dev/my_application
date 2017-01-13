@@ -270,7 +270,7 @@ public class BeaconsListFragment extends Fragment implements
         if(beaconList == null) {
             return;
         }
-        _beaconListAdapter = new BeaconListAdapter(getActivity(),beaconList);
+        _beaconListAdapter = new BeaconListAdapter(MainActivity.getInstance(),beaconList);
         _listViewBeacons.setAdapter(_beaconListAdapter);
         int listSize = beaconList.size();
         if (listSize > 0) {
