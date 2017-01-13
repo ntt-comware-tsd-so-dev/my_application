@@ -749,6 +749,8 @@
     <string name="no_beacons_found">No new Beacons found. Would you like to scan for Beacons again?</string>
     <string name="invalid_beacon_name">Invalid Beacon name.</string>
     <string name="confirm_update_beacon">Please enter new Beacon Name for the selected Beacon.</string>
+    <string name="retry">Retry</string>
+    <string name="device_manager_init_failure">The Device Manager failed to initialize: %1$s</string>
     <string name="automation_help_url">file:///android_res/raw/automation_help.htm</string>
 
     <string-array name="location_options">
