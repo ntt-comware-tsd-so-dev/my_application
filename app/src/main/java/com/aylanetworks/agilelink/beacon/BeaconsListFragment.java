@@ -49,7 +49,6 @@ import org.altbeacon.beacon.BeaconManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -129,7 +128,7 @@ public class BeaconsListFragment extends Fragment implements
                 if (_listViewBeacons.getAdapter() != null) {
                     AMAPBeacon amapBeacon=(AMAPBeacon)_listViewBeacons.getItemAtPosition(position);
                     if(amapBeacon != null) {
-                        updateBeaconName(amapBeacon.getId());
+                        updateBeaconName(amapBeacon);
                     }
                 }
             }
@@ -369,10 +368,12 @@ public class BeaconsListFragment extends Fragment implements
                 if (amapBeacon.getName() != null) {
                     viewHolder.beaconNameView.setText(amapBeacon.getName());
                 }
-                if (amapBeacon.getId() != null) {
-                    viewHolder.beaconIdView.setText(amapBeacon.getId());
+                if (amapBeacon.getEddystoneBeaconId() != null) {
+                    viewHolder.beaconIdView.setText(amapBeacon.getEddystoneBeaconId());
                 }
                 if(amapBeacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)) {
+                    viewHolder.beaconIdView.setText(amapBeacon.getProximityUuid());
+
                     String majorValue = getString(R.string.major_version) +
                             Integer.toString(amapBeacon.getMajorValue());
                     String minorValue = getString(R.string.minor_version) +
@@ -393,7 +394,7 @@ public class BeaconsListFragment extends Fragment implements
         }
     }
 
-    private void updateBeaconName(final String beaconId) {
+    private void updateBeaconName(final AMAPBeacon amapBeacon) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
         builder.setTitle(R.string.confirm_update_beacon);
 
@@ -404,7 +405,7 @@ public class BeaconsListFragment extends Fragment implements
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String name = input.getText().toString();
-                        updateBeacon(beaconId, name);
+                        updateBeacon(amapBeacon, name);
                     }
                 }
         );
@@ -418,16 +419,13 @@ public class BeaconsListFragment extends Fragment implements
         builder.show();
     }
 
-    private void updateBeacon(String beaconId, String beaconName) {
+    private void updateBeacon(AMAPBeacon amapBeacon, String beaconName) {
         if (beaconName ==null || beaconName.trim().length() <=0 ) {
             String msg = MainActivity.getInstance().getString(R.string.invalid_beacon_name);
             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_LONG).show();
             return;
         }
-        AMAPBeacon amapBeacon = new AMAPBeacon();
-        amapBeacon.setId(beaconId);
         amapBeacon.setName(beaconName);
-        amapBeacon.setBeaconType(AMAPBeacon.BeaconType.EddyStone);
         AMAPBeaconManager.updateBeacon(amapBeacon, new Response.Listener<AylaAPIRequest
                 .EmptyResponse>() {
             @Override

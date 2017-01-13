@@ -334,7 +334,7 @@ public class EditAutomationFragment extends Fragment {
             triggerUUID = _triggerIDMap.get(_beaconName);
             if (TextUtils.isEmpty(triggerUUID)) {
                 String msg = MainActivity.getInstance().getString(R.string
-                        .unknown_geo_fence);
+                        .unknown_beacon);
                 Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
                 return null;
             }
@@ -448,26 +448,21 @@ public class EditAutomationFragment extends Fragment {
                 for (int idx=0; idx< arrayBeacons.length;idx++) {
                     AMAPBeacon beacon = arrayBeacons[idx];
                     beaconNames[idx] = beacon.getName();
-                    if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone)) {
+                    if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone) ||
+                            beacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)) {
                         if (_triggerID != null && _triggerID.equals(beacon.getId())) {
                             selectedBeacon = beacon.getName();
                         }
-                    } else if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)){
+                    } /*else if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)){
                         String id= getBeaconString(beacon);
                         if (_triggerID != null && _triggerID.equals(id)) {
                             selectedBeacon = beacon.getName();
                         }
-                    } else {
+                    }*/ else {
                         Log.e(LOG_TAG, "Unknown Beacon Type" + beacon.getBeaconType());
                         return;
                     }
-                    //For Eddystone put beacon id. For iBeacon add Major and Minor version to
-                    // beacon id
-                    if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone)) {
-                        _triggerIDMap.put(beacon.getName(), beacon.getId());
-                    } else{
-                        _triggerIDMap.put(beacon.getName(), getBeaconString(beacon));
-                    }
+                    _triggerIDMap.put(beacon.getName(), beacon.getId());
                 }
                 if(arrayBeacons.length ==0) {
                     return;
@@ -505,9 +500,9 @@ public class EditAutomationFragment extends Fragment {
      * @return iBeacon string of type id1 id2 and id3
      */
 
-    private String getBeaconString(AMAPBeacon beacon) {
+    public static String getBeaconString(AMAPBeacon beacon) {
         StringBuilder beaconString = new StringBuilder("id1: ");
-        beaconString.append(beacon.getId());
+        beaconString.append(beacon.getProximityUuid());
         beaconString.append(" id2: ");
         beaconString.append(beacon.getMajorValue());
         beaconString.append(" id3: ");
