@@ -377,9 +377,13 @@ public class BeaconsListFragment extends Fragment implements
                             Integer.toString(amapBeacon.getMajorValue());
                     String minorValue = getString(R.string.minor_version) +
                             Integer.toString(amapBeacon.getMinorValue());
+                    viewHolder.majorVersionView.setVisibility(View.VISIBLE);
+                    viewHolder.minorVersionView.setVisibility(View.VISIBLE);
                     viewHolder.majorVersionView.setText(majorValue);
                     viewHolder.minorVersionView.setText(minorValue);
-                }
+                } else {
+                    viewHolder.majorVersionView.setVisibility(View.GONE);
+                    viewHolder.minorVersionView.setVisibility(View.GONE);}
             }
             return convertView;
         }

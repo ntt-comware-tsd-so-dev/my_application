@@ -68,11 +68,14 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
     private static final String LOG_TAG = "SignInDialog";
 
+    private static final String STATE_SIGNING_IN = "signingIn";
+
     private EditText _username;
     private EditText _password;
     private Button _loginButton;
     private WebView _webView;
     private Spinner _serviceTypeSpinner;
+    private boolean _signingIn;
 
     private final static String _serviceTypes[] = {"Dynamic", "Field", "Development", "Staging", "Demo"};
 
@@ -80,8 +83,18 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(STATE_SIGNING_IN, _signingIn);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            _signingIn = savedInstanceState.getBoolean(STATE_SIGNING_IN);
+        }
+
         Log.d(LOG_TAG, "nod: onCreate");
 
         // Phones are portrait-only. Tablets support orientation changes.
@@ -97,7 +110,8 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         } else{
             authprovider = CachedAuthProvider.getCachedProvider(this);
         }
-        if (authprovider != null && !getIntent().getBooleanExtra(EXTRA_DISABLE_CACHED_SIGNIN, true)) {
+        if (!_signingIn && authprovider != null &&
+                !getIntent().getBooleanExtra (EXTRA_DISABLE_CACHED_SIGNIN, true)) {
             showSigningInDialog();
 
             AylaNetworks.sharedInstance().getLoginManager().signIn(authprovider,
@@ -328,6 +342,12 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
 
     private ProgressDialog _progressDialog;
     private void showSigningInDialog() {
+        if (_signingIn) {
+            AylaLog.e(LOG_TAG, "Already signing in!");
+            return;
+        }
+        _signingIn = true;
+
         if ( _progressDialog != null ) {
             _progressDialog.dismiss();
         }
@@ -346,6 +366,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     }
 
     private void dismissSigningInDialog() {
+        _signingIn = false;
         if (_progressDialog != null) {
             _progressDialog.dismiss();
         }

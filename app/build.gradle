@@ -27,14 +27,14 @@ android {
     }
 
     productFlavors {
-        google {
+        aGoogle {
         }
-        baiduPush {
+        bBaiduPush {
         }
     }
 
     sourceSets{
-        baiduPush {
+        bBaiduPush {
             jniLibs.srcDirs = ['libs']
         }
     }
@@ -61,7 +61,7 @@ task initialize {
 }
 
 dependencies {
-    baiduPushCompile fileTree(include: ['*.jar'], dir: 'libs')
+    bBaiduPushCompile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':websocketLibrary')
     compile project(':Android_AylaSDK')
     androidTestCompile 'com.android.support:support-annotations:23.4.0'

@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity
     public final static String GEO_FENCE_LIST = "geo_fence_list";
     public final static String REGION_ID = "beacon_region_id";
     private final static String FIRST_SIGN_IN = "first_sign_in";
+    private final static String STATE_LOGIN_SCREEN_UP = "loginScreenUp";
 
 
     /**
@@ -490,7 +491,26 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        AylaLog.d(LOG_TAG, "onSaveInstanceState");
+        outState.putBoolean(STATE_LOGIN_SCREEN_UP, _loginScreenUp);
+        AylaLog.d(LOG_TAG, "onSaveInstanceState: loginScreenUp = " + _loginScreenUp);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        _loginScreenUp = savedInstanceState.getBoolean(STATE_LOGIN_SCREEN_UP);
+        AylaLog.d(LOG_TAG, "onRestoreInstanceState: loginScreenUp = " + _loginScreenUp);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            _loginScreenUp = savedInstanceState.getBoolean(STATE_LOGIN_SCREEN_UP);
+            AylaLog.d(LOG_TAG, "onCreate: _loginScreenUp set to " + _loginScreenUp);
+        }
+
         // Phones are portrait-only. Tablets support orientation changes.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestStoragePermissions();
@@ -1072,13 +1092,6 @@ public class MainActivity extends AppCompatActivity
         intent.putExtra(SignInActivity.EXTRA_DISABLE_CACHED_SIGNIN, disableCachedSignin);
         Log.d(LOG_TAG, "nod: startActivityForResult SignInActivity");
         startActivityForResult(intent, REQ_SIGN_IN);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        // No call for super(). Bug on API Level > 11.
-        // https://code.google.com/p/android/issues/detail?id=19917
-        Log.d(LOG_TAG, "onSaveInstanceState: " + outState);
     }
 
     @Override

@@ -649,6 +649,7 @@
     <string name="setup_connect_gateway_text">Push the "Reg" button on the back of the gateway.</string>
     <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
     <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
+    <string name="retry_setup">Please exit setup and retry.</string>
     <!-- -->
 
     <string name="use_fingerprint_to_authenticate">Use fingerprint to authenticate</string>

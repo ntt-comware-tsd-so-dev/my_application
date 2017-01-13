@@ -679,7 +679,8 @@ public class AddDeviceFragment extends Fragment
                             if (results.length == 0) {
                                 new AlertDialog.Builder(getActivity())
                                         .setIcon(R.drawable.ic_launcher)
-                                        .setTitle(R.string.choose_new_device)
+                                        .setTitle(R.string.no_devices)
+                                        .setMessage(R.string.no_devices_found)
                                         .setNegativeButton(android.R.string.ok, null)
                                         .create()
                                         .show();
@@ -808,7 +809,7 @@ public class AddDeviceFragment extends Fragment
                     @Override
                     public void onErrorResponse(AylaError error) {
                         Toast.makeText(getActivity(),
-                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_connect),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.retry_setup),
                                 Toast.LENGTH_LONG).show();
                         exitSetup();
                     }

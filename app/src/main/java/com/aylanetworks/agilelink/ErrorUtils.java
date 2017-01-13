@@ -60,7 +60,7 @@ public class ErrorUtils {
                     R.string.no_connectivity);
         }
         if (error.getLocalizedMessage() != null && !error.getLocalizedMessage().equals("")) {
-            return error.getLocalizedMessage() + ";\n" + messageUnknownError;
+            return error.getLocalizedMessage() + ".\n" + messageUnknownError;
         }
 
         return messageUnknownError;
