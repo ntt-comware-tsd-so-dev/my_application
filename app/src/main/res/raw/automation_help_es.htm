@@ -1,0 +1,94 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><META
+        http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>
+
+<div lang="ES">
+    <h2>Automatizaciones de dispositivos</h2>
+    Las automatizaciones se pueden utilizar para controlar sus dispositivos en función de su ubicación.
+    Las Geocercas y Beacons se pueden configurar para realizar acciones cuando se entre o salga de
+    una ubicación específica. Las Geocercas utilizan el GPS de su dispositivo móvil para determinar
+    cuándo ha entrado o salido de un área determinada en el mapa. Los Beacons usan la radio Bluetooth
+    de su dispositivo móvil para determinar qué tan cerca está de un Beacon en particular.
+    <p>Las acciones en AMAP consisten en un dispositivo, una propiedad y un valor. Cuando se ejecuta
+        la acción, a la propiedad seleccionada del dispositivo seleccionado se le asignará el valor
+        indicado.<p>
+    Las automatizaciones representan la relación de un evento de Geocerca o Beacon con una
+    acción, permitiendo que los dispositivos sean manipulados en función de su ubicación. <p>
+
+    <h2>Eventos</h2>
+    Eventos Un evento es algo que sucede que desencadena acciones. Actualmente, AMAP soporta dos
+    tipos de eventos: <i>Geocercas</i> y <i>Beacons</i>. Ambos eventos se basan en la ubicación
+    física del dispositivo móvil. Una Geocerca utiliza la ubicación GPS del dispositivo móvil para
+    determinar la posición, mientras que los Beacons usan la proximidad física a un Beacon como
+    fuente del evento.
+    <h3>Geocercas</h3>
+    Geocercas Una Geocerca es básicamente un radio alrededor de un punto en el mapa. Los eventos
+    pueden desencadenarse si el dispositivo móvil entra o sale del área geográfica (por ejemplo,
+    entra o sale del círculo definido por el punto y el radio). AMAP admite hasta 5 geocercas
+    simultáneas. Para crear una geocerca: <p>
+    <ol>
+        <li>En el menú principal, seleccione Ubicaciones de Geocerca</i></li>
+        <li>Toque el botón '+' para crear una Geocerca nueva</li>
+        <li>Se le presentará un mapa con un alfiler que representa la ubicación de su geocerca y un
+            círculo alrededor de él que representa el radio</li>
+        <li>Desplácese por el mapa para cambiar la ubicación central de la geocerca</li>
+        <li>Cambie el control deslizante debajo del mapa para ajustar el radio de la geocerca</li>
+        <li>Cuando la ubicación y el radio sean correctos, seleccionea en el cuadro de edición para
+            nombrar su geocerca y pulse Guardar </li>
+    </ol>
+
+    <h3>Beacons</h3>
+    Un Beacon es similar a una Geocerca en que se utiliza para ayudar a determinar la proximidad del
+    dispositivo móvil, pero la ubicación y el radio de un Beacon se basa en la ubicación física del
+    Beacon y la fuerza de su señal. Para utilizar un Beacon con AMAP, se debe comprar un beacon BLE
+    con soporte de los estándares de iBeacon o Eddystone. AMAP admite hasta 5 beacons simultáneos.
+    Para configurar un Beacon dentro de AMAP:<p>
+    <ol>
+        <li>En el menú principal, seleccione Beacons</li>
+        <li>Toque el botón '+' para agregar un nuevo faro.</li>
+        <li>Ya que la aplicación escanee y descubra los beacons, seleccione el que desee y elija un
+            nombre para él.</li>
+    </ol>
+    <h2>Acciones</h2>
+    Las acciones se utilizan para controlar los dispositivos cuando ocurre un evento. Una acción
+    consiste en un dispositivo, una propiedad y un valor. Cuando se ejecuta la acción, a la
+    propiedad seleccionada del dispositivo seleccionado se le asignará el valor indicado. Esto se
+    puede utilizar para encender o apager dispositivos, definir niveles intensidad en bombillas
+    regulables o controlar sus dispositivos de cualquier manera. <p>
+    Para crear una Acción:
+    <ol>
+        <li> En el menú principal, seleccione Acciones de dispositivo</li>
+        <li>Aquí verá una lista de sus dispositivos registrados. Busque el dispositivo que desea
+            controlar y pulse el botón '+'</li>
+        <li> Elija un nombre para su acción e introdúzcalo en el campo Nombre de la acción</li>
+        <li> En la lista desplegable, seleccione la propiedad que desea modificar con esta acción</li>
+        <li>Una vez que se haya seleccionado la propiedad, en el campo de edición introduzca el
+            valor que la acción debe asignar a la propiedad</li>
+        <li> Pulse Guardar para guardar la acción. La acción ahora se puede utilizar en
+            automatizaciones.</li>
+    </ol>
+
+    <h2>Automatizaciones</h2>
+    Una Automatización es donde todo se une. Una automatización vincula un evento (Geocerca o Beacon)
+    a una acción. AMAP admite hasta 10 automatizaciones simultáneas. Para crear una nueva
+    Automatización, primero asegúrese de tener al menos un Evento y una Acción ya
+    definidos, y luego:<p>
+    <ol>
+        <li> En el menú principal, seleccione Automatizaciones</li>
+        <li>Toque el botón '+' para crear una nueva Automatización</li>
+        <li>Elija un nombre para su automatización e introdúzcalo en el campo Nombre de
+            automatización</li>
+        <li>Seleccione Ubicaciones de Geocerca o Beacons, dependiendo del disparador que desee
+            utilizar</li>
+        <li>En la lista desplegable, elija la Ubicación de Geocerca o Beacon que desea utilizar como
+            origen del evento</li>
+        <li>Junto a Realizar estas acciones, toque el botón '+'</li>
+        <li> En la lista de acciones definidas, seleccione las acciones que desea realizar en
+            respuesta a este evento. Toque Terminado cuando haya terminado.</li>
+        <li>Pulse Terminado para crear su automatización.</li>
+    </ol>
+    Su nueva automatización aparecerá ahora en la lista de automatizaciones. La automatización
+    puede activarse o desactivarse desde esta pantalla deslizando el interruptor.
+    </p></p></p></p></p></p></p></p></p></p></p></div>
+
+</body></html>

@@ -702,6 +702,7 @@
     <string name="location_permission_required_toast">Se requiere acceso a ubicación para la Geocerca.</string>
     <string name="gps_network_not_enabled">Red GPS deshabilitada</string>
     <string name="open_location_settings">Abrir ajustes de Ubicación</string>
+    <string name="automation_help_url">file:///android_res/raw/automation_help_es.htm</string>
 
     <string-array name="location_options">
         <item>United States</item>

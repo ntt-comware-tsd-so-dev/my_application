@@ -752,6 +752,7 @@
     <string name="confirm_update_beacon">Please enter new Beacon Name for the selected Beacon.</string>
     <string name="retry">Retry</string>
     <string name="device_manager_init_failure">The Device Manager failed to initialize: %1$s</string>
+    <string name="automation_help_url">file:///android_res/raw/automation_help.htm</string>
 
     <string-array name="location_options">
         <item>United States</item>
@@ -771,6 +772,5 @@
         <item>Slow Connection</item>
         <item>LAN Mode</item>
     </string-array>
-
 
 </resources>

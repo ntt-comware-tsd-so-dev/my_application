@@ -1,0 +1,89 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><META
+        http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>
+
+<div lang="EN-US">
+    <h2>Device Automations</h2>
+    Automations can be used to control your devices based on your location. Geofences and Beacons
+    can be set up to perform actions when you approach or leave a specified location. <p>
+    A Geofence uses your mobile device&#39;s GPS to determine when you have entered or left a
+    certain area on the map.<p>
+    Beacons use your mobile device&#39;s Bluetooth radio to determine how close you
+    are to a particular beacon.<p>
+    <p>
+    Actions in AMAP consist of a device, a property and a value. When the action is executed,
+    the selected property of the selected device will be set to the provided value.<p>
+    Automations represent the pairing of a Geofence or Beacon event with an Action, allowing devices
+    to be manipulated based on your location. <p>
+
+    <h2>Events</h2>
+    An Event is something that happens that causes Actions to be taken. Currently, AMAP supports
+    two types of events: <i>Geofences</i> and <i>Beacons</i>. Both events are based on the physical
+    location of the mobile device. Geofences use the mobile device&#39;s GPS location to determine
+    position, while Beacons use the physical proximity to a Beacon as a source of the event.
+    <h3>Geofences</h3>
+    A Geofence is basically a radius around a point on the map. Events can be triggered if the
+    mobile device enters or leaves the geofence area (e.g. comes within or leaves the circle defined
+    by the point and radius). AMAP supports up to 5 simultaneous geofences. To create a geofence:<p>
+    <ol>
+        <li>In the main menu, select <i>Geofence Locations</i></li>
+        <li>Tap the &#39;+&#39; button to create a new Geofence</li>
+        <li>A map will be presented to you with a pin representing the location of your geofence and
+            a circle around it representing the radius</li>
+        <li>Scroll the map around to change the center location of the geofence</li>
+        <li>Slide the slider below the map to change the radius of the geofence</li>
+        <li>When the location and radius are correct, tap the edit box to name your geofence and hit
+            <i>Save</i></li>
+    </ol>
+
+    <h3>Beacons</h3>
+    A Beacon is similar to a Geofence in that it is used to help determine the proximity of the
+    mobile device, but the location and radius of a Beacon is based on the physical location of the
+    Beacon and its strength. In order to use a Beacon with AMAP, a BLE beacon must be purchased that
+    supports either the iBeacon or Eddystone beacon standards. AMAP supports up to 5 simultaneous
+    Beacons. To set up a Beacon within AMAP:<p>
+    <ol>
+        <li>In the main menu, select <i>Beacons</i></li>
+        <li>Tap the &#39;+&#39; button to add a new beacon</li>
+        <li>Once the app scans for and discovers your beacon, select it and choose a name for it</li>
+    </ol>
+    <h2>Actions</h2>
+    Actions are used to control your devices when an event happens. An action consists of a device,
+    a property and a value. When the action is run, the property of the device is set to the
+    specified value. This can be used to turn on or off devices, set light levels of dimmable bulbs,
+    or control your devices in just about any way.<p>
+    To create an Action:
+    <ol>
+        <li>In the main menu, select <i>Device Actions</i></li>
+        <li>Here you will see a list of your registered devices. Find the device you wish to control,
+            and tap the &#39;+&#39; button</li>
+        <li>Choose a name for your action and enter it in the Action Name field</li>
+        <li>From the drop-down list, select the property you wish to modify with this action</li>
+        <li>Once the property has been selected, enter the value the Action should set the property
+            to in the edit field</li>
+        <li>Tap <i>Save</i> to save your action. The action may now be used in automations.</li>
+    </ol>
+
+    <h2>Automations</h2>
+    Automations is where everything is tied together. An Automation ties an Event (Geofence or Beacon)
+    to an Action. AMAP supports up to 10 simultaneous Automations.<p>
+    To create a new Automation, first make sure you have at least one Event and one Action already
+    defined, and then:<p>
+    <ol>
+        <li>From the main menu, select <i>Automations</i></li>
+        <li>Tap the &#39;+&#39; button to create a new Automation</li>
+        <li>Choose a name for your automation and enter it into the Automation Name field</li>
+        <li>Select either <i>Geofence Locations</i> or <i>Beacons</i>, depending on which trigger
+            you would like to use</li>
+        <li>From the drop-down list, choose the Geofence Location or Beacon you wish to use as the
+            event source</li>
+        <li>Next to <i>Perform these actions</i>, tap the &#39;+&#39; button</li>
+        <li>From the list of defined actions, check the boxes next to the actions you would like
+            performed in response to this event. Tap <i>Done</i> when finished.</li>
+        <li>Tap <i>Done</i> to create your automation</li>
+    </ol>
+    Your new automation will now appear in the list of automations. The automation may be enabled or
+    disabled from this screen by sliding the switch.
+    </p></p></p></p></p></p></p></p></p></p></p></div>
+
+</body></html>
