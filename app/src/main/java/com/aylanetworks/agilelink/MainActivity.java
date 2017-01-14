@@ -1285,6 +1285,7 @@ public class MainActivity extends AppCompatActivity
             });
             AMAPBeaconService.fetchAndMonitorBeacons();
             initializeAutomations();
+            PushProvider.start();
         }
         // update drawer header
         updateDrawerHeader();
