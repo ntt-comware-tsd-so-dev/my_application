@@ -453,12 +453,7 @@ public class EditAutomationFragment extends Fragment {
                         if (_triggerID != null && _triggerID.equals(beacon.getId())) {
                             selectedBeacon = beacon.getName();
                         }
-                    } /*else if(beacon.getBeaconType().equals(AMAPBeacon.BeaconType.IBeacon)){
-                        String id= getBeaconString(beacon);
-                        if (_triggerID != null && _triggerID.equals(id)) {
-                            selectedBeacon = beacon.getName();
-                        }
-                    }*/ else {
+                    } else {
                         Log.e(LOG_TAG, "Unknown Beacon Type" + beacon.getBeaconType());
                         return;
                     }
