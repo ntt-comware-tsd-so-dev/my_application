@@ -59,7 +59,7 @@ public class AutomationListFragment extends Fragment {
     private ArrayList<Automation> _automationsList;
     private AutomationListAdapter _automationsAdapter;
     private final static int ERROR_NOT_FOUND = 404;
-    private static final int MAX_AUTOMATIONS = 5;
+    private static final int MAX_AUTOMATIONS = 10;
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
 

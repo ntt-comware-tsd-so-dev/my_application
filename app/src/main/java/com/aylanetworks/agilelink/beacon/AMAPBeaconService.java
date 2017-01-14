@@ -17,9 +17,12 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.automation.EditAutomationFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeaconManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaDatapoint;
@@ -38,6 +41,7 @@ import org.altbeacon.beacon.startup.RegionBootstrap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -142,7 +146,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
 
     private  static BeaconManager _beaconManager;
     private static AMAPBeaconService _amapBeaconService;
-    private static final HashSet<String> _mapBeaconID = new HashSet<>();
+    private static final HashMap<String,String> _mapBeaconID = new HashMap<>();
 
     private static final Automation.ALAutomationTriggerType triggerTypeBeaconEnter = Automation
             .ALAutomationTriggerType.TriggerTypeBeaconEnter;
@@ -232,7 +236,9 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
                     if (hasEntered) {
                         triggerType = triggerTypeBeaconEnter;
                     }
-                    if (automation.isEnabled(MainActivity.getInstance()) && id.equals(automation.getTriggerUUID()) &&
+
+                    String beaconID= _mapBeaconID.get(automation.getTriggerUUID());
+                    if (automation.isEnabled(MainActivity.getInstance()) && id.equals(beaconID) &&
                             triggerType.equals(automationTriggerType)) {
                         HashSet<String> actionSet = new HashSet<>(Arrays.asList(automation
                                 .getActions()));
@@ -302,14 +308,9 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
                     if (automation.isEnabled(MainActivity.getInstance()) &&
                             (triggerTypeBeaconEnter.equals(automationTriggerType) ||
                                     triggerTypeBeaconExit.equals(automationTriggerType))) {
-                        String beaconId = automation.getTriggerUUID();
-                        if (!_mapBeaconID.contains(beaconId)) {
-                            _mapBeaconID.add(beaconId);
-                            List<Identifier> listIdentifier = getIdentifiersFromString(beaconId);
-                            if(listIdentifier != null) {
-                                Region singleBeaconRegion = new Region(beaconId, listIdentifier);
-                                new RegionBootstrap(_amapBeaconService, singleBeaconRegion);
-                            }
+                        String beaconUUID = automation.getTriggerUUID();
+                        if (!_mapBeaconID.containsKey(beaconUUID)) {
+                            fetchBeaconAndAddRegion(beaconUUID);
                         }
                     }
                 }
@@ -333,6 +334,52 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
             }
         });
     }
+
+    private static void fetchBeaconAndAddRegion(final String uuid) {
+        if(uuid ==null) {
+            return;
+        }
+        AMAPBeaconManager.fetchBeacons(new Response.Listener<AMAPBeacon[]>() {
+            @Override
+            public void onResponse(AMAPBeacon[] arrayBeacons) {
+                for (AMAPBeacon amapBeacon:arrayBeacons) {
+                    if (uuid.equals(amapBeacon.getId())) {
+                        String beaconId;
+                        if (amapBeacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone)) {
+                            beaconId = amapBeacon.getEddystoneBeaconId();
+                        } else {
+                            beaconId = EditAutomationFragment.getBeaconString(amapBeacon);
+                        }
+                        _mapBeaconID.put(uuid, beaconId);
+                        List<Identifier> listIdentifier = getIdentifiersFromString(beaconId);
+                        if (listIdentifier != null) {
+                            Region singleBeaconRegion = new Region(beaconId, listIdentifier);
+                            if (_amapBeaconService != null) {
+                                new RegionBootstrap(_amapBeaconService, singleBeaconRegion);
+                            }
+                        }
+                    }
+                }
+            }
+
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(TAG, "No Existing Beacon");
+                    } else {
+                        Log.e(TAG, "Error in fetch beacon " + error.getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "Error in fetch beacon " + error.getMessage());
+                }
+            }
+        });
+    }
+
 
     private static void setBeaconActions(final HashSet<String> actionSet) {
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
@@ -420,8 +467,9 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
     /**
      * Stops Monitoring for a Beacon. When a Beacon is deleted this method is called.
      */
-    public static void stopMonitoringRegion(String beaconId) {
-        if (_mapBeaconID.contains(beaconId)) {
+    public static void stopMonitoringRegion(String beaconUUID) {
+        if (_mapBeaconID.containsKey(beaconUUID)) {
+            String beaconId = _mapBeaconID.get(beaconUUID);
             List<Identifier> listIdentifier = getIdentifiersFromString(beaconId);
             Region singleBeaconRegion = new Region(beaconId, listIdentifier);
             try {

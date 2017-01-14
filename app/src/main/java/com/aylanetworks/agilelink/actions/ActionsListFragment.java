@@ -51,7 +51,7 @@ public class ActionsListFragment extends Fragment {
     private final ArrayList<String> _deviceNames = new ArrayList<>();
     private final Map<String, String> _deviceMap = new HashMap<>();
     private final ArrayList<Object> _actionItems = new ArrayList<>();
-    private static final int MAX_ACTIONS_PER_DEVICE = 5;
+    private static final int MAX_ACTIONS_PER_DEVICE = 10;
     private final static String INPUT ="input";
 
     public static ActionsListFragment newInstance() {

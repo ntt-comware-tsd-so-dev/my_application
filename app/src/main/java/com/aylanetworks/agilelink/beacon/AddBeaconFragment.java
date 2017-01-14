@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
 import com.aylanetworks.agilelink.framework.beacon.AMAPBeaconManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -198,7 +199,7 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
                             for (AMAPBeacon amapBeacon : _beaconArrayList) {
                                 //Check if it is Eddystone Beacon
                                 if(beacon.getServiceUuid() == EDDYSTONE_SERVICEUUID) {
-                                    if (beacon.toString().equals(amapBeacon.getId())) {
+                                    if (beacon.toString().equals(amapBeacon.getEddystoneBeaconId())) {
                                         beaconIterator.remove();
                                     }
                                 } else {
@@ -210,7 +211,7 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
                                     if(id2 == null || id3 == null) {
                                         continue;
                                     }
-                                    if (id1.toString().equals(amapBeacon.getId()) &&
+                                    if (id1.toString().equals(amapBeacon.getProximityUuid()) &&
                                             id2.toString().equals(Integer.toString(amapBeacon.getMajorValue())) &&
                                     id3.toString().equals(Integer.toString(amapBeacon.getMinorValue()))){
                                         beaconIterator.remove();
@@ -311,13 +312,14 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
             return;
         }
         AMAPBeacon amapBeacon = new AMAPBeacon();
-        amapBeacon.setId(beaconId);
+        amapBeacon.setId(Automation.randomUUID());
         amapBeacon.setName(beaconName);
         //check if the beacon is EddyStone or iBeacon
         Beacon beacon = _beaconMap.get(beaconId);
         if(beacon.getServiceUuid() == EDDYSTONE_SERVICEUUID) {
             // This is Eddystone, which uses a service Uuid of 0xfeaa
             amapBeacon.setBeaconType(AMAPBeacon.BeaconType.EddyStone);
+            amapBeacon.setEddystoneBeaconId(beaconId);
         } else {
             // This might be iBeacon that has Major and Minor Values
             String uuid = beacon.getId1().toString();
@@ -337,7 +339,7 @@ public class AddBeaconFragment extends Fragment implements BeaconConsumer {
                 return;
             }
             amapBeacon.setBeaconType(AMAPBeacon.BeaconType.IBeacon);
-            amapBeacon.setId(uuid);
+            amapBeacon.setProximityUuid(uuid);
             amapBeacon.setMajorValue(majorValue);
             amapBeacon.setMinorValue(minorValue);
         }
