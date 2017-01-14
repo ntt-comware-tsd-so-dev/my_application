@@ -340,6 +340,9 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
             @Override
             public void onResponse(AMAPBeacon[] arrayBeacons) {
                 for (AMAPBeacon amapBeacon:arrayBeacons) {
+                    if(uuid ==null) {
+                        continue;
+                    }
                     if (uuid.equals(amapBeacon.getId())) {
                         String beaconId;
                         if (amapBeacon.getBeaconType().equals(AMAPBeacon.BeaconType.EddyStone)) {
