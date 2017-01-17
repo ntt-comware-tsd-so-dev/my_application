@@ -135,7 +135,7 @@
              so only GCM services can send data messages for the app.
         -->
         <receiver
-            android:name=".framework.GcmBroadcastReceiver"
+            android:name=".GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
 
@@ -148,7 +148,7 @@
         </receiver>
 
         <service
-            android:name=".framework.GcmIntentService"
+            android:name=".GcmIntentService"
             android:exported="true" />
 
         <meta-data
