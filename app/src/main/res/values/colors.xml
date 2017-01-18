@@ -300,7 +300,7 @@
     <color name="app_theme_primary_medium_light">@color/blue_grey_400</color>
     <color name="app_theme_primary">@color/blue_grey_500</color>
     <color name="app_theme_primary_medium_dark">@color/blue_grey_800</color>
-    <color name="app_theme_primary_dark">@color/blue_grey_100</color>
+    <color name="app_theme_primary_dark">@color/blue_grey_900</color>
 
     <!-- http://www.sankk.in/material-mixer/ -->
 
