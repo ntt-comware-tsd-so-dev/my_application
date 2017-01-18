@@ -293,14 +293,14 @@
 
     -->
 
-    <color name="app_theme_accent">@color/brown_400</color>
-    <color name="app_theme_accent_light">@color/brown_200</color>
+    <color name="app_theme_accent">@color/light_blue_A400</color>
+    <color name="app_theme_accent_light">@color/light_blue_A200</color>
     <color name="app_theme_accent_text">@android:color/white</color>
-    <color name="app_theme_primary_light">@color/dark_orange_50</color>
-    <color name="app_theme_primary_medium_light">@color/dark_orange_100</color>
-    <color name="app_theme_primary">@color/dark_orange_200</color>
-    <color name="app_theme_primary_medium_dark">@color/dark_orange_300</color>
-    <color name="app_theme_primary_dark">@color/dark_orange_400</color>
+    <color name="app_theme_primary_light">@color/blue_grey_200</color>
+    <color name="app_theme_primary_medium_light">@color/blue_grey_400</color>
+    <color name="app_theme_primary">@color/blue_grey_500</color>
+    <color name="app_theme_primary_medium_dark">@color/blue_grey_800</color>
+    <color name="app_theme_primary_dark">@color/blue_grey_900</color>
 
     <!-- http://www.sankk.in/material-mixer/ -->
 
@@ -315,7 +315,7 @@
     <color name="app_theme_primary_dark">@color/green_900</color>
     -->
 
-    <color name="app_theme_window_background">@color/orange_grey_100</color>
+    <color name="app_theme_window_background">@android:color/white</color>
 
     <!-- Colors of the navigation drawer background and text -->
     <color name="navigation_drawer">@color/app_theme_primary_dark</color>
