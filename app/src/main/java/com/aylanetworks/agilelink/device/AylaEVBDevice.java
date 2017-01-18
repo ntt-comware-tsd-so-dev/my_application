@@ -162,10 +162,6 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
             } else {
                 setBlueLED(!isBlueLEDOn(), button);
             }
-
-            // Update the image view to show the transient state
-            /*button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable
-                    .dpending));*/
         } else {
             Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
                     Toast.LENGTH_SHORT).show();
