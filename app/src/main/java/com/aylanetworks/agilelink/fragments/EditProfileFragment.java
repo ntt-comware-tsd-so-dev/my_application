@@ -9,6 +9,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -63,6 +65,13 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         getActivity().invalidateOptionsMenu();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_edit_profile, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -129,9 +138,8 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
     }
 
     @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        menu.clear();
-        super.onPrepareOptionsMenu(menu);
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return MenuHandler.handleMenuId(item.getItemId());
     }
 
     private void updateFields() {
