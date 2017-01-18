@@ -163,20 +163,19 @@ public class MenuHandler {
     }
 
     public static void handleGeoFences() {
-        //replaceFragmentToRoot(GeoFencesFragment.newInstance());
-        MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+        replaceFragmentToRoot(AllGeofencesFragment.newInstance());
     }
 
     public static void handleBeacons() {
-        MainActivity.getInstance().pushFragment(BeaconsListFragment.newInstance());
+        replaceFragmentToRoot(BeaconsListFragment.newInstance());
     }
 
     public static void handleActions() {
-        MainActivity.getInstance().pushFragment(ActionsListFragment.newInstance());
+        replaceFragmentToRoot(ActionsListFragment.newInstance());
     }
 
     public static void handleAutomations() {
-        MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
+        replaceFragmentToRoot(AutomationListFragment.newInstance());
     }
 
     public static void handleAddDevice() {
@@ -190,7 +189,7 @@ public class MenuHandler {
     }
 
     public static void handleContacts() {
-        MainActivity.getInstance().pushFragment(ContactListFragment.newInstance());
+        replaceFragmentToRoot(ContactListFragment.newInstance());
     }
 
     public static void handleNotifications() {
@@ -198,7 +197,7 @@ public class MenuHandler {
     }
 
     public static void updateProfile() {
-        MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
+        replaceFragmentToRoot(EditProfileFragment.newInstance());
     }
 
     public static void handleSettings() {
@@ -251,9 +250,7 @@ public class MenuHandler {
     }
 
     public static void handleShares() {
-        Log.d(LOG_TAG, "handleShares()");
-        SharesFragment frag = SharesFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        replaceFragmentToRoot(SharesFragment.newInstance());
     }
 
     public static void signOut() {
