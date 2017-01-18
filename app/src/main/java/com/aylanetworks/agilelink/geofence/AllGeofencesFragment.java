@@ -395,7 +395,7 @@ public class AllGeofencesFragment extends Fragment {
         int countGeofenceLocations = _allGeofencesAdapter.getItemCount();
 
         if (countGeofenceLocations > 0) {
-            getViewHolder().emptyState.setVisibility(View.INVISIBLE);
+            getViewHolder().emptyState.setVisibility(View.GONE);
             if (countGeofenceLocations >= MAX_GEOFENCES_ALLOWED) {
                 _viewHolder.actionButton.setVisibility(View.GONE);
             } else {

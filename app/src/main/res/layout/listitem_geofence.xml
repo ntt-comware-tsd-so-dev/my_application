@@ -14,14 +14,22 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:gravity="center"
-      android:orientation="vertical">
+      android:orientation="horizontal">
+
+    <ImageView
+        android:src="@drawable/ic_add_location"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:scaleType="fitCenter"/>
 
     <TextView
         android:id="@+id/listitem_geofenceName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        style="@style/PageHeader"
+        style="@android:style/TextAppearance.Medium"
         tools:text="@string/geofence_name"/>
       </LinearLayout>
 </android.support.v7.widget.CardView>
