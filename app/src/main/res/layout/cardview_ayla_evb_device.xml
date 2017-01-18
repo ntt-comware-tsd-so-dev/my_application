@@ -72,17 +72,9 @@
                 android:layout_marginRight="5dp"
                 android:elevation="2dp"
                 android:layout_marginTop="5dp"
-                android:src="@drawable/dpending"
-                />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="5dp"
-                android:layout_gravity="bottom"
-                android:layout_marginRight="5dp"
-                android:elevation="2dp"
                 android:layout_marginBottom="5dp"
-                android:background="@color/blue_bulb_bg"/>
+                android:src="@drawable/blue_led_off"
+                />
         </LinearLayout>
 
         <LinearLayout
@@ -100,17 +92,9 @@
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="5dp"
                 android:elevation="2dp"
-                android:src="@drawable/dpending"
-                />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="5dp"
-                android:layout_gravity="bottom"
-                android:layout_marginRight="5dp"
                 android:layout_marginBottom="5dp"
-                android:elevation="2dp"
-                android:background="@color/green_bulb_bg"/>
+                android:src="@drawable/green_led_off"
+                />
         </LinearLayout>
 
     </LinearLayout>

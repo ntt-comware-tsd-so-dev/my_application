@@ -60,7 +60,8 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
        setDatapoint(PROPERTY_GREEN_LED, on ? 1 : 0, new SetDatapointListener() {
            @Override
            public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-               button.setImageDrawable(button.getContext().getResources().getDrawable(isGreenLEDOn() ? R.drawable.dup : R.drawable.ddown));
+               button.setImageDrawable(button.getContext().getResources().getDrawable
+                       (isGreenLEDOn() ? R.drawable.green_led_on : R.drawable.green_led_off));
 
                if (error != null) {
                    Toast.makeText(button.getContext(),
@@ -75,7 +76,8 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         setDatapoint(PROPERTY_BLUE_LED, on ? 1 : 0, new SetDatapointListener() {
             @Override
             public void setDatapointComplete(AylaDatapoint newDatapoint, AylaError error) {
-                button.setImageDrawable(button.getContext().getResources().getDrawable(isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown));
+                button.setImageDrawable(button.getContext().getResources().getDrawable
+                        (isBlueLEDOn() ? R.drawable.blue_led_on : R.drawable.blue_led_off));
 
                 if (error != null) {
                     Toast.makeText(button.getContext(),
@@ -160,9 +162,6 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
             } else {
                 setBlueLED(!isBlueLEDOn(), button);
             }
-
-            // Update the image view to show the transient state
-            button.setImageDrawable(v.getContext().getResources().getDrawable(R.drawable.dpending));
         } else {
             Toast.makeText(MainActivity.getInstance(), R.string.offline_no_functionality,
                     Toast.LENGTH_SHORT).show();
@@ -191,12 +190,12 @@ public class AylaEVBDevice extends GenericDevice implements View.OnClickListener
         h._buttonStateImageView.setImageDrawable(res.getDrawable(imageId));
 
         // Green LED state + button
-        int bulbId = isGreenLEDOn() ? R.drawable.dup : R.drawable.ddown;
+        int bulbId = isGreenLEDOn() ? R.drawable.green_led_on : R.drawable.green_led_off;
         h._greenButton.setImageDrawable(res.getDrawable(bulbId));
         h._greenButton.setOnClickListener(this);
 
         // Blue LED state + button
-        bulbId = isBlueLEDOn() ? R.drawable.dup : R.drawable.ddown;
+        bulbId = isBlueLEDOn() ? R.drawable.blue_led_on : R.drawable.blue_led_off;
         h._blueButton.setImageDrawable(res.getDrawable(bulbId));
         h._blueButton.setOnClickListener(this);
     }
