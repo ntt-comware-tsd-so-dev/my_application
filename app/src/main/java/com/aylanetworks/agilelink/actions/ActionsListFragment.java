@@ -109,7 +109,7 @@ public class ActionsListFragment extends Fragment {
                 ViewModel model = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
                         .viewModelForDevice(device);
                 //Add only those devices that have Notifiable properties
-                if (model.getNotifiablePropertyNames().length > 0) {
+                if (checkNotifiablePropertyNames(device,model)) {
                     deviceList.add(device);
                     _deviceMap.put(device.getProductName(), device.getDsn());
                     _deviceNames.add(device.getProductName());
@@ -149,6 +149,21 @@ public class ActionsListFragment extends Fragment {
         adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
         _expandleListView.setAdapter(adapter);
         _expandleListView.setGroupIndicator(null);
+    }
+    //Check if it the device has NotifiablePropertyNames and has at least 1 property with INPUT
+    // Direction
+    private boolean checkNotifiablePropertyNames(AylaDevice device, ViewModel model) {
+        String[] notifiablePropertyNames = model.getNotifiablePropertyNames();
+
+        if (notifiablePropertyNames !=null && notifiablePropertyNames.length > 0) {
+            for (String propName : notifiablePropertyNames) {
+                AylaProperty aylaProperty = device.getProperty(propName);
+                if (aylaProperty != null && INPUT.equals(aylaProperty.getDirection())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public class DeviceActionAdapter extends BaseExpandableListAdapter {
