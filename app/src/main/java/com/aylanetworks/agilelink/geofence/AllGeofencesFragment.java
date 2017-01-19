@@ -198,6 +198,8 @@ public class AllGeofencesFragment extends Fragment {
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Show a Wait dialog. We dismiss this dialog inside AddGeofenceFragment create view
+                MainActivity.getInstance().showWaitDialog(null, null);
                 _dialogFragment = new AddGeofenceFragment();
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
@@ -224,7 +226,8 @@ public class AllGeofencesFragment extends Fragment {
             public void onClick(View view, final int position) {
                 final GeofenceLocation alGeofenceLocation = _allGeofencesAdapter
                         .getGeofenceLocations().get(position);
-
+                //Show a Wait dialog. We dismiss this dialog inside AddGeofenceFragment create view
+                MainActivity.getInstance().showWaitDialog(null, null);
                 _dialogFragment = AddGeofenceFragment.newInstance(alGeofenceLocation);
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
