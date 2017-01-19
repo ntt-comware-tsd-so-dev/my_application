@@ -1492,9 +1492,9 @@ public class MainActivity extends AppCompatActivity
 
         if(requestCode == REQUEST_FINE_LOCATION){
             if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+                Toast.makeText(this, getResources().getText(R.string.location_fine_permission_granted), Toast.LENGTH_SHORT).show();
             }  else{
-                Toast.makeText(this, getResources().getText(R.string.location_permission_denied), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getText(R.string.location_fine_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
         if(requestCode == REQUEST_LOCATION_AND_ADD_GEOFENCE){

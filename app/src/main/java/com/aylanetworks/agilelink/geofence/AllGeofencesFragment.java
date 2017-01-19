@@ -124,7 +124,9 @@ public class AllGeofencesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        checkLocationServices(MainActivity.getInstance());
+        if (checkLocationServices(MainActivity.getInstance())) {
+            _viewHolder.actionButton.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
