@@ -995,10 +995,10 @@ public class AddDeviceFragment extends Fragment
                             public void newDeviceUpdated(AylaDevice device, AylaError error) {
                                 MainActivity mainActivity = MainActivity.getInstance();
                                 mainActivity.dismissWaitDialog();
+                                MainActivity.getInstance().getSupportFragmentManager().popBackStack();
 
                                 if (error != null) {
                                     AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
-                                    MainActivity.getInstance().getSupportFragmentManager().popBackStack();
                                 }
                             }
                         });
