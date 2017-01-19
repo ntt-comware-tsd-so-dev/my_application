@@ -691,6 +691,9 @@
     <string name="deleted_success">Borrado Exitosamente</string>
     <string name="confirm_delete_automation">¿Está seguro de borrar la automatización?</string>
     <string name="action_name">Nombre de Acción</string>
+    <string name="choose_geofence">Seleccione una Geocerca</string>
+    <string name="location_fine_permission_granted">Acceso a ubicación otorgado. Ya puede agregar nuevas Geocercas.</string>
+    <string name="location_fine_permission_denied">Acceso a ubicación denegado.</string>
 
 
     <string name="Hint.Name">Nombre de la Geocerca</string>
