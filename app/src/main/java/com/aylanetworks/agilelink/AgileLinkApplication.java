@@ -82,6 +82,9 @@ public class AgileLinkApplication extends Application implements ComponentCallba
 
     public void onCreate() {
         sInstance = this;
+        // Removed .detectLeakedClosableObjects() here, as there is a consistent reporting of
+        // sockets not being closed down in okhttp.
+        // https://code.google.com/p/android/issues/detail?id=192517
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
@@ -91,7 +94,6 @@ public class AgileLinkApplication extends Application implements ComponentCallba
                     .build());
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
                     .detectLeakedSqlLiteObjects()
-                    .detectLeakedClosableObjects()
                     .penaltyLog()
                     .build());
         }
