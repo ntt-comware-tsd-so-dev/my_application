@@ -133,7 +133,7 @@ public class ActionsListFragment extends Fragment {
                     _actionItems.add(actions);
                 }
                 DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
-                adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
+                adapter.setInflater((LayoutInflater) MainActivity.getInstance().getSystemService(Context.LAYOUT_INFLATER_SERVICE), MainActivity.getInstance());
                 _expandleListView.setAdapter(adapter);
 
                 _expandleListView.setGroupIndicator(null);
@@ -146,7 +146,7 @@ public class ActionsListFragment extends Fragment {
         });
 
         DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
-        adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
+        adapter.setInflater((LayoutInflater) MainActivity.getInstance().getSystemService(Context.LAYOUT_INFLATER_SERVICE), MainActivity.getInstance());
         _expandleListView.setAdapter(adapter);
         _expandleListView.setGroupIndicator(null);
     }
