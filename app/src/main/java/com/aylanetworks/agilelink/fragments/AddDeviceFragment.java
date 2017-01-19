@@ -114,6 +114,7 @@ public class AddDeviceFragment extends Fragment
     private AylaSetupDevice _setupDevice;
 
     private Button _registerButton;
+    private Button _scanButton;
     private TextView _spinnerRegistrationTypeLabel;
     private Spinner _spinnerRegistrationType;
     private Spinner _spinnerGatewaySelection;
@@ -216,12 +217,13 @@ public class AddDeviceFragment extends Fragment
         _spinnerGatewaySelection.setOnItemSelectedListener(this);
         _spinnerGatewaySelection.setAdapter(createGatewayAdapter());
 
-        final Button scanButton = (Button) view.findViewById(R.id.scan_button);
-        scanButton.setOnClickListener(this);
-
         // Hook up the "Register" button
         _registerButton = (Button) view.findViewById(R.id.register_button);
         _registerButton.setOnClickListener(this);
+
+        // Hook up the "Scan" button
+        _scanButton = (Button) view.findViewById(R.id.scan_button);
+        _scanButton.setOnClickListener(this);
 
         return view;
     }
@@ -403,6 +405,12 @@ public class AddDeviceFragment extends Fragment
             _spinnerRegistrationTypeLabel.setVisibility(spinnerVisible);
             _spinnerRegistrationType.setVisibility(showGateways ? View.GONE : View.VISIBLE);
             _spinnerGatewaySelection.setVisibility(showGateways ? spinnerVisible : View.GONE);
+            if (showGateways && spinnerVisible == View.GONE) {
+                // They want to register a node, but have no gateways. Don't let them.
+                _scanButton.setEnabled(false);
+            } else {
+                _scanButton.setEnabled(true);
+            }
         } else if (parent.getId() == R.id.spinner_gateway_selection) {
             GenericGateway gateway = (GenericGateway) parent.getAdapter().getItem(position);
             if (gateway != null) {
