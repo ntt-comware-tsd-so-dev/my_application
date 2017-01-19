@@ -220,6 +220,7 @@ public class ContactListFragment extends Fragment implements View.OnClickListene
                     if ( settings != null ) {
                         enableNotification(notificationMethod, enable);
                     } else {
+                        MainActivity.getInstance().dismissWaitDialog();
                         Toast.makeText(getActivity(),
                                 ErrorUtils.getUserMessage(getActivity(), error, R.string.unknown_error),
                                 Toast.LENGTH_SHORT).show();
