@@ -253,6 +253,7 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         result.append(_progress);
         result.append(getString(R.string.radius_units));
         textView.setText(result.toString());
+        MainActivity.getInstance().dismissWaitDialog();
 
         return dialog;
     }
