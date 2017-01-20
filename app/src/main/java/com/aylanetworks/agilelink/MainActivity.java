@@ -1289,6 +1289,7 @@ public class MainActivity extends AppCompatActivity
         }
         // update drawer header
         updateDrawerHeader();
+        onDrawerItemClicked(_drawerMenu.getItem(0));
         firePendingAutomationEvents();
     }
 
