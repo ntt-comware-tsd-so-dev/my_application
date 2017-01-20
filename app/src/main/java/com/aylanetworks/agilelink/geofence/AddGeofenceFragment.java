@@ -84,6 +84,20 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
         return frag;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        if (getDialog() == null) {
+            setShowsDialog(false);
+        }
+        try {
+            super.onActivityCreated(savedInstanceState);
+        } catch(IllegalStateException e) {
+            Log.d(TAG, e.getMessage());
+        }
+        MainActivity.getInstance().dismissWaitDialog();
+
+    }
+
 
     public void setListener(AllGeofencesFragment listener) {
         this._geofenceListener = listener;
