@@ -80,8 +80,6 @@ public class AllDevicesFragment extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-
         _expandedDevices = new ArrayList<>();
 
     }
@@ -131,30 +129,6 @@ public class AllDevicesFragment extends Fragment implements
     private void addDevice() {
         // Bring up the Add Device UI
         MenuHandler.handleAddDevice();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_all_devices, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_add_device) {
-            addDevice();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    // This method is called when the fragment is paged in to view
-    @Override
-    public void setMenuVisibility(boolean menuVisible) {
-        super.setMenuVisibility(menuVisible);
-        if ( menuVisible ) {
-            updateDeviceList();
-        }
     }
 
     public void updateDeviceList() {
