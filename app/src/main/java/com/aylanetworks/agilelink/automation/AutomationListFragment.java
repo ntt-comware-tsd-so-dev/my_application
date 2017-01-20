@@ -247,18 +247,43 @@ public class AutomationListFragment extends Fragment {
         }
 
         private void deleteAutomation(final Automation automation) {
-            //confirm_delete_automation
+            MainActivity.getInstance().showWaitDialog(null, null);
             AutomationManager.deleteAutomation(automation, new Response.Listener<AylaAPIRequest
                     .EmptyResponse>() {
                 @Override
                 public void onResponse(AylaAPIRequest.EmptyResponse response) {
                     String msg = MainActivity.getInstance().getString(R.string.deleted_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    _automationsList.remove(automation);
-                    _automationsAdapter.notifyDataSetChanged();
-                    _listViewAutomations.invalidateViews();
-                    _listViewAutomations.refreshDrawableState();
-                    showOrHideAddButton();
+                    AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
+                        @Override
+                        public void onResponse(Automation[] response) {
+                            _automationsList = new ArrayList<>(Arrays.asList(response));
+                            _automationsAdapter.clear();
+                            _automationsAdapter.addAll(_automationsList);
+                            _listViewAutomations.setAdapter(_automationsAdapter);
+                            _automationsAdapter.notifyDataSetChanged();
+                            showOrHideAddButton();
+                            MainActivity.getInstance().dismissWaitDialog();
+                        }
+                    }, new ErrorListener() {
+                        @Override
+                        public void onErrorResponse(AylaError error) {
+                            if (error instanceof ServerError) {
+                                //Check if there are no existing automations. This is not an actual error and we
+                                //don't want to show this error.
+                                ServerError serverError = ((ServerError) error);
+                                int code = serverError.getServerResponseCode();
+                                if(code == ERROR_NOT_FOUND) {
+                                    Log.d(LOG_TAG, "No Existing Automations");
+                                    return;
+                                }
+                            }
+                            String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                                    error.toString();
+                            Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                            MainActivity.getInstance().dismissWaitDialog();
+                        }
+                    });
                 }
             }, new ErrorListener() {
                 @Override
@@ -266,6 +291,7 @@ public class AutomationListFragment extends Fragment {
                     String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
                             error.toString();
                     Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+                    MainActivity.getInstance().dismissWaitDialog();
                     MainActivity.getInstance().popBackstackToRoot();
                 }
             });
