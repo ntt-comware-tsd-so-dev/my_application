@@ -540,11 +540,9 @@ public class EditAutomationFragment extends Fragment {
         if (_automation.getId() == null) {//This is a new Automation
             _automation.setId(Automation.randomUUID());
             _automation.setEnabled(true,MainActivity.getInstance()); //For new one always enable it
-            AutomationManager.addAutomation(_automation, new Response
-                    .Listener<AylaAPIRequest
-                    .EmptyResponse>() {
+            AutomationManager.addAutomation(_automation, new Response.Listener<Automation[]>() {
                 @Override
-                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                public void onResponse(Automation[] response) {
                     String msg = MainActivity.getInstance().getString(R
                             .string.saved_automation_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
@@ -555,7 +553,9 @@ public class EditAutomationFragment extends Fragment {
                         //Thie method will start monitoring the region for this Beacon
                         AMAPBeaconService.fetchAndMonitorBeacons();
                     }
-                   MainActivity.getInstance().popBackstackToRoot();
+                    ArrayList <Automation> automationsList = new ArrayList<>(Arrays.asList(response));
+                    AutomationListFragment frag = AutomationListFragment.newInstance(automationsList);
+                    MainActivity.getInstance().pushFragment(frag);
                 }
             }, new ErrorListener() {
                 @Override
@@ -567,14 +567,14 @@ public class EditAutomationFragment extends Fragment {
                 }
             });
         } else {
-            AutomationManager.updateAutomation(_automation, new Response.Listener<AylaAPIRequest
-                    .EmptyResponse>() {
+            AutomationManager.updateAutomation(_automation, new Response.Listener<Automation[]>() {
                 @Override
-                public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                public void onResponse(Automation[] response) {
                     String msg = MainActivity.getInstance().getString(R
                             .string.saved_automation_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    AutomationListFragment frag = AutomationListFragment.newInstance(_automation);
+                    ArrayList <Automation> automationsList = new ArrayList<>(Arrays.asList(response));
+                    AutomationListFragment frag = AutomationListFragment.newInstance(automationsList);
                     MainActivity.getInstance().pushFragment(frag);
                 }
             }, new ErrorListener() {
