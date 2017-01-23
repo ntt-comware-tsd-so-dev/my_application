@@ -54,6 +54,7 @@ import java.util.Locale;
 
 public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
+    private final static String OBJ_KEY = "automation_obj";
 
     private ListView _listViewAutomations;
     private ArrayList<Automation> _automationsList;
@@ -63,8 +64,14 @@ public class AutomationListFragment extends Fragment {
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
 
-    public static AutomationListFragment newInstance() {
-        return new AutomationListFragment();
+    public static AutomationListFragment newInstance(Automation automation) {
+        AutomationListFragment fragment = new AutomationListFragment();
+        if (automation != null) {
+            Bundle args = new Bundle();
+            args.putSerializable(OBJ_KEY, automation);
+            fragment.setArguments(args);
+        }
+        return fragment;
     }
 
     public AutomationListFragment() {
@@ -113,19 +120,33 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
-        fetchAutomations();
+        Automation automation=null;
+        if (getArguments() != null) {
+            //This is the automation we just updated in Edit Automation Fragment.
+            automation = (Automation) getArguments().getSerializable(OBJ_KEY);
+        }
+        fetchAutomations(automation);
         showOrHideAddButton();
         return root;
     }
 
-    private void fetchAutomations() {
+    private void fetchAutomations(final Automation automation) {
         MainActivity.getInstance().showWaitDialog(R.string.fetching_automations_title, R.string.fetching_automations_body);
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
                 MainActivity.getInstance().dismissWaitDialog();
                 _automationsList = new ArrayList<>(Arrays.asList(response));
-
+                if(automation != null) {
+                    // We need to use this automation that we just updated, the reason is it takes
+                    // a few seconds for the update datum field to have the values of automation
+                    // that were updated in EditAutomation Fragment.
+                    for(Automation automation1:_automationsList) {
+                        if(automation1.getId().equals(automation.getId())){
+                            automation1 = automation;
+                        }
+                    }
+                }
                 showOrHideAddButton();
                 checkPermissions();
                 if (isAdded()) {

@@ -529,7 +529,9 @@ public class EditAutomationFragment extends Fragment {
                 return;
             }
         }
-
+        if(_automation ==null) {
+            _automation = new Automation();
+        }
         Log.d(LOG_TAG, "Clicked saveAutomation");
         _automation.setName(automationName);
         _automation.setTriggerUUID(triggerUUID);
@@ -572,7 +574,8 @@ public class EditAutomationFragment extends Fragment {
                     String msg = MainActivity.getInstance().getString(R
                             .string.saved_automation_success);
                     Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                    MainActivity.getInstance().popBackstackToRoot();
+                    AutomationListFragment frag = AutomationListFragment.newInstance(_automation);
+                    MainActivity.getInstance().pushFragment(frag);
                 }
             }, new ErrorListener() {
                 @Override

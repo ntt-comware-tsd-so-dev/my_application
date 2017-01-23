@@ -175,7 +175,7 @@ public class MenuHandler {
     }
 
     public static void handleAutomations() {
-        replaceFragmentToRoot(AutomationListFragment.newInstance());
+        replaceFragmentToRoot(AutomationListFragment.newInstance(null));
     }
 
     public static void handleAddDevice() {
