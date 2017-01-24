@@ -8,8 +8,8 @@ android {
         applicationId "com.aylanetworks.agilelink"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 47
-        versionName "5.4.00-rc1"
+        versionCode 57
+        versionName "5.4.00"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
