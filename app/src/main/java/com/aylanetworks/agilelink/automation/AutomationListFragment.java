@@ -43,8 +43,6 @@ import org.altbeacon.beacon.BleNotAvailableException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
-
 
 /*
  * AMAP_Android
@@ -54,6 +52,7 @@ import java.util.Locale;
 
 public class AutomationListFragment extends Fragment {
     private final static String LOG_TAG = "AutomationListFragment";
+    private final static String OBJ_KEY = "automation_obj_list";
 
     private ListView _listViewAutomations;
     private ArrayList<Automation> _automationsList;
@@ -63,8 +62,25 @@ public class AutomationListFragment extends Fragment {
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
 
-    public static AutomationListFragment newInstance() {
+    public static AutomationListFragment newInstance(){
         return new AutomationListFragment();
+    }
+
+    /**
+     * This method takes an automation list. This is called from EditAutomationFragment after
+     * successfully adding new automation or updating an existing automation. In that case we
+     * dont have to fetch automations in create view.
+     * @param automationList list of Automations
+     * @return AutomationListFragment
+     */
+    public static AutomationListFragment newInstance(ArrayList<Automation> automationList) {
+        AutomationListFragment fragment = new AutomationListFragment();
+        if (automationList != null) {
+            Bundle args = new Bundle();
+            args.putSerializable(OBJ_KEY, automationList);
+            fragment.setArguments(args);
+        }
+        return fragment;
     }
 
     public AutomationListFragment() {
@@ -113,7 +129,13 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
-        fetchAutomations();
+        if (getArguments() != null) {
+            //This is the automation list we got from Edit Automation Fragment.
+            _automationsList = (ArrayList<Automation>) getArguments().getSerializable(OBJ_KEY);
+            initializeAndSetAdapter();
+        } else {
+            fetchAutomations();
+        }
         showOrHideAddButton();
         return root;
     }
@@ -125,20 +147,7 @@ public class AutomationListFragment extends Fragment {
             public void onResponse(Automation[] response) {
                 MainActivity.getInstance().dismissWaitDialog();
                 _automationsList = new ArrayList<>(Arrays.asList(response));
-
-                showOrHideAddButton();
-                checkPermissions();
-                if (isAdded()) {
-                    if (_automationsAdapter == null) {
-                        _automationsAdapter = new AutomationListAdapter(getContext(), _automationsList);
-                        _listViewAutomations.setAdapter(_automationsAdapter);
-                    } else {
-                        _automationsAdapter.clear();
-                        _automationsAdapter.addAll(_automationsList);
-                        _listViewAutomations.setAdapter(_automationsAdapter);
-                        _automationsAdapter.notifyDataSetChanged();
-                    }
-                }
+                initializeAndSetAdapter();
             }
         }, new ErrorListener() {
             @Override
@@ -159,6 +168,22 @@ public class AutomationListFragment extends Fragment {
                 Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void initializeAndSetAdapter() {
+        showOrHideAddButton();
+        checkPermissions();
+        if (isAdded()) {
+            if (_automationsAdapter == null) {
+                _automationsAdapter = new AutomationListAdapter(getContext(), _automationsList);
+                _listViewAutomations.setAdapter(_automationsAdapter);
+            } else {
+                _automationsAdapter.clear();
+                _automationsAdapter.addAll(_automationsList);
+                _listViewAutomations.setAdapter(_automationsAdapter);
+                _automationsAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     private void addTapped() {
@@ -194,10 +219,9 @@ public class AutomationListFragment extends Fragment {
                         return;
                     }
                     automation.setEnabled(isChecked,MainActivity.getInstance());
-                    AutomationManager.updateAutomation(automation, new Response.Listener<AylaAPIRequest
-                            .EmptyResponse>() {
+                    AutomationManager.updateAutomation(automation,new Response.Listener<Automation[]>() {
                         @Override
-                        public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                        public void onResponse(Automation [] response) {
                             String msg = MainActivity.getInstance().getString(R
                                     .string.updated_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
