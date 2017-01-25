@@ -16,6 +16,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,6 +68,36 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     private LatLng _latLng;
     private static final int REQUEST_LOCATION = 0;
     private static final float MINIMAL_RADIUS =50;
+    private static final float MAX_RADIUS =5000;
+    private final static String EXISTING_GEOFENCE = "existing_geofence";
+    private GeofenceLocation _geofenceLocation;
+    private static final String TAG = "AddGeofenceFragment";
+
+
+    public static AddGeofenceFragment newInstance(GeofenceLocation geofenceLocation) {
+        AddGeofenceFragment frag = new AddGeofenceFragment();
+        Bundle args = new Bundle();
+        if (geofenceLocation != null) {
+            args.putSerializable(EXISTING_GEOFENCE, geofenceLocation);
+            frag.setArguments(args);
+        }
+        return frag;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        if (getDialog() == null) {
+            setShowsDialog(false);
+        }
+        try {
+            super.onActivityCreated(savedInstanceState);
+        } catch(IllegalStateException e) {
+            Log.d(TAG, e.getMessage());
+        }
+        MainActivity.getInstance().dismissWaitDialog();
+
+    }
+
 
     public void setListener(AllGeofencesFragment listener) {
         this._geofenceListener = listener;
@@ -75,7 +107,13 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.add_geofence, null);
+        View view;
+        try{
+        view = inflater.inflate(R.layout.add_geofence, null);
+        } catch(InflateException ex) {
+            Log.e(TAG, ex.getMessage());
+            return null;
+        }
         GeofenceController.getInstance().init(this.getActivity());
 
         ImageButton geofenceButton = (ImageButton) view.findViewById(R.id.button_add_geofence);
@@ -129,13 +167,22 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             public void onClick(View v) {
                 if (dataIsValid()) {
                     GeofenceLocation geofence = new GeofenceLocation();
-                    String uuid = Automation.randomUUID();
-                    geofence.setId(uuid);
+                    //Check if it is a new location. For new Location generate a random UUID
+                    if(_geofenceLocation == null) {
+                        String uuid = Automation.randomUUID();
+                        geofence.setId(uuid);
+                    } else {
+                        geofence.setId(_geofenceLocation.getId());
+                    }
                     geofence.setName(_geofenceName.getText().toString());
                     geofence.setLatitude(Double.parseDouble(_latitude));
                     geofence.setLongitude(Double.parseDouble(_longitude));
                     geofence.setRadius(_progress);
-                    _geofenceListener.addGeofence(geofence);
+                    if(_geofenceLocation == null) {
+                        _geofenceListener.addGeofence(geofence);
+                    } else {
+                        _geofenceListener.updateGeofence(_geofenceLocation,geofence);
+                    }
                     dismiss();
                 } else {
                     Toast.makeText(MainActivity.getInstance(), R.string.geofence_validation,
@@ -199,15 +246,33 @@ public class AddGeofenceFragment extends DialogFragment implements ActivityCompa
             requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
         }
         //Initial progress set to 50 m
-        _progress=50;
+        _progress=MINIMAL_RADIUS;
+        if (getArguments() != null) {
+            _geofenceLocation = (GeofenceLocation) getArguments().getSerializable(EXISTING_GEOFENCE);
+            if(_geofenceLocation != null) {
+                _geofenceName.setText(_geofenceLocation.getName());
+                _latitude = (String.valueOf(_geofenceLocation.getLatitude()));
+                _longitude = (String.valueOf(_geofenceLocation.getLongitude()));
+                _progress= _geofenceLocation.getRadius();
+                seekBar.setProgress(getProgressPercentage(_progress));
+                SupportMapFragment mapFragment =
+                        (SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map);
+                mapFragment.getMapAsync(this);
+            }
+        }
+
         StringBuilder result = new StringBuilder();
         result.append(getString(R.string.geofence_radius));
         result.append(" ");
         result.append(_progress);
         result.append(getString(R.string.radius_units));
         textView.setText(result.toString());
+        MainActivity.getInstance().dismissWaitDialog();
 
         return dialog;
+    }
+    private int getProgressPercentage(float radius) {
+        return (Math.round((radius-MINIMAL_RADIUS)*100/(MAX_RADIUS-MINIMAL_RADIUS)));
     }
 
     private boolean dataIsValid() {

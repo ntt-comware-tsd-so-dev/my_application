@@ -190,6 +190,7 @@ public class EditActionsFragment extends Fragment {
                         public void onResponse(AylaAPIRequest.EmptyResponse response) {
                             String msg = MainActivity.getInstance().getString(R.string.updated_success);
                             Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                            MainActivity.getInstance().onBackPressed();
                         }
                     }, new ErrorListener() {
                         @Override

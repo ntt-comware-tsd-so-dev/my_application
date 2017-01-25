@@ -17,6 +17,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -25,6 +28,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.GenericHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
@@ -40,6 +44,7 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import fi.iki.elonen.NanoHTTPD;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -119,7 +124,30 @@ public class AllGeofencesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        checkLocationServices(MainActivity.getInstance());
+        if (checkLocationServices(MainActivity.getInstance())) {
+            _viewHolder.actionButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_help_automation, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help_automation:
+                showHelpFragment();
+                return true;
+        }
+        return false;
+    }
+    private void showHelpFragment() {
+        String fileURL = MainActivity.getInstance().getString(R.string.automation_help_url);
+        MainActivity.getInstance().pushFragment(GenericHelpFragment.newInstance(fileURL));
     }
 
     private void initClient() {
@@ -172,6 +200,8 @@ public class AllGeofencesFragment extends Fragment {
         _viewHolder.actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Show a Wait dialog. We dismiss this dialog inside AddGeofenceFragment create view
+                MainActivity.getInstance().showWaitDialog(null, null);
                 _dialogFragment = new AddGeofenceFragment();
                 _dialogFragment.setListener(AllGeofencesFragment.this);
                 _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
@@ -196,7 +226,13 @@ public class AllGeofencesFragment extends Fragment {
                 _viewHolder.geofenceRecyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, final int position) {
-
+                final GeofenceLocation alGeofenceLocation = _allGeofencesAdapter
+                        .getGeofenceLocations().get(position);
+                //Show a Wait dialog. We dismiss this dialog inside AddGeofenceFragment create view
+                MainActivity.getInstance().showWaitDialog(null, null);
+                _dialogFragment = AddGeofenceFragment.newInstance(alGeofenceLocation);
+                _dialogFragment.setListener(AllGeofencesFragment.this);
+                _dialogFragment.show(getActivity().getSupportFragmentManager(), "AddGeofenceFragment");
             }
 
             @Override
@@ -238,8 +274,8 @@ public class AllGeofencesFragment extends Fragment {
     }
 
     /**
-     * This method deletes Automation(If any) for the deleted Location. Without this Location the
-     * Automation is invalid
+     * This method Updates Automation(If any) for the deleted Location. The user can still reuse
+     * this automation to associate with some other location or beacon
      *
      * @param locationUUID this is the uuid of the GeofenceLocation that was deleted
      */
@@ -250,22 +286,24 @@ public class AllGeofencesFragment extends Fragment {
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
-                for (Automation automation : response) {
+                ArrayList<Automation> automationList= new ArrayList<>(Arrays.asList(response));
+                for (Automation automation : automationList) {
                     if (locationUUID.equalsIgnoreCase(automation.getTriggerUUID())) {
-                        AutomationManager.deleteAutomation(automation, new Response.Listener<AylaAPIRequest
-                                .EmptyResponse>() {
-                            @Override
-                            public void onResponse(AylaAPIRequest.EmptyResponse response) {
-                                Log.d(LOG_TAG, "Deleted Automation for Location UUID " + locationUUID);
-                            }
-                        }, new ErrorListener() {
-                            @Override
-                            public void onErrorResponse(AylaError error) {
-                                Log.e(LOG_TAG, error.getMessage());
-                            }
-                        });
+                        automation.setTriggerUUID("");
                     }
                 }
+                AutomationManager.updateAutomations(automationList, new Response
+                        .Listener<ArrayList<Automation>>() {
+                    @Override
+                    public void onResponse(ArrayList<Automation> response) {
+                        Log.d(LOG_TAG, "Deleted Automation for Location UUID " + locationUUID);
+                    }
+                }, new ErrorListener() {
+                    @Override
+                    public void onErrorResponse(AylaError error) {
+                        Log.e(LOG_TAG, error.getMessage());
+                    }
+                });
             }
         }, new ErrorListener() {
             @Override
@@ -313,6 +351,32 @@ public class AllGeofencesFragment extends Fragment {
         });
     }
 
+    /**
+     * This method deletes an existing geofence and adds the new geofence. As there is no direct
+     * update method provided by GeofencingApi we have to first delete and then add it
+     * method on the geofence
+     * @param existingGeofence existing geofence
+     * @param geofence new geofencelocation
+     */
+    public void updateGeofence(final GeofenceLocation existingGeofence, final GeofenceLocation geofence) {
+        LocationManager.deleteGeofenceLocation(existingGeofence, new Response.Listener<AylaAPIRequest.EmptyResponse>() {
+            @Override
+            public void onResponse(AylaAPIRequest.EmptyResponse response) {
+                List<GeofenceLocation> GeofenceLocations = new ArrayList<>();
+                GeofenceLocations.add(existingGeofence);
+                GeofenceController.getInstance().removeGeofences(GeofenceLocations, geofenceControllerListener);
+                addGeofence(geofence);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private final GeofenceController.GeofenceControllerListener geofenceControllerListener = new
             GeofenceController.GeofenceControllerListener() {
                 @Override
@@ -336,7 +400,7 @@ public class AllGeofencesFragment extends Fragment {
         int countGeofenceLocations = _allGeofencesAdapter.getItemCount();
 
         if (countGeofenceLocations > 0) {
-            getViewHolder().emptyState.setVisibility(View.INVISIBLE);
+            getViewHolder().emptyState.setVisibility(View.GONE);
             if (countGeofenceLocations >= MAX_GEOFENCES_ALLOWED) {
                 _viewHolder.actionButton.setVisibility(View.GONE);
             } else {

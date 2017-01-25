@@ -649,6 +649,7 @@
     <string name="setup_connect_gateway_text">Push the "Reg" button on the back of the gateway.</string>
     <string name="setup_connect_gateway_amap">The cloud LED on the front should now be blinking faster.</string>
     <string name="push_registration_button">Push the "Reg" button on the device, and then press "OK".</string>
+    <string name="retry_setup">Please exit setup and retry.</string>
     <!-- -->
 
     <string name="use_fingerprint_to_authenticate">Use fingerprint to authenticate</string>
@@ -724,6 +725,35 @@
     <string name="location_permission_required_toast">Location permission is required for Geofence.</string>
     <string name="gps_network_not_enabled">GPS Network not enabled</string>
     <string name="open_location_settings">Open Location Settings</string>
+    <string name="device_wifi_state">Device Wifi connection state</string>
+    <string name="geofence_event">AMAP Geofencing event</string>
+    <string name="notif_geofence_leaving">Leaving Geofence Location</string>
+    <string name="notif_geofence_entering">Entering Geofence Location</string>
+    <string name="enable_existing_automations">Do you wish to enable all existing automations in this phone?</string>
+    <string name="choose_geofence">Select a Geofence</string>
+    <string name="location_fine_permission_granted">Location permission granted. You can add new Geofences.</string>
+    <string name="location_fine_permission_denied">Location permission denied.</string>
+    <!-- beacon related strings -->
+    <string name="beacons">Beacons</string>
+    <string name="fetching_beacons_title">Fetching Beacons</string>
+    <string name="fetching_beacons_body">Fetching Beacons. Please wait...</string>
+    <string name="confirm_add_beacon">Please enter Beacon Name for the selected Beacon.</string>
+    <string name="choose_beacon">Select a Beacon</string>
+    <string name="unknown_beacon">Invalid Beacon</string>
+    <string name="confirm_delete_beacon">Are you sure to delete this Beacon?</string>
+    <string name="bluetooth_title">Bluetooth not enabled</string>
+    <string name="bluetooth_dialog_summary">Please enable bluetooth in settings and try again.</string>
+    <string name="bluetooth_not_available_title">Bluetooth LE not available</string>
+    <string name="bluetooth_not_available_summary">Sorry, this device does not support Bluetooth
+        LE</string>
+    <string name="major_version">Major Version:</string>
+    <string name="minor_version">Minor Version:</string>
+    <string name="no_beacons_found">No new Beacons found. Would you like to scan for Beacons again?</string>
+    <string name="invalid_beacon_name">Invalid Beacon name.</string>
+    <string name="confirm_update_beacon">Please enter new Beacon Name for the selected Beacon.</string>
+    <string name="retry">Retry</string>
+    <string name="device_manager_init_failure">The Device Manager failed to initialize: %1$s</string>
+    <string name="automation_help_url">file:///android_res/raw/automation_help.htm</string>
 
     <string-array name="location_options">
         <item>United States</item>
@@ -743,6 +773,5 @@
         <item>Slow Connection</item>
         <item>LAN Mode</item>
     </string-array>
-
 
 </resources>

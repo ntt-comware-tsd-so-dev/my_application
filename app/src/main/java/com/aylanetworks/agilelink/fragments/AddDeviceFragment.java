@@ -78,7 +78,8 @@ public class AddDeviceFragment extends Fragment
         View.OnClickListener,
         ChooseAPDialog.ChooseAPResults,
         DialogInterface.OnCancelListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        AylaSetup.DeviceWifiStateChangeListener{
 
     private static final String LOG_TAG = "AddDeviceFragment";
     private static final String ZIGBEE_PRODUCT_CLASS = "zigbee";
@@ -113,6 +114,7 @@ public class AddDeviceFragment extends Fragment
     private AylaSetupDevice _setupDevice;
 
     private Button _registerButton;
+    private Button _scanButton;
     private TextView _spinnerRegistrationTypeLabel;
     private Spinner _spinnerRegistrationType;
     private Spinner _spinnerGatewaySelection;
@@ -215,12 +217,13 @@ public class AddDeviceFragment extends Fragment
         _spinnerGatewaySelection.setOnItemSelectedListener(this);
         _spinnerGatewaySelection.setAdapter(createGatewayAdapter());
 
-        final Button scanButton = (Button) view.findViewById(R.id.scan_button);
-        scanButton.setOnClickListener(this);
-
         // Hook up the "Register" button
         _registerButton = (Button) view.findViewById(R.id.register_button);
         _registerButton.setOnClickListener(this);
+
+        // Hook up the "Scan" button
+        _scanButton = (Button) view.findViewById(R.id.scan_button);
+        _scanButton.setOnClickListener(this);
 
         return view;
     }
@@ -402,6 +405,12 @@ public class AddDeviceFragment extends Fragment
             _spinnerRegistrationTypeLabel.setVisibility(spinnerVisible);
             _spinnerRegistrationType.setVisibility(showGateways ? View.GONE : View.VISIBLE);
             _spinnerGatewaySelection.setVisibility(showGateways ? spinnerVisible : View.GONE);
+            if (showGateways && spinnerVisible == View.GONE) {
+                // They want to register a node, but have no gateways. Don't let them.
+                _scanButton.setEnabled(false);
+            } else {
+                _scanButton.setEnabled(true);
+            }
         } else if (parent.getId() == R.id.spinner_gateway_selection) {
             GenericGateway gateway = (GenericGateway) parent.getAdapter().getItem(position);
             if (gateway != null) {
@@ -458,6 +467,7 @@ public class AddDeviceFragment extends Fragment
             try {
                 _aylaSetup = new AylaSetup(AMAPCore.sharedInstance().getContext(),
                         AMAPCore.sharedInstance().getSessionManager());
+                _aylaSetup.addListener(this);
             } catch (AylaError aylaError) {
                 AylaLog.e(LOG_TAG, "Failed to create AylaSetup object: " + aylaError);
                 Toast.makeText(AMAPCore.sharedInstance().getContext(), aylaError.toString(),
@@ -509,6 +519,7 @@ public class AddDeviceFragment extends Fragment
         dismissWaitDialog();
 
         if (_aylaSetup != null) {
+            _aylaSetup.removeListener(this);
             _aylaSetup.exitSetup(new Response.Listener<AylaAPIRequest.EmptyResponse>() {
                 @Override
                 public void onResponse(AylaAPIRequest.EmptyResponse response) {
@@ -676,7 +687,8 @@ public class AddDeviceFragment extends Fragment
                             if (results.length == 0) {
                                 new AlertDialog.Builder(getActivity())
                                         .setIcon(R.drawable.ic_launcher)
-                                        .setTitle(R.string.choose_new_device)
+                                        .setTitle(R.string.no_devices)
+                                        .setMessage(R.string.no_devices_found)
                                         .setNegativeButton(android.R.string.ok, null)
                                         .create()
                                         .show();
@@ -805,7 +817,7 @@ public class AddDeviceFragment extends Fragment
                     @Override
                     public void onErrorResponse(AylaError error) {
                         Toast.makeText(getActivity(),
-                                ErrorUtils.getUserMessage(getContext(), error, R.string.error_device_connect),
+                                ErrorUtils.getUserMessage(getContext(), error, R.string.retry_setup),
                                 Toast.LENGTH_LONG).show();
                         exitSetup();
                     }
@@ -991,8 +1003,11 @@ public class AddDeviceFragment extends Fragment
                             public void newDeviceUpdated(AylaDevice device, AylaError error) {
                                 MainActivity mainActivity = MainActivity.getInstance();
                                 mainActivity.dismissWaitDialog();
-                                AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
                                 MainActivity.getInstance().getSupportFragmentManager().popBackStack();
+
+                                if (error != null) {
+                                    AMAPCore.sharedInstance().getDeviceManager().fetchDevices();
+                                }
                             }
                         });
                     }
@@ -1072,5 +1087,13 @@ public class AddDeviceFragment extends Fragment
      */
     private void requestScanPermissions(){
         ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
+    }
+
+    @Override
+    public void wifiStateChanged(String currentState) {
+        if(currentState != null){
+            MainActivity.getInstance().updateDialogText(String.format("%s: %s", getString(R.string.device_wifi_state),
+                    currentState));
+        }
     }
 }

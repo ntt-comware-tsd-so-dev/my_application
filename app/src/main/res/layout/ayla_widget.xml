@@ -98,7 +98,7 @@
         android:background="#66c1e0"
         android:layout_marginLeft="10px"
         android:layout_toLeftOf="@+id/device_up"
-        android:text="-"
+        android:text="&lt;"
         android:textColor="#FFFFFF"/>
 
     <Button android:id="@+id/device_up"
@@ -107,7 +107,7 @@
         android:background="#66c1e0"
         android:layout_alignParentRight="true"
         android:layout_marginRight="10px"
-        android:text="+"
+        android:text="&gt;"
         android:textColor="#FFFFFF"/>
 
 </LinearLayout>

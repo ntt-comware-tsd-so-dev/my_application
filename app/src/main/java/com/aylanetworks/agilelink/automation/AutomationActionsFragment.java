@@ -61,13 +61,6 @@ public class AutomationActionsFragment extends Fragment {
     public View onCreateView(LayoutInflater _inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = _inflater.inflate(R.layout.fragment_geofence_actions, container, false);
         _saveButton = (Button) rootView.findViewById(R.id.button_done_selection);
-        Button _cancelButton = (Button) rootView.findViewById(R.id.button_action_cancel);
-        _cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
-            }
-        });
         return rootView;
     }
 

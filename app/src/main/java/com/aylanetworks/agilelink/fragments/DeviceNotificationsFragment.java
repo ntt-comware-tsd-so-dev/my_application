@@ -145,12 +145,20 @@ public class DeviceNotificationsFragment extends Fragment implements CompoundBut
             // Fetch the account settings now
             MainActivity.getInstance().showWaitDialog(R.string.fetching_account_info_title, R.string.fetching_account_info_body);
             AccountSettings.fetchAccountSettings(new AccountSettings.AccountSettingsCallback() {
-                public void settingsUpdated(AccountSettings settings, Message msg) {
-                    MainActivity.getInstance().dismissWaitDialog();
+                @Override
+                public void settingsUpdated(AccountSettings settings, AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
                     if ( settings != null ) {
                         enableNotification(notificationMethod, enable);
                     } else {
-                        Toast.makeText(MainActivity.getInstance(), R.string.unknown_error, Toast.LENGTH_SHORT).show();
+                        if (error != null) {
+                            Toast.makeText(MainActivity.getInstance(), error.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            Toast.makeText(MainActivity.getInstance(), R.string.unknown_error,
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             });

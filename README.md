@@ -65,6 +65,23 @@ Gradle: 2.14.1
 Release Notes
 ===========================
 
+AMAP v5.4.00 : AYLA_SDK_BRANCH=release/5.4.00, AYLA_CORE_BRANCH=release/5.4.00 (01/24/2017)
+
+New & Improved
+- Beacon support
+  Automatically control a nearby device based on proximity and direction
+
+Bug Fixes & Chores
+- Built using new Ayla_SDK  v5.4.00
+- Built using new AMAP Core Framework v5.4.00
+- Move GCM implementation from AMAP Core Framework to AMAP
+- Improved geofence cross-platform management
+- App reskin and graphics changes
+- General bug fixes
+- Updated documentation
+- Known Issues
+  Nexus 5x will intermittently fail to bind to the network during WiFi Setup. Retry to work-around.
+
 AMAP v5.3.01 : AYLA_SDK_BRANCH=release/5.3.01, AYLA_CORE_BRANCH=release/5.3.01 (12/16/2016)
 - account settings bug fix
 

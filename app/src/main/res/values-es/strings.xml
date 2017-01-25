@@ -627,6 +627,7 @@
     <string name="setup_connect_gateway_text">Presione el botón "Reg" en la parte posterior del gateway.</string>
     <string name="setup_connect_gateway_amap">El LED de la nube debe estar parpadeando más rápido.</string>
     <string name="push_registration_button">Pulse el botón "Reg" en el dispositivo y, a continuación, pulse "OK".</string>
+    <string name="retry_setup">Por favor salga de la configuración y reintente.</string>
     <!-- -->
     <string name="use_fingerprint_to_authenticate">Use su huella para autenticarse</string>
     <string name="fingerprint_description">Confirme su huella para continuar</string>
@@ -690,6 +691,9 @@
     <string name="deleted_success">Borrado Exitosamente</string>
     <string name="confirm_delete_automation">¿Está seguro de borrar la automatización?</string>
     <string name="action_name">Nombre de Acción</string>
+    <string name="choose_geofence">Seleccione una Geocerca</string>
+    <string name="location_fine_permission_granted">Acceso a ubicación otorgado. Ya puede agregar nuevas Geocercas.</string>
+    <string name="location_fine_permission_denied">Acceso a ubicación denegado.</string>
 
 
     <string name="Hint.Name">Nombre de la Geocerca</string>
@@ -701,6 +705,7 @@
     <string name="location_permission_required_toast">Se requiere acceso a ubicación para la Geocerca.</string>
     <string name="gps_network_not_enabled">Red GPS deshabilitada</string>
     <string name="open_location_settings">Abrir ajustes de Ubicación</string>
+    <string name="automation_help_url">file:///android_res/raw/automation_help_es.htm</string>
 
     <string-array name="location_options">
         <item>United States</item>
@@ -730,5 +735,28 @@
     <string name="update_email_confirm_msg">Once your email changed, you have to sigin with the new email.</string>
  <string name="error_updating_email">Ocurrió un error al actualizar el Email. Reintente más tarde.</string>
 
+<string name="device_wifi_state">Estado de la conexión WiFi del dispositivo</string>
+<string name="geofence_event">Evento de Geocerca de AMAP</string>
+<string name="notif_geofence_leaving">Saliendo de Ubicación de Geocerca</string>
+<string name="notif_geofence_entering">Entrando a Ubicación de Geocerca</string>
+<string name="enable_existing_automations">¿Desea habilitar todas las automatizaciones existentes en este celular?</string>
+<string name="beacons">Beacons</string>
+<string name="fetching_beacons_title">Cargando Beacons</string>
+<string name="fetching_beacons_body">Cargando Beacons. Espere por favor...</string>
+<string name="confirm_add_beacon">Por favor introduzca el nombre para el Beacon seleccionado.</string>
+<string name="choose_beacon">Seleccione un Beacon</string>
+<string name="unknown_beacon">Beacon Inválido</string>
+<string name="confirm_delete_beacon">¿Seguro que desea borrar este Beacon?</string>
+<string name="bluetooth_title">Bluetooth deshabilitado</string>
+<string name="bluetooth_dialog_summary">Por favor habilite el Bluetooth en los ajustes y reintente.</string>
+<string name="bluetooth_not_available_title">Bluetooth LE no disponible</string>
+<string name="bluetooth_not_available_summary">Disculpe, Este dispositivo no soporta Bluetooth</string>
+<string name="major_version">Versión Mayor:</string>
+<string name="minor_version">Versión Menor:</string>
+<string name="no_beacons_found">No se encontraron nuevos Beacons. ¿Desea buscar de nuevo?</string>
+<string name="invalid_beacon_name">Nombre de Beacon inválido.</string>
+<string name="confirm_update_beacon">Por favor introduzca el nuevo nombre para el Beacon seleccionado.</string>
+<string name="retry">Reintentar</string>
+<string name="device_manager_init_failure">El Administrador de Despotivos no se pudo inicializar: %1$s</string>
 
 </resources>

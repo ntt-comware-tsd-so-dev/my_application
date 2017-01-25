@@ -8,6 +8,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
@@ -19,18 +22,21 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
+import com.aylanetworks.agilelink.fragments.GenericHelpFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.ViewModel;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDevice;
+import com.aylanetworks.aylasdk.AylaProperty;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /*
@@ -45,10 +51,39 @@ public class ActionsListFragment extends Fragment {
     private final ArrayList<String> _deviceNames = new ArrayList<>();
     private final Map<String, String> _deviceMap = new HashMap<>();
     private final ArrayList<Object> _actionItems = new ArrayList<>();
-    private static final int MAX_ACTIONS_PER_DEVICE = 5;
+    private static final int MAX_ACTIONS_PER_DEVICE = 10;
+    private final static String INPUT ="input";
 
     public static ActionsListFragment newInstance() {
         return new ActionsListFragment();
+    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_help_automation, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help_automation:
+                showHelpFragment();
+                return true;
+        }
+        return false;
+    }
+
+    private void showHelpFragment() {
+        String fileURL = MainActivity.getInstance().getString(R.string.automation_help_url);
+        MainActivity.getInstance().pushFragment(GenericHelpFragment.newInstance(fileURL));
     }
 
     @Override
@@ -74,7 +109,7 @@ public class ActionsListFragment extends Fragment {
                 ViewModel model = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
                         .viewModelForDevice(device);
                 //Add only those devices that have Notifiable properties
-                if (model.getNotifiablePropertyNames().length > 0) {
+                if (checkNotifiablePropertyNames(device,model)) {
                     deviceList.add(device);
                     _deviceMap.put(device.getProductName(), device.getDsn());
                     _deviceNames.add(device.getProductName());
@@ -98,7 +133,7 @@ public class ActionsListFragment extends Fragment {
                     _actionItems.add(actions);
                 }
                 DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
-                adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
+                adapter.setInflater((LayoutInflater) MainActivity.getInstance().getSystemService(Context.LAYOUT_INFLATER_SERVICE), MainActivity.getInstance());
                 _expandleListView.setAdapter(adapter);
 
                 _expandleListView.setGroupIndicator(null);
@@ -111,9 +146,24 @@ public class ActionsListFragment extends Fragment {
         });
 
         DeviceActionAdapter adapter = new DeviceActionAdapter(_deviceNames, _actionItems);
-        adapter.setInflater((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getActivity());
+        adapter.setInflater((LayoutInflater) MainActivity.getInstance().getSystemService(Context.LAYOUT_INFLATER_SERVICE), MainActivity.getInstance());
         _expandleListView.setAdapter(adapter);
         _expandleListView.setGroupIndicator(null);
+    }
+    //Check if it the device has NotifiablePropertyNames and has at least 1 property with INPUT
+    // Direction
+    private boolean checkNotifiablePropertyNames(AylaDevice device, ViewModel model) {
+        String[] notifiablePropertyNames = model.getNotifiablePropertyNames();
+
+        if (notifiablePropertyNames !=null && notifiablePropertyNames.length > 0) {
+            for (String propName : notifiablePropertyNames) {
+                AylaProperty aylaProperty = device.getProperty(propName);
+                if (aylaProperty != null && INPUT.equals(aylaProperty.getDirection())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public class DeviceActionAdapter extends BaseExpandableListAdapter {
@@ -231,6 +281,25 @@ public class ActionsListFragment extends Fragment {
             if(getChildrenCount(groupPosition) >= MAX_ACTIONS_PER_DEVICE){
                 actionAddButton.setVisibility(View.GONE);
             }
+            AylaDevice device = AMAPCore.sharedInstance().getDeviceManager().deviceWithDSN(dsn);
+            ViewModel deviceModel = AMAPCore.sharedInstance().getSessionParameters().viewModelProvider
+                    .viewModelForDevice(device);
+            //Check if the device has Input properties. In case it does not have input properties
+            // disable the action add button
+            boolean hasInputProperties = false;
+            if (device != null && deviceModel !=null) {
+                for (String propName : deviceModel.getNotifiablePropertyNames()) {
+                    AylaProperty aylaProperty = device.getProperty(propName);
+                    if (aylaProperty != null && INPUT.equals(aylaProperty.getDirection())) {
+                        hasInputProperties = true;
+                        break;
+                    }
+                }
+            }
+            if(!hasInputProperties) {
+                actionAddButton.setVisibility(View.GONE);
+            }
+
             ExpandableListView expandView = (ExpandableListView) parent;
             expandView.expandGroup(groupPosition);
             return convertView;

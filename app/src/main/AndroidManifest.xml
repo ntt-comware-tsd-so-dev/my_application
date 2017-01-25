@@ -135,7 +135,7 @@
              so only GCM services can send data messages for the app.
         -->
         <receiver
-            android:name=".framework.GcmBroadcastReceiver"
+            android:name=".GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
 
@@ -148,7 +148,7 @@
         </receiver>
 
         <service
-            android:name=".framework.GcmIntentService"
+            android:name=".GcmIntentService"
             android:exported="true" />
 
         <meta-data
@@ -156,8 +156,8 @@
             android:value="@integer/google_play_services_version" />
 
         <service android:name=".WearUpdateService" />
-        <service android:name=".geofence.AMAPGeofenceService"
-                 android:exported="true" ></service>
+        <service android:name=".geofence.AMAPGeofenceService" android:exported="true" ></service>
+        <service android:name=".beacon.AMAPBeaconService" android:exported="true" ></service>
 
 
         <receiver android:name=".BootReceiver">

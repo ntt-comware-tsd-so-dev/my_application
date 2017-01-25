@@ -10,7 +10,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/login_bg"
+        android:background="@drawable/funbg"
         android:isScrollContainer="false"
         android:orientation="vertical"
         android:scrollbarStyle="insideOverlay"
@@ -22,9 +22,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="66dp"
+            android:layout_marginTop="30dp"
             android:contentDescription="@string/app_name"
-            android:src="@drawable/ayla_networks_logo"/>
+            android:src="@drawable/logo"/>
 
         <Spinner
             android:id="@+id/service_type_spinner"
@@ -48,7 +48,6 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
-            android:background="@android:color/white"
             android:layout_marginStart="50dp"
             android:layout_marginEnd="50dp"
             android:layout_marginTop="40dp"
@@ -61,7 +60,6 @@
             android:layout_marginLeft="60dp"
             android:layout_marginRight="60dp"
             android:background="@android:color/transparent"
-            android:textColor="@android:color/white"
             android:textStyle="bold"
             android:text="@string/emailAddress"
             />
@@ -76,8 +74,7 @@
             android:background="@drawable/signin_edit_bg"
             android:padding="4dp"
             android:hint="@string/emailAddress"
-            android:inputType="textEmailAddress"
-            android:textColor="@android:color/white">
+            android:inputType="textEmailAddress">
 
             <requestFocus/>
         </EditText>
@@ -85,7 +82,6 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
-            android:background="@android:color/white"
             android:layout_marginStart="50dp"
             android:layout_marginEnd="50dp"
             android:layout_marginTop="4dp"
@@ -95,7 +91,6 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
-            android:background="@android:color/white"
             android:layout_marginStart="50dp"
             android:layout_marginEnd="50dp"
             android:layout_marginTop="4dp"
@@ -108,7 +103,6 @@
                 android:layout_marginLeft="60dp"
                 android:layout_marginRight="60dp"
                 android:background="@android:color/transparent"
-                android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:text="@string/password"
                 />
@@ -123,12 +117,11 @@
             android:ems="10"
             android:hint="@string/passwordHint"
             android:inputType="textPassword"
-            android:textColor="@android:color/white" />
+            />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:background="@android:color/white"
                 android:layout_marginStart="50dp"
                 android:layout_marginEnd="50dp"
                 android:layout_marginTop="4dp"
@@ -147,8 +140,6 @@
             android:text="@string/signIn"
             android:textSize="18sp"
             android:background="@drawable/signin_button_bg"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
 
             style="@style/AgileLinkButton"
             />
@@ -231,16 +222,14 @@
                 android:layout_gravity="start"
                 android:text="@string/up"
                 android:background="@android:color/transparent"
-                android:textStyle="bold"
                 android:gravity="center|center_vertical"
-                android:textAppearance="?android:attr/textAppearance"
-                android:layout_weight="1"
-                android:textColor="@android:color/white"/>
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textStyle="bold"
+                android:layout_weight="1"/>
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:background="@android:color/white"
                 android:layout_marginStart="3dp"
                 android:layout_marginEnd="3dp"/>
 
@@ -254,12 +243,11 @@
                 android:text="@string/forgot"
                 android:textStyle="bold"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="@android:color/white"/>
+                />
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:background="@android:color/white"
                 android:layout_marginStart="3dp"
                 android:layout_marginEnd="3dp"/>
 
@@ -274,7 +262,7 @@
                 android:textStyle="bold"
                 android:text="@string/resend_confirmation"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="@android:color/white"/>
+                />
 
         </LinearLayout>
 

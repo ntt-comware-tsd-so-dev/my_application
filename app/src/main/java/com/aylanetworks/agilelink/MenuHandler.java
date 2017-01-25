@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
+import com.aylanetworks.agilelink.beacon.BeaconsListFragment;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
 import com.aylanetworks.agilelink.fragments.AddDeviceFragment;
 import com.aylanetworks.agilelink.fragments.AllDevicesFragment;
@@ -102,6 +104,9 @@ public class MenuHandler {
             case R.id.action_geofences:
                 handleGeoFences();
                 break;
+            case R.id.action_beacons:
+                handleBeacons();
+                break;
 
             case R.id.action_al_actions:
                 handleActions();
@@ -158,16 +163,19 @@ public class MenuHandler {
     }
 
     public static void handleGeoFences() {
-        //replaceFragmentToRoot(GeoFencesFragment.newInstance());
-        MainActivity.getInstance().pushFragment(AllGeofencesFragment.newInstance());
+        replaceFragmentToRoot(AllGeofencesFragment.newInstance());
+    }
+
+    public static void handleBeacons() {
+        replaceFragmentToRoot(BeaconsListFragment.newInstance());
     }
 
     public static void handleActions() {
-        MainActivity.getInstance().pushFragment(ActionsListFragment.newInstance());
+        replaceFragmentToRoot(ActionsListFragment.newInstance());
     }
 
     public static void handleAutomations() {
-        MainActivity.getInstance().pushFragment(AutomationListFragment.newInstance());
+        replaceFragmentToRoot(AutomationListFragment.newInstance());
     }
 
     public static void handleAddDevice() {
@@ -181,7 +189,7 @@ public class MenuHandler {
     }
 
     public static void handleContacts() {
-        MainActivity.getInstance().pushFragment(ContactListFragment.newInstance());
+        replaceFragmentToRoot(ContactListFragment.newInstance());
     }
 
     public static void handleNotifications() {
@@ -189,7 +197,7 @@ public class MenuHandler {
     }
 
     public static void updateProfile() {
-        MainActivity.getInstance().pushFragment(EditProfileFragment.newInstance());
+        replaceFragmentToRoot(EditProfileFragment.newInstance());
     }
 
     public static void handleSettings() {
@@ -242,13 +250,11 @@ public class MenuHandler {
     }
 
     public static void handleShares() {
-        Log.d(LOG_TAG, "handleShares()");
-        SharesFragment frag = SharesFragment.newInstance();
-        MainActivity.getInstance().pushFragment(frag);
+        replaceFragmentToRoot(SharesFragment.newInstance());
     }
 
     public static void signOut() {
-        Activity activity = MainActivity.getInstance();
+        final Activity activity = MainActivity.getInstance();
         if (activity != null) {
             // Confirm
             Resources res = activity.getResources();
@@ -268,6 +274,7 @@ public class MenuHandler {
                         public void onClick(DialogInterface dialog, int which) {
                             Logger.logInfo(LOG_TAG, "signOut: stop session.");
                             shutdownSession();
+                            stopBeaconService(activity);
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)
@@ -311,6 +318,10 @@ public class MenuHandler {
                 MainActivity.getInstance().showLoginDialog(true);
             }
         });
+    }
+
+    private static void stopBeaconService(Activity activity) {
+        activity.stopService(new Intent(activity, AMAPBeaconService.class));
     }
 
     public static void about() {
