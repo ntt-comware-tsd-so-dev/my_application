@@ -1,5 +1,7 @@
 package com.aylanetworks.agilelink.fragments;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,13 +9,15 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaNetworks;
-import com.aylanetworks.agilelink.R;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
 
 import java.util.ArrayList;
@@ -32,7 +36,7 @@ public class AboutFragment extends Fragment {
     protected TextView _headerTextView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_about, container, false);
 
         _headerTextView = (TextView)v.findViewById(R.id.page_header);
@@ -42,6 +46,21 @@ public class AboutFragment extends Fragment {
 
         populateList();
 
+        _listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                ClipboardManager clipBoardManager = (ClipboardManager) getContext().
+                        getSystemService(Context.CLIPBOARD_SERVICE);
+                 String copiedText = _listView.getAdapter().getItem(position).toString();
+                ClipData clip =  ClipData.newPlainText("Text", copiedText);
+                clipBoardManager.setPrimaryClip(clip);
+                Toast.makeText(getContext(), getString(R.string.clipboard_copy) + " \""
+                        +copiedText + "\"",
+                        Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
+
         return v;
     }
 
@@ -50,6 +69,8 @@ public class AboutFragment extends Fragment {
         AMAPCore.SessionParameters params = AMAPCore.sharedInstance().getSessionParameters();
         AylaSystemSettings settings = AylaNetworks.sharedInstance().getSystemSettings();
 
+        items.add(new AboutItem(getString(R.string.service_location),
+                settings.serviceLocation.toString()));
         items.add(new AboutItem(getString(R.string.service_type), settings.serviceType.toString()));
         items.add(new AboutItem(getString(R.string.app_version), params.appVersion));
         items.add(new AboutItem(getString(R.string.core_version), AMAPCore.CORE_VERSION));
@@ -78,6 +99,11 @@ public class AboutFragment extends Fragment {
 
         public String name;
         public String value;
+
+        @Override
+        public String toString(){
+            return (this.name + " : " + this.value);
+        }
     }
 
     protected class AboutListAdapter extends ArrayAdapter<AboutItem> {
