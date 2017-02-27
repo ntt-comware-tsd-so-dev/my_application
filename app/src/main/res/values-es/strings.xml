@@ -414,6 +414,8 @@
     <string name="about_app" formatted="false">Acerca de AMAP</string>
     <string name="about">Acerca de</string>
     <string name="more_options">Más...</string>
+    <string name="clipboard_copy">Texto copiado al portapapeles</string>
+    <string name="service_location">Ubicación del Servicio</string>
     <string name="service_type">Service</string>
     <string name="device_service">Device Service</string>
     <string name="field_service">Field Service</string>
@@ -423,7 +425,7 @@
     <string name="unknown_service">Desconocido Tipo de Servicio: %d</string>
     <string name="app_version">Versión de aplicación:</string>
     <string name="core_version">Versión Framework</string>
-    <string name="library_version">Versión AAML</string>
+    <string name="library_version">Versión SDK</string>
     <string name="reachable">Alcanzable</string>
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
