@@ -39,7 +39,7 @@ import java.util.List;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class DeviceGroupsFragment extends AllDevicesFragment {
+public class DeviceGroupsFragment extends AllDevicesFragment implements GroupManager.GroupManagerListener {
     private static final String LOG_TAG = "DeviceGroupsFragment";
 
     private HorizontalScrollView _buttonScrollView;
@@ -363,5 +363,12 @@ public class DeviceGroupsFragment extends AllDevicesFragment {
         Log.d(LOG_TAG, "Selected group: " + group);
         _selectedGroup = group;
         updateDeviceList();
+    }
+
+    public void groupListChanged() {
+        createGroupButtonHeader();
+    }
+    public void groupMembersChanged(DeviceGroup changedGroup){
+
     }
 }
