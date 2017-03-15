@@ -44,6 +44,8 @@ import org.altbeacon.beacon.BleNotAvailableException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import fi.iki.elonen.NanoHTTPD;
+
 /*
  * AMAP_Android
  *
@@ -57,7 +59,6 @@ public class AutomationListFragment extends Fragment {
     private ListView _listViewAutomations;
     private ArrayList<Automation> _automationsList;
     private AutomationListAdapter _automationsAdapter;
-    private final static int ERROR_NOT_FOUND = 404;
     private static final int MAX_AUTOMATIONS = 10;
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
@@ -158,7 +159,7 @@ public class AutomationListFragment extends Fragment {
                     //don't want to show this error.
                     ServerError serverError = ((ServerError) error);
                     int code = serverError.getServerResponseCode();
-                    if(code == ERROR_NOT_FOUND) {
+                    if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                         Log.d(LOG_TAG, "No Existing Automations");
                         return;
                     }
@@ -297,7 +298,7 @@ public class AutomationListFragment extends Fragment {
                                 //don't want to show this error.
                                 ServerError serverError = ((ServerError) error);
                                 int code = serverError.getServerResponseCode();
-                                if(code == ERROR_NOT_FOUND) {
+                                if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                                     Log.d(LOG_TAG, "No Existing Automations");
                                     return;
                                 }

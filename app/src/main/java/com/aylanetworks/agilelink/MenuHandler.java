@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.batch.BatchActionsFragment;
 import com.aylanetworks.agilelink.beacon.AMAPBeaconService;
 import com.aylanetworks.agilelink.beacon.BeaconsListFragment;
 import com.aylanetworks.agilelink.fragments.AboutFragment;
@@ -27,7 +28,6 @@ import com.aylanetworks.agilelink.fragments.SharesFragment;
 import com.aylanetworks.agilelink.fragments.WelcomeFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.Logger;
-import com.aylanetworks.agilelink.actions.ActionsListFragment;
 import com.aylanetworks.agilelink.geofence.AllGeofencesFragment;
 import com.aylanetworks.agilelink.automation.AutomationListFragment;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
@@ -171,7 +171,7 @@ public class MenuHandler {
     }
 
     public static void handleActions() {
-        replaceFragmentToRoot(ActionsListFragment.newInstance());
+        replaceFragmentToRoot(BatchActionsFragment.newInstance());
     }
 
     public static void handleAutomations() {

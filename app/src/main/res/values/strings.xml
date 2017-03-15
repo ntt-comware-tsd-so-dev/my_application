@@ -709,7 +709,7 @@
     <string name="perform_these_actions">Perform these actions</string>
     <string name="done">Done</string>
     <string name="automation_no_actions">This automation has no actions. Tap on the add button to associate one.</string>
-    <string name="actions">Device Actions</string>
+    <string name="actions">Actions</string>
     <string name="automations">Automations</string>
     <string name="saved_success">Saved Successfully</string>
     <string name="updated_success">Updated Successfully</string>
@@ -756,6 +756,19 @@
     <string name="retry">Retry</string>
     <string name="device_manager_init_failure">The Device Manager failed to initialize: %1$s</string>
     <string name="automation_help_url">file:///android_res/raw/automation_help.htm</string>
+    <string name="geofences_empty">There are no existing Geofences. Please add a new Geofence to use it for this Automation.</string>
+    <string name="beacons_empty">There are no existing Beacons. Please add a new Beacon to use it for this Automation.</string>
+    <string name="batches_empty">There are no existing Actions. Please add a new Action to use it for this Automation.</string>
+
+    <string name="batch_empty_text">Tap the add button to create a new Batch Action</string>
+    <string name="batch_action_name">Name for the Batch Action</string>
+    <string name="batch_action">Batch Action</string>
+    <string name="batch_action_name_empty">Batch Action Name is empty</string>
+    <string name="saved_batch_action_success">Saved Batch Action Successfully.</string>
+    <string name="device_actions_empty_batch">Please add Device Actions for this BatchAction.</string>
+    <string name="device_actions_empty">You have no Device Actions associated with your account. Tap on the main Menu and select Device Actions to add new Device Actions.</string>
+    <string name="execute_batch_actions">Execute Batch Actions</string>
+    <string name="fetching_batches_body">Fetching Batch Actions. Please wait...</string>
 
     <string-array name="location_options">
         <item>United States</item>

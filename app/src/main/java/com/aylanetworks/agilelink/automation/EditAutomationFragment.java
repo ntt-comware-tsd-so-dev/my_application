@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,6 +43,7 @@ import com.aylanetworks.agilelink.geofence.GeofenceController;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.aylanetworks.aylasdk.error.ServerError;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +51,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import fi.iki.elonen.NanoHTTPD;
 
 import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
 
@@ -75,6 +77,8 @@ public class EditAutomationFragment extends Fragment {
     private String _triggerID;
     private Map<String, String> _triggerIDMap;
     private View _root;
+    private Button _saveActionButton;
+    private ImageView _actionAddButton;
 
     public EditAutomationFragment() {
         // Required empty public constructor
@@ -207,7 +211,11 @@ public class EditAutomationFragment extends Fragment {
             }
         });
 
-        Button saveActionButton = (Button) _root.findViewById(R.id.button_action_save);
+        _saveActionButton = (Button) _root.findViewById(R.id.button_action_save);
+        _actionAddButton = (ImageView) _root.findViewById(R.id.btn_add_action);
+        _saveActionButton.setEnabled(false);
+        _actionAddButton.setEnabled(false);
+
         final TextView emptyActionsView = (TextView) _root.findViewById(R.id.empty_actions);
         if (getArguments() != null) {
             _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
@@ -251,8 +259,7 @@ public class EditAutomationFragment extends Fragment {
             viewGeofences.setVisibility(View.GONE);
         }
 
-        ImageView actionAddButton = (ImageView) _root.findViewById(R.id.btn_add_action);
-        actionAddButton.setOnClickListener(new View.OnClickListener() {
+        _actionAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(_automation == null) {
@@ -266,7 +273,7 @@ public class EditAutomationFragment extends Fragment {
             }
         });
 
-        saveActionButton.setOnClickListener(new View.OnClickListener() {
+        _saveActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 saveAutomation();
@@ -320,9 +327,8 @@ public class EditAutomationFragment extends Fragment {
         }
 
         final Automation automation = new Automation();
-        if(automationName !=null) {
-            automation.setName(automationName);
-        }
+        automation.setName(automationName);
+
         if(triggerUUID != null) {
             automation.setTriggerUUID(triggerUUID);
         }
@@ -400,14 +406,31 @@ public class EditAutomationFragment extends Fragment {
                 ArrayAdapter locationAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_list_item_1, locationNames);
                 _locationNameSpinner.setAdapter(locationAdapter);
-                if (selectedLocation != null) {
-                    int spinnerPosition = locationAdapter.getPosition(selectedLocation);
-                    _locationNameSpinner.setSelection(spinnerPosition);
-                }
+
+                int spinnerPosition = locationAdapter.getPosition(selectedLocation);
+                _locationNameSpinner.setSelection(spinnerPosition);
+
+                _saveActionButton.setEnabled(true);
+                _actionAddButton.setEnabled(true);
             }
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
+                _saveActionButton.setEnabled(false);
+                _actionAddButton.setEnabled(false);
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        String errorString = MainActivity.getInstance().getString(R.string
+                                .geofences_empty);
+                        Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
                 Log.d(LOG_TAG, error.getMessage());
             }
         });
@@ -451,16 +474,30 @@ public class EditAutomationFragment extends Fragment {
                         android.R.layout.simple_list_item_1, beaconNames);
                 _beaconNameSpinner.setAdapter(beaconAdapter);
 
-                if (selectedBeacon != null) {
-                    int spinnerPosition = beaconAdapter.getPosition(selectedBeacon);
-                    _beaconNameSpinner.setSelection(spinnerPosition);
-                }
+                int spinnerPosition = beaconAdapter.getPosition(selectedBeacon);
+                _beaconNameSpinner.setSelection(spinnerPosition);
+
+                _saveActionButton.setEnabled(true);
+                _actionAddButton.setEnabled(true);
             }
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
-                Log.d(LOG_TAG, error.getMessage());
-            }
+                _saveActionButton.setEnabled(false);
+                _actionAddButton.setEnabled(false);
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        String errorString = MainActivity.getInstance().getString(R.string.beacons_empty);
+                        Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                Log.d(LOG_TAG, error.getMessage());            }
         });
     }
 

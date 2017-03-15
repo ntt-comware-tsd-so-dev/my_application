@@ -34,6 +34,8 @@ import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
+import com.aylanetworks.agilelink.framework.batch.BatchAction;
+import com.aylanetworks.agilelink.framework.batch.BatchManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaDatapoint;
 import com.aylanetworks.aylasdk.AylaDevice;
@@ -48,9 +50,7 @@ import com.aylanetworks.aylasdk.AylaTimeZone;
 import com.aylanetworks.aylasdk.change.Change;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
-import com.aylanetworks.aylasdk.util.EmptyListener;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -519,7 +519,9 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                     }
                 }
                 if (!automationList.isEmpty()) {
-                    updateAutomations(automationList);
+                    updateAutomations(automationList,actionIDsToRemove);
+                } else{
+                    fetchBatchActions(actionIDsToRemove);
                 }
             }
         }, new ErrorListener() {
@@ -531,13 +533,16 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
     }
 
     /**
-     * Updated Automations from User datum for the list of automations.
+     * Updated Automations from User datum for the list of automations. On Success check if
+     * BatchActions (If any) need to to be updated or deleted
      * @param automationList automation list that need to be updated
+     * @param actionIDsToRemove Set of Action ids
      */
-    private void updateAutomations(final ArrayList<Automation> automationList) {
+    private void updateAutomations(final ArrayList<Automation> automationList,final HashSet<String> actionIDsToRemove) {
         AutomationManager.updateAutomations(automationList, new Response.Listener<ArrayList<Automation>>() {
                     @Override
                     public void onResponse(ArrayList<Automation> automationArrayList) {
+                        fetchBatchActions(actionIDsToRemove);
                         Log.i(LOG_TAG, "updateAutomations success");
                     }
                 }, new ErrorListener() {
@@ -546,6 +551,89 @@ public class DeviceDetailFragment extends Fragment implements AylaDevice.DeviceC
                         Log.e(LOG_TAG, "updateAutomations: " + error.getMessage());
                     }
                 });
+    }
+
+    /**
+     * First update all the BatchActions passed in updateActionList and then on success/failure
+     * delete the BatchActions passed in deleteActionList
+     * @param deleteActionList UUIDs of BatchActions that need to be deleted
+     * @param updateActionList List of BatchActions that need to be Updated
+     */
+    private void updateAndDeleteBatchActions(final ArrayList<String> deleteActionList,
+                                             final ArrayList<BatchAction> updateActionList) {
+        BatchManager.updateBatchActions(updateActionList, new Response.Listener<ArrayList<BatchAction>>
+                () {
+            @Override
+            public void onResponse(ArrayList<BatchAction>response) {
+                deleteBatchActions(deleteActionList);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                deleteBatchActions(deleteActionList);
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+    private void deleteBatchActions(final ArrayList<String> deleteActionList) {
+        BatchManager.deleteBatchActions(deleteActionList, new Response.Listener<ArrayList<String>>() {
+            @Override
+            public void onResponse(ArrayList<String>response) {
+                Log.i(LOG_TAG, "deleteBatchActions success");
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_LONG).show();
+
+            }
+        });
+    }
+
+    /**
+     * Fetch all BatchActions and check if any of the BatchAction has device actions that are
+     * removed. If the BatchAction consists entirely of a list of Device Actions that were
+     * deleted we can safely delete that BatchAction else just update that BatchAction by
+     * removing the list of Device Actions that are passed.
+     * @param deviceActionSet Set of Device Action ids that were removed
+     */
+    private void fetchBatchActions(final HashSet<String> deviceActionSet) {
+        BatchManager.fetchBatchActions(new Response.Listener<BatchAction[]>() {
+            @Override
+            public void onResponse(BatchAction[] response) {
+                ArrayList<String> groupActionDeleteList = new ArrayList<>();
+                ArrayList<BatchAction> updateActionList = new ArrayList<>();
+                //If all the Device Actions in a BatchAction are deleted then delete that
+                // BatchAction else Update the BatchAction
+                for(BatchAction groupAction: response) {
+                    ArrayList<String> actionUUIDList =new ArrayList<>(Arrays.asList(groupAction
+                            .getActionUuids()));
+                   if(deviceActionSet.containsAll(actionUUIDList)) {
+                       groupActionDeleteList.add(groupAction.getUuid());
+                   } else {
+                       actionUUIDList.removeAll(deviceActionSet);
+                       groupAction.setActionUuids(actionUUIDList.toArray(new String[actionUUIDList.size()]));
+                       updateActionList.add(groupAction);
+                   }
+               }
+               if(updateActionList.isEmpty()) {
+                   deleteBatchActions(groupActionDeleteList);
+               } else {
+                   updateAndDeleteBatchActions(groupActionDeleteList,updateActionList);
+               }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.e(LOG_TAG, "fetchBatchActions: " + error);
+            }
+        });
     }
 
     private void refreshDevices() {
