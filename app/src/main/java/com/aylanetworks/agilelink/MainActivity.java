@@ -512,9 +512,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         // Phones are portrait-only. Tablets support orientation changes.
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestStoragePermissions();
-        }
         if (getResources().getBoolean(R.bool.portrait_only)) {
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -1116,6 +1113,9 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestStoragePermissions();
+        }
         Log.d(LOG_TAG, "onResume");
         if(_theInstance == null){
             _theInstance = this;

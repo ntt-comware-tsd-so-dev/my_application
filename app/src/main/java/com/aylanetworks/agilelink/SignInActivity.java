@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -29,8 +31,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.NoConnectionError;
 import com.android.volley.Response;
+import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
+import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.AylaEmailTemplate;
@@ -39,15 +42,21 @@ import com.aylanetworks.aylasdk.AylaNetworks;
 import com.aylanetworks.aylasdk.AylaSessionManager;
 import com.aylanetworks.aylasdk.AylaSystemSettings;
 import com.aylanetworks.aylasdk.AylaUser;
-import com.aylanetworks.agilelink.fragments.ResetPasswordDialog;
-import com.aylanetworks.agilelink.fragments.SignUpDialog;
 import com.aylanetworks.aylasdk.auth.AylaAuthProvider;
 import com.aylanetworks.aylasdk.auth.AylaAuthorization;
 import com.aylanetworks.aylasdk.auth.AylaOAuthProvider;
 import com.aylanetworks.aylasdk.auth.CachedAuthProvider;
+import com.aylanetworks.aylasdk.auth.GoogleOAuthProvider;
 import com.aylanetworks.aylasdk.auth.UsernameAuthProvider;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 
 /*
  * SignInActivity.java
@@ -57,7 +66,9 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
  * Copyright (c) 2015 Ayla. All rights reserved.
  */
 
-public class SignInActivity extends FragmentActivity implements SignUpDialog.SignUpListener, AylaSessionManager.SessionManagerListener {
+public class SignInActivity extends FragmentActivity implements SignUpDialog.SignUpListener,
+        AylaSessionManager.SessionManagerListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     public static final String ARG_USERNAME = "username";
     public static final String ARG_PASSWORD = "password";
@@ -69,6 +80,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private static final String LOG_TAG = "SignInDialog";
 
     private static final String STATE_SIGNING_IN = "signingIn";
+    private static final int REQUEST_GOOGLE_SIGN_IN = 0;
 
     private EditText _username;
     private EditText _password;
@@ -76,6 +88,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
     private WebView _webView;
     private Spinner _serviceTypeSpinner;
     private boolean _signingIn;
+    private GoogleApiClient mGoogleApiClient;
 
     private final static String _serviceTypes[] = {"Dynamic", "Field", "Development", "Staging", "Demo"};
 
@@ -258,7 +271,7 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         googleLoginButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    oAuthSignIn(AylaOAuthProvider.AccountType.google);
+                    googleOAuthSignIn();
                 }
         });
 
@@ -416,6 +429,29 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void googleOAuthSignIn(){
+        showSigningInDialog();
+        //Create Google sign in options for Google oAuth.
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder
+                (GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail()
+                .requestServerAuthCode(getString(R.string.server_client_id))  //Replace this
+                // string with client id for your app
+                .requestScopes(new Scope((Scopes.EMAIL)))
+                .build();
+
+        //Build a GoogleApiClient
+        mGoogleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this,
+                this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
+                .addOnConnectionFailedListener(this)
+                .addConnectionCallbacks(this)
+                .build();
+
+        //This intent will be fired when the google account is selected on the google sign in
+        // client.
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, REQUEST_GOOGLE_SIGN_IN);
     }
 
     private void onResendEmail() {
@@ -737,4 +773,69 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
         //TODO: Add more matches when necessary, SVC-2335.
         return R.string.unauthorized;
     }// end of getLocalizedString
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        AylaLog.d(LOG_TAG, "onConnected ");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        AylaLog.d(LOG_TAG, "onConnectionSuspended ");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        AylaLog.d(LOG_TAG, "onConnectionFailed "+connectionResult.getErrorMessage());
+        Toast.makeText(SignInActivity.this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT)
+                .show();
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        AylaLog.d(LOG_TAG, "onActivityResult ");
+
+        //Check for result returned from signInIntent
+        if(requestCode == REQUEST_GOOGLE_SIGN_IN){
+            //check if sign in was successful
+            GoogleSignInResult googleSignInResult = Auth.GoogleSignInApi.
+                    getSignInResultFromIntent(data);
+            if(googleSignInResult.isSuccess()){
+                // Google sign in is success. Now login to Ayla User service using auth code
+                // returned from Google service.
+                String serverAuthCode = googleSignInResult.getSignInAccount().getServerAuthCode();
+                AylaLog.consoleLogDebug(LOG_TAG, "serverAuthCode "+serverAuthCode);
+
+                GoogleOAuthProvider googleOAuthProvider = new GoogleOAuthProvider(serverAuthCode);
+
+                //Sign in to Ayla user service using GoogleOAuthProvider
+                AylaNetworks.sharedInstance().getLoginManager().signIn(googleOAuthProvider,
+                        AMAPCore.DEFAULT_SESSION_NAME, new Response
+                                .Listener<AylaAuthorization>() {
+                            @Override
+                            public void onResponse(AylaAuthorization response) {
+                                setResult(Activity.RESULT_OK);
+                                dismissSigningInDialog();
+                                finish();
+                            }
+                        }, new ErrorListener() {
+                            @Override
+                            public void onErrorResponse(AylaError error) {
+                                dismissSigningInDialog();
+                                Toast.makeText(SignInActivity.this, "Sign in to Ayla " +
+                                        "cloud using Google oAuth failed", Toast
+                                        .LENGTH_SHORT).show();
+                            }
+                        });
+
+            } else{
+                AylaLog.d(LOG_TAG, "google sign in failed "+googleSignInResult.getStatus().getStatusMessage());
+                dismissSigningInDialog();
+                mGoogleApiClient.stopAutoManage(this);
+                mGoogleApiClient.disconnect();
+            }
+        }
+    }
+
 }
