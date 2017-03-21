@@ -17,6 +17,8 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.batch.BatchAction;
+import com.aylanetworks.agilelink.framework.batch.BatchManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
 import com.aylanetworks.aylasdk.AylaDatapoint;
@@ -30,7 +32,9 @@ import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -72,7 +76,7 @@ public class AMAPGeofenceService extends IntentService {
         //Check if we have session manager
         AMAPCore coreInstance= AMAPCore.sharedInstance();
         if(coreInstance != null && coreInstance.getSessionManager() != null) {
-            fetchAutomations(entered,geofenceList);
+            fireBatchActions(entered,geofenceList);
         } else {
             sendNotification(entered,geofenceList);
         }
@@ -115,11 +119,41 @@ public class AMAPGeofenceService extends IntentService {
         notificationManager.notify(1, builder.build());
     }
 
-
-    public static void fetchAutomations(final boolean entered,final ArrayList<Geofence> geofenceList ){
+    public static void fireBatchActions(final boolean entered,final ArrayList<Geofence> geofenceList) {
         if(geofenceList == null) {
             return;
         }
+        BatchManager.fetchBatchActions(new Response.Listener<BatchAction[]>
+                () {
+            @Override
+            public void onResponse(BatchAction[] response) {
+                HashMap<String,BatchAction> mapBatchAction= new HashMap<>(response.length);
+                for(BatchAction batchAction:response) {
+                    mapBatchAction.put(batchAction.getUuid(), batchAction);
+                }
+                fetchAutomations(entered,geofenceList,mapBatchAction);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                //Check if there are no existing automations. This is not an actual error and we
+                //don't want to show this error. Just log it in case of no Existing automations
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(TAG, "No Existing BatchAction");
+                    } else {
+                        Log.e(TAG, "Error in fetch BatchAction " + error.getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "Error in fetch BatchAction " + error.getMessage());
+                }
+            }
+        });
+    }
+    private static void fetchAutomations(final boolean entered,final ArrayList<Geofence> geofenceList,
+                                         final Map<String,BatchAction> mapBatchAction){
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
                 () {
             @Override
@@ -137,8 +171,14 @@ public class AMAPGeofenceService extends IntentService {
                         // is in this list
                         for(Geofence geofence:geofenceList) {
                             if(geofence.getRequestId().equals(automation.getTriggerUUID())) {
-                                HashSet<String> actionSet = new HashSet<>(Arrays.asList(automation
-                                        .getActions()));
+                                HashSet<String> actionSet = new HashSet<>();
+                                String[] batchActionUUIDS= automation.getActions();
+                                for(String batchActionUUID:batchActionUUIDS){
+                                    BatchAction batchAction = mapBatchAction.get(batchActionUUID);
+                                    if(batchAction != null && batchAction.getActionUuids()!= null){
+                                        actionSet.addAll(Arrays.asList(batchAction.getActionUuids()));
+                                    }
+                                }
                                 setGeofenceActions(actionSet);
                             }
                         }
@@ -166,7 +206,7 @@ public class AMAPGeofenceService extends IntentService {
         });
     }
 
-    public static void setGeofenceActions(final HashSet<String> actionSet) {
+    private static void setGeofenceActions(final HashSet<String> actionSet) {
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
             public void onResponse(Action[] arrayAction) {
@@ -215,4 +255,3 @@ public class AMAPGeofenceService extends IntentService {
     }
 
 }
-

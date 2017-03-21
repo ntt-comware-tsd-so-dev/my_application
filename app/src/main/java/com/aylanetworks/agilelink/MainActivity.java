@@ -556,11 +556,11 @@ public class MainActivity extends AppCompatActivity
             //Check if it is a Beacon
             String beaconRegionID = bundle.getString(REGION_ID);
             if (beaconRegionID != null) {
-                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+                AMAPBeaconService.fireBatchActions(beaconRegionID, bValue);
             } else {
                 final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
                 if (geofenceList != null) {
-                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                    AMAPGeofenceService.fireBatchActions(bValue, geofenceList);
                 }
             }
         }
@@ -1300,11 +1300,11 @@ public class MainActivity extends AppCompatActivity
             //Check if it is a Beacon
             String beaconRegionID = bundle.getString(REGION_ID);
             if (beaconRegionID != null) {
-                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+                AMAPBeaconService.fireBatchActions(beaconRegionID, bValue);
             } else {
                 final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
                 if (geofenceList != null) {
-                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                    AMAPGeofenceService.fireBatchActions(bValue, geofenceList);
                 }
             }
         }

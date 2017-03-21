@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -33,6 +34,10 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.GenericHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeaconManager;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -43,8 +48,14 @@ import org.altbeacon.beacon.BleNotAvailableException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import fi.iki.elonen.NanoHTTPD;
+
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeBeaconEnter;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeBeaconExit;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
 
 /*
  * AMAP_Android
@@ -62,6 +73,7 @@ public class AutomationListFragment extends Fragment {
     private static final int MAX_AUTOMATIONS = 10;
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
+    private HashSet<String> triggerUUIDSet= new HashSet<>();
 
     public static AutomationListFragment newInstance(){
         return new AutomationListFragment();
@@ -130,6 +142,7 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
+        triggerUUIDSet.clear();
         if (getArguments() != null) {
             //This is the automation list we got from Edit Automation Fragment.
             _automationsList = (ArrayList<Automation>) getArguments().getSerializable(OBJ_KEY);
@@ -146,9 +159,21 @@ public class AutomationListFragment extends Fragment {
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
-                MainActivity.getInstance().dismissWaitDialog();
                 _automationsList = new ArrayList<>(Arrays.asList(response));
-                initializeAndSetAdapter();
+                boolean checkBeacons = false;
+                boolean checkGeofences = false;
+                for(Automation automation:_automationsList) {
+                    if(checkBeacons && checkGeofences)
+                        break;
+
+                    Automation.ALAutomationTriggerType triggerType= automation.getAutomationTriggerType();
+                    if(triggerType.equals(TriggerTypeGeofenceEnter) || triggerType.equals(TriggerTypeGeofenceExit)){
+                        checkGeofences = true;
+                    } else if(triggerType.equals(TriggerTypeBeaconEnter) || triggerType.equals(TriggerTypeBeaconExit)){
+                        checkBeacons = true;
+                    }
+                }
+                fetchObjects(checkGeofences,checkBeacons);
             }
         }, new ErrorListener() {
             @Override
@@ -161,6 +186,84 @@ public class AutomationListFragment extends Fragment {
                     int code = serverError.getServerResponseCode();
                     if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                         Log.d(LOG_TAG, "No Existing Automations");
+                        return;
+                    }
+                }
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchObjects(final boolean bFetchGeofences,final boolean bFetchBeacons){
+        if(bFetchGeofences) {
+            LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
+                @Override
+                public void onResponse(GeofenceLocation[] arrayGeofences) {
+                    for(GeofenceLocation geofenceLocation:arrayGeofences) {
+                        triggerUUIDSet.add(geofenceLocation.getId());
+                    }
+                    if(bFetchBeacons){
+                        fetchBeacons();
+                    } else {
+                        MainActivity.getInstance().dismissWaitDialog();
+                        initializeAndSetAdapter();
+                    }
+                }
+            }, new ErrorListener() {
+                @Override
+                public void onErrorResponse(AylaError error) {
+                    if (error instanceof ServerError) {
+                        //Check if there are no existing Geofences. This is not an actual error and we
+                        //don't want to show this error.
+                        ServerError serverError = ((ServerError) error);
+                        int code = serverError.getServerResponseCode();
+                        if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                            Log.d(LOG_TAG, "No Existing Geofences");
+                            if(bFetchBeacons){
+                                fetchBeacons();
+                            } else {
+                                MainActivity.getInstance().dismissWaitDialog();
+                                initializeAndSetAdapter();
+                            }
+                            return;
+                        }
+                    }
+                    MainActivity.getInstance().dismissWaitDialog();
+                    String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                            error.toString();
+                    Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else if(bFetchBeacons) {
+            fetchBeacons();
+        }
+    }
+
+
+    private void fetchBeacons() {
+        AMAPBeaconManager.fetchBeacons(new Response.Listener<AMAPBeacon[]>() {
+            @Override
+            public void onResponse(AMAPBeacon[] arrayBeacons) {
+                for(AMAPBeacon beacon:arrayBeacons) {
+                    triggerUUIDSet.add(beacon.getId());
+                }
+                MainActivity.getInstance().dismissWaitDialog();
+                initializeAndSetAdapter();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if (error instanceof ServerError) {
+                    //Check if there are no existing Beacons. This is not an actual error and we
+                    //don't want to show this error.
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(LOG_TAG, "No Existing Beacons");
+                        initializeAndSetAdapter();
                         return;
                     }
                 }
@@ -208,9 +311,15 @@ public class AutomationListFragment extends Fragment {
 
             final Automation automation = getItem(position);
             TextView tv1 = (TextView) convertView.findViewById(R.id.listItemAutomation);
+            ImageView imageView= (ImageView) convertView.findViewById(R.id.automation_image_warn);
+            imageView.setVisibility(View.GONE);
+            if(!triggerUUIDSet.contains(automation.getTriggerUUID()) || automation.getActions() == null) {
+                imageView.setVisibility(View.VISIBLE);
+            }
+
             Switch enabledSwitch = (Switch) convertView.findViewById(R.id.toggle_switch);
             if(automation == null) {
-               return  convertView;
+                return  convertView;
             }
             tv1.setText(automation.getName());
             enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -347,8 +456,8 @@ public class AutomationListFragment extends Fragment {
 
                 Automation.ALAutomationTriggerType typeBeaconEnter =Automation.ALAutomationTriggerType
                         .TriggerTypeBeaconEnter;
-                Automation.ALAutomationTriggerType typeBeaconExit =Automation.ALAutomationTriggerType
-                        .TriggerTypeBeaconExit;
+                Automation.ALAutomationTriggerType typeBeaconExit =
+                        TriggerTypeBeaconExit;
 
                 for(Automation automation:_automationsList){
                     Automation.ALAutomationTriggerType triggerType = automation

@@ -29,6 +29,7 @@ import com.aylanetworks.aylasdk.error.ErrorListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /*
  * AMAP_Android
@@ -77,7 +78,7 @@ public class AutomationActionsFragment extends Fragment {
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
             public void onResponse(Action[] arrayAlAction) {
-                    fetchBatchActions(arrayAlAction);
+                fetchBatchActions(arrayAlAction);
             }
         }, new ErrorListener() {
             @Override
@@ -118,31 +119,32 @@ public class AutomationActionsFragment extends Fragment {
         Log.d(LOG_TAG, "Clicked Save");
         //Get all the selections from Batch Actions
         if (_batchAdapter != null) {
-            Action[] actionsArray = new Action[_batchAdapter.getCheckedItems().size()];
-            actionsArray = _batchAdapter.getCheckedItems().toArray(actionsArray);
-            _automation.setActions(actionsArray);
+            ArrayList<BatchAction> batchActionList = _batchAdapter.getCheckedItems();
+
+            String[] uuidArray = new String[batchActionList.size()];
+            for(int idx=0; idx < batchActionList.size(); idx++) {
+                uuidArray[idx] = batchActionList.get(idx).getUuid();
+            }
+            _automation.setActions(uuidArray);
             EditAutomationFragment frag = EditAutomationFragment.newInstance(_automation);
             MainActivity.getInstance().pushFragment(frag);
         }
     }
 
     private void doFillData(final Action[] arrayAlAction, final BatchAction[] arrayBatchActions) {
-        String[] actionUUIDs = null;
-        if (_automation != null && _automation.getActions() != null) {
-            actionUUIDs = _automation.getActions();
-        }
+
         if (arrayBatchActions != null) {
             HashMap<String, Action> actionHashMap = new HashMap<>();
             for (Action action : arrayAlAction) {
                 actionHashMap.put(action.getId(), action);
             }
-            ArrayList<String> batchNamesArray = new ArrayList<>();
+            ArrayList<BatchAction> batchActionArray = new ArrayList<>();
             ArrayList<ArrayList<Action>> actionItemsArray = new ArrayList<>();
 
             for (BatchAction batchAction : arrayBatchActions) {
                 String[] actionUUIDArray = batchAction.getActionUuids();
                 if (actionUUIDArray != null) {
-                    batchNamesArray.add(batchAction.getName());
+                    batchActionArray.add(batchAction);
                     ArrayList<Action> actions = new ArrayList<>();
                     for (String actionUUID : actionUUIDArray) {
                         actions.add(actionHashMap.get(actionUUID));
@@ -150,7 +152,7 @@ public class AutomationActionsFragment extends Fragment {
                     actionItemsArray.add(actions);
                 }
             }
-            _batchAdapter = new BatchActionAdapter(batchNamesArray, actionItemsArray,actionUUIDs);
+            _batchAdapter = new BatchActionAdapter(batchActionArray, actionItemsArray);
             _batchAdapter.setInflater((LayoutInflater) getActivity().getSystemService
                     (Context.LAYOUT_INFLATER_SERVICE), getActivity());
             _batchListView.setAdapter(_batchAdapter);
@@ -165,18 +167,19 @@ public class AutomationActionsFragment extends Fragment {
         private Activity _activity;
         private final ArrayList<ArrayList<Action>> _actionListItems;
         private LayoutInflater _inflater;
-        private final ArrayList<String> _batchListNames;
+        private final ArrayList<BatchAction> _batchActionList;
         private ArrayList<Action> _actionsList;
-        private final ArrayList<Action> _checkedList;
-        private ArrayList<String> _actionUUIDList =null;
+        private final ArrayList<BatchAction> _checkedList;
+        private final HashSet<String> _selectedList;
 
-        public BatchActionAdapter(ArrayList<String> parents, ArrayList<ArrayList<Action>>
-                objectArrayList,String[] actionUUIDs) {
-            _batchListNames = parents;
+        public BatchActionAdapter(ArrayList<BatchAction> parents, ArrayList<ArrayList<Action>>
+                objectArrayList) {
+            _batchActionList = parents;
             _actionListItems = objectArrayList;
             _checkedList = new ArrayList<>();
-            if(actionUUIDs !=null) {
-                _actionUUIDList=  new ArrayList<>(Arrays.asList(actionUUIDs));
+            _selectedList = new HashSet<>();
+            if(_automation != null && _automation.getActions() != null) {
+                _selectedList.addAll(new ArrayList<>(Arrays.asList(_automation.getActions())));
             }
         }
 
@@ -208,28 +211,23 @@ public class AutomationActionsFragment extends Fragment {
             }
 
             checkBoxView = (CheckBox) convertView.findViewById(R.id.checkbox_action);
-            checkBoxView.setText(_batchListNames.get(groupPosition));
-            final ArrayList<Action> actionList = _actionListItems.get(groupPosition);
-            if(_actionUUIDList != null) {
-                ArrayList <String> groupUUIDList = new ArrayList<>();
-                for(Action action:actionList) {
-                    groupUUIDList.add(action.getId());
-                }
-                if(groupUUIDList.containsAll(_actionUUIDList)) {
-                    checkBoxView.setChecked(true);
-                }
+
+            final BatchAction batchAction= _batchActionList.get(groupPosition);
+            checkBoxView.setText(batchAction.getName());
+            if(_selectedList.contains(batchAction.getUuid())) {
+                checkBoxView.setChecked(true);
+            }
+            if (checkBoxView.isChecked()) {
+                _checkedList.add(batchAction);
             }
 
-            if (checkBoxView.isChecked()) {
-                _checkedList.addAll(actionList);
-            }
             checkBoxView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
-                        _checkedList.addAll(actionList);
+                        _checkedList.add(batchAction);
                     } else {
-                        _checkedList.removeAll(actionList);
+                        _checkedList.remove(batchAction);
                     }
                 }
             });
@@ -260,7 +258,7 @@ public class AutomationActionsFragment extends Fragment {
 
         @Override
         public int getGroupCount() {
-            return _batchListNames.size();
+            return _batchActionList.size();
         }
 
         @Override
@@ -279,7 +277,7 @@ public class AutomationActionsFragment extends Fragment {
             return false;
         }
 
-        public ArrayList<Action> getCheckedItems() {
+        public ArrayList<BatchAction> getCheckedItems() {
             return _checkedList;
         }
     }

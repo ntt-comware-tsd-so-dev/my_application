@@ -770,6 +770,7 @@
     <string name="execute_batch_actions">Execute Batch Actions</string>
     <string name="fetching_batches_body">Fetching Batch Actions. Please wait...</string>
     <string name="server_client_id">547666055573-3tpmtb6fvu34de69sop2u4pgav2r7l8i.apps.googleusercontent.com</string>
+    <string name="batch_action_empty">Please add an action for this Automation</string>
 
     <string-array name="location_options">
         <item>United States</item>
