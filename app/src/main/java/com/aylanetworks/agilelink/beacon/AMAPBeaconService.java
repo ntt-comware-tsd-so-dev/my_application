@@ -277,6 +277,9 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
                             triggerType.equals(automationTriggerType)) {
                         HashSet<String> actionSet = new HashSet<>();
                         String[] batchActionUUIDS= automation.getActions();
+                        if(batchActionUUIDS == null) {
+                            return;
+                        }
                         for(String batchActionUUID:batchActionUUIDS){
                             BatchAction batchAction = mapBatchAction.get(batchActionUUID);
                             if(batchAction != null && batchAction.getActionUuids()!= null){

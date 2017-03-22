@@ -173,6 +173,9 @@ public class AMAPGeofenceService extends IntentService {
                             if(geofence.getRequestId().equals(automation.getTriggerUUID())) {
                                 HashSet<String> actionSet = new HashSet<>();
                                 String[] batchActionUUIDS= automation.getActions();
+                                if(batchActionUUIDS == null) {
+                                    return;
+                                }
                                 for(String batchActionUUID:batchActionUUIDS){
                                     BatchAction batchAction = mapBatchAction.get(batchActionUUID);
                                     if(batchAction != null && batchAction.getActionUuids()!= null){
