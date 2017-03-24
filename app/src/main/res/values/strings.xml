@@ -771,6 +771,9 @@
     <string name="fetching_batches_body">Fetching Batch Actions. Please wait...</string>
     <string name="server_client_id">547666055573-3tpmtb6fvu34de69sop2u4pgav2r7l8i.apps.googleusercontent.com</string>
     <string name="batch_action_empty">Please add an action for this Automation</string>
+    <string name="enable_all_automation">Enable all Automations</string>
+    <string name="disable_all_automation">Disable all Automations</string>
+
 
     <string-array name="location_options">
         <item>United States</item>
