@@ -468,6 +468,15 @@ public class MainActivity extends AppCompatActivity
                 if(_theInstance == null){
                     _theInstance = this;
                 }
+
+                if(AMAPCore.sharedInstance().getSessionManager() == null){
+                    Intent intent = new Intent(MainActivity.this, SignInActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
+                    return;
+                }
+
                 handleSignedIn();
 
                 // Start wearable service. If there are no wearable devices connected, the service

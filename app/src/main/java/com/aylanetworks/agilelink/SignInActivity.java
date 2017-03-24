@@ -56,7 +56,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.common.api.Status;
 
 /*
  * SignInActivity.java
@@ -815,6 +817,14 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 .Listener<AylaAuthorization>() {
                             @Override
                             public void onResponse(AylaAuthorization response) {
+
+                                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback
+                                        (new ResultCallback<Status>() {
+                                            @Override
+                                            public void onResult(@NonNull Status status) {
+                                                AylaLog.d(LOG_TAG, "Signed out from Google "+status);
+                                            }
+                                        });
                                 setResult(Activity.RESULT_OK);
                                 dismissSigningInDialog();
                                 finish();
@@ -826,16 +836,24 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 Toast.makeText(SignInActivity.this, "Sign in to Ayla " +
                                         "cloud using Google oAuth failed", Toast
                                         .LENGTH_SHORT).show();
+                                disconnectGoogleClient();
                             }
                         });
 
             } else{
                 AylaLog.d(LOG_TAG, "google sign in failed "+googleSignInResult.getStatus().getStatusMessage());
                 dismissSigningInDialog();
-                mGoogleApiClient.stopAutoManage(this);
-                mGoogleApiClient.disconnect();
+                disconnectGoogleClient();
             }
         }
+    }
+
+    private void disconnectGoogleClient(){
+        if(mGoogleApiClient != null){
+            mGoogleApiClient.stopAutoManage(this);
+            mGoogleApiClient.disconnect();
+        }
+
     }
 
 }
