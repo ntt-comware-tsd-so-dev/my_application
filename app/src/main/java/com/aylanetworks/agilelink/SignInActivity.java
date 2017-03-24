@@ -817,14 +817,6 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                 .Listener<AylaAuthorization>() {
                             @Override
                             public void onResponse(AylaAuthorization response) {
-
-                                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback
-                                        (new ResultCallback<Status>() {
-                                            @Override
-                                            public void onResult(@NonNull Status status) {
-                                                AylaLog.d(LOG_TAG, "Signed out from Google "+status);
-                                            }
-                                        });
                                 setResult(Activity.RESULT_OK);
                                 dismissSigningInDialog();
                                 finish();
@@ -837,6 +829,14 @@ public class SignInActivity extends FragmentActivity implements SignUpDialog.Sig
                                         "cloud using Google oAuth failed", Toast
                                         .LENGTH_SHORT).show();
                                 disconnectGoogleClient();
+                            }
+                        });
+
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback
+                        (new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(@NonNull Status status) {
+                                AylaLog.d(LOG_TAG, "Signed out from Google "+status);
                             }
                         });
 

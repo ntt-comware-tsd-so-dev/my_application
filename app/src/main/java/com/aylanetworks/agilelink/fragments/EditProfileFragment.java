@@ -111,6 +111,9 @@ public class EditProfileFragment extends Fragment implements View.OnClickListene
         String body = MainActivity.getInstance().getResources().getString(R.string.fetching_user_info_body);
         MainActivity.getInstance().showWaitDialog(title, body);
         Log.d(LOG_TAG, "user: AylaUser.getInfo started");
+        if(AMAPCore.sharedInstance().getSessionManager() == null){
+            return;
+        }
         AMAPCore.sharedInstance().getSessionManager().fetchUserProfile(
                 new Response.Listener<AylaUser>() {
                     @Override
