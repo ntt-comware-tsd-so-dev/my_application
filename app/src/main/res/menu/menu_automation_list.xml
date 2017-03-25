@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/help_automation"
+          android:title="@string/help">
+    </item>
+    <item android:id="@+id/enable_all_automation"
+          android:title="@string/enable_all_automation">
+    </item>
+    <item android:id="@+id/disable_all_automation"
+          android:title="@string/disable_all_automation">
+    </item>
+</menu>

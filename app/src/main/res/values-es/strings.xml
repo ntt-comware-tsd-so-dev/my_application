@@ -760,5 +760,23 @@
 <string name="confirm_update_beacon">Por favor introduzca el nuevo nombre para el Beacon seleccionado.</string>
 <string name="retry">Reintentar</string>
 <string name="device_manager_init_failure">El Administrador de Despotivos no se pudo inicializar: %1$s</string>
+    <string name="geofences_empty">No hay Geofencias existentes. Agregue un nuevo Geofence para usarlo en esta Automatización.</string>
+
+    <string name="beacons_empty">No hay balizas existentes. Agregue un nuevo Beacon para utilizarlo en esta Automatización.</string>
+    <string name="batches_empty">No hay acciones existentes. Agregue una acción nueva para utilizarla en esta automatización.</string>
+
+    <string name="batch_empty_text">Presiona el botón Agregar para crear una nueva acción por lotes</string>
+    <string name="batch_action_name">Nombre de la acción por lotes</string>
+    <string name="batch_action">Acción por lotes</string>
+    <string name="batch_action_name_empty">El nombre de la acción por lotes está vacío</string>
+    <string name="saved_batch_action_success">Acción por lotes guardada con éxito.</string>
+    <string name="device_actions_empty_batch">Agregue las acciones del dispositivo para esta BatchAction.</string>
+    <string name="device_actions_empty">No tiene ninguna acción de dispositivo asociada a su cuenta. Toque en el menú principal y seleccione Acciones del dispositivo para agregar nuevas acciones del dispositivo.</string>
+    <string name="execute_batch_actions">Ejecutar acciones por lotes</string>
+    <string name="fetching_batches_body">Obtención de acciones por lotes. Por favor espera...</string>
+    <string name="batch_action_empty">Agregue una acción para esta Automatización</string>
+    <string name="enable_all_automation">Habilitar todas las automatizaciones</string>
+    <string name="disable_all_automation">Deshabilitar todas las automatizaciones</string>
+
 
 </resources>

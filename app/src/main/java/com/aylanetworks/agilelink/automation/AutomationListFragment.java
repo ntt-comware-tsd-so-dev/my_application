@@ -112,7 +112,7 @@ public class AutomationListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.menu_help_automation, menu);
+        inflater.inflate(R.menu.menu_automation_list, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -122,6 +122,12 @@ public class AutomationListFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.help_automation:
                 showHelpFragment();
+                return true;
+            case R.id.enable_all_automation:
+               enableAutomations();
+                return true;
+            case R.id.disable_all_automation:
+                disableAutomations();
                 return true;
         }
         return false;
@@ -158,7 +164,47 @@ public class AutomationListFragment extends Fragment {
         showOrHideAddButton();
         return root;
     }
+    private void enableAutomations() {
+        updateAutomations(true);
+    }
 
+    private void disableAutomations() {
+        updateAutomations(false);
+    }
+
+    private void updateAutomations(boolean enable) {
+        if(_automationsList == null || _automationsList.isEmpty()) {
+            return;
+        }
+        ArrayList<Automation> automationList= new ArrayList();
+        for(Automation automation:_automationsList) {
+            automation.setEnabled(enable,MainActivity.getInstance());
+            automationList.add(automation);
+        }
+
+        MainActivity.getInstance().showWaitDialog(null,null);
+        AutomationManager.updateAutomations(automationList, new Response
+                .Listener<ArrayList<Automation>>() {
+            @Override
+            public void onResponse(ArrayList<Automation> response) {
+                MainActivity.getInstance().dismissWaitDialog();
+                String msg = MainActivity.getInstance().getString(R
+                        .string.updated_success);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                _automationsList = response;
+                initializeAndSetAdapter();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+            String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                Log.e(LOG_TAG, error.getMessage());
+            }
+        });
+    }
     private void fetchAutomations() {
         MainActivity.getInstance().showWaitDialog(R.string.fetching_automations_title, R.string.fetching_automations_body);
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
@@ -370,9 +416,12 @@ public class AutomationListFragment extends Fragment {
                 return  convertView;
             }
 
-            if (!_triggerUUIDSet.contains(automation.getTriggerUUID()) || automation.getActions() == null) {
-                imageView.setVisibility(View.VISIBLE);
-            } else if (!_batchUUIDSet.containsAll(Arrays.asList(automation.getActions()))) {
+            String[] batchActionUUIDs = automation.getActions();
+
+            if (!_triggerUUIDSet.contains(automation.getTriggerUUID()) ||
+                    batchActionUUIDs == null ||
+                    batchActionUUIDs.length ==0 ||
+                    !_batchUUIDSet.containsAll(Arrays.asList(batchActionUUIDs))) {
                 imageView.setVisibility(View.VISIBLE);
             }
 
