@@ -21,6 +21,8 @@ import com.aylanetworks.agilelink.automation.EditAutomationFragment;
 import com.aylanetworks.agilelink.framework.AMAPCore;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.batch.BatchAction;
+import com.aylanetworks.agilelink.framework.batch.BatchManager;
 import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
 import com.aylanetworks.agilelink.framework.beacon.AMAPBeaconManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
@@ -44,6 +46,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -196,7 +199,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
         if (instance == null || instance.getSessionManager() == null) {
             addNotification(msgString, id, true);
         } else {
-            fireActions(id, true);
+            fireBatchActions(id, true);
         }
     }
 
@@ -210,7 +213,7 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
         if (instance == null || instance.getSessionManager() == null) {
             addNotification(msgString, id, false);
         } else {
-            fireActions(id, false);
+            fireBatchActions(id, false);
         }
     }
 
@@ -219,12 +222,44 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
         _beaconManager.removeAllMonitorNotifiers();
     }
 
+    public static void fireBatchActions(final String id, final boolean hasEntered) {
+        BatchManager.fetchBatchActions(new Response.Listener<BatchAction[]>
+                () {
+            @Override
+            public void onResponse(BatchAction[] response) {
+                HashMap <String,BatchAction> mapBatchAction= new HashMap<>(response.length);
+                for(BatchAction batchAction:response) {
+                    mapBatchAction.put(batchAction.getUuid(), batchAction);
+                }
+                fireActions(id,hasEntered,mapBatchAction);
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                //Check if there are no existing automations. This is not an actual error and we
+                //don't want to show this error. Just log it in case of no Existing automations
+                if (error instanceof ServerError) {
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(TAG, "No Existing BatchAction");
+                    } else {
+                        Log.e(TAG, "Error in fetch BatchAction " + error.getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "Error in fetch BatchAction " + error.getMessage());
+                }
+            }
+        });
+    }
+
     /**
      * Checks if this Beacon ID matches Trigger UUID and fires the Actions that were set
      * @param id Unique Region identifier. This is same as the beacon id
      * @param hasEntered has Beacon enetered
      */
-    public static void fireActions(final String id, final boolean hasEntered) {
+    private static void fireActions(final String id, final boolean hasEntered, final Map<String,
+            BatchAction> mapBatchAction) {
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>
                 () {
             @Override
@@ -240,8 +275,17 @@ public class AMAPBeaconService extends Service implements BootstrapNotifier {
                     String beaconID= _mapBeaconID.get(automation.getTriggerUUID());
                     if (automation.isEnabled(MainActivity.getInstance()) && id.equals(beaconID) &&
                             triggerType.equals(automationTriggerType)) {
-                        HashSet<String> actionSet = new HashSet<>(Arrays.asList(automation
-                                .getActions()));
+                        HashSet<String> actionSet = new HashSet<>();
+                        String[] batchActionUUIDS= automation.getActions();
+                        if(batchActionUUIDS == null) {
+                            return;
+                        }
+                        for(String batchActionUUID:batchActionUUIDS){
+                            BatchAction batchAction = mapBatchAction.get(batchActionUUID);
+                            if(batchAction != null && batchAction.getActionUuids()!= null){
+                                actionSet.addAll(Arrays.asList(batchAction.getActionUuids()));
+                            }
+                        }
                         setBeaconActions(actionSet);
                         break;
                     }

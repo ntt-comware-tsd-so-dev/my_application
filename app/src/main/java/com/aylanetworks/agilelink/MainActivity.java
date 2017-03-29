@@ -468,6 +468,15 @@ public class MainActivity extends AppCompatActivity
                 if(_theInstance == null){
                     _theInstance = this;
                 }
+
+                if(AMAPCore.sharedInstance().getSessionManager() == null){
+                    Intent intent = new Intent(MainActivity.this, SignInActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
+                    return;
+                }
+
                 handleSignedIn();
 
                 // Start wearable service. If there are no wearable devices connected, the service
@@ -512,9 +521,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         // Phones are portrait-only. Tablets support orientation changes.
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestStoragePermissions();
-        }
         if (getResources().getBoolean(R.bool.portrait_only)) {
             Log.i("BOOL", "portrait_only: true");
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -559,11 +565,11 @@ public class MainActivity extends AppCompatActivity
             //Check if it is a Beacon
             String beaconRegionID = bundle.getString(REGION_ID);
             if (beaconRegionID != null) {
-                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+                AMAPBeaconService.fireBatchActions(beaconRegionID, bValue);
             } else {
                 final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
                 if (geofenceList != null) {
-                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                    AMAPGeofenceService.fireBatchActions(bValue, geofenceList);
                 }
             }
         }
@@ -1116,6 +1122,9 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestStoragePermissions();
+        }
         Log.d(LOG_TAG, "onResume");
         if(_theInstance == null){
             _theInstance = this;
@@ -1300,11 +1309,11 @@ public class MainActivity extends AppCompatActivity
             //Check if it is a Beacon
             String beaconRegionID = bundle.getString(REGION_ID);
             if (beaconRegionID != null) {
-                AMAPBeaconService.fireActions(beaconRegionID, bValue);
+                AMAPBeaconService.fireBatchActions(beaconRegionID, bValue);
             } else {
                 final ArrayList<Geofence> geofenceList = (ArrayList<Geofence>) bundle.getSerializable(GEO_FENCE_LIST);
                 if (geofenceList != null) {
-                    AMAPGeofenceService.fetchAutomations(bValue, geofenceList);
+                    AMAPGeofenceService.fireBatchActions(bValue, geofenceList);
                 }
             }
         }

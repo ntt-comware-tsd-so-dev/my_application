@@ -1,6 +1,7 @@
 package com.aylanetworks.agilelink.automation;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -33,6 +35,12 @@ import com.aylanetworks.agilelink.R;
 import com.aylanetworks.agilelink.fragments.GenericHelpFragment;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.automation.AutomationManager;
+import com.aylanetworks.agilelink.framework.batch.BatchAction;
+import com.aylanetworks.agilelink.framework.batch.BatchManager;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeacon;
+import com.aylanetworks.agilelink.framework.beacon.AMAPBeaconManager;
+import com.aylanetworks.agilelink.framework.geofence.GeofenceLocation;
+import com.aylanetworks.agilelink.framework.geofence.LocationManager;
 import com.aylanetworks.aylasdk.AylaAPIRequest;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
@@ -43,6 +51,14 @@ import org.altbeacon.beacon.BleNotAvailableException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+
+import fi.iki.elonen.NanoHTTPD;
+
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeBeaconEnter;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeBeaconExit;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceEnter;
+import static com.aylanetworks.agilelink.framework.automation.Automation.ALAutomationTriggerType.TriggerTypeGeofenceExit;
 
 /*
  * AMAP_Android
@@ -57,10 +73,11 @@ public class AutomationListFragment extends Fragment {
     private ListView _listViewAutomations;
     private ArrayList<Automation> _automationsList;
     private AutomationListAdapter _automationsAdapter;
-    private final static int ERROR_NOT_FOUND = 404;
     private static final int MAX_AUTOMATIONS = 10;
     private ImageButton _addButton;
     private AlertDialog _alertDialog;
+    private final HashSet<String> _triggerUUIDSet= new HashSet<>();
+    private final HashSet<String> _batchUUIDSet= new HashSet<>();
 
     public static AutomationListFragment newInstance(){
         return new AutomationListFragment();
@@ -95,7 +112,7 @@ public class AutomationListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.menu_help_automation, menu);
+        inflater.inflate(R.menu.menu_automation_list, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -105,6 +122,12 @@ public class AutomationListFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.help_automation:
                 showHelpFragment();
+                return true;
+            case R.id.enable_all_automation:
+               enableAutomations();
+                return true;
+            case R.id.disable_all_automation:
+                disableAutomations();
                 return true;
         }
         return false;
@@ -129,25 +152,66 @@ public class AutomationListFragment extends Fragment {
                 addTapped();
             }
         });
+        _triggerUUIDSet.clear();
+        _batchUUIDSet.clear();
         if (getArguments() != null) {
             //This is the automation list we got from Edit Automation Fragment.
             _automationsList = (ArrayList<Automation>) getArguments().getSerializable(OBJ_KEY);
-            initializeAndSetAdapter();
+            fetchObjects();
         } else {
             fetchAutomations();
         }
         showOrHideAddButton();
         return root;
     }
+    private void enableAutomations() {
+        updateAutomations(true);
+    }
 
+    private void disableAutomations() {
+        updateAutomations(false);
+    }
+
+    private void updateAutomations(boolean enable) {
+        if(_automationsList == null || _automationsList.isEmpty()) {
+            return;
+        }
+        ArrayList<Automation> automationList= new ArrayList();
+        for(Automation automation:_automationsList) {
+            automation.setEnabled(enable,MainActivity.getInstance());
+            automationList.add(automation);
+        }
+
+        MainActivity.getInstance().showWaitDialog(null,null);
+        AutomationManager.updateAutomations(automationList, new Response
+                .Listener<ArrayList<Automation>>() {
+            @Override
+            public void onResponse(ArrayList<Automation> response) {
+                MainActivity.getInstance().dismissWaitDialog();
+                String msg = MainActivity.getInstance().getString(R
+                        .string.updated_success);
+                Toast.makeText(MainActivity.getInstance(), msg, Toast.LENGTH_SHORT).show();
+                _automationsList = response;
+                initializeAndSetAdapter();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+            String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+                Log.e(LOG_TAG, error.getMessage());
+            }
+        });
+    }
     private void fetchAutomations() {
         MainActivity.getInstance().showWaitDialog(R.string.fetching_automations_title, R.string.fetching_automations_body);
         AutomationManager.fetchAutomation(new Response.Listener<Automation[]>() {
             @Override
             public void onResponse(Automation[] response) {
-                MainActivity.getInstance().dismissWaitDialog();
                 _automationsList = new ArrayList<>(Arrays.asList(response));
-                initializeAndSetAdapter();
+                fetchObjects();
             }
         }, new ErrorListener() {
             @Override
@@ -158,8 +222,145 @@ public class AutomationListFragment extends Fragment {
                     //don't want to show this error.
                     ServerError serverError = ((ServerError) error);
                     int code = serverError.getServerResponseCode();
-                    if(code == ERROR_NOT_FOUND) {
+                    if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                         Log.d(LOG_TAG, "No Existing Automations");
+                        return;
+                    }
+                }
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchObjects(){
+        boolean checkBeacons = false;
+        boolean checkGeofences = false;
+
+        if(_automationsList ==null || _automationsList.isEmpty()) {
+            initializeAndSetAdapter();
+            return;
+        }
+
+        for(Automation automation:_automationsList) {
+            if(checkBeacons && checkGeofences)
+                break;
+            Automation.ALAutomationTriggerType triggerType= automation.getAutomationTriggerType();
+            if(triggerType.equals(TriggerTypeGeofenceEnter) || triggerType.equals(TriggerTypeGeofenceExit)){
+                checkGeofences = true;
+            } else if(triggerType.equals(TriggerTypeBeaconEnter) || triggerType.equals(TriggerTypeBeaconExit)){
+                checkBeacons = true;
+            }
+        }
+
+        final boolean bFetchGeofences = checkGeofences;
+        final boolean bFetchBeacons = checkBeacons;
+
+        BatchManager.fetchBatchActions(new Response.Listener<BatchAction[]>() {
+            @Override
+            public void onResponse(BatchAction[] batchActions) {
+                for(BatchAction batchAction:batchActions) {
+                    _batchUUIDSet.add(batchAction.getUuid());
+                }
+                if(bFetchGeofences) {
+                    fetchGeofences(bFetchBeacons);
+                } else if(bFetchBeacons){
+                    fetchBeacons();
+                } else {
+                    MainActivity.getInstance().dismissWaitDialog();
+                    initializeAndSetAdapter();
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                if (error instanceof ServerError) {
+                    //Check if there are no existing batches. This is not an actual error and we
+                    //don't want to show this error.
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(LOG_TAG, "No Existing batch");
+                        if(bFetchBeacons){
+                            fetchBeacons();
+                        } else {
+                            MainActivity.getInstance().dismissWaitDialog();
+                            initializeAndSetAdapter();
+                        }
+                        return;
+                    }
+                }
+                MainActivity.getInstance().dismissWaitDialog();
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchGeofences(final boolean bFetchBeacons) {
+        LocationManager.fetchGeofenceLocations(new Response.Listener<GeofenceLocation[]>() {
+            @Override
+            public void onResponse(GeofenceLocation[] arrayGeofences) {
+                for(GeofenceLocation geofenceLocation:arrayGeofences) {
+                    _triggerUUIDSet.add(geofenceLocation.getId());
+                }
+                if(bFetchBeacons){
+                    fetchBeacons();
+                } else {
+                    MainActivity.getInstance().dismissWaitDialog();
+                    initializeAndSetAdapter();
+                }
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                if (error instanceof ServerError) {
+                    //Check if there are no existing Geofences. This is not an actual error and we
+                    //don't want to show this error.
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(LOG_TAG, "No Existing Geofences");
+                        if(bFetchBeacons){
+                            fetchBeacons();
+                        } else {
+                            MainActivity.getInstance().dismissWaitDialog();
+                            initializeAndSetAdapter();
+                        }
+                        return;
+                    }
+                }
+                MainActivity.getInstance().dismissWaitDialog();
+                String errorString = MainActivity.getInstance().getString(R.string.Toast_Error) +
+                        error.toString();
+                Toast.makeText(MainActivity.getInstance(), errorString, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void fetchBeacons() {
+        AMAPBeaconManager.fetchBeacons(new Response.Listener<AMAPBeacon[]>() {
+            @Override
+            public void onResponse(AMAPBeacon[] arrayBeacons) {
+                for(AMAPBeacon beacon:arrayBeacons) {
+                    _triggerUUIDSet.add(beacon.getId());
+                }
+                MainActivity.getInstance().dismissWaitDialog();
+                initializeAndSetAdapter();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
+                if (error instanceof ServerError) {
+                    //Check if there are no existing Beacons. This is not an actual error and we
+                    //don't want to show this error.
+                    ServerError serverError = ((ServerError) error);
+                    int code = serverError.getServerResponseCode();
+                    if (code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
+                        Log.d(LOG_TAG, "No Existing Beacons");
+                        initializeAndSetAdapter();
                         return;
                     }
                 }
@@ -207,10 +408,23 @@ public class AutomationListFragment extends Fragment {
 
             final Automation automation = getItem(position);
             TextView tv1 = (TextView) convertView.findViewById(R.id.listItemAutomation);
+            ImageView imageView= (ImageView) convertView.findViewById(R.id.automation_image_warn);
+            imageView.setVisibility(View.GONE);
+
             Switch enabledSwitch = (Switch) convertView.findViewById(R.id.toggle_switch);
             if(automation == null) {
-               return  convertView;
+                return  convertView;
             }
+
+            String[] batchActionUUIDs = automation.getActions();
+
+            if (!_triggerUUIDSet.contains(automation.getTriggerUUID()) ||
+                    batchActionUUIDs == null ||
+                    batchActionUUIDs.length ==0 ||
+                    !_batchUUIDSet.containsAll(Arrays.asList(batchActionUUIDs))) {
+                imageView.setVisibility(View.VISIBLE);
+            }
+
             tv1.setText(automation.getName());
             enabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -297,7 +511,7 @@ public class AutomationListFragment extends Fragment {
                                 //don't want to show this error.
                                 ServerError serverError = ((ServerError) error);
                                 int code = serverError.getServerResponseCode();
-                                if(code == ERROR_NOT_FOUND) {
+                                if(code == NanoHTTPD.Response.Status.NOT_FOUND.getRequestStatus()) {
                                     Log.d(LOG_TAG, "No Existing Automations");
                                     return;
                                 }
@@ -346,8 +560,8 @@ public class AutomationListFragment extends Fragment {
 
                 Automation.ALAutomationTriggerType typeBeaconEnter =Automation.ALAutomationTriggerType
                         .TriggerTypeBeaconEnter;
-                Automation.ALAutomationTriggerType typeBeaconExit =Automation.ALAutomationTriggerType
-                        .TriggerTypeBeaconExit;
+                Automation.ALAutomationTriggerType typeBeaconExit =
+                        TriggerTypeBeaconExit;
 
                 for(Automation automation:_automationsList){
                     Automation.ALAutomationTriggerType triggerType = automation
@@ -362,11 +576,12 @@ public class AutomationListFragment extends Fragment {
         }
     }
     private void checkBluetoothEnabled() {
+        Activity activity = MainActivity.getInstance();
         try {
             if (!BeaconManager.getInstanceForApplication(MainActivity.getInstance()).checkAvailability()) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
-                builder.setTitle(getString(R.string.bluetooth_title));
-                builder.setMessage(getString(R.string.bluetooth_dialog_summary));
+                final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setTitle(activity.getString(R.string.bluetooth_title));
+                builder.setMessage(activity.getString(R.string.bluetooth_dialog_summary));
                 builder.setPositiveButton(android.R.string.ok, null);
                 builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
@@ -379,8 +594,8 @@ public class AutomationListFragment extends Fragment {
         }
         catch (BleNotAvailableException e) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
-            builder.setTitle(getString(R.string.bluetooth_not_available_title));
-            builder.setMessage(getString(R.string.bluetooth_not_available_summary));
+            builder.setTitle(activity.getString(R.string.bluetooth_not_available_title));
+            builder.setMessage(activity.getString(R.string.bluetooth_not_available_summary));
             builder.setPositiveButton(android.R.string.ok, null);
             builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 

@@ -83,6 +83,8 @@ public class EditActionsFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         inflater.inflate(R.menu.menu_edit_geofence_action, menu);
+        menu.findItem(R.id.action_delete_action).setVisible(_action != null);
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -253,6 +255,9 @@ public class EditActionsFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 _propertyName = (String) _propertyActionSpinner.getItemAtPosition
                         (position);
+                if(_action == null) {
+                    _actionNameEditText.setText(_propertyName);
+                }
             }
 
             @Override

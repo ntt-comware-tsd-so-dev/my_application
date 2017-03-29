@@ -414,6 +414,8 @@
     <string name="about_app" formatted="false">Acerca de AMAP</string>
     <string name="about">Acerca de</string>
     <string name="more_options">Más...</string>
+    <string name="clipboard_copy">Texto copiado al portapapeles</string>
+    <string name="service_location">Ubicación del Servicio</string>
     <string name="service_type">Service</string>
     <string name="device_service">Device Service</string>
     <string name="field_service">Field Service</string>
@@ -423,7 +425,7 @@
     <string name="unknown_service">Desconocido Tipo de Servicio: %d</string>
     <string name="app_version">Versión de aplicación:</string>
     <string name="core_version">Versión Framework</string>
-    <string name="library_version">Versión AAML</string>
+    <string name="library_version">Versión SDK</string>
     <string name="reachable">Alcanzable</string>
     <string name="unreachable">Inalcanzable</string>
     <string name="unknown">Desconocido</string>
@@ -758,5 +760,20 @@
 <string name="confirm_update_beacon">Por favor introduzca el nuevo nombre para el Beacon seleccionado.</string>
 <string name="retry">Reintentar</string>
 <string name="device_manager_init_failure">El Administrador de Despotivos no se pudo inicializar: %1$s</string>
+    <string name="geofences_empty">No hay Geofencias existentes. Agregue un nuevo Geofence para usarlo en esta Automatización.</string>
+    <string name="beacons_empty">No hay Beacons existentes. Agregue un nuevo Beacon para utilizarlo en esta Automatización.</string>
+    <string name="batches_empty">No hay acciones existentes. Agregue una acción nueva para utilizarla en esta automatización.</string>
+    <string name="batch_empty_text">Presiona el botón Agregar para crear una nueva acción por lotes</string>
+    <string name="batch_action_name">Nombre de la acción por lotes</string>
+    <string name="batch_action">Acción por lotes</string>
+    <string name="batch_action_name_empty">El nombre de la acción por lotes está vacío</string>
+    <string name="saved_batch_action_success">Acción por lotes guardada con éxito.</string>
+    <string name="device_actions_empty_batch">Agregue las acciones del dispositivo para esta acción por lotes.</string>
+    <string name="device_actions_empty">No tiene ninguna acción de dispositivo asociada a su cuenta. Pulse en el menú principal y seleccione Acciones del dispositivo para agregar nuevas.</string>
+    <string name="execute_batch_actions">Ejecutar acciones por lotes</string>
+    <string name="fetching_batches_body">Cargando acciones por lotes. Por favor espere...</string>
+    <string name="batch_action_empty">Agregue una acción para esta Automatización</string>
+    <string name="enable_all_automation">Habilitar todas las automatizaciones</string>
+    <string name="disable_all_automation">Deshabilitar todas las automatizaciones</string>
 
 </resources>

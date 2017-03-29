@@ -18,6 +18,14 @@
             android:layout_marginLeft="30dp"
             android:layout_centerVertical="true"
            />
+        <ImageView
+            android:id="@+id/automation_image_warn"
+            android:src="@drawable/ic_icon_warning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/toggle_switch"
+            android:layout_centerVertical="true"
+            android:layout_weight="0"/>
         <TextView
             android:id="@+id/listItemAutomation"
             style="@style/DeviceListItemTextView"

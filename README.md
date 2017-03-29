@@ -7,7 +7,7 @@ An application designed to support multiple devices, themes, with strong separat
 Building in Android Studio
 =========================
 
-// Requires Gradle 2.1+  
+// Requires Gradle 2.3+
 // supported Android version: 4.4 and higher  
 // Each build requires the correct Ayla SDK and Ayla Core Framework branch. export AYLA_SDK_BRANCH &  
 // AYLA_CORE_BRANCH to the shell environment if using other than 'master'.
@@ -59,11 +59,32 @@ Robolectric 		https://github.com/robolectric/robolectric/blob/master/LICENSE.txt
 
 Version of major build tools used
 =================================
-Android Studio: 2.2.3
-Gradle: 2.14.1
+Android Studio: 2.3
+Gradle:3.3
 
 Release Notes
 ===========================
+
+AMAP v5.5.00 : AYLA_SDK_BRANCH=release/5.5.00, AYLA_CORE_BRANCH=release/5.5.00 (03/28/2017)
+
+New and Improved
+- Geofence and beacon improvements
+  - New batched action sets make it easier for automations to control multiple devices and/or actions per device
+- Google OAuth2 AuthProvider Support
+  - Replaces Webview OAuth which has been deprecated by Google
+  - See app note /doc/AppNote-UsingGoogleSign-in.pdf for details
+- Improved About page
+  - Add service location
+  - Add SDK library version
+
+Bug Fixes & Chores
+- Built using Android Studio v2.3 with latest play services & tools
+- Built using new Ayla_SDK  v5.5.00
+- Built using new AMAP Core Framework v5.5.00
+- General bug fixes
+- Updated documentation
+- Known Issues
+  - Nexus 5x will intermittently fail to bind to the network during WiFi Setup. Retry to work-around.
 
 AMAP v5.4.00 : AYLA_SDK_BRANCH=release/5.4.00, AYLA_CORE_BRANCH=release/5.4.00 (01/24/2017)
 

@@ -65,7 +65,7 @@ public class DeviceDetailListFragment extends AboutFragment {
         if ( !TextUtils.isEmpty(_device.getOemModel())) items.add(new AboutItem("oemModel", _device.getOemModel()));
         if ( !TextUtils.isEmpty(_device.getConnectionStatus().toString())) items.add(new AboutItem("connectionStatus", _device.getConnectionStatus().toString()));
         if ( !TextUtils.isEmpty(_device.getMac())) items.add(new AboutItem("MAC", formatMAC(_device.getMac())));
-        if ( !TextUtils.isEmpty(_device.getConnectedAt().toString())) items.add(new AboutItem("connectedAt", _device.getConnectedAt().toString()));
+        if ( _device.getConnectedAt() != null) items.add(new AboutItem("connectedAt", _device.getConnectedAt().toString()));
         if ( !TextUtils.isEmpty(_device.getIp())) items.add(new AboutItem("IP", _device.getIp()));
         if ( !TextUtils.isEmpty(_device.getSwVersion())) items.add(new AboutItem("SW Version", _device.getSwVersion()));
 

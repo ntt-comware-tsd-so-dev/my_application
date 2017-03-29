@@ -13,22 +13,23 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.Response;
 import com.aylanetworks.agilelink.MainActivity;
 import com.aylanetworks.agilelink.R;
-import com.aylanetworks.agilelink.framework.AMAPCore;
+import com.aylanetworks.agilelink.framework.batch.BatchAction;
+import com.aylanetworks.agilelink.framework.batch.BatchManager;
 import com.aylanetworks.agilelink.framework.geofence.Action;
 import com.aylanetworks.agilelink.framework.automation.Automation;
 import com.aylanetworks.agilelink.framework.geofence.AylaDeviceActions;
-import com.aylanetworks.aylasdk.AylaDevice;
 import com.aylanetworks.aylasdk.error.AylaError;
 import com.aylanetworks.aylasdk.error.ErrorListener;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /*
  * AMAP_Android
@@ -39,13 +40,12 @@ import java.util.List;
 public class AutomationActionsFragment extends Fragment {
     private final static String LOG_TAG = "ActionsListFragment";
     private final static String OBJ_KEY = "automation_obj";
+    private ExpandableListView _batchListView;
 
-    private ExpandableListView _expandableListView;
-    private final ArrayList<String> _deviceNames = new ArrayList<>();
     private Automation _automation;
-    private final ArrayList<ArrayList<Action>> _actionItems = new ArrayList<>();
     private Button _saveButton;
-    private DeviceActionAdapter _adapter;
+    private BatchActionAdapter _batchAdapter;
+
 
     public static AutomationActionsFragment newInstance(Automation automation) {
         AutomationActionsFragment frag = new AutomationActionsFragment();
@@ -59,7 +59,7 @@ public class AutomationActionsFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater _inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = _inflater.inflate(R.layout.fragment_geofence_actions, container, false);
+        View rootView = _inflater.inflate(R.layout.fragment_select_actions, container, false);
         _saveButton = (Button) rootView.findViewById(R.id.button_done_selection);
         return rootView;
     }
@@ -67,22 +67,23 @@ public class AutomationActionsFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        _deviceNames.clear();
-        _actionItems.clear();
+        _batchListView = (ExpandableListView) view.findViewById(R.id.expBatchListView);
+        _batchListView.setEmptyView(view.findViewById(R.id.batches_empty));
 
-        _expandableListView = (ExpandableListView) view.findViewById(R.id.expListView);
         if (getArguments() != null) {
             _automation = (Automation) getArguments().getSerializable(OBJ_KEY);
         }
 
+        MainActivity.getInstance().showWaitDialog(R.string.batch_action, R.string.fetching_batches_body);
         AylaDeviceActions.fetchActions(new Response.Listener<Action[]>() {
             @Override
             public void onResponse(Action[] arrayAlAction) {
-                doFillData(arrayAlAction);
+                fetchBatchActions(arrayAlAction);
             }
         }, new ErrorListener() {
             @Override
             public void onErrorResponse(AylaError error) {
+                MainActivity.getInstance().dismissWaitDialog();
                 Log.d(LOG_TAG, error.getMessage());
             }
         });
@@ -95,61 +96,91 @@ public class AutomationActionsFragment extends Fragment {
         });
     }
 
-    private void doSaveActions() {
-        Log.d(LOG_TAG, "Clicked Save");
-
-        Action[] actionsArray = new Action[_adapter.getCheckedItems().size()];
-        actionsArray = _adapter.getCheckedItems().toArray(actionsArray);
-        _automation.setActions(actionsArray);
-        EditAutomationFragment frag = EditAutomationFragment.newInstance(_automation);
-        MainActivity.getInstance().pushFragment(frag);
+    private void fetchBatchActions(final Action[] arrayAlAction) {
+        BatchManager.fetchBatchActions(new Response.Listener<BatchAction[]>() {
+            @Override
+            public void onResponse(BatchAction[] arrayBatchActions) {
+                doFillData(arrayAlAction, arrayBatchActions);
+                MainActivity.getInstance().dismissWaitDialog();
+            }
+        }, new ErrorListener() {
+            @Override
+            public void onErrorResponse(AylaError error) {
+                Log.d(LOG_TAG, error.getMessage());
+                if (arrayAlAction != null) {
+                    doFillData(arrayAlAction, null);
+                }
+                MainActivity.getInstance().dismissWaitDialog();
+            }
+        });
     }
 
-    private void doFillData(final Action[] arrayAlAction) {
-        String[] actionUUIDs = null;
-        if (_automation != null) {
-            actionUUIDs = _automation.getActions();
+    private void doSaveActions() {
+        Log.d(LOG_TAG, "Clicked Save");
+        //Get all the selections from Batch Actions
+        if (_batchAdapter != null) {
+            ArrayList<BatchAction> batchActionList = _batchAdapter.getCheckedItems();
+
+            String[] uuidArray = new String[batchActionList.size()];
+            for(int idx=0; idx < batchActionList.size(); idx++) {
+                uuidArray[idx] = batchActionList.get(idx).getUuid();
+            }
+            _automation.setActions(uuidArray);
+            EditAutomationFragment frag = EditAutomationFragment.newInstance(_automation);
+            MainActivity.getInstance().pushFragment(frag);
         }
-        final List<AylaDevice> deviceList = AMAPCore.sharedInstance().getDeviceManager()
-                .getDevices();
-        for (AylaDevice aylaDevice : deviceList) {
-            _deviceNames.add(aylaDevice.getProductName());
-            ArrayList<Action> actions = new ArrayList<>();
-            for (Action alAction : arrayAlAction) {
-                if (alAction == null) {
-                    continue;
-                }
-                if (aylaDevice.getDsn().equals(alAction.getDSN())) {
-                    actions.add(alAction);
+    }
+
+    private void doFillData(final Action[] arrayAlAction, final BatchAction[] arrayBatchActions) {
+
+        if (arrayBatchActions != null) {
+            HashMap<String, Action> actionHashMap = new HashMap<>();
+            for (Action action : arrayAlAction) {
+                actionHashMap.put(action.getId(), action);
+            }
+            ArrayList<BatchAction> batchActionArray = new ArrayList<>();
+            ArrayList<ArrayList<Action>> actionItemsArray = new ArrayList<>();
+
+            for (BatchAction batchAction : arrayBatchActions) {
+                String[] actionUUIDArray = batchAction.getActionUuids();
+                if (actionUUIDArray != null) {
+                    batchActionArray.add(batchAction);
+                    ArrayList<Action> actions = new ArrayList<>();
+                    for (String actionUUID : actionUUIDArray) {
+                        actions.add(actionHashMap.get(actionUUID));
+                    }
+                    actionItemsArray.add(actions);
                 }
             }
-            _actionItems.add(actions);
+            _batchAdapter = new BatchActionAdapter(batchActionArray, actionItemsArray);
+            _batchAdapter.setInflater((LayoutInflater) getActivity().getSystemService
+                    (Context.LAYOUT_INFLATER_SERVICE), getActivity());
+            _batchListView.setAdapter(_batchAdapter);
+            _batchListView.setVisibility(View.VISIBLE);
+            _batchListView.setGroupIndicator(null);
         }
-
-        _adapter = new DeviceActionAdapter(_deviceNames, _actionItems, actionUUIDs);
-        _adapter.setInflater((LayoutInflater) getActivity().getSystemService
-                (Context.LAYOUT_INFLATER_SERVICE), getActivity());
-        _expandableListView.setAdapter(_adapter);
-
-        _expandableListView.setGroupIndicator(null);
         _saveButton.setVisibility(View.VISIBLE);
     }
 
 
-    public class DeviceActionAdapter extends BaseExpandableListAdapter {
+    public class BatchActionAdapter extends BaseExpandableListAdapter {
         private Activity _activity;
         private final ArrayList<ArrayList<Action>> _actionListItems;
         private LayoutInflater _inflater;
-        private final ArrayList<String> _deviceListNames;
+        private final ArrayList<BatchAction> _batchActionList;
         private ArrayList<Action> _actionsList;
-        private final ArrayList<Action> _checkedList;
-        private final String[] _actionUUIDs;
+        private final ArrayList<BatchAction> _checkedList;
+        private final HashSet<String> _selectedList;
 
-        public DeviceActionAdapter(ArrayList<String> parents, ArrayList<ArrayList<Action>> objectArrayList, String[] actionUUIDs) {
-            this._deviceListNames = parents;
-            this._actionListItems = objectArrayList;
+        public BatchActionAdapter(ArrayList<BatchAction> parents, ArrayList<ArrayList<Action>>
+                objectArrayList) {
+            _batchActionList = parents;
+            _actionListItems = objectArrayList;
             _checkedList = new ArrayList<>();
-            _actionUUIDs = actionUUIDs;
+            _selectedList = new HashSet<>();
+            if(_automation != null && _automation.getActions() != null) {
+                _selectedList.addAll(new ArrayList<>(Arrays.asList(_automation.getActions())));
+            }
         }
 
         public void setInflater(LayoutInflater _inflater, Activity _activity) {
@@ -160,60 +191,46 @@ public class AutomationActionsFragment extends Fragment {
         @Override
         public View getChildView(int groupPosition, final int childPosition, boolean isLastChild,
                                  View convertView, ViewGroup parent) {
-            _actionsList = (ArrayList<Action>) _actionListItems.get(groupPosition);
-
-            CheckBox checkBoxView;
+            _actionsList =  _actionListItems.get(groupPosition);
 
             if (convertView == null) {
-                convertView = _inflater.inflate(R.layout.automation_action_row, null);
+                convertView = _inflater.inflate(R.layout.device_action_row,  parent,false);
             }
-
-            checkBoxView = (CheckBox) convertView.findViewById(R.id.checkbox_action);
-            checkBoxView.setText(_actionsList.get(childPosition).getName());
-            final Action action = _actionsList.get(childPosition);
-            if (_actionUUIDs != null) {
-                for (String actionID : _actionUUIDs) {
-                    if (actionID.equals(action.getId())) {
-                        checkBoxView.setChecked(true);
-                    }
-                }
-            }
-
-            if (checkBoxView.isChecked()) {
-                _checkedList.add(action);
-            }
-            checkBoxView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        if (!_checkedList.contains(action)) {
-                            _checkedList.add(action);
-                        }
-                    } else {
-                        if (_checkedList.contains(action)) {
-                            _checkedList.remove(action);
-                        }
-                    }
-                }
-            });
+            TextView textBoxView = (TextView) convertView.findViewById(R.id.textView1);
+            textBoxView.setText(_actionsList.get(childPosition).getName());
             return convertView;
         }
 
         @Override
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
 
+            CheckBox checkBoxView;
+
             if (convertView == null) {
-                convertView = _inflater.inflate(R.layout.device_action_group, null);
+                convertView = _inflater.inflate(R.layout.batch_action_header_row,  parent,false);
             }
-            TextView deviceView = (TextView) convertView.findViewById(R.id.device_name_title);
-            String deviceName = _deviceListNames.get(groupPosition);
-            deviceView.setText(deviceName);
 
-            //Make the addition of action invisible. This is needed only when we are adding actions
-            //in this fragment it is not allowed
-            ImageView actionAddButton = (ImageView) convertView.findViewById(R.id.btn_add_action);
-            actionAddButton.setVisibility(View.GONE);
+            checkBoxView = (CheckBox) convertView.findViewById(R.id.checkbox_action);
 
+            final BatchAction batchAction= _batchActionList.get(groupPosition);
+            checkBoxView.setText(batchAction.getName());
+            if(_selectedList.contains(batchAction.getUuid())) {
+                checkBoxView.setChecked(true);
+            }
+            if (checkBoxView.isChecked()) {
+                _checkedList.add(batchAction);
+            }
+
+            checkBoxView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        _checkedList.add(batchAction);
+                    } else {
+                        _checkedList.remove(batchAction);
+                    }
+                }
+            });
             ExpandableListView expandView = (ExpandableListView) parent;
             expandView.expandGroup(groupPosition);
             return convertView;
@@ -241,7 +258,7 @@ public class AutomationActionsFragment extends Fragment {
 
         @Override
         public int getGroupCount() {
-            return _deviceListNames.size();
+            return _batchActionList.size();
         }
 
         @Override
@@ -260,7 +277,7 @@ public class AutomationActionsFragment extends Fragment {
             return false;
         }
 
-        public ArrayList<Action> getCheckedItems() {
+        public ArrayList<BatchAction> getCheckedItems() {
             return _checkedList;
         }
     }
