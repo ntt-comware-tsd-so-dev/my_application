@@ -7,7 +7,7 @@ An application designed to support multiple devices, themes, with strong separat
 Building in Android Studio
 =========================
 
-// Requires Gradle 2.3+
+// Requires Android Studio 2.3+
 // supported Android version: 4.4 and higher  
 // Each build requires the correct Ayla SDK and Ayla Core Framework branch. export AYLA_SDK_BRANCH &  
 // AYLA_CORE_BRANCH to the shell environment if using other than 'master'.
