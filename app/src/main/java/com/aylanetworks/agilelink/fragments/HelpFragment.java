@@ -97,7 +97,9 @@ public class HelpFragment extends Fragment implements View.OnClickListener {
         .append("\nAyla SDK version: ").append(AylaNetworks.getVersion())
         .append("\nAura app version: ").append(MainActivity.getInstance().getAppVersion());
 
-        Intent emailIntent = AylaLog.getEmailIntent(supportEmailAddress, EMAIL_SUBJECT,
+        Intent emailIntent = AylaLog.getEmailIntent(MainActivity.getInstance().getApplicationContext(),
+                supportEmailAddress,
+                EMAIL_SUBJECT,
                 strBuilder.toString() );
         if(emailIntent != null){
             startActivity(emailIntent);
