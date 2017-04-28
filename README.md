@@ -65,7 +65,7 @@ Gradle:3.3
 Release Notes
 ===========================
 
-AMAP v5.5.02 : AYLA_SDK_BRANCH=release/5.5.01, AYLA_CORE_BRANCH=release/5.5.00 (04/28/2017)
+AMAP v5.5.02 : AYLA_SDK_BRANCH=release/5.5.02, AYLA_CORE_BRANCH=release/5.5.00 (04/28/2017)
 - Fixes crash emailing log files
 
 AMAP v5.5.01 : AYLA_SDK_BRANCH=release/5.5.01, AYLA_CORE_BRANCH=release/5.5.00 (04/11/2017)
